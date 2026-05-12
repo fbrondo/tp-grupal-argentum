@@ -1,8 +1,9 @@
 target_sources(taller_common
     PRIVATE
     # .cpp files
-    foo.cpp
+    toml_config.cpp
     PUBLIC
+    
     # .h files
-    foo.h
+    toml_config.h
     )

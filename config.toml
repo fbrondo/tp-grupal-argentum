@@ -1,0 +1,17 @@
+[server]
+port = 8080
+max_players = 100
+tick_rate_ms = 50          
+
+[game]
+inventory_size = 20        # cantidad maxima de objetos en el inventario
+clan_max_members = 16      # limite de jugadores por clan
+
+[balance]
+exp_limit_base = 1000      # Limite = exp_limit_base * Nivel^1.8
+oro_max_base = 100         # OroMax = oro_max_base * Nivel^1.1
+oro_excess_factor = 0.5    # el jugador puede tener hasta +50% sobre OroMax
+
+[npc]
+spawn_interval_s = 30
+max_population = 200      
