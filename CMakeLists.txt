@@ -28,6 +28,18 @@ message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 # HEY TODO XXX: change the name to something that you like
 add_library(taller_common STATIC)
 
+# Fetch toml++ (header-only TOML parser, used for game configuration files)
+include(FetchContent)
+FetchContent_Declare(
+    tomlplusplus
+    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+    GIT_TAG v3.4.0
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(tomlplusplus)
+target_link_libraries(taller_common tomlplusplus::tomlplusplus)
+
 # add the source files that make the lib
 # HEY!! TODO XXX: add more subfolders here
 add_subdirectory(common/)
