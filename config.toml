@@ -1,17 +1,17 @@
 [server]
 port = 8080
 max_players = 100
-tick_rate_ms = 50          
+tick_rate_ms = 50          # main loop interval in milliseconds
 
 [game]
-inventory_size = 20        # cantidad maxima de objetos en el inventario
-clan_max_members = 16      # limite de jugadores por clan
+inventory_size = 20        # max number of items a player can carry
+clan_max_members = 16      # max players per clan (including founder)
 
 [balance]
-exp_limit_base = 1000      # Limite = exp_limit_base * Nivel^1.8
-oro_max_base = 100         # OroMax = oro_max_base * Nivel^1.1
-oro_excess_factor = 0.5    # el jugador puede tener hasta +50% sobre OroMax
+exp_limit_base = 1000      # Limit = exp_limit_base * Level^1.8
+gold_max_base = 100         # GoldMax = gold_max_base * Level^1.1
+gold_excess_factor = 0.5    # player can hold up to +50% above GoldMax
 
 [npc]
-spawn_interval_s = 30
-max_population = 200      
+spawn_interval_s = 30      # seconds between NPC spawn cycles
+max_population = 200       # max NPC population on the map

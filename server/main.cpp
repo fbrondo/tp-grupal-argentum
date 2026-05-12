@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
         std::cout << "[server]" << std::endl;
         std::cout << "  port:        " << config.get_or<int64_t>("server.port", 8080) << "\n";
     } catch (const toml::parse_error& e) {
-        std::cerr << "Error al leer config: " << e << "\n";
+        std::cerr << "Failed to read config: " << e << "\n";
         return 1;
     }
 
