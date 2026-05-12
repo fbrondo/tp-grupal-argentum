@@ -10,7 +10,13 @@ common/
 ```
 
 ## Compilar
-Ejecutar en la raiz del repositorio `make`
+Ejecutar en la raiz del repositorio 
+
+`make`
+
+Para correr los tests
+
+`make test`
 
 ## Dependencias
 Se deben instalar las siguientes dependencias
