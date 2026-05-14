@@ -10,7 +10,13 @@ common/
 ```
 
 ## Compilar
-Ejecutar en la raiz del repositorio `make`
+Ejecutar en la raiz del repositorio 
+
+`make`
+
+Para correr los tests
+
+`make test`
 
 ## Dependencias
 Se deben instalar las siguientes dependencias
@@ -38,3 +44,10 @@ sudo apt install \
   libasound2-dev \
   libpulse-dev
 ```
+
+## Docker
+
+## CI/CD
+
+## Links
+[TOML C++ Marzer](https://marzer.github.io/tomlplusplus/)

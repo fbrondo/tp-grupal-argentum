@@ -1,0 +1,17 @@
+[server]
+port = 8080
+max_players = 100
+tick_rate_ms = 50
+
+[game]
+inventory_size = 20
+clan_max_members = 16
+
+[balance]
+exp_limit_base = 1000
+gold_max_base = 100
+gold_excess_factor = 0.5
+
+[npc]
+spawn_interval_s = 30
+max_population = 200
