@@ -1,3 +1,5 @@
+#ifndef SERVER_PROTOCOL_H
+#define SERVER_PROTOCOL_H
 #pragma once
 #include "../common/socket.h"
 #include "../common/protocol.h"
@@ -11,12 +13,12 @@ struct WorldState {
     std::vector<ItemGroundSnapshotData> items;
 };
 
-class ServerProtocolo {
+class ServerProtocol {
 private:
     Socket& socket;
 
 public:
-    explicit ServerProtocolo(Socket& s);
+    explicit ServerProtocol(Socket& s);
 
     // Mandar datos al Cliente
     void sendSnapshot(const WorldState& state);
@@ -28,5 +30,7 @@ public:
     void sendActionError(const std::string& error_msg);
 
     // Recibir un comando del Cliente
-    bool readCommand(uint32_t player_id, class ColaComandos& cola); // Devuelve false si el cliente se desconecto
+    bool readCommand(uint32_t player_id, class CommandQueue& queue); // Devuelve false si el cliente se desconecto
 };
+
+#endif

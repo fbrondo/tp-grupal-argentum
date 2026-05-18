@@ -1,6 +1,10 @@
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
 #pragma once
 
 #include <cstdint>
+#include <vector>
+constexpr size_t MAX_NAME_SIZE = 30;
 
 enum ClientOpcode : uint8_t {
     LOGIN = 1,
@@ -11,7 +15,9 @@ enum ClientOpcode : uint8_t {
     DROP_ITEM = 6,
     TAKE_ITEM = 7,
     COMMAND = 8,
-    INTERACT = 9
+    INTERACT = 9,
+    BUY_ITEM = 10,
+    SELL_ITEM = 11
 };
 
 enum ServerOpcode : uint8_t {
@@ -29,8 +35,8 @@ enum ServerOpcode : uint8_t {
 // Structs del Cliente
 struct MsgLogin {
     uint8_t opcode = ClientOpcode::LOGIN;
-    char name[30];
-    char pass[30];
+    char name[MAX_NAME_SIZE];
+    char pass[MAX_NAME_SIZE];
 };
 
 struct MsgMove {
@@ -51,6 +57,13 @@ struct MsgSlotItem {
 struct MsgInteract {
     uint8_t opcode = ClientOpcode::INTERACT;
     uint32_t npc_id;
+};
+
+struct MsgTrade {
+    uint8_t opcode;      // BUY_ITEM o SELL_ITEM
+    uint32_t npc_id;     // ID del comerciante
+    uint16_t item_id;
+    uint16_t quantity;
 };
 
 // Structs del Servidor
@@ -85,9 +98,9 @@ struct MsgPlayerStats {
     uint8_t opcode = ServerOpcode::PLAYER_STATS;
     uint32_t hp;
     uint32_t mana;
-    uint32_t oro;
+    uint32_t gold;
     uint32_t exp;
-    uint8_t nivel;
+    uint8_t level;
 };
 
 struct MsgInventoryUpdate {
@@ -99,3 +112,5 @@ struct MsgInventoryUpdate {
 };
 
 #pragma pack(pop)
+
+#endif

@@ -1,3 +1,5 @@
+#ifndef CLIENT_PROTOCOL_H
+#define CLIENT_PROTOCOL_H
 #pragma once
 #include "../common/socket.h"
 #include "../common/protocol.h"
@@ -5,13 +7,13 @@
 #include <string>
 
 enum class TypeEventClient {
-    ACTUALIZACION_MUNDO,
-    ESTADISTICAS_PROPIAS,
-    DESCONEXION,
-    MENSAJE_CHAT,
-    ERROR_ACCION,
-    RESPUESTA_LOGIN,
-    CAMBIO_MAPA
+    UPDATE_WORLD,
+    OWN_STATS,
+    DISCONNECTION,
+    CHAT_MSG,
+    ERROR_ACTION,
+    LOGIN_RESPONSE,
+    MAP_CHANGE
 };
 
 struct EventClient {
@@ -31,7 +33,7 @@ public:
 
     // Mandar comandos al Servidor
     void sendLogin(const std::string& name, const std::string& pass);
-    void sendMove(uint8_t direccion);
+    void sendMove(uint8_t direction);
     void sendAttack(uint32_t target_id);
     void sendChat(const std::string& msg);
     void sendUseItem(uint8_t slot_index);
@@ -39,8 +41,12 @@ public:
     void sendCommand(const std::string& cmd);
     void sendInteract(uint32_t npc_id);
     void sendTakeItem();
+    void sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity);
+    void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity);
 
     // Recibir actualizaciones del Servidor
     // Lee del socket para actualizar la interfaz grafica 
     bool ClientProtocol::recieveMessage(EventClient& out_evento);
 };
+
+#endif 
