@@ -1,10 +1,11 @@
 #include <iostream>
+
 #include "common/toml_config.h"
 
 int main(int argc, char* argv[]) {
     const char* config_path = (argc > 1) ? argv[1] : "config.toml";
 
-    // TODO: Delete this in the next iteration. Is a test. 
+    // TODO: Delete this in the next iteration. Is a test.
     try {
         TomlConfig config(config_path);
 

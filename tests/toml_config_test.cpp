@@ -1,9 +1,10 @@
-#include "gtest/gtest.h"
 #include "common/toml_config.h"
+
+#include "gtest/gtest.h"
 
 namespace {
 
-class TomlConfigTest : public ::testing::Test {
+class TomlConfigTest: public ::testing::Test {
 protected:
     TomlConfig config{TOML_TEST_CONFIG_PATH};
 };
@@ -87,9 +88,7 @@ TEST_F(TomlConfigTest, TypeMismatchReturnsNullopt) {
     EXPECT_EQ(config.get<std::string>("server.port"), std::nullopt);
 }
 
-TEST_F(TomlConfigTest, HasReturnsTrueForExistingKey) {
-    EXPECT_TRUE(config.has("server.port"));
-}
+TEST_F(TomlConfigTest, HasReturnsTrueForExistingKey) { EXPECT_TRUE(config.has("server.port")); }
 
 TEST_F(TomlConfigTest, HasReturnsFalseForMissingKey) {
     EXPECT_FALSE(config.has("server.nonexistent"));
@@ -100,10 +99,7 @@ TEST_F(TomlConfigTest, GetOrReturnsDefaultValueForMissingKey) {
 }
 
 TEST(TomlConfigErrorTest, ThrowsOnMissingFile) {
-    EXPECT_THROW(
-        TomlConfig{"/nonexistent/path/argentum.toml"},
-        toml::parse_error
-    );
+    EXPECT_THROW(TomlConfig{"/nonexistent/path/argentum.toml"}, toml::parse_error);
 }
 
 }  // namespace

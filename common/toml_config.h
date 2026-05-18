@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <optional>
 #include <string_view>
+#include <utility>
+
 #include <toml++/toml.hpp>
 
 class TomlConfig {
