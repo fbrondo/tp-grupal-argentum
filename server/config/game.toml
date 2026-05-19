@@ -1,0 +1,16 @@
+[playerStateInit]
+level = 1
+life_init = 100
+mana_init = 50
+gold_init = 50
+maxInventoryItems = 15
+
+[world]
+fileds = 6 # cantidad campos en el mundo del juego
+forests = 4 # cantidad de bosques en el mundo del juego
+desertes = 3 #cantidad de desiertos en el mundo del juego
+dungeons = 8 #cantidad de mazmorras. 
+caves = 8 #cantidad de cavernas
+
+
+

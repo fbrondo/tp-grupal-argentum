@@ -1,0 +1,56 @@
+# LAS CLASES QUE PUEDEN TENER UN PERSONAJE 
+[[races]]
+id = 301
+name = "Humano"
+lifeFactor =  4 #factor de vida
+recoveryFactor = 2 #factor de recuperacion 
+metitationFactor = 4 #factor de meditacion
+MaximunManaFactor = 4 #factor de mana
+
+[[races.statics]]
+intelligense = 4
+consititution = 3
+strength = 2
+agility = 3
+#-----------------------------------------------------------------------------------------------------
+[[races]]
+id = 302
+name = "Elfo"
+lifeFactor =  8 # factor de vida
+recoveryFactor = 3 #factor de recuperacion 
+metitationFactor = 6 #factor de meditacion
+MaximunManaFactor = 7 #factor de mana
+
+[[races.statics]]
+intelligense = 8
+consititution = 3
+strength = 2
+agility = 7
+#-----------------------------------------------------------------------------------------------------
+[[races]]
+id = 203
+name = "Enanos"
+lifeFactor = 6  #factor de vida
+recoveryFactor = 3 #factor de recuperacion 
+metitationFactor = 5 #factor de meditacion
+MaximunManaFactor = 5 #factor de mana
+
+[[races.statics]]
+intelligense = 4
+consititution = 5
+strength = 7
+agility = 1
+#-------------------------------------------------------------------------------------------------------
+[[races]]
+id = 204
+name = "Gnomos"
+lifeFactor =  10 # factor de vida
+recoveryFactor = 2 #factor de recuperacion 
+metitationFactor = 0 #factor de meditacion
+MaximunManaFactor = 0 #factor de mana
+
+[[races.statics]]
+intelligense = 8
+consititution = 7
+strength = 5
+agility = 5
