@@ -45,6 +45,31 @@ sudo apt install \
   libpulse-dev
 ```
 
+## Pre-commit hooks
+
+El repositorio usa [pre-commit](https://pre-commit.com/) para correr formatters y linters antes de cada commit:
+
+- **clang-format** — formatea el código según `.clang-format`
+- **cpplint** — verifica el estilo según `CPPLINT.cfg`
+- **cppcheck** — análisis estático
+
+### Instalación
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+### Uso manual
+
+```bash
+# Correr todos los hooks sobre todos los archivos
+pre-commit run --all-files
+
+# Aplicar solo el formatter
+pre-commit run clang-format --all-files
+```
+
 ## Docker
 
 ## CI/CD
