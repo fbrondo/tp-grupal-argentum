@@ -1,4 +1,4 @@
-#include "../includes/socket.h"
+#include "common/includes/socket.h"
 
 #include <stdexcept>
 
@@ -12,8 +12,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../includes/liberror.h"
-#include "../includes/resolver.h"
+#include "common/includes/liberror.h"
+#include "common/includes/resolver.h"
 
 #define STREAM_SEND_CLOSED 0x01
 #define STREAM_RECV_CLOSED 0x02

@@ -1,4 +1,4 @@
-#include "../includes/client_protocol.h"
+#include "client/includes/client_protocol.h"
 
 #include <cstring>
 #include <stdexcept>
