@@ -1,8 +1,8 @@
-#ifndef PROTOCOL_H
-#define PROTOCOL_H
+#pragma once
 
 #include <cstdint>
 #include <vector>
+
 constexpr size_t MAX_NAME_SIZE = 30;
 
 enum ClientOpcode : uint8_t {
@@ -111,4 +111,4 @@ struct MsgInventoryUpdate {
     uint8_t is_equipped;
 };
 
-#endif
+#pragma pack(pop)
