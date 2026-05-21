@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "common/toml_config.h"
+#include "../common/includes/toml_config.h"
 
 int main(int argc, char* argv[]) {
     const char* config_path = (argc > 1) ? argv[1] : "config.toml";

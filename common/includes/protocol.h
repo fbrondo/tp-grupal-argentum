@@ -49,7 +49,7 @@ struct MsgAttack {
 };
 
 struct MsgSlotItem {
-    uint8_t opcode; // Puede ser USE_ITEM o DROP_ITEM
+    uint8_t opcode;  // Puede ser USE_ITEM o DROP_ITEM
     uint8_t slot_index;
 };
 
@@ -59,8 +59,8 @@ struct MsgInteract {
 };
 
 struct MsgTrade {
-    uint8_t opcode;      // BUY_ITEM o SELL_ITEM
-    uint32_t npc_id;     // ID del comerciante
+    uint8_t opcode;   // BUY_ITEM o SELL_ITEM
+    uint32_t npc_id;  // ID del comerciante
     uint16_t item_id;
     uint16_t quantity;
 };
