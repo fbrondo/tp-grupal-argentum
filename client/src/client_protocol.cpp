@@ -1,14 +1,18 @@
-#include "client_protocol.h"
-#include <arpa/inet.h>
+#include "../includes/client_protocol.h"
+
 #include <cstring>
+#include <stdexcept>
+#include <vector>
 
-ClientProtocol::ClientProtocol(Socket& s) : socket(s) {}
+#include <arpa/inet.h>
 
-void ClientProtocol::sendLogin(const std::string& name, const std::string& pass) {
+ClientProtocol::ClientProtocol(Socket& s): socket(s) {}
+
+void ClientProtocol::sendLogin(const std::string& name, const std::string& pass) const {
     MsgLogin msg;
     std::memset(msg.name, 0, sizeof(msg.name));
     std::memset(msg.pass, 0, sizeof(msg.pass));
-    
+
     std::strncpy(msg.name, name.c_str(), sizeof(msg.name) - 1);
     std::strncpy(msg.pass, pass.c_str(), sizeof(msg.pass) - 1);
     try {
@@ -20,7 +24,7 @@ void ClientProtocol::sendLogin(const std::string& name, const std::string& pass)
     }
 }
 
-void ClientProtocol::sendMove(uint8_t direction) {
+void ClientProtocol::sendMove(const uint8_t direction) const {
     MsgMove msg;
     msg.direction = direction;
     try {
@@ -32,7 +36,7 @@ void ClientProtocol::sendMove(uint8_t direction) {
     }
 }
 
-void ClientProtocol::sendAttack(uint32_t target_id) {
+void ClientProtocol::sendAttack(const uint32_t target_id) const {
     MsgAttack msg;
     msg.target_id = htonl(target_id);
     try {
@@ -44,16 +48,16 @@ void ClientProtocol::sendAttack(uint32_t target_id) {
     }
 }
 
-void ClientProtocol::sendChat(const std::string& msg) {
-    size_t tamaño_total = sizeof(uint8_t) + sizeof(uint16_t) + msg.size();
-    std::vector<char> buffer(tamaño_total);
+void ClientProtocol::sendChat(const std::string& msg) const {
+    const size_t total_size = sizeof(uint8_t) + sizeof(uint16_t) + msg.size();
+    std::vector<char> buffer(total_size);
     size_t offset = 0;
 
-    uint8_t opcode = ClientOpcode::CHAT;
+    constexpr uint8_t opcode = CHAT;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
 
-    uint16_t len = htons(static_cast<uint16_t>(msg.size()));
+    const uint16_t len = htons(static_cast<uint16_t>(msg.size()));
     std::memcpy(buffer.data() + offset, &len, sizeof(len));
     offset += sizeof(len);
 
@@ -71,9 +75,9 @@ void ClientProtocol::sendChat(const std::string& msg) {
 }
 
 
-void ClientProtocol::sendUseItem(uint8_t slot_index) {
+void ClientProtocol::sendUseItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
-    msg.opcode = ClientOpcode::USE_ITEM;
+    msg.opcode = USE_ITEM;
     msg.slot_index = slot_index;
     try {
         socket.sendall(&msg, sizeof(MsgSlotItem));
@@ -84,9 +88,9 @@ void ClientProtocol::sendUseItem(uint8_t slot_index) {
     }
 }
 
-void ClientProtocol::sendDropItem(uint8_t slot_index) {
+void ClientProtocol::sendDropItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
-    msg.opcode = ClientOpcode::DROP_ITEM;
+    msg.opcode = DROP_ITEM;
     msg.slot_index = slot_index;
     try {
         socket.sendall(&msg, sizeof(MsgSlotItem));
@@ -97,16 +101,16 @@ void ClientProtocol::sendDropItem(uint8_t slot_index) {
     }
 }
 
-void ClientProtocol::sendCommand(const std::string& cmd) {
-    size_t tamaño_total = sizeof(uint8_t) + sizeof(uint16_t) + cmd.size();
-    std::vector<char> buffer(tamaño_total);
+void ClientProtocol::sendCommand(const std::string& cmd) const {
+    const size_t total_size = sizeof(uint8_t) + sizeof(uint16_t) + cmd.size();
+    std::vector<char> buffer(total_size);
     size_t offset = 0;
 
-    uint8_t opcode = ClientOpcode::COMMAND;
+    constexpr uint8_t opcode = COMMAND;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
 
-    uint16_t len = htons(static_cast<uint16_t>(cmd.size()));
+    const uint16_t len = htons(static_cast<uint16_t>(cmd.size()));
     std::memcpy(buffer.data() + offset, &len, sizeof(len));
     offset += sizeof(len);
 
@@ -123,7 +127,7 @@ void ClientProtocol::sendCommand(const std::string& cmd) {
     }
 }
 
-void ClientProtocol::sendInteract(uint32_t npc_id) {
+void ClientProtocol::sendInteract(const uint32_t npc_id) const {
     MsgInteract msg;
     msg.npc_id = htonl(npc_id);
     try {
@@ -135,8 +139,8 @@ void ClientProtocol::sendInteract(uint32_t npc_id) {
     }
 }
 
-void ClientProtocol::sendTakeItem() {
-    uint8_t opcode = ClientOpcode::TAKE_ITEM;
+void ClientProtocol::sendTakeItem() const {
+    constexpr uint8_t opcode = TAKE_ITEM;
     try {
         socket.sendall(&opcode, 1);
     } catch (const std::exception& e) {
@@ -146,9 +150,10 @@ void ClientProtocol::sendTakeItem() {
     }
 }
 
-void ClientProtocol::sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) {
+void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint16_t item_id,
+                                 const uint16_t quantity) const {
     MsgTrade msg;
-    msg.opcode = ClientOpcode::BUY_ITEM;
+    msg.opcode = BUY_ITEM;
     msg.npc_id = htonl(npc_id);
     msg.item_id = htons(item_id);
     msg.quantity = htons(quantity);
@@ -161,9 +166,10 @@ void ClientProtocol::sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t qua
     }
 }
 
-void ClientProtocol::sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) {
+void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint16_t item_id,
+                                  const uint16_t quantity) const {
     MsgTrade msg;
-    msg.opcode = ClientOpcode::SELL_ITEM;
+    msg.opcode = SELL_ITEM;
     msg.npc_id = htonl(npc_id);
     msg.item_id = htons(item_id);
     msg.quantity = htons(quantity);
@@ -176,16 +182,16 @@ void ClientProtocol::sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t qu
     }
 }
 
-bool ClientProtocol::recieveMessage(EventClient& out_evento) {
+bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0) {
-        out_evento.type = TypeEventClient::DESCONEXION;
+        out_evento.type = TypeEventClient::DISCONNECTION;
         return false;
     }
 
     switch (opcode) {
-        case ServerOpcode::SNAPSHOT: {
-            out_evento.type = TypeEventClient::ACTUALIZACION_MUNDO;
+        case SNAPSHOT: {
+            out_evento.type = TypeEventClient::UPDATE_WORLD;
             out_evento.world.players.clear();
             out_evento.world.npcs.clear();
             out_evento.world.items.clear();
@@ -231,8 +237,8 @@ bool ClientProtocol::recieveMessage(EventClient& out_evento) {
             }
             break;
         }
-        case ServerOpcode::PLAYER_STATS: {
-            out_evento.type = TypeEventClient::ESTADISTICAS_PROPIAS;
+        case PLAYER_STATS: {
+            out_evento.type = TypeEventClient::OWN_STATS;
             out_evento.stats.opcode = opcode;
 
             socket.recvall(&out_evento.stats.hp, 4);
@@ -250,11 +256,11 @@ bool ClientProtocol::recieveMessage(EventClient& out_evento) {
             socket.recvall(&out_evento.stats.nivel, 1);
             break;
         }
-        case ServerOpcode::LOGIN_RESPONSE: {
-            out_evento.type = TypeEventClient::RESPUESTA_LOGIN;
+        case LOGIN_RESPONSE: {
+            out_evento.type = TypeEventClient::LOGIN_RESPONSE;
             uint8_t success;
             socket.recvall(&success, 1);
-            
+
             uint16_t len;
             socket.recvall(&len, 2);
             len = ntohs(len);
@@ -262,16 +268,16 @@ bool ClientProtocol::recieveMessage(EventClient& out_evento) {
             socket.recvall(out_evento.text_payload.data(), len);
             break;
         }
-        case ServerOpcode::CHANGE_MAP: {
-            out_evento.type = TypeEventClient::CAMBIO_MAPA;
+        case CHANGE_MAP: {
+            out_evento.type = TypeEventClient::MAP_CHANGE;
             socket.recvall(&out_evento.map_id, 2);
             out_evento.map_id = ntohs(out_evento.map_id);
             break;
         }
-        case ServerOpcode::CHAT_MSG:
-        case ServerOpcode::ACTION_ERROR: {
-            out_evento.type = (opcode == ServerOpcode::CHAT_MSG) ? 
-                              TypeEventClient::MENSAJE_CHAT : TypeEventClient::ERROR_ACCION;
+        case CHAT_MSG:
+        case ACTION_ERROR: {
+            out_evento.type = (opcode == CHAT_MSG) ? TypeEventClient::CHAT_MSG :
+                                                     TypeEventClient::ERROR_ACTION;
             uint16_t len;
             socket.recvall(&len, 2);
             len = ntohs(len);
