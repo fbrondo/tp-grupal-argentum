@@ -1,6 +1,5 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
-#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -34,18 +33,18 @@ enum ServerOpcode : uint8_t {
 
 // Structs del Cliente
 struct MsgLogin {
-    uint8_t opcode = ClientOpcode::LOGIN;
+    uint8_t opcode = LOGIN;
     char name[MAX_NAME_SIZE];
     char pass[MAX_NAME_SIZE];
 };
 
 struct MsgMove {
-    uint8_t opcode = ClientOpcode::MOVE;
+    uint8_t opcode = MOVE;
     uint8_t direction;
 };
 
 struct MsgAttack {
-    uint8_t opcode = ClientOpcode::ATTACK;
+    uint8_t opcode = ATTACK;
     uint32_t target_id;
 };
 
@@ -55,7 +54,7 @@ struct MsgSlotItem {
 };
 
 struct MsgInteract {
-    uint8_t opcode = ClientOpcode::INTERACT;
+    uint8_t opcode = INTERACT;
     uint32_t npc_id;
 };
 
@@ -95,22 +94,21 @@ struct ItemGroundSnapshotData {
 };
 
 struct MsgPlayerStats {
-    uint8_t opcode = ServerOpcode::PLAYER_STATS;
+    uint8_t opcode = PLAYER_STATS;
     uint32_t hp;
     uint32_t mana;
     uint32_t gold;
     uint32_t exp;
     uint8_t level;
+    uint8_t nivel;
 };
 
 struct MsgInventoryUpdate {
-    uint8_t opcode = ServerOpcode::INVENTORY_UPDATE;
+    uint8_t opcode = INVENTORY_UPDATE;
     uint8_t slot_index;
     uint16_t item_id;
     uint16_t quantity;
     uint8_t is_equipped;
 };
-
-#pragma pack(pop)
 
 #endif
