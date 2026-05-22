@@ -1,6 +1,5 @@
 # REGIONES DEL MAPA DE ARGENTU. 
 # Son los atributos individuales que va a tener cada region.
-# consultar si las ciudades o pueblos tienen carteles generales de los clanes, donde se hace puede hacer la solicitud de unirse a uno.
 [regions.CIUDAD]
 safeZone = true #No se permiten player vs player ni NPCs
 minimalNumberMerchants = 2
@@ -21,34 +20,29 @@ maximunNumberBankers = 2
 #------------------------------------------------------------------------------------------------------
 [regions.CAMPO]
 safeZone = false
-maxCriatures = 30
-timeSpanwNPCs = 40 # cada cierto tiempo hago spawn de los npcs que han sido vencidos
+maxCriatures = 20
 #----------------------------------------------------------------------------------------------------
 [regions.BOSQUE]
 safeZone = false
 maxCriatures = 20 
-timeSpanwNPCs = 40 # cada cierto tiempo hago spawn de los npcs que han sido vencidos
 #----------------------------------------------------------------------------------------------------
 [regions.DESIERTO]
 safeZone = false
-maxCriatures = 40
+maxCriatures = 20
 minTreasure = 2
 maxTreasure = 4
-timeSpanwNPCs = 100 # cada cierto tiempo hago spawn de los npcs que han sido vencidos
-timeSpawnTreasure = 200 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados
+timeSpawnTreasure = 5000 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados
 #----------------------------------------------------------------------------------------------------
 [regions.CAVERNA]
 safeZone = false
 maxCriatures = 20
 minTreasure = 4
 maxTreasure = 8
-timeSpanwNPCs = 80 # cada cierto tiempo hago spawn de los npcs que han sido vencidos
-timeSpawnTreasure = 300 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados
+timeSpawnTreasure = 50000 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados
 #--------------------------------------------------------------------------------------------------------
 [regions.MAZMORRA]
 safeZone = false
 maxCriatures = 40
 minTreasure = 6
 maxTreasure = 12
-timeSpawnNPCs = 50 # cada cierto tiempo hago spawn de los npcs que han sido vencidos
-timeSpawnTreasures = 500 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados
+timeSpawnTreasures = 60000 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados

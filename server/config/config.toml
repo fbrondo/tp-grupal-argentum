@@ -1,0 +1,16 @@
+# frecuencia de actualizacion del servidor. El juego procesa la logica 30 veces por segundos.
+timeServerUpdateFrecuency = 30
+ 
+# Cada medio segundo el servidor refresca las estadisitcas (vida, mana). 
+# Aqui es donde se nota la regenacion de vida y mana por tiempo 
+timeUpdatePlayerAtributes = 500
+
+# Los monstruos tardan 3 segundos en aparecer (respawn) despues de morir o iniciar el mapa.
+# cada cierto tiempo hago spawn de los npcs que han sido vencidos
+timeSpawnNPCs = 3000
+
+# AL tirar un objeto al suelo (soltar) desaparecera para siempre tras 60 segundos
+timeDisappearDroppedItem = 60000
+
+# Auto save. El servidor guarda el progreso de los jugadores en el base cada 60 segundos. 
+timePesistData = 60000
