@@ -1,37 +1,40 @@
 # ARMAS DE COMBATE A MANO -------------------------------------------------------------------------------------------------
 [[items]]
-id = 1
 name = "Espada"
 type = "MELEE_WEAPON"
 minimalDamage = 2
 maximunDamage = 5
+sellingPrice = 5
+purchasePrice = 10
 
 [[items]]
-id = 2
 name = "Hacha"
 type = "MELEE_WEAPON"
 minimalDamage = 4
 maximunDamage = 5
+sellingPrice = 6
+purchasePrice = 12
 
 [[items]]
-id = 3
 name = "Martillo"
 type = "MELEE_WEAPON"
 minimalDamage = 1
 maximunDamage = 9
+sellingPrice = 5
+purchasePrice = 10
 
 #OBJETOS MAGICOS -------------------------------------------------------------------------------------------------------------
 [[items]]
-id = 4
 name = "Vara de fresno"
 type = "MAGICAL_OBJECT"
 subtype = "ATTACK"
 minimalDamage = 2
 maximunDamage = 4
 mana_cost = 5
+sellingPrice = 10
+purchasePrice = 15
 
 [[items]]
-id = 5
 name = "Báculo nudoso"
 type = "MAGICAL_OBJECT"
 subtype = "ATTACK"
@@ -39,9 +42,10 @@ range = 4
 minimalDamage = 4
 maximunDamage = 8
 mana_cost = 15
+sellingPrice = 6
+purchasePrice = 12
 
 [[items]]
-id = 6
 name = "Báculo engarzado"
 type = "MAGICAL_OBJECT"
 subtype = "ATTACK"
@@ -49,101 +53,122 @@ range = 8
 minimalDamage = 8
 maximunDamage = 20
 mana_cost = 30
+sellingPrice = 15
+purchasePrice = 20
 
 [[items]]
-id = 7
 name = "Flauta élfica"
 type = "MAGICAL_OBJECT"
 subtype = "HEALING"
 range = 3
 mana_cost = 100
+sellingPrice = 15
+purchasePrice = 20
 
 # ARMAS DE COMBATE A DISTANCIA -------------------------------------------------------------------------------------------------------
 [[items]]
-id = 8
 name = "Arco simple"
 type = "RANGED_WEAPON"
 range = 6
 minimalDamage = 1
 maximunDamage = 4
+sellingPrice = 5
+purchasePrice = 10
 
 [[items]]
-id = 9
 name = "Arco compuesto"
 type = "RANGED_WEAPON"
 range = 8
 minimalDamage = 4
 maximunDamage = 16
+sellingPrice = 8
+purchasePrice = 18
+ 
 
-# OBJETOS DE DEFENSA -----------------------------------------------------------------------------------------------------
+# OBJETOS DE DEFENSA ------ -----------------------------------------------------------------------------------------------
 [[items]]
-id = 10
 name = "Armadura de cuero"
 type = "DEFENSE_EQUIPMENT"
+subtype = ""
 minimal_defense = 2
 maximun_defense = 6
+sellingPrice = 4
+purchasePrice = 6
 
 [[items]]
-id = 11
 name = "Armadura de placas"
 type = "DEFENSE_EQUIPMENT"
 minimal_defense = 15
 maximun_defense = 30
+sellingPrice = 6
+purchasePrice = 8
 
 [[items]]
-id = 12
 name = "Tunica azul"
 type = "DEFENSE_EQUIPMENT"
 minimal_defense = 6
 maximun_defense = 10
+sellingPrice = 6
+purchasePrice = 10
 
 [[items]]
-id = 13
 name = "Capucha"
 type = "DEFENSE_EQUIPMENT"
 minimal_defense = 1 
 maximun_defense = 4
+sellingPrice = 4
+purchasePrice = 6
 
 [[items]]
-id = 14
 name = "Casco de hierro"
 type = "DEFENSE_EQUIPMENT"
 minimal_defense = 4
 maximun_defense = 8
+sellingPrice = 5
+purchasePrice = 10
+
 
 [[items]]
-id = 15
 name = "Escudo de tortuga"
 type = "DEFENSE_EQUIPMENT"
 minimal_defense = 1
 maximun_defense = 2
+sellingPrice = 5
+purchasePrice = 10
+
 
 [[items]]
-id = 16 
 name = "Escudo de hierro"
 type = "DEFENSE_EQUIPMENT"
 minimal_defense = 1
 maximun_defense = 4
+sellingPrice = 5
+purchasePrice = 10
+
 
 [[items]]
-id = 17
 name = "Sombrero mágico"
 type = "DEFENSE_EQUIPMENT"
 minimal_defense = 4 
 maximun_defense = 12
+sellingPrice = 5
+purchasePrice = 10
 
 # POCIONES ----------------------------------------------------------------------------------------------------------------- 
 [[items]]
-id = 18
 name = "poción restauradora de vida"
 type = "POTION"
 subtype = "LIFE"
+sellingPrice = 5
+purchasePrice = 10
 
 [[items]]
-id = 19
 name = "poción restauradora de mana"
 type = "POTION"
 subtype = "MANA"
+sellingPrice = 5
+purchasePrice = 10
+
 
 # NOTAS IMPORTANTES: 
 #    - Tal vez los id sean innecesarios y solo baste con los types (los id deberia ser en tiempo de ejecucion para identi-
