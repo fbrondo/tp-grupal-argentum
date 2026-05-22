@@ -219,7 +219,8 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
 // Asumo que tendremos una estructura Command y Action_type para agregar eventos a la queue
 bool ServerProtocol::readCommand(uint32_t player_id, Queue<std::unique_ptr<Command>>& queue) {
     uint8_t opcode;
-    if (socket.recvall(&opcode, 1) <= 0) return false;
+    if (socket.recvall(&opcode, 1) <= 0)
+        return false;
 
     switch (opcode) {
         case LOGIN: {
@@ -228,11 +229,8 @@ bool ServerProtocol::readCommand(uint32_t player_id, Queue<std::unique_ptr<Comma
             socket.recvall(login.pass, sizeof(login.pass));
             login.name[sizeof(login.name) - 1] = '\0';
             login.pass[sizeof(login.pass) - 1] = '\0';
-            auto cmd = std::make_unique<LoginCommand>(
-                player_id, 
-                std::string(login.name), 
-                std::string(login.pass)
-            );
+            auto cmd = std::make_unique<LoginCommand>(player_id, std::string(login.name),
+                                                      std::string(login.pass));
 
             queue.push(std::move(cmd));
         }
@@ -303,7 +301,7 @@ bool ServerProtocol::readCommand(uint32_t player_id, Queue<std::unique_ptr<Comma
             if (opcode == BUY_ITEM) {
                 cmd = std::make_unique<BuyItemCommand>(player_id, npc_id, item_id, quantity);
             } else {
-               cmd = std::make_unique<SellItemCommand>(player_id, npc_id, item_id, quantity);
+                cmd = std::make_unique<SellItemCommand>(player_id, npc_id, item_id, quantity);
             }
             queue.push(std::move(cmd));
             break;
@@ -311,7 +309,7 @@ bool ServerProtocol::readCommand(uint32_t player_id, Queue<std::unique_ptr<Comma
         case DISCONNECT: {
             auto cmd = std::make_unique<DisconnectCommand>(player_id);
             queue.push(std::move(cmd));
-            
+
             // Devolvemos false para que el cliente deje de recibir
             return false;
         }
