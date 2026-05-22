@@ -53,6 +53,7 @@ public:
     template <typename T>
     void set_array(std::string_view key, const std::vector<T>& values) {
         toml::array arr;
+        // suppress only here in toml
         // cppcheck-suppress useStlAlgorithm
         for (const auto& v: values) arr.push_back(v);
         set_at_path(table_, key, std::move(arr));
