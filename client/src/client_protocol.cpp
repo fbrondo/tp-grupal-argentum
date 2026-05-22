@@ -182,6 +182,17 @@ void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint16_t item_id,
     }
 }
 
+void ClientProtocol::sendDisconnect() const {
+    constexpr uint8_t opcode = DISCONNECT;
+    try {
+        socket.sendall(&opcode, 1);
+    } catch (const std::exception& e) {
+        std::string mssgErr = "ERROR IN sendDisconnect -- ";
+        mssgErr += e.what();
+        throw std::runtime_error(mssgErr);
+    }
+}
+
 bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0) {

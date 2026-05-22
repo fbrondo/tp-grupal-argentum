@@ -43,6 +43,7 @@ public:
     void sendTakeItem() const;
     void sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
+    void sendDisconnect() const;
 
     // Recibir actualizaciones del Servidor
     // Lee del socket para actualizar la interfaz grafica
