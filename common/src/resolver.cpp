@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 #include "../includes/liberror.h"
-#include "../resolvererror.h"
+#include "../includes/resolvererror.h"
 
 Resolver::Resolver(const char* hostname, const char* servname, bool is_passive) {
     struct addrinfo hints;
