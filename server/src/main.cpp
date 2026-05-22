@@ -1,13 +1,13 @@
 #include <iostream>
 
-#include "common/toml_config.h"
+#include "./common/includes/toml_config.h"
 
-int main(int argc, char* argv[]) {
+int main(const int argc, char* argv[]) {
     const char* config_path = (argc > 1) ? argv[1] : "config.toml";
 
     // TODO: Delete this in the next iteration. Is a test.
     try {
-        TomlConfig config(config_path);
+        const TomlConfig config(config_path);
 
         std::cout << "=== Argentum Server Config ===\n";
         std::cout << "[server]" << std::endl;

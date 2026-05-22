@@ -1,7 +1,9 @@
 target_sources(taller_server
     PRIVATE
     # .cpp files
-    main.cpp
+        src/main.cpp
+        src/server_protocol.cpp
     PUBLIC
     # .h files
+        includes/server_protocol.h
     )

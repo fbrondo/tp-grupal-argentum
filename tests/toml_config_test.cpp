@@ -1,4 +1,4 @@
-#include "common/toml_config.h"
+#include "common/includes/toml_config.h"
 
 #include "gtest/gtest.h"
 
@@ -100,6 +100,43 @@ TEST_F(TomlConfigTest, GetOrReturnsDefaultValueForMissingKey) {
 
 TEST(TomlConfigErrorTest, ThrowsOnMissingFile) {
     EXPECT_THROW(TomlConfig{"/nonexistent/path/argentum.toml"}, toml::parse_error);
+}
+
+TEST(TomlConfigWriteTest, SetAndGetInt) {
+    TomlConfig cfg;
+    cfg.set<int>("section.value", 42);
+    EXPECT_EQ(cfg.get<int64_t>("section.value"), 42);
+}
+
+TEST(TomlConfigWriteTest, SetNestedPath) {
+    TomlConfig cfg;
+    cfg.set<int>("a.b.c", 7);
+    EXPECT_EQ(cfg.get<int64_t>("a.b.c"), 7);
+}
+
+TEST(TomlConfigWriteTest, SetArrayAndGetArray) {
+    TomlConfig cfg;
+    cfg.set_array<int>("data.ids", {1, 2, 3});
+    auto result = cfg.get_array<int64_t>("data.ids");
+    ASSERT_EQ(result.size(), 3u);
+    EXPECT_EQ(result[0], 1);
+    EXPECT_EQ(result[1], 2);
+    EXPECT_EQ(result[2], 3);
+}
+
+TEST(TomlConfigWriteTest, GetArrayMissingKeyReturnsEmpty) {
+    TomlConfig cfg;
+    EXPECT_TRUE(cfg.get_array<int>("nonexistent.key").empty());
+}
+
+TEST(TomlConfigWriteTest, SaveAndReload) {
+    const std::filesystem::path tmp = "/tmp/argentum_toml_config_test.toml";
+    TomlConfig cfg;
+    cfg.set<int>("server.port", 9090);
+    cfg.save(tmp);
+
+    TomlConfig loaded(tmp);
+    EXPECT_EQ(loaded.get<int64_t>("server.port"), 9090);
 }
 
 }  // namespace
