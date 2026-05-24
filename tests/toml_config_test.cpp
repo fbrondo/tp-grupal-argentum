@@ -1,12 +1,17 @@
 #include "common/includes/toml_config.h"
 
+#include <filesystem>
+
 #include "gtest/gtest.h"
 
 namespace {
 
+const std::filesystem::path config_test_path =
+        std::filesystem::path(__FILE__).parent_path() / "config_test.toml";
+
 class TomlConfigTest: public ::testing::Test {
 protected:
-    TomlConfig config{TOML_TEST_CONFIG_PATH};
+    TomlConfig config{config_test_path};
 };
 
 // --- [server] ---
