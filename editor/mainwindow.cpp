@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QGraphicsView>
 #include <QLabel>
 #include <QMessageBox>
@@ -159,7 +160,13 @@ void MainWindow::onSelectGraficosDir() {
     if (path.isEmpty())
         return;
     sprite_->setGraphicsDir(path);
-    tile_widget_->setGraphicsDir(path);
+
+    // Auto-detect sprites.toml relative to the graficos directory
+    QString toml = QDir(path).filePath("../data/sprites.toml");
+    if (QFileInfo::exists(toml))
+        sprite_->setSpritesConfig(QFileInfo(toml).absoluteFilePath());
+
+    tile_widget_->setSprite(sprite_);
     if (map_)
         loadMapIntoScene();
 }
@@ -176,18 +183,24 @@ void MainWindow::updateTitle() {
 }
 
 void MainWindow::tryDefaultGraficosDir() {
-    QStringList candidates = {
-            // TODO: review this
+    // Each pair: { graficos_dir candidate, sprites.toml candidate }
+    const QStringList graficos_candidates = {
             QCoreApplication::applicationDirPath() + "/../../common/Graficos",
             QCoreApplication::applicationDirPath() + "/../common/Graficos",
             QCoreApplication::applicationDirPath() + "/common/Graficos",
     };
-    for (const QString& candidate: candidates) {
+    for (const QString& candidate: graficos_candidates) {
         QDir dir(candidate);
-        if (dir.exists()) {
-            sprite_->setGraphicsDir(dir.absolutePath());
-            tile_widget_->setGraphicsDir(dir.absolutePath());
-            return;
-        }
+        if (!dir.exists())
+            continue;
+
+        sprite_->setGraphicsDir(dir.absolutePath());
+
+        QString toml = dir.filePath("../data/sprites.toml");
+        if (QFileInfo::exists(toml))
+            sprite_->setSpritesConfig(QFileInfo(toml).absoluteFilePath());
+
+        tile_widget_->setSprite(sprite_);
+        return;
     }
 }
