@@ -12,11 +12,11 @@ NewMapDialog::NewMapDialog(QWidget* parent): QDialog(parent) {
     name_edit_ = new QLineEdit("Mapa", this);
 
     width_spin_ = new QSpinBox(this);
-    width_spin_->setRange(1, kMaxMapWidth);
+    width_spin_->setRange(1, MAX_MAP_WIDTH);
     width_spin_->setValue(20);
 
     height_spin_ = new QSpinBox(this);
-    height_spin_->setRange(1, kMaxMapHeight);
+    height_spin_->setRange(1, MAX_MAP_HEIGHT);
     height_spin_->setValue(20);
 
     auto* form = new QFormLayout;

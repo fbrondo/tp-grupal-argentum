@@ -54,11 +54,12 @@ void TileWidget::populate() {
 }
 
 void TileWidget::loadNextBatch() {
-    constexpr int kBatchSize = 50;
-    const int end = std::min(batch_idx_ + kBatchSize, static_cast<int>(pending_ids_.size()));
+    constexpr int PALETTE_ICON_BATCH_SIZE = 50;
+    const int end =
+            std::min(batch_idx_ + PALETTE_ICON_BATCH_SIZE, static_cast<int>(pending_ids_.size()));
 
     for (int i = batch_idx_; i < end; ++i) {
-        QPixmap pm = sprite_->get(pending_ids_[i]);
+        QPixmap pm = sprite_->getPaletteIcon(pending_ids_[i]);
         if (!pm.isNull()) {
             QListWidgetItem* item = list_widget_->item(i);
             if (item)

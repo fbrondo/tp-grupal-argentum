@@ -5,12 +5,14 @@
 void Sprite::setGraphicsDir(const QString& path) {
     graficos_dir_ = path;
     sprite_cache_.clear();
+    palette_icon_cache_.clear();
     png_cache_.clear();
 }
 
 void Sprite::setSpritesConfig(const QString& toml_path) {
     sprites_toml_ = toml_path;
     sprite_cache_.clear();
+    palette_icon_cache_.clear();
     reloadDefinitions();
 }
 
@@ -29,11 +31,18 @@ QPixmap Sprite::get(int sprite_id) {
     if (it != defs_.end())
         result = cropSprite(it->second);
 
-    if (!result.isNull())
-        result = result.scaled(kTileSize, kTileSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
     sprite_cache_.insert(sprite_id, result);
     return result;
+}
+
+QPixmap Sprite::getPaletteIcon(int sprite_id) {
+    if (palette_icon_cache_.contains(sprite_id))
+        return palette_icon_cache_[sprite_id];
+
+    QPixmap icon = get(sprite_id).scaled(PALETTE_ICON_SIZE, PALETTE_ICON_SIZE,
+                                         Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    palette_icon_cache_.insert(sprite_id, icon);
+    return icon;
 }
 
 void Sprite::reloadDefinitions() {

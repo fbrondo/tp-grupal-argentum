@@ -6,7 +6,7 @@ Map::Map(std::string name, int width, int height):
         name_(std::move(name)), width_(width), height_(height) {
     if (width_ <= 0 || height_ <= 0)
         throw std::invalid_argument("map dimensions must be positive");
-    if (width_ > kMaxMapWidth || height_ > kMaxMapHeight)
+    if (width_ > MAX_MAP_WIDTH || height_ > MAX_MAP_HEIGHT)
         throw std::invalid_argument("map dimensions exceed maximum allowed");
     for (auto& layer: layers_) {
         layer.resize(static_cast<size_t>(width_ * height_));
