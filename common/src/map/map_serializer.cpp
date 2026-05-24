@@ -18,19 +18,16 @@ Map MapSerializer::load(const std::filesystem::path& filepath) {
     for (size_t i = 0; i < layer_count; ++i) {
         std::string prefix = std::string("layer.") + layer_names_[i];
 
-        auto ids = cfg.get_array<int>(prefix + ".ids");
         auto sprite_ids = cfg.get_array<int>(prefix + ".sprite_ids");
         auto walkable = cfg.get_array<bool>(prefix + ".walkable");
 
-        if (ids.size() != expected || sprite_ids.size() != expected ||
-            walkable.size() != expected) {
+        if (sprite_ids.size() != expected || walkable.size() != expected) {
             throw std::runtime_error(std::string("tile count mismatch for layer: ") +
                                      layer_names_[i]);
         }
 
         auto& tiles = map.layer_tiles(layers_[i]);
         for (size_t j = 0; j < expected; ++j) {
-            tiles[j].id = ids[j];
             tiles[j].sprite_id = sprite_ids[j];
             tiles[j].walkable = walkable[j];
         }
@@ -50,20 +47,16 @@ void MapSerializer::save(const Map& map, const std::filesystem::path& filepath) 
         const auto& tiles = map.layer_tiles(layers_[i]);
         std::string prefix = std::string("layer.") + layer_names_[i];
 
-        std::vector<int> ids;
         std::vector<int> sprite_ids;
         std::vector<bool> walkable;
-        ids.reserve(tiles.size());
         sprite_ids.reserve(tiles.size());
         walkable.reserve(tiles.size());
 
         for (const auto& tile: tiles) {
-            ids.push_back(tile.id);
             sprite_ids.push_back(tile.sprite_id);
             walkable.push_back(tile.walkable);
         }
 
-        cfg.set_array<int>(prefix + ".ids", ids);
         cfg.set_array<int>(prefix + ".sprite_ids", sprite_ids);
         cfg.set_array<bool>(prefix + ".walkable", walkable);
     }
