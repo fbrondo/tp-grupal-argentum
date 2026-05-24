@@ -61,6 +61,7 @@
     <property name="title">
      <string>Herramientas</string>
     </property>
+    <addaction name="actionSeleccionar_graficos"/>
    </widget>
    <widget class="QMenu" name="menuAyuda">
     <property name="title">
@@ -154,6 +155,11 @@
   <action name="actionZoom_2">
    <property name="text">
     <string>Zoom -</string>
+   </property>
+  </action>
+  <action name="actionSeleccionar_graficos">
+   <property name="text">
+    <string>Seleccionar directorio de gráficos</string>
    </property>
   </action>
  </widget>

@@ -3,7 +3,15 @@ target_sources(taller_editor
     # .cpp files
     main.cpp
     mainwindow.cpp
+    sprite.cpp
+    tile_widget.cpp
+    map_scene.cpp
+    new_map_dialog.cpp
     PUBLIC
     # .h files
     mainwindow.h
+    sprite.h
+    tile_widget.h
+    map_scene.h
+    new_map_dialog.h
 )
