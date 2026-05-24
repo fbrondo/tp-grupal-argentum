@@ -43,18 +43,15 @@ TEST(MapLayerTest, LayerTilesHasCorrectSize) {
 TEST(MapLayerTest, TileAtDefaultValues) {
     Map map("test", 3, 3);
     const Tile& t = map.tile_at(1, 1, Layer::Background);
-    EXPECT_EQ(t.id, 0);
     EXPECT_EQ(t.sprite_id, 0);
     EXPECT_TRUE(t.walkable);
 }
 
 TEST(MapLayerTest, TileAtModify) {
     Map map("test", 3, 3);
-    map.tile_at(1, 2, Layer::Object).id = 42;
     map.tile_at(1, 2, Layer::Object).sprite_id = 7;
     map.tile_at(1, 2, Layer::Object).walkable = false;
 
-    EXPECT_EQ(map.tile_at(1, 2, Layer::Object).id, 42);
     EXPECT_EQ(map.tile_at(1, 2, Layer::Object).sprite_id, 7);
     EXPECT_FALSE(map.tile_at(1, 2, Layer::Object).walkable);
 }
