@@ -1,4 +1,4 @@
-#include "../includes/server_protocol.h"
+#include "server/includes/server_protocol.h"
 
 #include <cstring>
 
