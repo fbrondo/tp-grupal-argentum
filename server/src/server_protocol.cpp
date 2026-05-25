@@ -216,10 +216,11 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
     }
 }
 
-// Asumo que tendremos una estructura Comando y Accion para agregar eventos a la queue
-/*bool ServerProtocol::readCommand(uint32_t player_id, Queue<Command>& queue) {
+// Asumo que tendremos una estructura Command y Action_type para agregar eventos a la queue
+bool ServerProtocol::readCommand(uint32_t player_id, Queue<std::unique_ptr<Command>>& queue) {
     uint8_t opcode;
-    if (socket.recvall(&opcode, 1) <= 0) return false;
+    if (socket.recvall(&opcode, 1) <= 0)
+        return false;
 
     switch (opcode) {
         case LOGIN: {
@@ -228,19 +229,23 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
             socket.recvall(login.pass, sizeof(login.pass));
             login.name[sizeof(login.name) - 1] = '\0';
             login.pass[sizeof(login.pass) - 1] = '\0';
-            queue.push(Comando(player_id, Accion::LOGIN, std::string(login.name),
-std::string(login.pass))); break;
+            auto cmd = std::make_unique<LoginCommand>(player_id, std::string(login.name),
+                                                      std::string(login.pass));
+
+            queue.push(std::move(cmd));
         }
         case MOVE: {
             uint8_t dir;
             socket.recvall(&dir, 1);
-            queue.push(Comando(player_id, Accion::MOVER, dir));
+            auto cmd = std::make_unique<MoveCommand>(player_id, dir);
+            queue.push(std::move(cmd));
             break;
         }
         case ATTACK: {
             uint32_t target_id;
             socket.recvall(&target_id, 4);
-            queue.push(Comando(player_id, Accion::ATACAR, ntohl(target_id)));
+            auto cmd = std::make_unique<AttackCommand>(player_id, ntohl(target_id));
+            queue.push(std::move(cmd));
             break;
         }
         case CHAT:
@@ -250,27 +255,33 @@ std::string(login.pass))); break;
             len = ntohs(len);
             std::string texto(len, '\0');
             socket.recvall(texto.data(), len);
-
-            Accion tipo = (opcode == CHAT) ? Accion::CHAT : Accion::EJECUTAR_COMANDO;
-            queue.push(Comando(player_id, tipo, texto));
+            auto cmd = std::make_unique<ChatCommand>(player_id, std::move(texto));
+            queue.push(std::move(cmd));
             break;
         }
         case USE_ITEM:
         case DROP_ITEM: {
             uint8_t slot;
             socket.recvall(&slot, 1);
-            Accion tipo = (opcode == USE_ITEM) ? Accion::EQUIPAR : Accion::TIRAR;
-            queue.push(Comando(player_id, tipo, slot));
+            std::unique_ptr<Command> cmd;
+            if (opcode == ClientOpcode::USE_ITEM) {
+                cmd = std::make_unique<UseItemCommand>(player_id, slot);
+            } else {
+                cmd = std::make_unique<DropItemCommand>(player_id, slot);
+            }
+            queue.push(std::move(cmd));
             break;
         }
         case INTERACT: {
             uint32_t npc_id;
             socket.recvall(&npc_id, 4);
-            queue.push(Comando(player_id, Accion::INTERACTUAR, ntohl(npc_id)));
+            auto cmd = std::make_unique<InteractCommand>(player_id, ntohl(npc_id));
+            queue.push(std::move(cmd));
             break;
         }
         case TAKE_ITEM: {
-            queue.push(Comando(player_id, Accion::AGARRAR_ITEM));
+            auto cmd = std::make_unique<TakeItemCommand>(player_id);
+            queue.push(std::move(cmd));
             break;
         }
         case BUY_ITEM:
@@ -286,14 +297,24 @@ std::string(login.pass))); break;
             npc_id = ntohl(npc_id);
             item_id = ntohs(item_id);
             quantity = ntohs(quantity);
-
-            Accion tipo = (opcode == BUY_ITEM) ? Accion::COMPRAR : Accion::VENDER;
-
-            queue.push(Comando(player_id, tipo, npc_id, item_id, quantity));
+            std::unique_ptr<Command> cmd;
+            if (opcode == BUY_ITEM) {
+                cmd = std::make_unique<BuyItemCommand>(player_id, npc_id, item_id, quantity);
+            } else {
+                cmd = std::make_unique<SellItemCommand>(player_id, npc_id, item_id, quantity);
+            }
+            queue.push(std::move(cmd));
             break;
+        }
+        case DISCONNECT: {
+            auto cmd = std::make_unique<DisconnectCommand>(player_id);
+            queue.push(std::move(cmd));
+
+            // Devolvemos false para que el cliente deje de recibir
+            return false;
         }
         default:
             return false;
     }
     return true;
-}*/
+}
