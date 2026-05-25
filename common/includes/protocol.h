@@ -66,34 +66,6 @@ struct MsgTrade {
     uint16_t quantity;
 };
 
-// Structs del Servidor
-struct PlayerSnapshotData {
-    uint32_t id;
-    float x;
-    float y;
-    uint8_t dir;
-    uint16_t hp_max;
-    uint16_t hp_actual;
-    uint16_t body_id;
-    uint16_t head_id;
-    uint16_t weapon_id;
-    uint8_t flags;
-};
-
-struct NpcSnapshotData {
-    uint32_t id;
-    uint16_t type_id;
-    float x;
-    float y;
-    uint16_t hp_actual;
-};
-
-struct ItemGroundSnapshotData {
-    uint16_t item_id;
-    float x;
-    float y;
-};
-
 struct MsgPlayerStats {
     uint8_t opcode = PLAYER_STATS;
     uint32_t hp;

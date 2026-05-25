@@ -10,14 +10,14 @@
 
 ServerProtocol::ServerProtocol(Socket& s): socket(s) {}
 
-void ServerProtocol::sendSnapshot(const WorldState& state) const {
+void ServerProtocol::sendSnapshot(const Snapshot& state) const {
     const size_t size_total = sizeof(uint8_t)     // Opcode
                               + sizeof(uint16_t)  // Cantidad de jugadores
                               + (state.players.size() * sizeof(PlayerSnapshotData)) +
                               sizeof(uint16_t)  // Cantidad de NPCs
                               + (state.npcs.size() * sizeof(NpcSnapshotData)) +
                               sizeof(uint16_t)  // Cantidad de Items
-                              + (state.items.size() * sizeof(ItemGroundSnapshotData));
+                              + (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData));
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -34,8 +34,8 @@ void ServerProtocol::sendSnapshot(const WorldState& state) const {
 
     for (auto p: state.players) {
         p.id = htonl(p.id);
-        p.hp_max = htons(p.hp_max);
-        p.hp_actual = htons(p.hp_actual);
+        p.max_hp = htons(p.max_hp);
+        p.hp = htons(p.hp);
         p.body_id = htons(p.body_id);
         p.head_id = htons(p.head_id);
         p.weapon_id = htons(p.weapon_id);
@@ -60,12 +60,12 @@ void ServerProtocol::sendSnapshot(const WorldState& state) const {
     }
 
     // Items en el piso
-    const auto i_size = static_cast<uint16_t>(state.items.size());
+    const auto i_size = static_cast<uint16_t>(state.items_on_floor.size());
     const uint16_t i_count_net = htons(i_size);
     std::memcpy(buffer.data() + offset, &i_count_net, sizeof(i_count_net));
     offset += sizeof(i_count_net);
 
-    for (auto i: state.items) {
+    for (auto i: state.items_on_floor) {
         i.item_id = htons(i.item_id);
 
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));
@@ -317,4 +317,24 @@ bool ServerProtocol::readCommand(uint32_t player_id, Queue<std::unique_ptr<Comma
             return false;
     }
     return true;
+}
+
+void ServerProtocol::shutdown_peer() {
+    try {
+        socket.shutdown(1);
+    } catch (const std::exception& e) {
+        std::string mssgErr = "Error en shutdown_peer -- ";
+        mssgErr += e.what();
+        throw std::runtime_error(mssgErr);
+    }
+}
+
+void ServerProtocol::close_peer() {
+    try {
+        socket.close();
+    } catch (const std::exception& e) {
+        std::string mssgErr = "Error en close_peer -- ";
+        mssgErr += e.what();
+        throw std::runtime_error(mssgErr);
+    }
 }
