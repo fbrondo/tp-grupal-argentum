@@ -233,6 +233,7 @@ bool ServerProtocol::readCommand(uint32_t player_id, Queue<std::unique_ptr<Comma
                                                       std::string(login.pass));
 
             queue.push(std::move(cmd));
+            break;
         }
         case MOVE: {
             uint8_t dir;

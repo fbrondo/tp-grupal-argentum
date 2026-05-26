@@ -1,10 +1,4 @@
-#include "server_client_receiver.h"
-#include <cstdint>
-#include <memory>
-#include <stdexcept>
-
-#include "command.h"
-#include "queue.h"
+#include "../includes/server_client_receiver.h"
 
 ClientReceiver::ClientReceiver(uint32_t player_id,
                                ServerProtocol& protocol, 
@@ -17,7 +11,6 @@ ClientReceiver::ClientReceiver(uint32_t player_id,
 
 void ClientReceiver::run() {
     try {
-        bool is_registered = false;
         
         while (should_keep_running()) {
 

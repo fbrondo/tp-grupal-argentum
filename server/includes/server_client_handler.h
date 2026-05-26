@@ -1,10 +1,14 @@
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
+#include <utility>
 
+#include "../includes/commands/command.h"
+#include "../includes/snapshot.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
+
 #include "server_client_receiver.h"
 #include "server_client_sender.h"
 
@@ -14,17 +18,16 @@
 
 class ClientHandler {
 private:
-    bool joinable = true;
+    uint32_t player_id;
     Socket socket;
     ServerProtocol protocol;
-
-    uint32_t player_id;
 
     Queue<std::unique_ptr<Command>>& command_queue;
     Queue<Snapshot> send_queue;
 
     ClientReceiver receiver;
     ClientSender sender;
+    bool joinable = true;
 
 public:
     ClientHandler(uint32_t player_id, Socket&& socket, Queue<std::unique_ptr<Command>>& cmd_q);
