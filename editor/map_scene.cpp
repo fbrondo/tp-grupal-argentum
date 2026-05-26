@@ -51,20 +51,22 @@ void MapScene::rebuildScene() {
             bg->setAcceptedMouseButtons(Qt::NoButton);
             visuals_[idx].bg = bg;
 
-            auto* pix = new QGraphicsPixmapItem();
-            pix->setZValue(1);
-            pix->setAcceptedMouseButtons(Qt::NoButton);
-            addItem(pix);
-            visuals_[idx].pix = pix;
+            for (int li = 0; li < static_cast<int>(layer_count); ++li) {
+                auto* pix = new QGraphicsPixmapItem();
+                pix->setZValue((li + 1) * 10);
+                pix->setAcceptedMouseButtons(Qt::NoButton);
+                addItem(pix);
+                visuals_[idx].layer_pix[li] = pix;
+            }
 
             auto* overlay = addRect(rx, ry, BASE_TILE_PX, BASE_TILE_PX, QPen(Qt::NoPen),
                                     QBrush(QColor(255, 0, 0, 80)));
-            overlay->setZValue(2);
+            overlay->setZValue((layer_count + 1) * 10);
             overlay->setAcceptedMouseButtons(Qt::NoButton);
             overlay->setVisible(false);
-            visuals_[idx].overlay = overlay;
+            visuals_[idx].walkable_overlay = overlay;
 
-            updateTileVisual(x, y);
+            updateAllLayersVisual(x, y);
         }
     }
 
@@ -86,19 +88,49 @@ void MapScene::rebuildScene() {
     setSceneRect(0, 0, w * BASE_TILE_PX, h * BASE_TILE_PX);
 }
 
-void MapScene::updateTileVisual(int x, int y) {
+void MapScene::updateAllLayersVisual(int x, int y) {
     int idx = tileIndex(x, y);
-    const Tile& tile = map_->tile_at(x, y, current_layer_);
+    int current_idx = static_cast<int>(current_layer_);
 
-    if (tile.sprite_id != 0 && sprite_) {
-        QPixmap pm = sprite_->get(tile.sprite_id);
-        visuals_[idx].pix->setPixmap(pm);
-        visuals_[idx].pix->setPos(x * BASE_TILE_PX, y * BASE_TILE_PX);
-    } else {
-        visuals_[idx].pix->setPixmap(QPixmap());
+    for (int li = 0; li < static_cast<int>(layer_count); ++li) {
+        auto* pix = visuals_[idx].layer_pix[li];
+        const Tile& tile = map_->tile_at(x, y, static_cast<Layer>(li));
+
+        if (tile.sprite_id != 0 && sprite_) {
+            pix->setPixmap(sprite_->get(tile.sprite_id));
+            pix->setPos(x * BASE_TILE_PX, y * BASE_TILE_PX);
+        } else {
+            pix->setPixmap(QPixmap());
+        }
+
+        if (li < current_idx) {
+            pix->setVisible(true);
+            pix->setOpacity(0.4);
+        } else if (li == current_idx) {
+            pix->setVisible(true);
+            pix->setOpacity(1.0);
+        } else {
+            pix->setVisible(false);
+        }
     }
 
-    visuals_[idx].overlay->setVisible(!tile.walkable);
+    visuals_[idx].walkable_overlay->setVisible(!map_->tile_at(x, y, current_layer_).walkable);
+}
+
+void MapScene::updateTileVisual(int x, int y) {
+    int idx = tileIndex(x, y);
+    int current_idx = static_cast<int>(current_layer_);
+    const Tile& tile = map_->tile_at(x, y, current_layer_);
+
+    auto* pix = visuals_[idx].layer_pix[current_idx];
+    if (tile.sprite_id != 0 && sprite_) {
+        pix->setPixmap(sprite_->get(tile.sprite_id));
+        pix->setPos(x * BASE_TILE_PX, y * BASE_TILE_PX);
+    } else {
+        pix->setPixmap(QPixmap());
+    }
+
+    visuals_[idx].walkable_overlay->setVisible(!tile.walkable);
 }
 
 std::pair<int, int> MapScene::spriteCellSize(int sprite_id) const {

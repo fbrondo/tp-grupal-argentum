@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsScene>
+#include <array>
 #include <utility>
 #include <vector>
 
@@ -32,6 +33,7 @@ protected:
 
 private:
     void rebuildScene();
+    void updateAllLayersVisual(int x, int y);
     void updateTileVisual(int x, int y);
     void paintAt(QPointF scene_pos);
     void eraseAt(QPointF scene_pos);
@@ -51,8 +53,8 @@ private:
 
     struct TileVisual {
         QGraphicsRectItem* bg{nullptr};
-        QGraphicsPixmapItem* pix{nullptr};
-        QGraphicsRectItem* overlay{nullptr};
+        std::array<QGraphicsPixmapItem*, layer_count> layer_pix{};
+        QGraphicsRectItem* walkable_overlay{nullptr};
     };
     std::vector<TileVisual> visuals_;
     std::vector<int> anchor_at_;
