@@ -34,6 +34,7 @@ private:
     void onSaveAs();
     void onZoomIn();
     void onZoomOut();
+    void onToggleFullscreen();
     void onSelectGraficosDir();
     void setupEditor();
     void setupToolBar();

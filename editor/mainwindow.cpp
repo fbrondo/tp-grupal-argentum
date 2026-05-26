@@ -39,12 +39,18 @@ MainWindow::MainWindow(QWidget* parent):
     connect(ui_->actionSeleccionar_graficos, &QAction::triggered, this,
             &MainWindow::onSelectGraficosDir);
 
+    ui_->actionPantalla_Completa->setCheckable(true);
+    ui_->actionPantalla_Completa->setShortcut(QKeySequence("F11"));
+    connect(ui_->actionPantalla_Completa, &QAction::triggered, this,
+            &MainWindow::onToggleFullscreen);
+
     connect(scene_, &MapScene::tileModified, this, [this](int x, int y) {
         statusBar()->showMessage(QString("Tile (%1, %2) modificado").arg(x).arg(y), 2000);
     });
 
     tryDefaultGraficosDir();
     updateTitle();
+    showMaximized();
 }
 
 MainWindow::~MainWindow() {
@@ -96,6 +102,9 @@ void MainWindow::setupToolBar() {
         scene_->setCurrentLayer(layer);
     });
     connect(walkable_check_, &QCheckBox::toggled, scene_, &MapScene::setCurrentWalkable);
+
+    toolbar->addSeparator();
+    toolbar->addAction(ui_->actionPantalla_Completa);
 }
 
 void MainWindow::onNew() {
@@ -154,6 +163,16 @@ void MainWindow::onSaveAs() {
 
 void MainWindow::onZoomIn() { view_->scale(1.25, 1.25); }
 void MainWindow::onZoomOut() { view_->scale(0.8, 0.8); }
+
+void MainWindow::onToggleFullscreen() {
+    if (isFullScreen()) {
+        showNormal();
+        ui_->actionPantalla_Completa->setChecked(false);
+    } else {
+        showFullScreen();
+        ui_->actionPantalla_Completa->setChecked(true);
+    }
+}
 
 void MainWindow::onSelectGraficosDir() {
     QString path = QFileDialog::getExistingDirectory(this, "Seleccionar directorio de gráficos");
