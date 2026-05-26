@@ -10,6 +10,7 @@
 #include <QMessageBox>
 #include <QSplitter>
 #include <QToolBar>
+#include <algorithm>
 
 #include "common/includes/map/map_serializer.h"
 
@@ -20,11 +21,19 @@
 #include "tile_widget.h"
 #include "ui_mainwindow.h"
 
+// Folder name for each layer inside the maps base directory.
+static constexpr std::array<const char*, layer_count> LAYER_FOLDERS = {"background", "details",
+                                                                       "objets", "roof"};
+
+// TOML filename for each layer inside the data directory.
+static constexpr std::array<const char*, layer_count> LAYER_TOMLS = {
+        "background_sprites.toml", "details_sprites.toml", "objects_sprites.toml",
+        "roof_sprites.toml"};
+
 MainWindow::MainWindow(QWidget* parent):
-        QMainWindow(parent),
-        ui_(new Ui::MainWindow),
-        sprite_(new Sprite),
-        scene_(new MapScene(this)) {
+        QMainWindow(parent), ui_(new Ui::MainWindow), scene_(new MapScene(this)) {
+    std::generate(sprites_.begin(), sprites_.end(), []() { return new Sprite(); });
+
     ui_->setupUi(this);
 
     setupEditor();
@@ -54,7 +63,7 @@ MainWindow::MainWindow(QWidget* parent):
 }
 
 MainWindow::~MainWindow() {
-    delete sprite_;
+    for (auto* s: sprites_) delete s;
     delete ui_;
 }
 
@@ -63,7 +72,14 @@ void MainWindow::setupEditor() {
 
     tile_widget_ = new TileWidget(this);
     tile_widget_->setFixedWidth(220);
+
     connect(tile_widget_, &TileWidget::spriteSelected, scene_, &MapScene::setCurrentSpriteId);
+    connect(tile_widget_, &TileWidget::layerChangeRequested, this, [this](Layer layer) {
+        layer_combo_->blockSignals(true);
+        layer_combo_->setCurrentIndex(static_cast<int>(layer));
+        layer_combo_->blockSignals(false);
+        scene_->setCurrentLayer(layer);
+    });
 
     view_ = new MapView(scene_, this);
     view_->setDragMode(QGraphicsView::NoDrag);
@@ -98,8 +114,9 @@ void MainWindow::setupToolBar() {
     toolbar->addWidget(walkable_check_);
 
     connect(layer_combo_, &QComboBox::currentIndexChanged, this, [this](int idx) {
-        auto layer = static_cast<Layer>(layer_combo_->itemData(idx).toInt());
+        Layer layer = static_cast<Layer>(layer_combo_->itemData(idx).toInt());
         scene_->setCurrentLayer(layer);
+        tile_widget_->setCurrentLayer(layer);
     });
     connect(walkable_check_, &QCheckBox::toggled, scene_, &MapScene::setCurrentWalkable);
 
@@ -175,22 +192,35 @@ void MainWindow::onToggleFullscreen() {
 }
 
 void MainWindow::onSelectGraficosDir() {
-    QString path = QFileDialog::getExistingDirectory(this, "Seleccionar directorio de gráficos");
-    if (path.isEmpty())
+    QString base = QFileDialog::getExistingDirectory(
+            this, "Seleccionar carpeta de mapas (common/assets/maps)");
+    if (base.isEmpty())
         return;
-    sprite_->setGraphicsDir(path);
-
-    // Auto-detect sprites.toml relative to the graficos directory
-    QString toml = QDir(path).filePath("../data/sprites.toml");
-    if (QFileInfo::exists(toml))
-        sprite_->setSpritesConfig(QFileInfo(toml).absoluteFilePath());
-
-    tile_widget_->setSprite(sprite_);
+    loadLayerSprites(base);
     if (map_)
         loadMapIntoScene();
 }
 
-void MainWindow::loadMapIntoScene() { scene_->loadMap(map_.get(), sprite_); }
+void MainWindow::loadLayerSprites(const QString& maps_base_dir) {
+    QDir base(maps_base_dir);
+    // common/data/ lives two levels above common/assets/maps/
+    QString data_dir = base.filePath("../../data");
+
+    for (int li = 0; li < static_cast<int>(layer_count); ++li) {
+        QString layer_dir = base.filePath(LAYER_FOLDERS[li]);
+        if (!QDir(layer_dir).exists())
+            continue;
+        sprites_[li]->setGraphicsDir(layer_dir);
+
+        QString toml = QDir(data_dir).filePath(LAYER_TOMLS[li]);
+        if (QFileInfo::exists(toml))
+            sprites_[li]->setSpritesConfig(QFileInfo(toml).absoluteFilePath());
+
+        tile_widget_->setLayerSprite(static_cast<Layer>(li), sprites_[li]);
+    }
+}
+
+void MainWindow::loadMapIntoScene() { scene_->loadMap(map_.get(), sprites_); }
 
 void MainWindow::updateTitle() {
     QString title = "Argentum Editor";
@@ -202,24 +232,14 @@ void MainWindow::updateTitle() {
 }
 
 void MainWindow::tryDefaultGraficosDir() {
-    // Each pair: { graficos_dir candidate, sprites.toml candidate }
-    const QStringList graficos_candidates = {
-            QCoreApplication::applicationDirPath() + "/../../common/Graficos",
-            QCoreApplication::applicationDirPath() + "/../common/Graficos",
-            QCoreApplication::applicationDirPath() + "/common/Graficos",
+    const QString app_dir = QCoreApplication::applicationDirPath();
+    const QStringList candidates = {
+            app_dir + "/../../common/assets/maps",
+            app_dir + "/../common/assets/maps",
+            app_dir + "/common/assets/maps",
     };
-    for (const QString& candidate: graficos_candidates) {
-        QDir dir(candidate);
-        if (!dir.exists())
-            continue;
-
-        sprite_->setGraphicsDir(dir.absolutePath());
-
-        QString toml = dir.filePath("../data/sprites.toml");
-        if (QFileInfo::exists(toml))
-            sprite_->setSpritesConfig(QFileInfo(toml).absoluteFilePath());
-
-        tile_widget_->setSprite(sprite_);
-        return;
-    }
+    auto it = std::find_if(candidates.begin(), candidates.end(),
+                           [](const QString& c) { return QDir(c).exists(); });
+    if (it != candidates.end())
+        loadLayerSprites(QDir(*it).absolutePath());
 }

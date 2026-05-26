@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <array>
 #include <memory>
 
 #include "common/includes/map/layer.h"
@@ -26,7 +27,6 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
-    // private slots:
 private:
     void onNew();
     void onOpen();
@@ -39,13 +39,14 @@ private:
     void setupEditor();
     void setupToolBar();
     void loadMapIntoScene();
+    void loadLayerSprites(const QString& maps_base_dir);
     void updateTitle();
     void tryDefaultGraficosDir();
 
     Ui::MainWindow* ui_;
     std::unique_ptr<Map> map_;
     QString file_path_;
-    Sprite* sprite_;
+    std::array<Sprite*, layer_count> sprites_{};
     MapScene* scene_;
     MapView* view_;
     TileWidget* tile_widget_;

@@ -18,7 +18,7 @@ class MapScene: public QGraphicsScene {
 public:
     explicit MapScene(QObject* parent = nullptr);
 
-    void loadMap(Map* map, Sprite* sprite);
+    void loadMap(Map* map, std::array<Sprite*, layer_count> sprites);
     void setCurrentLayer(Layer layer);
     void setCurrentSpriteId(int sprite_id);
     void setCurrentWalkable(bool walkable);
@@ -44,7 +44,7 @@ private:
     int tileIndex(int x, int y) const;
 
     Map* map_{nullptr};
-    Sprite* sprite_{nullptr};
+    std::array<Sprite*, layer_count> sprites_{};
     Layer current_layer_{Layer::Background};
     int current_sprite_id_{0};
     bool current_walkable_{true};

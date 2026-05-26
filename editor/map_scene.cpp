@@ -11,9 +11,9 @@
 
 MapScene::MapScene(QObject* parent): QGraphicsScene(parent) {}
 
-void MapScene::loadMap(Map* map, Sprite* sprite) {
+void MapScene::loadMap(Map* map, std::array<Sprite*, layer_count> sprites) {
     map_ = map;
-    sprite_ = sprite;
+    sprites_ = sprites;
     rebuildScene();
 }
 
@@ -94,10 +94,11 @@ void MapScene::updateAllLayersVisual(int x, int y) {
 
     for (int li = 0; li < static_cast<int>(layer_count); ++li) {
         auto* pix = visuals_[idx].layer_pix[li];
+        Sprite* layer_sprite = sprites_[li];
         const Tile& tile = map_->tile_at(x, y, static_cast<Layer>(li));
 
-        if (tile.sprite_id != 0 && sprite_) {
-            pix->setPixmap(sprite_->get(tile.sprite_id));
+        if (tile.sprite_id != 0 && layer_sprite) {
+            pix->setPixmap(layer_sprite->get(tile.sprite_id));
             pix->setPos(x * BASE_TILE_PX, y * BASE_TILE_PX);
         } else {
             pix->setPixmap(QPixmap());
@@ -120,11 +121,12 @@ void MapScene::updateAllLayersVisual(int x, int y) {
 void MapScene::updateTileVisual(int x, int y) {
     int idx = tileIndex(x, y);
     int current_idx = static_cast<int>(current_layer_);
+    Sprite* layer_sprite = sprites_[current_idx];
     const Tile& tile = map_->tile_at(x, y, current_layer_);
 
     auto* pix = visuals_[idx].layer_pix[current_idx];
-    if (tile.sprite_id != 0 && sprite_) {
-        pix->setPixmap(sprite_->get(tile.sprite_id));
+    if (tile.sprite_id != 0 && layer_sprite) {
+        pix->setPixmap(layer_sprite->get(tile.sprite_id));
         pix->setPos(x * BASE_TILE_PX, y * BASE_TILE_PX);
     } else {
         pix->setPixmap(QPixmap());
@@ -134,9 +136,11 @@ void MapScene::updateTileVisual(int x, int y) {
 }
 
 std::pair<int, int> MapScene::spriteCellSize(int sprite_id) const {
-    if (!sprite_ || sprite_id == 0)
+    int current_idx = static_cast<int>(current_layer_);
+    Sprite* layer_sprite = sprites_[current_idx];
+    if (!layer_sprite || sprite_id == 0)
         return {1, 1};
-    const auto& defs = sprite_->definitions();
+    const auto& defs = layer_sprite->definitions();
     auto it = defs.find(sprite_id);
     if (it == defs.end())
         return {1, 1};
