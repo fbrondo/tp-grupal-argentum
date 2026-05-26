@@ -2,3 +2,5 @@ build/
 tags.*
 .idea
 .vscode
+CMakeCache.txt
+CMakeFiles
