@@ -1,7 +1,6 @@
 #REGIONES DONDE PUEDEN APARARECER ESTOS NPCS -> CAMPOS,BOSQUES, DESIERTOS, CAVERNAS, MAZMORRAS
 #-----------------------------------------------------------------------------------------------------------------------
 [[npcs]]
-id = 101
 type = "GOBLIN" #puede no ser necesario si ya tengo el id
 name = "Goblin"
 attackRange = 4
@@ -17,8 +16,7 @@ region = "BOSQUE"
 minimalLevel = 9
 maximunLevel = 14
 # -------------------------------------------------------------------------------------------------------------------------
-[[npcss]]
-id = 102
+[[npcs]]
 type = "ARAÑA"
 name = "Araña"
 attackRange = 4 
@@ -39,8 +37,7 @@ region = "BOSQUE"
 minimalLevel = 10
 maximunLevel = 15
 #------------------------------------------------------------------------------------------------------------------------
-[[npcss]]
-id = 103
+[[npcs]]
 type = "ESQUELETO"
 name = "Esqueletos"
 attackRange = 3
@@ -57,7 +54,6 @@ minimalLevel = 17
 maximunLevel = 23
 #------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
-id = 104
 type = "ORCO"
 name = "Orco"
 attackRange = 6 
@@ -79,7 +75,6 @@ minimalLevel = 17
 maximunLevel = 20
 #------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
-id = 105
 type = "GOLEM"
 name = "Golem"
 attackRange = 3
@@ -96,7 +91,6 @@ minimalLevel = 24
 maximunLevel = 30
 #-------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
-id = 106
 type = "ZOMBIE"
 name = "Zombie"
 attackRange = 4
@@ -108,7 +102,6 @@ minimalLevel = 30
 maximunLevel = 40
 #------------------------------------------------------------------------------------------------
 [[npcs]]
-id = 107
 type = "COMERCIANTE"
 name = "Comerciante"
 
@@ -119,7 +112,6 @@ region = "PUEBLO"
 region = "CIUDAD"
 #------------------------------------------------------------------------------------------------
 [[npcs]]
-id = 108
 type = "SACERDOTE"
 name = "Sacerdote"
 
@@ -130,7 +122,6 @@ region = "PUEBLO"
 region = "CIUDAD"
 #----------------------------------------------------------------------------------------------------
 [[npcs]]
-id = 108
 type = "BANQUERO"
 name = "Banquero"
 
@@ -140,6 +131,3 @@ region = "PUEBLO"
 [[npcs.regions]] 
 region = "CIUDAD"
 #------------------------------------------------------------------------------------------------
-# NOTAS IMPORTANTES: 
-#    - Tal vez los id sean innecesarios y solo baste con los types (los id deberia ser en tiempo de ejecucion para identi-
-#   ficar que npc que estaba en tal region fue atacado/vencido/matado o si esta comunicando con un banquero/sacerdote/comerciante)

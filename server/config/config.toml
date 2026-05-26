@@ -14,3 +14,5 @@ timeDisappearDroppedItem = 60000
 
 # Auto save. El servidor guarda el progreso de los jugadores en el base cada 60 segundos. 
 timePesistData = 60000
+
+# Tiempo que tarda un personaje meditando;
