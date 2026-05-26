@@ -1,4 +1,4 @@
-#include "../includes/resolver.h"
+#include "common/includes/resolver.h"
 
 #include <stdexcept>
 

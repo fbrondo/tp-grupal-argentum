@@ -1,0 +1,7 @@
+[sprites]
+ids     = [1, 2]
+png_ids = [41]
+x       = [0, 0]
+y       = [0, 0]
+widths  = [32, 32]
+heights = [32, 32]
