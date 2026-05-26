@@ -16,7 +16,8 @@ enum ClientOpcode : uint8_t {
     COMMAND = 8,
     INTERACT = 9,
     BUY_ITEM = 10,
-    SELL_ITEM = 11
+    SELL_ITEM = 11,
+    DISCONNECT = 12
 };
 
 enum ServerOpcode : uint8_t {

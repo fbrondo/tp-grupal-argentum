@@ -1,4 +1,4 @@
-#include "../includes/client_protocol.h"
+#include "client/includes/client_protocol.h"
 
 #include <cstring>
 #include <stdexcept>
@@ -177,6 +177,17 @@ void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint16_t item_id,
         socket.sendall(&msg, sizeof(MsgTrade));
     } catch (const std::exception& e) {
         std::string mssgErr = "ERROR IN sendSellItem -- ";
+        mssgErr += e.what();
+        throw std::runtime_error(mssgErr);
+    }
+}
+
+void ClientProtocol::sendDisconnect() const {
+    constexpr uint8_t opcode = DISCONNECT;
+    try {
+        socket.sendall(&opcode, 1);
+    } catch (const std::exception& e) {
+        std::string mssgErr = "ERROR IN sendDisconnect -- ";
         mssgErr += e.what();
         throw std::runtime_error(mssgErr);
     }
