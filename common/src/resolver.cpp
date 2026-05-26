@@ -11,8 +11,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "common/includes/liberror.h"
-#include "common/includes/resolvererror.h"
+#include "../includes/liberror.h"
+#include "../includes/resolvererror.h"
 
 Resolver::Resolver(const char* hostname, const char* servname, bool is_passive) {
     struct addrinfo hints;
