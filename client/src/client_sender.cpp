@@ -3,9 +3,9 @@
 #include "client/includes/commands/command_move.h"
 #include "common/includes/liberror.h"
 
-ClientSender::ClientSender(ClientProtocol& protocol, Queue<std::unique_ptr<ClientCommand>>& cmd_queue):
-        protocol(protocol), cmd_queue(cmd_queue) {
-}
+ClientSender::ClientSender(ClientProtocol& protocol,
+                           Queue<std::unique_ptr<ClientCommand>>& cmd_queue):
+        protocol(protocol), cmd_queue(cmd_queue) {}
 
 void ClientSender::sendCmd() const {
     const std::unique_ptr<ClientCommand> cmd = cmd_queue.pop();

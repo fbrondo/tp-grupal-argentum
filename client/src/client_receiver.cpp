@@ -1,4 +1,5 @@
 #include "client/includes/client_receiver.h"
+
 #include "common/includes/liberror.h"
 
 ClientReceiver::ClientReceiver(ClientProtocol& protocol, Queue<EventClient>& events_queue):
@@ -23,7 +24,8 @@ void ClientReceiver::run() {
     } catch (const LibError& e) {
         /// El socket se cerró o falló
     } catch (const std::exception& e) {
-        std::cerr << "[ERROR:Receiver] Excepción inesperada en hilo Receiver: " << e.what() << std::endl;
+        std::cerr << "[ERROR:Receiver] Excepción inesperada en hilo Receiver: " << e.what()
+                  << std::endl;
     } catch (...) {
         std::cerr << "[ERROR:Receiver] Error desconocido." << std::endl;
     }
