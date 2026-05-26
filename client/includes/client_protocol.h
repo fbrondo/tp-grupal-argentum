@@ -17,7 +17,7 @@ enum class TypeEventClient {
 
 struct EventClient {
     TypeEventClient type;
-    WorldState world;
+    Snapshot world;
     MsgPlayerStats stats;
     std::string text_payload;  // Se usa para mensajes de chat, errores o el "OK"/"ERROR" del login
     uint16_t map_id;           // Se usa para CAMBIO_MAPA
