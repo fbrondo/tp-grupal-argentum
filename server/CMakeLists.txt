@@ -3,7 +3,37 @@ target_sources(taller_server
     # .cpp files
         src/main.cpp
         src/server_protocol.cpp
+        src/server_client_handler.cpp
+        src/server_client_sender.cpp
+        src/server_client_receiver.cpp
+        src/commands/command_attack.cpp
+        src/commands/command_buy_item.cpp
+        src/commands/command_chat.cpp
+        src/commands/command_disconnect.cpp
+        src/commands/command_drop_item.cpp
+        src/commands/command_interact.cpp
+        src/commands/command_login.cpp
+        src/commands/command_move.cpp
+        src/commands/command_use_item.cpp
+        src/commands/command_sell_item.cpp
+        src/commands/command_take_item.cpp
     PUBLIC
     # .h files
         includes/server_protocol.h
+        includes/server_client_handler.h
+        includes/server_client_sender.h
+        includes/server_client_receiver.h
+        includes/snapshot.h
+        includes/commands/command.h
+        includes/commands/command_attack.h
+        includes/commands/command_buy_item.h
+        includes/commands/command_chat.h
+        includes/commands/command_disconnect.h
+        includes/commands/command_drop_item.h
+        includes/commands/command_interact.h
+        includes/commands/command_login.h
+        includes/commands/command_move.h
+        includes/commands/command_use_item.h
+        includes/commands/command_sell_item.h
+        includes/commands/command_take_item.h
     )
