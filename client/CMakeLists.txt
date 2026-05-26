@@ -4,8 +4,15 @@ target_sources(taller_client
         src/main.cpp
         src/client.cpp
         src/client_protocol.cpp
+        src/client_sender.cpp
+        src/client_receiver.cpp
+        src/commands/command_move.cpp
     PUBLIC
     # .h files
         includes/client_protocol.h
         includes/client.h
+        includes/client_sender.h
+        includes/client_receiver.h
+        includes/commands/command_client.h
+        includes/commands/command_move.h
     )
