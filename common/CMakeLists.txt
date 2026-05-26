@@ -8,10 +8,14 @@ target_sources(taller_common
         src/socket.cpp
     PUBLIC
     # .h files
+        includes/core/statics.h
+        includes/direction.h
+        includes/opcode.h
         includes/protocol.h
         includes/toml_config.h
         includes/liberror.h
         includes/resolver.h
         includes/resolvererror.h
         includes/socket.h
+        includes/types.h
     )

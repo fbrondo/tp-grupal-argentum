@@ -1,9 +1,48 @@
 target_sources(taller_server
     PRIVATE
     # .cpp files
+        src/npc/banker.cpp
+        src/npc/criature.cpp
+        src/npc/merchant.cpp
+        src/npc/priest.cpp
+        src/acceptor.cpp
+        src/character.cpp
+        src/client_handler.cpp
+        src/client_receiver.cpp
+        src/client_sender.cpp
+        src/equipment.cpp
+        src/game_formulas.cpp
         src/main.cpp
+        src/monitor_queues.cpp
+        src/player.cpp
         src/server_protocol.cpp
+        src/server.cpp
+        
     PUBLIC
     # .h files
+        includes/core/map.h
+        includes/core/item.h
+        includes/core/race.h
+        includes/core/clase.h
+        includes/npc/banker.h
+        includes/npc/citynpc.h
+        includes/npc/criature.h
+        includes/npc/merchant.h
+        includes/npc/npc.h
+        includes/npc/priest.h
+        includes/acceptor.h
+        includes/character.h
+        includes/client_handler.h
+        includes/client_receiver.h
+        includes/client_sender.h
+        includes/definitions.h
+        includes/equipment.h
+        includes/game_formulas.h
+        includes/gameloop.h
+        includes/monitor_queues.h
+        includes/player.h
         includes/server_protocol.h
+        includes/server.h
+        includes/snapshot.h
+        includes/world.h
     )
