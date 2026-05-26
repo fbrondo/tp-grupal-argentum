@@ -16,7 +16,8 @@ enum ClientOpcode : uint8_t {
     COMMAND = 8,
     INTERACT = 9,
     BUY_ITEM = 10,
-    SELL_ITEM = 11
+    SELL_ITEM = 11,
+    DISCONNECT = 12
 };
 
 enum ServerOpcode : uint8_t {
@@ -63,34 +64,6 @@ struct MsgTrade {
     uint32_t npc_id;  // ID del comerciante
     uint16_t item_id;
     uint16_t quantity;
-};
-
-// Structs del Servidor
-struct PlayerSnapshotData {
-    uint32_t id;
-    float x;
-    float y;
-    uint8_t dir;
-    uint16_t hp_max;
-    uint16_t hp_actual;
-    uint16_t body_id;
-    uint16_t head_id;
-    uint16_t weapon_id;
-    uint8_t flags;
-};
-
-struct NpcSnapshotData {
-    uint32_t id;
-    uint16_t type_id;
-    float x;
-    float y;
-    uint16_t hp_actual;
-};
-
-struct ItemGroundSnapshotData {
-    uint16_t item_id;
-    float x;
-    float y;
 };
 
 struct MsgPlayerStats {

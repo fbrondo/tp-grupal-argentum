@@ -19,5 +19,4 @@ void ClientSender::run() {
         std::cerr << "Error en ClientSender: " << e.what() << std::endl;
     } catch (...) {}
 
-    protocol.shutdown_peer();
 }

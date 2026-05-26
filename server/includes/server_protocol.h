@@ -1,19 +1,25 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "commands/command.h"
+#include "commands/command_attack.h"
+#include "commands/command_buy_item.h"
+#include "commands/command_chat.h"
+#include "commands/command_disconnect.h"
+#include "commands/command_drop_item.h"
+#include "commands/command_interact.h"
+#include "commands/command_login.h"
+#include "commands/command_move.h"
+#include "commands/command_sell_item.h"
+#include "commands/command_take_item.h"
+#include "commands/command_use_item.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
 
-// Struct auxiliar para que el GameLoop le pase a este protocol que enviar en la Snapshot
-struct WorldState {
-    std::vector<PlayerSnapshotData> players;
-    std::vector<NpcSnapshotData> npcs;
-    std::vector<ItemGroundSnapshotData> items;
-};
-
-struct Command {};
+#include "snapshot.h"
 
 #pragma pack(push, 1)
 
@@ -25,7 +31,7 @@ public:
     explicit ServerProtocol(Socket& s);
 
     // Mandar datos al Cliente
-    void sendSnapshot(const WorldState& state) const;
+    void sendSnapshot(const Snapshot& state) const;
     void sendPlayerStats(const MsgPlayerStats& stats) const;
     void sendInventoryUpdate(const MsgInventoryUpdate& inv) const;
     void sendChatMsg(const std::string& msg) const;
@@ -34,8 +40,11 @@ public:
     void sendActionError(const std::string& error_msg) const;
 
     // Recibir un comando del Cliente
-    // bool readCommand(uint32_t player_id, Queue<Command>& queue); // Devuelve false si el cliente
+    bool readCommand(uint32_t player_id,
+                     Queue<std::unique_ptr<Command>>& queue);  // Devuelve false si el cliente
     // se desconecto
+    void shutdown_peer();
+    void close_peer();
 };
 
 #pragma pack(pop)

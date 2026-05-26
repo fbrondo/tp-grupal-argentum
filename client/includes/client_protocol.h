@@ -17,7 +17,7 @@ enum class TypeEventClient {
 
 struct EventClient {
     TypeEventClient type;
-    WorldState world;
+    Snapshot world;
     MsgPlayerStats stats;
     std::string text_payload;  // Se usa para mensajes de chat, errores o el "OK"/"ERROR" del login
     uint16_t map_id;           // Se usa para CAMBIO_MAPA
@@ -43,6 +43,7 @@ public:
     void sendTakeItem() const;
     void sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
+    void sendDisconnect() const;
 
     // Recibir actualizaciones del Servidor
     // Lee del socket para actualizar la interfaz grafica

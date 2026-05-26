@@ -35,5 +35,4 @@ void ClientReceiver::run() {
         outgoing_queue.close();
     } catch (...) {}
 
-    this->protocol.shutdown_peer();
 }

@@ -1,4 +1,4 @@
-#include "../includes/client_protocol.h"
+#include "client/includes/client_protocol.h"
 
 #include <cstring>
 #include <stdexcept>
@@ -182,6 +182,17 @@ void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint16_t item_id,
     }
 }
 
+void ClientProtocol::sendDisconnect() const {
+    constexpr uint8_t opcode = DISCONNECT;
+    try {
+        socket.sendall(&opcode, 1);
+    } catch (const std::exception& e) {
+        std::string mssgErr = "ERROR IN sendDisconnect -- ";
+        mssgErr += e.what();
+        throw std::runtime_error(mssgErr);
+    }
+}
+
 bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0) {
@@ -194,7 +205,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
             out_evento.type = TypeEventClient::UPDATE_WORLD;
             out_evento.world.players.clear();
             out_evento.world.npcs.clear();
-            out_evento.world.items.clear();
+            out_evento.world.items_on_floor.clear();
 
             // 1. Jugadores
             uint16_t p_count;
@@ -204,8 +215,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
                 PlayerSnapshotData p;
                 socket.recvall(&p, sizeof(PlayerSnapshotData));
                 p.id = ntohl(p.id);
-                p.hp_max = ntohs(p.hp_max);
-                p.hp_actual = ntohs(p.hp_actual);
+                p.max_hp = ntohs(p.max_hp);
+                p.hp = ntohs(p.hp);
                 p.body_id = ntohs(p.body_id);
                 p.head_id = ntohs(p.head_id);
                 p.weapon_id = ntohs(p.weapon_id);
@@ -233,7 +244,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
                 ItemGroundSnapshotData it;
                 socket.recvall(&it, sizeof(ItemGroundSnapshotData));
                 it.item_id = ntohs(it.item_id);
-                out_evento.world.items.push_back(it);
+                out_evento.world.items_on_floor.push_back(it);
             }
             break;
         }

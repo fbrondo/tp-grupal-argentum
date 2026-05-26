@@ -27,7 +27,7 @@ void ClientHandler::stop() {
     this->receiver.stop();
     this->sender.stop();
 
-    // send_queue.close();
+    send_queue.close();
     //  try {
     //      this->socket.shutdown(2);
     //      this->socket.close();
