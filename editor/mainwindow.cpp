@@ -6,7 +6,6 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QGraphicsView>
 #include <QLabel>
 #include <QMessageBox>
 #include <QSplitter>
@@ -15,6 +14,7 @@
 #include "common/includes/map/map_serializer.h"
 
 #include "map_scene.h"
+#include "map_view.h"
 #include "new_map_dialog.h"
 #include "sprite.h"
 #include "tile_widget.h"
@@ -65,7 +65,7 @@ void MainWindow::setupEditor() {
     tile_widget_->setFixedWidth(220);
     connect(tile_widget_, &TileWidget::spriteSelected, scene_, &MapScene::setCurrentSpriteId);
 
-    view_ = new QGraphicsView(scene_, this);
+    view_ = new MapView(scene_, this);
     view_->setDragMode(QGraphicsView::NoDrag);
     view_->setBackgroundBrush(QBrush(QColor(20, 20, 20)));
     view_->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);

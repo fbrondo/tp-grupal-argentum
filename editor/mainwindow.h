@@ -7,11 +7,11 @@
 #include "common/includes/map/map.h"
 
 class MapScene;
+class MapView;
 class Sprite;
 class TileWidget;
 class QComboBox;
 class QCheckBox;
-class QGraphicsView;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -47,7 +47,7 @@ private:
     QString file_path_;
     Sprite* sprite_;
     MapScene* scene_;
-    QGraphicsView* view_;
+    MapView* view_;
     TileWidget* tile_widget_;
     QComboBox* layer_combo_;
     QCheckBox* walkable_check_;

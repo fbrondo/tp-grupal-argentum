@@ -6,6 +6,7 @@ target_sources(taller_editor
     sprite.cpp
     tile_widget.cpp
     map_scene.cpp
+    map_view.cpp
     new_map_dialog.cpp
     PUBLIC
     # .h files
@@ -13,5 +14,6 @@ target_sources(taller_editor
     sprite.h
     tile_widget.h
     map_scene.h
+    map_view.h
     new_map_dialog.h
 )
