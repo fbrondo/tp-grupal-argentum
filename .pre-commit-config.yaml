@@ -1,7 +1,7 @@
 ---
 repos:
-  - repo: https://github.com/ssciwr/clang-format-hook
-    rev: v14.0.0
+  - repo: https://github.com/pre-commit/mirrors-clang-format 
+    rev: v18.1.0
     hooks:
       - id: clang-format
         files: ^(.*[.]cpp|.*[.]h)$
@@ -16,5 +16,6 @@ repos:
     hooks:
       - id: cppcheck
         files: ^(.*[.]cpp|.*[.]h)$
+        # exclude: ^(tests|editor)/
         exclude: ^tests/
         args: ["--inline-suppr", "--enable=all", "--suppress=missingIncludeSystem", "--suppress=missingInclude", "--suppress=unusedFunction", "--suppress=unmatchedSuppression", "--suppress=unusedStructMember", "--language=c++", "--std=c++20", "--error-exitcode=1"]

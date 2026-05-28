@@ -6,8 +6,8 @@
 #include "common/includes/map/layer.h"
 #include "common/includes/map/tile.h"
 
-constexpr int kMaxMapWidth = 1000;
-constexpr int kMaxMapHeight = 1000;
+constexpr int MAX_MAP_WIDTH = 1000;
+constexpr int MAX_MAP_HEIGHT = 1000;
 
 class Map {
 public:
