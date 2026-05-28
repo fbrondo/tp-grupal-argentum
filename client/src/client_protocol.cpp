@@ -211,7 +211,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
             uint16_t p_count;
             socket.recvall(&p_count, 2);
             p_count = ntohs(p_count);
-            for (int i = 0; i < p_count; ++i) {
+            for (uint16_t i = 0; i < p_count; ++i) {
                 PlayerSnapshotData p;
                 socket.recvall(&p, sizeof(PlayerSnapshotData));
                 p.id = ntohl(p.id);
@@ -227,7 +227,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
             uint16_t n_count;
             socket.recvall(&n_count, 2);
             n_count = ntohs(n_count);
-            for (int i = 0; i < n_count; ++i) {
+            for (uint16_t i = 0; i < n_count; ++i) {
                 NpcSnapshotData n;
                 socket.recvall(&n, sizeof(NpcSnapshotData));
                 n.id = ntohl(n.id);
@@ -240,7 +240,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
             uint16_t i_count;
             socket.recvall(&i_count, 2);
             i_count = ntohs(i_count);
-            for (int i = 0; i < i_count; ++i) {
+            for (uint16_t i = 0; i < i_count; ++i) {
                 ItemGroundSnapshotData it;
                 socket.recvall(&it, sizeof(ItemGroundSnapshotData));
                 it.item_id = ntohs(it.item_id);
@@ -264,7 +264,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
             socket.recvall(&out_evento.stats.exp, 4);
             out_evento.stats.exp = ntohl(out_evento.stats.exp);
 
-            socket.recvall(&out_evento.stats.nivel, 1);
+            socket.recvall(&out_evento.stats.level, 1);
             break;
         }
         case LOGIN_RESPONSE: {

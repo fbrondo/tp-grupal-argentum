@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#pragma pack(push, 1)
+
 struct PlayerSnapshotData {
     uint32_t id;
 
@@ -29,16 +31,16 @@ struct PlayerSnapshotData {
 struct NpcSnapshotData {
     uint32_t id;
     uint16_t type_id;
-    float x;
-    float y;
+    uint32_t pos_x;
+    uint32_t pos_y;
     uint16_t hp_actual;
-    bool is_alive;
+    uint8_t is_alive;  // bool como uint8_t para serialización segura
 };
 
 struct ItemGroundSnapshotData {
     uint16_t item_id;
-    float x;
-    float y;
+    uint32_t pos_x;
+    uint32_t pos_y;
 };
 
 // No estoy seguro aun como manejar los efectos visuales
@@ -48,6 +50,7 @@ struct VisualEffect {
     uint8_t effect_type;  // Sonido / Animación de explosión / etc
 };
 
+#pragma pack(pop)
 
 struct Snapshot {
     uint32_t turn_number;  // Turno actual
