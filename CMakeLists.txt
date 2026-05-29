@@ -63,8 +63,9 @@ target_include_directories(taller_common PUBLIC .)
 #
 
 # Install libSDL2 and libSDL2pp (for client or editor)
+# Now only for client!
 # HEY!! TODO XXX: add more dependendies (either for client, server or editor)
-if(TALLER_CLIENT OR TALLER_EDITOR)
+if(TALLER_CLIENT)
     include(FetchContent)
     FetchContent_Declare(
         SDL2
@@ -108,6 +109,10 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
         URL https://github.com/libSDL2pp/libSDL2pp/archive/cc198c9a5657048bee67ece82de620b2d5661084.zip
     )
 
+    set(SDL2PP_WITH_IMAGE ON CACHE BOOL "" FORCE)
+    set(SDL2PP_WITH_MIXER ON CACHE BOOL "" FORCE) # Ya que la descargas, la dejas activa
+    set(SDL2PP_WITH_TTF ON CACHE BOOL "" FORCE) # Ya que la descargas, la dejas activa
+
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
@@ -130,7 +135,12 @@ if(TALLER_CLIENT)
     target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_client
+            PRIVATE
+            taller_common
+            SDL2pp::SDL2pp
+            SDL2_image::SDL2_image # <<--- Sumamos el binario de SDL_image
+    )
 endif()
 
 if(TALLER_SERVER)
@@ -151,23 +161,27 @@ if(TALLER_SERVER)
 endif()
 
 if(TALLER_EDITOR)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
+    find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
     add_executable(taller_editor)
 
-    # Make them depend on taller_common lib
-    add_dependencies(taller_editor taller_common SDL2pp::SDL2pp)
+    set_target_properties(taller_editor PROPERTIES
+        AUTOMOC ON
+        AUTOUIC ON
+        AUTORCC ON
+    )
 
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
+    # Register Qt6 headers as SYSTEM so -Werror doesn't fire on Qt internals
+    target_include_directories(taller_editor SYSTEM PRIVATE
+        $<TARGET_PROPERTY:Qt6::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    )
+
+    add_dependencies(taller_editor taller_common)
     add_subdirectory(editor)
 
     set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
-    # add libSDL2pp's headers
-    target_include_directories(taller_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
-
-    # Link the taller_common lib target
-    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_editor taller_common Qt6::Widgets)
 endif()
 
 

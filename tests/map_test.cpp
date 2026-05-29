@@ -28,8 +28,8 @@ TEST(MapConstructorTest, NegativeDimensionsTest) {
 }
 
 TEST(MapConstructorTest, TooLargeTest) {
-    EXPECT_THROW(Map("test", kMaxMapWidth + 1, 5), std::invalid_argument);
-    EXPECT_THROW(Map("test", 5, kMaxMapHeight + 1), std::invalid_argument);
+    EXPECT_THROW(Map("test", MAX_MAP_WIDTH + 1, 5), std::invalid_argument);
+    EXPECT_THROW(Map("test", 5, MAX_MAP_HEIGHT + 1), std::invalid_argument);
 }
 
 // --- Tiles and layers ---

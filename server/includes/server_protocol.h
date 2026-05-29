@@ -44,7 +44,7 @@ public:
     /*Recibir un comando del Cliente. Devuelve false si el clientese desconecto */ 
     bool readCommand(Id player_id, QueueCmd& queue); 
     void shutdown_peer();
-    void close_peer();
+    void close_peer() const;
 };
 
 #pragma pack(pop)
