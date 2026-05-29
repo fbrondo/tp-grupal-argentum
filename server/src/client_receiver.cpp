@@ -7,8 +7,7 @@
 //#include "../includes/command.h"
 #include "common/includes/queue.h"
 
-ClientReceiver::ClientReceiver(Id player_id, ServerProtocol& protocol, QueueCmd& commands_queue,
-                               Queue<Snapshot>& outgoing_queue):
+ClientReceiver::ClientReceiver(const Id& player_id, ServerProtocol& protocol, QueueCmd& commands_queue, QueueResp& outgoing_queue):
         player_id(player_id),
         protocol(protocol),
         commands_queue(commands_queue),
@@ -23,16 +22,20 @@ void ClientReceiver::run() {
             }
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error en ClientReceiver (" << player_id << "): " << e.what() << std::endl;
+        std::cerr << "Error en ClientReceiver (" << this->player_id << "): " << e.what() << std::endl;
     } catch (...) {}
-
-    // Avisamos al GameLoop que este jugador ya no está para que limpie el modelo
+    /*Avisamos al GameLoop que este jugador ya no está para que limpie el modelo*/
     try {
-        commands_queue.push(std::make_unique<DisconnectCommand>(player_id));
+        commands_queue.push(std::make_unique<DisconnectCommand>(this->player_id));
     } catch (const ClosedQueue&) {}
 
-    try {
-        outgoing_queue.close();
-    } catch (...) {}
+    // try {
+    //     outgoing_queue.close();
+    // } catch (...) {}
+}
 
+ClientReceiver::~ClientReceiver() {
+    try {
+        this->outgoing_queue.close();
+    } catch (...) {}
 }

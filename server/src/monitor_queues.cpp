@@ -5,24 +5,27 @@
 
 MonitorQueues::MonitorQueues() {}
 
-Queue<Snapshot>& MonitorQueues::addQueuePlayer(const Id& id_player) {
+QueueResp& MonitorQueues::addQueuePlayer(const Id& player_id) {
     std::lock_guard<std::mutex> lock(this->mut);
-    this->queues_players.emplace(std::piecewise_construct, std::forward_as_tuple(id_player),
-                                 std::forward_as_tuple());
-    return queues_players.at(id_player);
+    QueueResp new_queue;
+    this->queues_players.emplace(std::move(new_queue)/*std::piecewise_construct, std::forward_as_tuple(player_id), std::forward_as_tuple()*/);
+    return queues_players.at(player_id);
+}
+void MonitorQueues::queueTheServerResponse(const Id& player_id, std::unique_ptr<Response>&& response_server) {
+    this->queues_players[player_id].try_push(std::move(response_server));
 }
 
-void MonitorQueues::executeBroadcast(const Snapshot& message) {
+void MonitorQueues::executeBroadcast(const Snapshot snapsh) {
     std::lock_guard<std::mutex> lock(this->mut);
     for (auto& [id, queue]: this->queues_players) {
         try {
-            queue.try_push(message);
+            //queue.try_push(response_snapshot);
         } catch (const ClosedQueue&) {}
     }
 }
 
-void MonitorQueues::removeQueuesPlayer(const Id& id_player) {
+void MonitorQueues::removeQueuesPlayer(const Id& player_id) {
     std::lock_guard<std::mutex> lock(this->mut);
-    // this->queues_players[id_player].close();
-    this->queues_players.erase(id_player);
+    // this->queues_players[player_id].close();
+    this->queues_players.erase(player_id);
 }

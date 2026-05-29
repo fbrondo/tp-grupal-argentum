@@ -17,12 +17,12 @@ struct PlayerSnapshotData {
     uint16_t hp;
     uint16_t max_hp;
     uint16_t mana;
-    uint16_t max_mana;
+    uint16_t max_mana; 
 
     uint16_t body_id;
     uint16_t head_id;
     uint16_t weapon_id;
-
+    
     uint8_t raza;
     uint8_t clase;
     uint8_t flags;  // Estados especiales (por ej: bit 0 = invisible, bit 1 = meditando, etc.)
@@ -30,17 +30,17 @@ struct PlayerSnapshotData {
 
 struct NpcSnapshotData {
     uint32_t id;
-    uint16_t type_id;
-    float x;
-    float y;
+    uint8_t type_id;
+    uint16_t x;
+    uint16_t y;
     uint16_t hp_actual;
     bool is_alive;
 };
 
 struct ItemGroundSnapshotData {
-    uint16_t item_id;
-    float x;
-    float y;
+    uint16_t item_id; //esto es uint32_t
+    float x; // esto es uint32_t
+    float y; //esto es uint32_t
 };
 
 // No estoy seguro aun como manejar los efectos visuales
@@ -52,7 +52,7 @@ struct VisualEffect {
 
 
 struct Snapshot {
-    uint32_t turn_number;  // Turno actual
+    //uint32_t turn_number;  // Turno actual
 
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;

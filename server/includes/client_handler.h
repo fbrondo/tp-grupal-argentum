@@ -27,7 +27,7 @@ private:
 
     QueueCmd& command_queue;
     MonitorQueues& monitor;
-    Queue<Snapshot>& send_queue;
+    QueueResp& send_queue;
 
     ClientReceiver receiver;
     ClientSender sender;
@@ -42,10 +42,9 @@ public:
     void stop();
     void join();
 
-    Queue<Snapshot>& get_send_queue();
+    /*QueueResp& get_send_queue();*/
 
     bool is_alive();
-
     ~ClientHandler();
 };
 

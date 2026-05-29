@@ -4,8 +4,7 @@
 // Incluimos las nuevas abstracciones de este TP
 //#include "command.h"
 
-ClientHandler::ClientHandler(Id player_id, Socket&& socket, QueueCmd& cmd_q,
-                             MonitorQueues& monitor):
+ClientHandler::ClientHandler(Id player_id, Socket&& socket, QueueCmd& cmd_q, MonitorQueues& monitor):
         player_id(player_id),
         joinable(true),
         socket(std::move(socket)),
@@ -43,7 +42,7 @@ void ClientHandler::join() {
     this->sender.join();
 }
 
-Queue<Snapshot>& ClientHandler::get_send_queue() { return this->send_queue; }
+ /*QueueResp& ClientHandler::get_send_queue() { return this->send_queue; }*/
 
 ClientHandler::~ClientHandler() {
     this->stop();

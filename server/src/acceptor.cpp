@@ -25,11 +25,10 @@ void Acceptor::run() {
         while (should_keep_running()) {
             Socket peer = this->listen.accept();
             Id player_id = this->next_id++;
-            auto client = std::make_unique<ClientHandler>(player_id, std::move(peer), this->monitor,
-                                                          this->queue_cmd);
+            auto client = std::make_unique<ClientHandler>(player_id, std::move(peer), this->queue_cmd, this->monitor);
             client->start();
             this->reap();
-            players.push_back(client);
+            players.push_back(std::move(client));
         }
     } catch (const LibError& e) {
         if (should_keep_running()) {

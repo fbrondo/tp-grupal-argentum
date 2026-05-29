@@ -14,10 +14,11 @@ target_sources(taller_server
         src/game_formulas.cpp
         src/main.cpp
         src/monitor_queues.cpp
+        src/persistence_manager.cpp
         src/player.cpp
+        src/persistence_manager.cpp
         src/server_protocol.cpp
         src/server.cpp
-        
         src/client_handler.cpp
         src/client_sender.cpp
         src/client_receiver.cpp
@@ -32,8 +33,12 @@ target_sources(taller_server
         src/commands/command_use_item.cpp
         src/commands/command_sell_item.cpp
         src/commands/command_take_item.cpp
+        src/commands/command_create_character.cpp
+        src/responses/response_login.cpp
     PUBLIC
     # .h files
+        includes/core/data.h
+        includes/core/instances.h
         includes/core/map.h
         includes/core/item.h
         includes/core/race.h
@@ -54,7 +59,9 @@ target_sources(taller_server
         includes/game_formulas.h
         includes/gameloop.h
         includes/monitor_queues.h
+        includes/persistence_manager.h
         includes/player.h
+        includes/response_builder.h
         includes/server_protocol.h
         includes/server.h
         includes/snapshot.h
@@ -75,4 +82,7 @@ target_sources(taller_server
         includes/commands/command_use_item.h
         includes/commands/command_sell_item.h
         includes/commands/command_take_item.h
+        includes/commands/command_create_character.h
+        includes/responses/response.h
+        includes/responses/response_login.h
     )

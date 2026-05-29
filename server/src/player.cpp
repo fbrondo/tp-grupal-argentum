@@ -5,9 +5,9 @@
 
 #define STATE_DEAD 0
 
-Player::Player(const Race& ch_race, const Clase& ch_clase, uint16_t golden, uint8_t level,
-               Position&& pos_):
-        ch(ch_race, ch_clase), golden(golden), pos(std::move(pos_)) {
+Player::Player(const Race& ch_race, const Clase& ch_clase, uint16_t golden, uint8_t level
+               /*const Position& pos_*/):
+        ch(ch_race, ch_clase), golden(golden)/*, pos(std::move(pos_))*/ {
     const Statics statics = ch.getStatics();
     this->hp = this->hpMax(statics.constitution);
     this->mana = this->manaMax(statics.intelligense);
@@ -26,9 +26,9 @@ uint16_t Player::manaMax(const uint16_t& intelligense) {
     return this->form.calculationMaximunHp(intelligense, mana_f_race, mana_f_clase, this->level);
 }
 
-const Position& Player::getCurrentPosition() const { return this->pos; }
+//const Position& Player::getCurrentPosition() const { return this->pos; }
 
-void Player::updatePosition(Position&& new_pos) { this->pos = std::move(new_pos); }
+///void Player::updatePosition(Position&& new_pos) { this->pos = std::move(new_pos); }
 
 bool Player::isAlive() { return this->hp == STATE_DEAD; }
 

@@ -18,7 +18,7 @@ void Equipment::equipHandItem(std::unique_ptr<ItemInstace> item_inst) {
 
 void Equipment::equipItemDefensive(std::unique_ptr<ItemInstace> item_inst) {
 
-    switch (item_inst->body_part) {
+    switch (item_inst->body_part_use) {
         case HEAD:
             this->equipment_container[INDEX_HEAD] = std::move(item_inst);
             break;
@@ -35,13 +35,13 @@ void Equipment::equipItemDefensive(std::unique_ptr<ItemInstace> item_inst) {
 
 void Equipment::equipItem(std::unique_ptr<ItemInstace> item_inst) {
     switch (item_inst->classification) {
-        case DEFENSIVE:
+        case ITEM_DEFENSIVE:
             this->equipItemDefensive(std::move(item_inst));
             break;
-        case ATTACK: /*arma de combate a mano o a distancia*/
+        case ITEM_ATTACK: /*arma de combate a mano o a distancia*/
             this->equipHandItem(std::move(item_inst));
             break;
-        case HEALING: /*objeto magico*/
+        case ITEM_HEALING: /*objeto magico*/
             this->equipHandItem(std::move(item_inst));
             break;
         default:

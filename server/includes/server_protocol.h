@@ -2,7 +2,8 @@
 #include <memory>
 #include <string>
 #include <vector>
-
+#include "definitions.h"
+#include "common/includes/types.h"
 #include "commands/command.h"
 #include "commands/command_attack.h"
 #include "commands/command_buy_item.h"
@@ -15,6 +16,7 @@
 #include "commands/command_sell_item.h"
 #include "commands/command_take_item.h"
 #include "commands/command_use_item.h"
+#include "commands/command_create_character.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
@@ -35,14 +37,12 @@ public:
     void sendPlayerStats(const MsgPlayerStats& stats) const;
     void sendInventoryUpdate(const MsgInventoryUpdate& inv) const;
     void sendChatMsg(const std::string& msg) const;
-    void sendLoginResponse(bool success, const std::string& error_msg = "") const;
+    void sendLoginResponse(const bool success, const std::string& error_msg = "") const;
     void sendChangeMap(uint16_t map_id) const;
     void sendActionError(const std::string& error_msg) const;
 
-    // Recibir un comando del Cliente
-    bool readCommand(uint32_t player_id,
-                     Queue<std::unique_ptr<Command>>& queue);  // Devuelve false si el cliente
-    // se desconecto
+    /*Recibir un comando del Cliente. Devuelve false si el clientese desconecto */ 
+    bool readCommand(Id player_id, QueueCmd& queue); 
     void shutdown_peer();
     void close_peer();
 };

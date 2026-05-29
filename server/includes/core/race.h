@@ -28,7 +28,7 @@ struct Race {
          uint16_t manaF):
             type(type),
             name(std::move(name)),
-            statics(std::move(statics)),
+            statics(std::move(st)),
             hpFactor(lifeF),
             recoveryFactor(manaRecF),
             manaFactor(manaF) {}

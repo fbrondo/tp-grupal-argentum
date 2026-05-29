@@ -110,24 +110,4 @@ struct MagicWeapon: Weapon {
 };
 
 
-/*Esto solo cuando
-    - Un jugador compre u obtenga un item para su inventario
-    - En caso de que un item sea dropeado para identificarlo
-*/
-/*NOTA: esto puede ir en commmon, el cliente tambien puede llegar a usarlo*/
-struct ItemInstace {
-    Id id_instance;  // unico, se genera en runtime
-    TypeItem type;
-    ItemClassification classification; /* DEFENSIVE, ATTACK, HEALING*/
-    BodyPart body_part;
-
-    ItemInstace(Id id, TypeItem type, ItemClassification classif,
-                BodyPart body_part /*const Item* item*/):
-            id_instance(id),
-            type(type),
-            classification(classif),
-            body_part(body_part) /*itemConf(item)*/ {}
-};
-
-
 #endif

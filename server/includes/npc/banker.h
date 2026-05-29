@@ -37,7 +37,7 @@ private:
 public:
     Banker(TypeNPC type, std::string&& name, Position&& pos);
     ~Banker() = default;
-    void interact(const Id& id_player, World& word, Comand& cmd) override;
+    //void interact(const Id& id_player, World& word, Comand& cmd) override;
 };
 
 #endif

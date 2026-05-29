@@ -16,14 +16,14 @@
 
 class ClientReceiver: public Thread {
 private:
-    Id player_id;
+    const Id& player_id;
     ServerProtocol& protocol;
     QueueCmd& commands_queue;
-    Queue<Snapshot>& outgoing_queue;
+    QueueResp& outgoing_queue;
 
 public:
-    ClientReceiver(Id player_id, ServerProtocol& protocol, QueueCmd& commands_queue,
-                   Queue<Snapshot>& outgoing_queue);
+    ClientReceiver(const Id& player_id, ServerProtocol& protocol, QueueCmd& commands_queue,  QueueResp& outgoing_queue);
+    ~ClientReceiver();
     void run() override;
 };
 

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
-
 #include "command.h"
+#include "../world.h"
+#include "common/includes/types.h"
 
 class LoginCommand: public Command {
 private:
@@ -10,7 +11,6 @@ private:
     std::string password;
 
 public:
-    LoginCommand(uint32_t id, const std::string& name, const std::string& pass);
-
+    LoginCommand(Id id, const std::string& name, const std::string& pass);
     void execute(World& world) override;
 };

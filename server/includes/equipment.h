@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/item.h"
+#include "core/instances.h"
 
 class Equipment {
 private:

@@ -27,7 +27,7 @@ struct Clase {
           uint16_t manaF):
             type(type),
             name(std::move(name)),
-            statics(std::move(statics)),
+            statics(std::move(st)),
             hpFactor(lifeF),
             meditationFactor(medF),
             manaFactor(manaF) {}

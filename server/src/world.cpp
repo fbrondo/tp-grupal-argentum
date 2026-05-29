@@ -3,7 +3,9 @@
 #define PRUEBA_HEIGHT 10
 #define PRUEBA_WIDTH 10
 
-World::World(const std::filesystem::path& path) {}
+World::World(const std::filesystem::path& path) {
+    
+}
 void World::buildTilesWorld() {
     this->map_tiles.resize(PRUEBA_HEIGHT, std::vector<Tile>(PRUEBA_WIDTH));
     for (uint32_t x = 0; x < PRUEBA_WIDTH; x++) {
@@ -14,8 +16,9 @@ void World::buildTilesWorld() {
     this->map_tiles[1][3] = {FILED, true, 0};
     this->map_tiles[3][3] = {FILED, true, 0};
 }
+
 Position World::calculatePosition(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players[player_id].getCurrentPosition();
+    const Position& pos = this->players_positions[player_id];
     Position new_pos;
     switch (dir) {
         case DOWN:
@@ -40,18 +43,19 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
     return new_pos;
 }
 
+
+
 bool World::isOccupied(const Position& pos) {
     /*Verificamos que no haya otro jugador*/
-    for (auto& [id, player]: this->players) {
-        const Position& other = player.getCurrentPosition();
-        if (other.x == pos.x && other.y == pos.y) {
+    for (auto& [id, position_player]: this->players_positions) {
+        if (position_player == pos) {
             return true;
         }
     }
+
     /*verificamos que no hay un NPC*/
-    for (auto& [id, npc]: this->npcs) {
-        const Position& other = npc->getCurrentPosition();
-        if (other.x == pos.x && other.y == pos.y) {
+    for (auto& [id, instance_npc]: this->npcs_positions) {
+        if (instance_npc.pos == pos) {
             return true;
         }
     }
@@ -64,7 +68,7 @@ bool World::isOccupied(const Position& pos) {
 }
 /*Consultas para validar*/
 bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players[player_id].getCurrentPosition();
+    const Position& pos = this->players_positions[player_id];
     switch (dir) {
         case DOWN:
             return (pos.y + 1 < PRUEBA_HEIGHT);
@@ -94,9 +98,20 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
 bool World::isSafeZONE(const Position& pos) {}
 
 /*El estado del mundo cambia*/
-void World::addPlayer(const Id& player_id, Player& player) {}
-void World::removePlayer(const Id& player_id) {}
+void World::addPlayer(const Id& player_id) {
+    Position player_position(4,4); /*Harcodeado para probar*/
+    this->players_positions.insert({player_id, player_position});
+}
+
+void World::removePlayer(const Id& player_id) {
+
+}
+
 void World::movePlayer(const Id& player_id, Direction dir) {
     Position new_pos = this->calculatePosition(player_id, dir);
-    this->players[player_id].updatePosition(std::move(new_pos));
+    this->players_positions[player_id] = new_pos;
+}
+
+const Position& World::getPositionPlayer(const Id& player_id) {
+    return this->players_positions[player_id];
 }

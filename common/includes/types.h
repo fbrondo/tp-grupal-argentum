@@ -46,9 +46,9 @@ enum TypeItem : uint8_t {
 };
 
 enum ItemClassification : uint8_t {
-    DEFENSIVE = 1, /*ITEM DE DEFENSA*/
-    ATTACK,        /*ITEM DE ATAQUE*/
-    HEALING        /*ITEM DE CURACION*/
+    ITEM_DEFENSIVE = 1, /*ITEM DE DEFENSA*/
+    ITEM_ATTACK,        /*ITEM DE ATAQUE*/
+    ITEM_HEALING        /*ITEM DE CURACION*/
 };
 
 #endif
@@ -61,6 +61,18 @@ enum TypeRace : uint8_t {
     ELF,       /*ELFO*/
     DWARF,     /*ENANO*/
     GNOME      /*GNOMO*/
+};
+
+#endif
+
+/*-------------------------------------------------------------------------------------------------*/
+#ifndef __ID_CLASE__
+#define __ID_CLASE__
+enum TypeClase : uint8_t {
+    WIZARD = 1, /*MAGO*/
+    CLERIC,     /*CLERIGO*/
+    PALADIN,    /*PALADIN*/
+    WARRIOR     /*GUERRERO*/
 };
 
 #endif
@@ -81,19 +93,6 @@ enum TypeNPC : uint8_t {
 };
 
 #endif
-/*-------------------------------------------------------------------------------------------------*/
-
-#ifndef __ID_CLASE__
-#define __ID_CLASE__
-enum TypeClase : uint8_t {
-    WIZARD = 1, /*MAGO*/
-    CLERIC,     /*CLERIGO*/
-    PALADIN,    /*PALADIN*/
-    WARRIOR     /*GUERRERO*/
-};
-
-#endif
-
 /*-------------------------------------------------------------------------------------------------*/
 #ifndef __ID_REGION__
 #define __ID_REGION__

@@ -17,10 +17,10 @@
 class ClientSender: public Thread {
 private:
     ServerProtocol& protocol;
-    Queue<Snapshot>& outgoing_queue;
+    QueueResp& outgoing_queue;
 
 public:
-    ClientSender(ServerProtocol& protocol, Queue<Snapshot>& outgoing_queue);
+    ClientSender(ServerProtocol& protocol,  QueueResp& outgoing_queue);
     void run() override;
 };
 

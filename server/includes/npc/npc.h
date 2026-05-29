@@ -15,8 +15,7 @@ protected:
     Position pos;
 
 public:
-    NPC(TypeNPC type_, std::string&& name, Position&& pos_):
-            pos(std::move(pos_)), type(type_), name(std::move(name)) {}
+    NPC(TypeNPC type_, std::string&& name, Position&& pos_);
     const Position& getCurrentPosition();
     virtual ~NPC() = default;
 };
