@@ -47,7 +47,13 @@ struct ItemGroundSnapshotData {
 struct VisualEffect {
     uint32_t pos_x;
     uint32_t pos_y;
-    uint8_t effect_type;  // Sonido / Animación de explosión / etc
+    uint8_t effect_type;
+};
+
+struct SoundEffectSnapshotData {
+    uint8_t effect_id;
+    uint32_t pos_x;           // Coordenada X donde ocurrio (para audio posicional)
+    uint32_t pos_y;           // Coordenada Y 
 };
 
 #pragma pack(pop)
@@ -60,4 +66,5 @@ struct Snapshot {
     std::vector<ItemGroundSnapshotData> items_on_floor;
 
     std::vector<VisualEffect> effects;
+    std::vector<SoundEffectSnapshotData> sound_effects;
 };

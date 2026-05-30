@@ -17,7 +17,9 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
                               sizeof(uint16_t)  // Cantidad de NPCs
                               + (state.npcs.size() * sizeof(NpcSnapshotData)) +
                               sizeof(uint16_t)  // Cantidad de Items
-                              + (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData));
+                              + (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData))
+                              + sizeof(uint16_t)  // Cantidad de efectos sonoros
+                              + (state.sound_effects.size() * sizeof(SoundEffectSnapshotData));
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -76,6 +78,21 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));
         offset += sizeof(ItemGroundSnapshotData);
+    }
+
+    // Efectos sonoros
+    const auto s_size = static_cast<uint16_t>(state.sound_effects.size());
+    const uint16_t s_count_net = htons(s_size);
+    std::memcpy(buffer.data() + offset, &s_count_net, sizeof(s_count_net));
+    offset += sizeof(s_count_net);
+
+    for (auto s: state.sound_effects) {
+        s.effect_id = htons(s.effect_id);
+        s.pos_x = htonl(s.pos_x);
+        s.pos_y = htonl(s.pos_y);
+
+        std::memcpy(buffer.data() + offset, &s, sizeof(SoundEffectSnapshotData));
+        offset += sizeof(SoundEffectSnapshotData);
     }
 
     try {
