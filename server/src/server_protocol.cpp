@@ -34,6 +34,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto p: state.players) {
         p.id = htonl(p.id);
+        p.pos_x = htonl(p.pos_x);
+        p.pos_y = htonl(p.pos_y);
         p.max_hp = htons(p.max_hp);
         p.hp = htons(p.hp);
         p.body_id = htons(p.body_id);
@@ -52,6 +54,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto n: state.npcs) {
         n.id = htonl(n.id);
+        n.pos_x = htonl(n.pos_x);
+        n.pos_y = htonl(n.pos_y);
         n.type_id = htons(n.type_id);
         n.hp_actual = htons(n.hp_actual);
 
@@ -67,6 +71,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto i: state.items_on_floor) {
         i.item_id = htons(i.item_id);
+        i.pos_x = htonl(i.pos_x);
+        i.pos_y = htonl(i.pos_y);
 
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));
         offset += sizeof(ItemGroundSnapshotData);
@@ -87,6 +93,7 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
     temp_stats.mana = htonl(stats.mana);
     temp_stats.gold = htonl(stats.gold);
     temp_stats.exp = htonl(stats.exp);
+    temp_stats.level = stats.level;
     try {
         socket.sendall(&temp_stats, sizeof(MsgPlayerStats));
     } catch (const std::exception& e) {
@@ -330,7 +337,7 @@ void ServerProtocol::shutdown_peer() {
     }
 }
 
-void ServerProtocol::close_peer() {
+void ServerProtocol::close_peer() const {
     try {
         socket.close();
     } catch (const std::exception& e) {

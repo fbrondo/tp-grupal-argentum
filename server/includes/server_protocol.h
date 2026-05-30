@@ -44,7 +44,7 @@ public:
                      Queue<std::unique_ptr<Command>>& queue);  // Devuelve false si el cliente
     // se desconecto
     void shutdown_peer();
-    void close_peer();
+    void close_peer() const;
 };
 
 #pragma pack(pop)
