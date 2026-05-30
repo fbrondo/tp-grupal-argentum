@@ -43,6 +43,17 @@ MainWindow::MainWindow(QWidget* parent):
     connect(ui_->actionAbrir, &QAction::triggered, this, &MainWindow::onOpen);
     connect(ui_->actionGuardar, &QAction::triggered, this, &MainWindow::onSave);
     connect(ui_->actionGuardar_Como, &QAction::triggered, this, &MainWindow::onSaveAs);
+
+    ui_->actionDeshacer->setShortcut(QKeySequence::Undo);
+    ui_->actionDeshacer->setEnabled(false);
+    connect(ui_->actionDeshacer, &QAction::triggered, this, &MainWindow::onUndo);
+    connect(scene_, &MapScene::undoAvailable, ui_->actionDeshacer, &QAction::setEnabled);
+
+    ui_->actionRehacer->setShortcut(QKeySequence::Redo);
+    ui_->actionRehacer->setEnabled(false);
+    connect(ui_->actionRehacer, &QAction::triggered, this, &MainWindow::onRedo);
+    connect(scene_, &MapScene::redoAvailable, ui_->actionRehacer, &QAction::setEnabled);
+
     connect(ui_->actionZoom, &QAction::triggered, this, &MainWindow::onZoomIn);
     connect(ui_->actionZoom_2, &QAction::triggered, this, &MainWindow::onZoomOut);
     connect(ui_->actionSeleccionar_graficos, &QAction::triggered, this,
@@ -177,6 +188,9 @@ void MainWindow::onSaveAs() {
     onSave();
     updateTitle();
 }
+
+void MainWindow::onUndo() { scene_->undo(); }
+void MainWindow::onRedo() { scene_->redo(); }
 
 void MainWindow::onZoomIn() { view_->scale(1.25, 1.25); }
 void MainWindow::onZoomOut() { view_->scale(0.8, 0.8); }

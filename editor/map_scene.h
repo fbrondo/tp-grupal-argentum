@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "common/includes/map/layer.h"
+#include "common/includes/map/tile.h"
 
 class Map;
 class Sprite;
@@ -22,9 +23,13 @@ public:
     void setCurrentLayer(Layer layer);
     void setCurrentSpriteId(int sprite_id);
     void setCurrentWalkable(bool walkable);
+    void undo();
+    void redo();
 
 signals:
     void tileModified(int x, int y);
+    void undoAvailable(bool available);
+    void redoAvailable(bool available);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -32,11 +37,20 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
+    struct TileChange {
+        Layer layer;
+        int ax;
+        int ay;
+        Tile old_tile;
+        Tile new_tile;
+    };
+
     void rebuildScene();
     void updateAllLayersVisual(int x, int y);
     void updateTileVisual(int x, int y);
     void paintAt(QPointF scene_pos);
     void eraseAt(QPointF scene_pos);
+    void applyTileChange(int ax, int ay, Layer layer, const Tile& old_tile, const Tile& new_tile);
     // Returns (cells_wide, cells_tall) that sprite_id occupies based on pixel dimensions.
     std::pair<int, int> spriteCellSize(int sprite_id) const;
     // Returns all (x,y) cells in the footprint of sprite anchored at (ax, ay).
@@ -58,4 +72,6 @@ private:
     };
     std::vector<TileVisual> visuals_;
     std::vector<int> anchor_at_;
+    std::vector<TileChange> undo_stack_;
+    std::vector<TileChange> redo_stack_;
 };

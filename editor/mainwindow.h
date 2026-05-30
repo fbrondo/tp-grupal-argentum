@@ -32,6 +32,8 @@ private:
     void onOpen();
     void onSave();
     void onSaveAs();
+    void onUndo();
+    void onRedo();
     void onZoomIn();
     void onZoomOut();
     void onToggleFullscreen();
