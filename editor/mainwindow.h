@@ -6,6 +6,7 @@
 
 #include "common/includes/map/layer.h"
 #include "common/includes/map/map.h"
+#include "common/includes/map/tile.h"
 
 class MapScene;
 class MapView;
@@ -54,4 +55,5 @@ private:
     TileWidget* tile_widget_;
     QComboBox* layer_combo_;
     QCheckBox* walkable_check_;
+    QComboBox* region_combo_;
 };

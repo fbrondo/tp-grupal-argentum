@@ -124,12 +124,27 @@ void MainWindow::setupToolBar() {
     walkable_check_->setChecked(true);
     toolbar->addWidget(walkable_check_);
 
+    toolbar->addSeparator();
+    toolbar->addWidget(new QLabel("  Región: ", this));
+    region_combo_ = new QComboBox(this);
+    region_combo_->addItem("Campo", static_cast<int>(Region::Field));
+    region_combo_->addItem("Ciudad", static_cast<int>(Region::City));
+    region_combo_->addItem("Pueblo", static_cast<int>(Region::Town));
+    region_combo_->addItem("Bosque", static_cast<int>(Region::Forest));
+    region_combo_->addItem("Desierto", static_cast<int>(Region::Desert));
+    region_combo_->addItem("Caverna", static_cast<int>(Region::Cavern));
+    region_combo_->addItem("Mazmorra", static_cast<int>(Region::Dungeon));
+    toolbar->addWidget(region_combo_);
+
     connect(layer_combo_, &QComboBox::currentIndexChanged, this, [this](int idx) {
         Layer layer = static_cast<Layer>(layer_combo_->itemData(idx).toInt());
         scene_->setCurrentLayer(layer);
         tile_widget_->setCurrentLayer(layer);
     });
     connect(walkable_check_, &QCheckBox::toggled, scene_, &MapScene::setCurrentWalkable);
+    connect(region_combo_, &QComboBox::currentIndexChanged, this, [this](int idx) {
+        scene_->setCurrentRegion(static_cast<Region>(region_combo_->itemData(idx).toInt()));
+    });
 
     toolbar->addSeparator();
     toolbar->addAction(ui_->actionPantalla_Completa);

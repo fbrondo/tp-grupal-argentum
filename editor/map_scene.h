@@ -23,6 +23,7 @@ public:
     void setCurrentLayer(Layer layer);
     void setCurrentSpriteId(int sprite_id);
     void setCurrentWalkable(bool walkable);
+    void setCurrentRegion(Region region);
     void undo();
     void redo();
 
@@ -62,6 +63,7 @@ private:
     Layer current_layer_{Layer::Background};
     int current_sprite_id_{0};
     bool current_walkable_{true};
+    Region current_region_{Region::Field};
     bool painting_{false};
     bool erasing_{false};
 

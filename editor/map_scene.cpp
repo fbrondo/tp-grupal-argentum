@@ -31,6 +31,8 @@ void MapScene::setCurrentSpriteId(int sprite_id) { current_sprite_id_ = sprite_i
 
 void MapScene::setCurrentWalkable(bool walkable) { current_walkable_ = walkable; }
 
+void MapScene::setCurrentRegion(Region region) { current_region_ = region; }
+
 void MapScene::rebuildScene() {
     clear();
     visuals_.clear();
@@ -206,7 +208,7 @@ void MapScene::paintAt(QPointF scene_pos) {
     }
 
     Tile old_tile = map_->tile_at(x, y, current_layer_);
-    Tile new_tile{current_sprite_id_, current_walkable_};
+    Tile new_tile{current_sprite_id_, current_walkable_, current_region_};
 
     redo_stack_.clear();
     undo_stack_.push_back({current_layer_, x, y, old_tile, new_tile});
