@@ -90,6 +90,7 @@ void MainWindow::setupEditor() {
         layer_combo_->setCurrentIndex(static_cast<int>(layer));
         layer_combo_->blockSignals(false);
         scene_->setCurrentLayer(layer);
+        region_combo_->setEnabled(layer == Layer::Background);
     });
 
     view_ = new MapView(scene_, this);
@@ -140,6 +141,7 @@ void MainWindow::setupToolBar() {
         Layer layer = static_cast<Layer>(layer_combo_->itemData(idx).toInt());
         scene_->setCurrentLayer(layer);
         tile_widget_->setCurrentLayer(layer);
+        region_combo_->setEnabled(layer == Layer::Background);
     });
     connect(walkable_check_, &QCheckBox::toggled, scene_, &MapScene::setCurrentWalkable);
     connect(region_combo_, &QComboBox::currentIndexChanged, this, [this](int idx) {
