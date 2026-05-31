@@ -1,1 +1,9 @@
-[persistence]
+[persistence_players]
+data_file = "config/data/players.dat"
+data_indx = "config/data/players.idx"
+
+[persistence_world]
+data_world = "config/data/world.dat" #guardo el estado del mundo
+
+[map]
+path = "mapa-01.toml"

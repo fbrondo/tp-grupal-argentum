@@ -1,26 +1,27 @@
-#include "gameloop.h"
+#include "server/includes/gameloop.h"
 
 #include <memory>
 #include <string>
 #include <utility>
+#include "server/includes/core/snapshot.h"
+#include "server/includes/responses/response.h"
+#include "server/includes/responses/response_login.h"
+#include "server/includes/responses/response_snapshot.h"
 
-#include "../includes/responses/response.h"
-#include "../includes/responses/response_login.h"
-#include "../includes/snapshot.h"
-
-Gameloop::Gameloop(MonitorQueues& monitor, QueueCmd& cmmds_queue): monitor(monitor), commands_queue(cmmds_queue), persistence("data/"){
+Gameloop::Gameloop(GameConfig& game_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue): 
+paths(game_conf.getPaths()), world_game(paths.map_path), monitor(monitor), commands_queue(cmmds_queue), persistence("data/") {
     
 }
 /*Levantamos un jugador - Deberia servir tanto para
     - Uno que se registra
     - Uno que ya estaba registrado y solo estamos cargando sus datos.
 */
-Player&& Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase) {
+Player&& Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level) {
     /*El oro:50, el nivel 1 y la posicion no seran harcodeados
         - El oro y nivel inicial los obtengo de mis archivos game.toml
         - La position me la a dar el mundo (seguramente en una zona segura)
     */
-    Player new_player(this->info_races[race], this->info_clases[clase], 50, 1);
+    Player new_player(std::move(inv), this->info_races[race], this->info_clases[clase], level);
     return std::move(new_player);
 }
 void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
@@ -31,7 +32,8 @@ void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     if(this->persistence.exists(username)) {
         response_register = std::make_unique<ResponseLogin>(false, "Ese nombre no esta disponible. Por favor elige otro.");
     } else { /*No hay conciendencia, registro al nuevo jugador*/
-        this->players.insert({id, this->initPlayer(race, clase)});
+        Inventory inv(50, 16);
+        this->players.insert({id, this->initPlayer(race, clase, std::move(inv), 1)});
         register_cmd->execute(this->world_game);
         response_register = std::make_unique<ResponseLogin>(true);
     }
@@ -41,6 +43,8 @@ void Gameloop::executeMovePlayer(MoveCommand* cmd) {
     auto [player_id, direction] = cmd->getMoveInfo();
     if (this->world_game.isWalkable(player_id, direction)) {
         cmd->execute(this->world_game);
+        Snapshot snap = this->resp.buildSnapshot(this->players, this->world_game);
+        std::unique_ptr<ResponseSnapshot> response = std::make_unique<ResponseSnapshot>(std::move(snap));
     }
 }
 

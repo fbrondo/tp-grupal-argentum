@@ -8,7 +8,7 @@
 
 /*VER SI ESTO PUEDE IR EN OTRO LADO*/
 enum BodyPart : uint8_t {
-    HEAD,  /*Cabeza - casco, capucha, sombrero*/
+    HEAD = 1,  /*Cabeza - casco, capucha, sombrero*/
     BACK,  /*Dorso - armadura, tunica*/
     HAND,  /*Mano* - escudo, arma, objeto */
     MOUTH, /*Boca - posiciones*/
@@ -18,15 +18,19 @@ enum BodyPart : uint8_t {
 // consultar si es preferible usar una clase. Lo hice un struct porque no como tal no maneja logica.
 struct Item {
     TypeItem type;
+    BodyPart body_part_use;
+    ItemClassification classif;
     std::string name;
-    uint16_t sellingPrice;
-    uint16_t purchasePrice;
+    uint16_t selling_price;
+    uint16_t purchase_price;
 
-    Item(TypeItem type, std::string&& name, uint16_t sellingPrice, uint16_t purchasePrice):
-            type(std::move(type)),
+    Item(TypeItem type, BodyPart body, ItemClassification classif_, std::string&& name, uint16_t sell_price, uint16_t purch_price):
+            type(type),
+            body_part_use(body),
+            classif(classif_),
             name(std::move(name)),
-            sellingPrice(sellingPrice),
-            purchasePrice(purchasePrice) {}
+            selling_price(sell_price),
+            purchase_price(purch_price) {}
 
     virtual ~Item() = default;
 };
@@ -38,30 +42,14 @@ struct Item {
     - Casco, capucha, sombrero.
 */
 struct Defense: Item {
-    uint16_t minimalDefense;
-    uint16_t maximunDefense;
-    BodyPart bodyPart; /*Parte del cuerpo donde se lleva el item defensivo*/
+    uint16_t minimal_defense;
+    uint16_t maximun_defense;
 
-    Defense(TypeItem type, std::string&& name, uint16_t sellingPrice, uint16_t purchasePrice,
-            uint16_t minDef, uint16_t maxDef, BodyPart bp):
-            Item(type, std::move(name), sellingPrice, purchasePrice),
-            minimalDefense(minDef),
-            maximunDefense(maxDef),
-            bodyPart(bp) {}
-};
-
-/* Con esto puedo representar un objeto magico, el mas simple:
-    - flauta elfica -> lanza hechico que cura vide
-*/
-struct ObjectMagic: Item {
-    uint16_t manaCost;
-    uint16_t range;
-
-    ObjectMagic(TypeItem type, std::string&& name, uint16_t sellingPrice, uint16_t purchasePrice,
-                uint16_t mCost, uint16_t range):
-            Item(type, std::move(name), sellingPrice, purchasePrice),
-            manaCost(mCost),
-            range(range) {}
+    Defense(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price,
+            uint16_t min_def, uint16_t max_def):
+            Item(type, body, classif, std::move(name), sell_price, purch_price),
+            minimal_defense(min_def),
+            maximun_defense(max_def) {}
 };
 
 /* Con esto puedo representa las arma de combate a mano directamente:
@@ -70,14 +58,14 @@ struct ObjectMagic: Item {
     - Hacha
 */
 struct Weapon: Item {
-    uint16_t minimalDamage;
-    uint16_t maximunDamage;
+    uint16_t minimal_damage;
+    uint16_t maximun_damage;
 
-    Weapon(TypeItem type, std::string&& name, uint16_t sellingPrice, uint16_t purchasePrice,
-           uint16_t minDam, uint16_t maxDam):
-            Item(type, std::move(name), sellingPrice, purchasePrice),
-            minimalDamage(minDam),
-            maximunDamage(maxDam) {}
+    Weapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price,
+           uint16_t min_dam, uint16_t max_dam):
+            Item(type, body, classif, std::move(name), sell_price, purch_price),
+            minimal_damage(min_dam),
+            maximun_damage(max_dam) {}
 };
 
 /* Con esto puedo representa las arma de combate a distancia:
@@ -87,25 +75,36 @@ struct Weapon: Item {
 struct RangedWeapon: Weapon {
     uint16_t rangedAttack;
 
-    RangedWeapon(TypeItem type, std::string&& name, uint16_t sellingPrice, uint16_t purchasePrice,
-                 uint16_t minDam, uint16_t maxDam, uint16_t range):
-            Weapon(type, std::move(name), sellingPrice, purchasePrice, minDam, maxDam),
+    RangedWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price,
+                 uint16_t min_dam, uint16_t max_dam, uint16_t range):
+            Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam),
             rangedAttack(range) {}
 };
 
+/* Con esto puedo representar un objeto magico, el mas simple:
+    - flauta elfica -> lanza hechico que cura vida
+*/
+struct ObjectMagic: Item {
+    uint16_t mana_cost;
+    uint16_t range;
 
+    ObjectMagic(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price, uint16_t m_cost, uint16_t range):
+            Item(type, body, classif, std::move(name), sell_price, purch_price),
+            mana_cost(m_cost),
+            range(range) {}
+};
 /* Con esto puedo representar las armas magicas:
     - Baculo engarzado.
     - Baculo nudoso.
 */
 struct MagicWeapon: Weapon {
-    uint16_t manaCost;
+    uint16_t mana_cost;
     uint16_t range;
 
-    MagicWeapon(TypeItem type, std::string&& name, uint16_t sellingPrice, uint16_t purchasePrice,
-                uint16_t minDam, uint16_t maxDam, uint16_t mCost, uint16_t range):
-            Weapon(type, std::move(name), sellingPrice, purchasePrice, minDam, maxDam),
-            manaCost(mCost),
+    MagicWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price,
+                uint16_t min_dam, uint16_t max_dam, uint16_t m_cost, uint16_t range):
+            Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam),
+            mana_cost(m_cost),
             range(range) {}
 };
 

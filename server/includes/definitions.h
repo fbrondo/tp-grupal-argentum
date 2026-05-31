@@ -1,14 +1,18 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
+
 #include <memory>
 #include <vector>
 #include <tuple>
 #include <unordered_map>
 #include "common/includes/queue.h"
 #include "common/includes/types.h"
-#include "commands/command.h"
-#include "responses/response.h"
-#include "snapshot.h"
+#include "server/includes/commands/command.h"
+#include "server/includes/responses/response.h"
+#include "server/includes/core/snapshot.h"
+
+
+using Path = std::filesystem::path;
 
 /*Cola de comandos*/
 using QueueCmd = Queue<std::unique_ptr<Command>>;

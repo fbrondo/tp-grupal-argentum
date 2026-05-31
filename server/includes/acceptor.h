@@ -9,9 +9,9 @@
 #include "common/includes/thread.h"
 #include "common/includes/types.h"
 
-#include "client_handler.h"
-#include "definitions.h"
-#include "monitor_queues.h"
+#include "server/includes/client_handler.h"
+#include "server/includes/definitions.h"
+#include "server/includes/monitor_queues.h"
 
 
 // El hilo acceptor tiene la responsabilidad de aceptar clientes.

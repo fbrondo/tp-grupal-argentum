@@ -1,6 +1,14 @@
 #ifndef DATA_H
 #define DATA_H
 #include <cstdint>
+#include <string>
+
+struct PathsConfig {
+    std::string player_data;
+    std::string player_indx;
+    std::string map_path;
+};
+
 #pragma pack(push, 1)  // evita padding
 struct PlayerData {
     char     username[32];

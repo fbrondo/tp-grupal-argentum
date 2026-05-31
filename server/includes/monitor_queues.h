@@ -8,9 +8,9 @@
 #include "common/includes/queue.h"
 #include "common/includes/types.h"
 #include "responses/response.h"
-
+#include "core/snapshot.h"
 #include "definitions.h"
-#include "snapshot.h"
+
 
 class MonitorQueues {
 

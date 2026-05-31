@@ -1,24 +1,28 @@
 #include "../includes/world.h"
+#include "common/includes/map/layer.h"
 
-#define PRUEBA_HEIGHT 10
-#define PRUEBA_WIDTH 10
-
-World::World(const std::filesystem::path& path) {
-    
+World::World(const std::filesystem::path& path):map(MapSerializer::load(path)), limit_height(this->map.height()), limit_width(this->map.width()){
+    this->buildTilesWorld();
 }
+
 void World::buildTilesWorld() {
-    this->map_tiles.resize(PRUEBA_HEIGHT, std::vector<Tile>(PRUEBA_WIDTH));
-    for (uint32_t x = 0; x < PRUEBA_WIDTH; x++) {
-        for (uint32_t y = 0; y < PRUEBA_HEIGHT; y++) {
-            this->map_tiles[x][y] = {FILED, false, 0};
+    this->map_tiles.resize(this->limit_height, std::vector<TileWorld>(this->limit_width));
+    for (uint32_t y = 0; y < this->limit_height; y++) {
+        for (uint32_t x = 0; x < this->limit_width; x++) {
+            const Tile obj = this->map.tile_at(x, y, Layer::Object);
+            const Tile backg = this->map.tile_at(x, y,Layer::Background);
+            //this->map_tiles[x][y] = obj;
+
+            this->map_tiles[x][y].walkable = obj.walkable;
+            //this->map_tiles[x][y].region = sprite_region
+
         }
     }
-    this->map_tiles[1][3] = {FILED, true, 0};
-    this->map_tiles[3][3] = {FILED, true, 0};
+     /*Sabiendo cuentas regiones hay y donde se ubican, inicializo los npc*/
 }
 
 Position World::calculatePosition(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id];
+    const Position& pos = this->players_positions[player_id].position;
     Position new_pos;
     switch (dir) {
         case DOWN:
@@ -47,20 +51,20 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
 
 bool World::isOccupied(const Position& pos) {
     /*Verificamos que no haya otro jugador*/
-    for (auto& [id, position_player]: this->players_positions) {
-        if (position_player == pos) {
+    for (auto& [id, player]: this->players_positions) {
+        if (player.position == pos) {
             return true;
         }
     }
 
     /*verificamos que no hay un NPC*/
     for (auto& [id, instance_npc]: this->npcs_positions) {
-        if (instance_npc.pos == pos) {
+        if (instance_npc.position == pos) {
             return true;
         }
     }
-    /*verificamos si es colisonable*/
-    if (this->map_tiles[pos.x][pos.y].colllisible) {
+    /*verificamos si es colisionable*/
+    if (!this->map_tiles[pos.x][pos.y].walkable) {
         return true;
     }
 
@@ -68,16 +72,16 @@ bool World::isOccupied(const Position& pos) {
 }
 /*Consultas para validar*/
 bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id];
+    const Position& pos = this->players_positions[player_id].position;
     switch (dir) {
         case DOWN:
-            return (pos.y + 1 < PRUEBA_HEIGHT);
+            return (pos.y + 1 < this->limit_height);
         case UP:
             return (pos.y > 0);
         case LEFT:
             return (pos.x > 0);
         case RIGHT:
-            return (pos.x + 1 < PRUEBA_WIDTH);
+            return (pos.x + 1 < this->limit_height);
         default:
             break;
     }
@@ -98,9 +102,10 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
 bool World::isSafeZONE(const Position& pos) {}
 
 /*El estado del mundo cambia*/
-void World::addPlayer(const Id& player_id) {
-    Position player_position(4,4); /*Harcodeado para probar*/
-    this->players_positions.insert({player_id, player_position});
+void World::spawnPlayer(const Id& player_id) {
+    /* Un nuevo jugador - recien registrado, su posicion sera en uno de los pueblos (zona segura)*/
+    PlayerInstance player_inst(Position{4,4}, DOWN); /*La posicion esta harcodeada para probar*/
+    this->players_positions.insert({player_id, player_inst});
 }
 
 void World::removePlayer(const Id& player_id) {
@@ -109,9 +114,10 @@ void World::removePlayer(const Id& player_id) {
 
 void World::movePlayer(const Id& player_id, Direction dir) {
     Position new_pos = this->calculatePosition(player_id, dir);
-    this->players_positions[player_id] = new_pos;
+    this->players_positions[player_id].position = new_pos;
+    this->players_positions[player_id].direct = dir;
 }
 
-const Position& World::getPositionPlayer(const Id& player_id) {
+const PlayerInstance& World::playerInformationInTheWorld(const Id& player_id) {
     return this->players_positions[player_id];
 }

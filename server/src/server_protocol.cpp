@@ -1,4 +1,4 @@
-#include "server/includes/server_protocol.h"
+#include "../includes/server_protocol.h"
 
 #include <cstring>
 #include <arpa/inet.h>
@@ -56,7 +56,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
     for (auto n: state.npcs) {
         n.id = htonl(n.id);
         n.pos_x = htonl(n.pos_x);
-        n.pos_y = htonl(n.pos_y);
+        n.pos_y = htonl(n.pos_y);  
         n.type_id = htons(n.type_id);
         n.hp_actual = htons(n.hp_actual);
         std::memcpy(buffer.data() + offset, &n, sizeof(NpcSnapshotData));
@@ -72,12 +72,9 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto i: state.items_on_floor) {
         i.item_id = htons(i.item_id);
-<<<<<<< HEAD
-=======
         i.pos_x = htonl(i.pos_x);
         i.pos_y = htonl(i.pos_y);
 
->>>>>>> e3813d844509b1050df3d564fa810d8c0c0d70e7
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));
         offset += sizeof(ItemGroundSnapshotData);
     }

@@ -9,9 +9,7 @@
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
 #include "common/includes/thread.h"
-
 #include "server_protocol.h"
-#include "snapshot.h"
 
 
 class ClientSender: public Thread {

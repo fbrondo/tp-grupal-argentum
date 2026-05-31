@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 #include "definitions.h"
 #include "common/includes/types.h"
 #include "commands/command.h"
@@ -21,7 +22,7 @@
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
 
-#include "snapshot.h"
+#include "core/snapshot.h"
 
 #pragma pack(push, 1)
 

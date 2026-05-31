@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "common/includes/map/tile.h"
 #include "common/includes/map/map.h"
 #include "common/includes/map/map_serializer.h"
 #include "common/includes/direction.h"
@@ -33,25 +34,26 @@
 // Saber que zonas son seguras
 //class Map;
 
-struct Tile {
-    TypeRegion type;
-    bool collisible;
+struct TileWorld {
+    TypeRegion region;
+    bool walkable;
 };
 
 struct StateWorld {
-
-    //const std::vector<ItemInstace> items;
+  
+    /*Lista de npc*/
+    /*Lista de items en el piso*/
 
 };
 
 
 class World {
 private:
-    // Map map; /*viene del editor - solo se lee*/
-    //  uint32_t limit_height;
-    //  uint32_t limit_width;
-    std::vector<std::vector<Tile>> map_tiles;  // matriz
-    std::map<Id, Position> players_positions;
+    Map map;
+    const uint32_t limit_height;
+    const uint32_t limit_width;
+    std::vector<std::vector<TileWorld>> map_tiles;  // matriz
+    std::map<Id, PlayerInstance> players_positions;
     std::map<Id, NpcInstance> npcs_positions;
     std::map<Id, ItemInstace> items_on_flor;
 
@@ -66,19 +68,20 @@ public:
     World(const World& other) = delete;
     World& operator=(const World& other) = delete;
 
+    //World() = default;
     explicit World(const std::filesystem::path& path);
-    World() = default;
+   
     ~World() = default;
 
     /*Consultas para validar*/
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isSafeZONE(const Position& pos);
 
-    
-    void addPlayer(const Id& player_id);
+    /*void loadPlayer(const Id& player_id, Position&& position, Direction dir)*/
+    void spawnPlayer(const Id& player_id);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
-    const Position& getPositionPlayer(const Id& player_id);
+    const PlayerInstance& playerInformationInTheWorld(const Id& player_id);
 };
 
 #endif

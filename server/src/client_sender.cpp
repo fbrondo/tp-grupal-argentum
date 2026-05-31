@@ -1,6 +1,9 @@
-#include "../includes/client_sender.h"
-#include "../includes/responses/response.h"
+#include "server/includes/client_sender.h"
+
 #include <memory>
+#include <utility>
+#include "server/includes/responses/response.h"
+
 ClientSender::ClientSender(ServerProtocol& protocol,  QueueResp& outgoing_queue):
         protocol(protocol), outgoing_queue(outgoing_queue) {}
 

@@ -3,8 +3,7 @@
 #include <cstdint>
 
 #include "client/includes/client.h"
-
-#include "command_client.h"
+#include "client/includes/commands/command_client.h"
 
 class MoveCommandClient: public ClientCommand {
 private:

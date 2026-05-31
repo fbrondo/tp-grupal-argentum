@@ -1,10 +1,9 @@
-#include "../includes/client_receiver.h"
+#include "server/includes/client_receiver.h"
 
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
 
-//#include "../includes/command.h"
 #include "common/includes/queue.h"
 
 ClientReceiver::ClientReceiver(const Id& player_id, ServerProtocol& protocol, QueueCmd& commands_queue, QueueResp& outgoing_queue):

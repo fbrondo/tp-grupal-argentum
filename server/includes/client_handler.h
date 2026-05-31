@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-#include "../../common/includes/types.h"
+#include "common/includes/types.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 

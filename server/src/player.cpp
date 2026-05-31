@@ -5,13 +5,12 @@
 
 #define STATE_DEAD 0
 
-Player::Player(const Race& ch_race, const Clase& ch_clase, uint16_t golden, uint8_t level
-               /*const Position& pos_*/):
-        ch(ch_race, ch_clase), golden(golden)/*, pos(std::move(pos_))*/ {
+Player::Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t level): inv(std::move(inv_)), ch(ch_race, ch_clase) {
     const Statics statics = ch.getStatics();
     this->hp = this->hpMax(statics.constitution);
     this->mana = this->manaMax(statics.intelligense);
     this->level = level;
+    //this->dir = DOWN; /*Por default mira hacia abajo*/
 }
 
 uint16_t Player::hpMax(const uint16_t& constitution) {

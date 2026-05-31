@@ -1,17 +1,10 @@
-[playerStateInit]
+[player_state_init]
 level = 1
-lifeInit = 100
-manaInit = 50
-goldInit = 50
-maxInventoryItems = 15
+#life_init = 100
+#manaInit = 50
+golden_init = 50
+max_inventory_items = 40
 #-------------------------------------------------------------------------------------------------------
 [clan]
-maxMembers = 16
-#--------------------------------------------------------------------------------------------------------
-[world]
-fileds = 6 # cantidad campos en el mundo del juego
-forests = 4 # cantidad de bosques en el mundo del juego
-desertes = 3 #cantidad de desiertos en el mundo del juego
-dungeons = 4 #cantidad de mazmorras. 
-caves = 4 #cantidad de cavernas
+max_members = 16
 

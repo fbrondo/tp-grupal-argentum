@@ -1,7 +1,7 @@
 #ifndef RESPONSE_BUILDER_H
 #define RESPONSE_BUILDER_H
 #include <map>
-#include "snapshot.h"
+#include "server/includes/core/snapshot.h"
 #include "player.h"
 #include "world.h"
 
@@ -10,7 +10,7 @@ private:
     /* data */
 public:
     ResponseBuilder(/* args */) = default;
-    Snapshot buildSnapshot(const std::map<Id,Player>& players, const World& world) {
+    Snapshot buildSnapshot(const std::map<Id,Player>& players, World& world) {
 
     }
     ~ResponseBuilder();

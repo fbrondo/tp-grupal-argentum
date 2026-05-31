@@ -12,19 +12,23 @@ target_sources(taller_common
     PUBLIC
     # .h files
         includes/core/statics.h
-        includes/direction.h
-        includes/opcode.h
-        includes/protocol.h
-        includes/toml_config.h
-        includes/liberror.h
-        includes/resolver.h
-        includes/resolvererror.h
-        includes/socket.h
-        includes/types.h
+
         includes/map/tile.h
         includes/map/layer.h
         includes/map/map.h
         includes/map/map_serializer.h
+
+        includes/direction.h
+        includes/liberror.h
+        includes/opcode.h
+        includes/protocol.h
+        includes/queue.h
+        includes/resolver.h
+        includes/resolvererror.h
+        includes/socket.h
         includes/sprite_definition.h
         includes/sprite_loader.h
+        includes/thread.h
+        includes/toml_config.h
+        includes/types.h
     )

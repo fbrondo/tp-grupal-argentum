@@ -32,29 +32,17 @@ struct PlayerSnapshotData {
 
 struct NpcSnapshotData {
     uint32_t id;
-<<<<<<< HEAD
-    uint8_t type_id;
-    uint16_t x;
-    uint16_t y;
-=======
     uint16_t type_id;
     uint32_t pos_x;
     uint32_t pos_y;
->>>>>>> e3813d844509b1050df3d564fa810d8c0c0d70e7
     uint16_t hp_actual;
     uint8_t is_alive;  // bool como uint8_t para serialización segura
 };
 
 struct ItemGroundSnapshotData {
-<<<<<<< HEAD
-    uint16_t item_id; //esto es uint32_t
-    float x; // esto es uint32_t
-    float y; //esto es uint32_t
-=======
     uint16_t item_id;
     uint32_t pos_x;
     uint32_t pos_y;
->>>>>>> e3813d844509b1050df3d564fa810d8c0c0d70e7
 };
 
 // No estoy seguro aun como manejar los efectos visuales

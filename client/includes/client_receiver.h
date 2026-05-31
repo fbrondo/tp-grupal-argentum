@@ -1,8 +1,8 @@
 #pragma once
 #include "common/includes/thread.h"
-#include "server/includes/snapshot.h"
+#include "server/includes/core/snapshot.h"
 
-#include "client_protocol.h"
+#include "client/includes/client_protocol.h"
 
 class ClientReceiver: public Thread {
     ClientProtocol& protocol;

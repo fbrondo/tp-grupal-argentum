@@ -5,14 +5,13 @@
 #include <memory>
 #include <stdexcept>
 
-#include "../../common/includes/types.h"
+#include "common/includes/types.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/thread.h"
 
-#include "definitions.h"
-#include "server_protocol.h"
-#include "snapshot.h"
+#include "server/includes/definitions.h"
+#include "server/includes/server_protocol.h"
 
 class ClientReceiver: public Thread {
 private:
