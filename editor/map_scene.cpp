@@ -33,6 +33,8 @@ void MapScene::setCurrentWalkable(bool walkable) { current_walkable_ = walkable;
 
 void MapScene::setCurrentRegion(Region region) { current_region_ = region; }
 
+void MapScene::setCurrentTool(Tool tool) { current_tool_ = tool; }
+
 void MapScene::rebuildScene() {
     clear();
     visuals_.clear();
@@ -270,7 +272,32 @@ void MapScene::redo() {
     emit redoAvailable(!redo_stack_.empty());
 }
 
+void MapScene::selectAt(QPointF scene_pos) {
+    if (!map_)
+        return;
+    int x = static_cast<int>(scene_pos.x()) / BASE_TILE_PX;
+    int y = static_cast<int>(scene_pos.y()) / BASE_TILE_PX;
+    if (x < 0 || y < 0 || x >= map_->width() || y >= map_->height())
+        return;
+
+    int anchor_idx = anchor_at_[tileIndex(x, y)];
+    if (anchor_idx != -1) {
+        int ax = anchor_idx % map_->width();
+        int ay = anchor_idx / map_->width();
+        emit tileSelected(map_->tile_at(ax, ay, current_layer_));
+    } else {
+        emit tileSelected(map_->tile_at(x, y, current_layer_));
+    }
+}
+
 void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+    if (current_tool_ == Tool::Select) {
+        if (event->button() == Qt::LeftButton) {
+            selectAt(event->scenePos());
+            event->accept();
+        }
+        return;
+    }
     if (event->button() == Qt::LeftButton) {
         painting_ = true;
         paintAt(event->scenePos());
@@ -283,6 +310,13 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+    if (current_tool_ == Tool::Select) {
+        if (event->buttons() & Qt::LeftButton) {
+            selectAt(event->scenePos());
+            event->accept();
+        }
+        return;
+    }
     if (painting_) {
         paintAt(event->scenePos());
         event->accept();

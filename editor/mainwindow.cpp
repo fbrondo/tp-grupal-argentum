@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include <QActionGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
@@ -68,6 +69,8 @@ MainWindow::MainWindow(QWidget* parent):
         statusBar()->showMessage(QString("Tile (%1, %2) modificado").arg(x).arg(y), 2000);
     });
 
+    connect(scene_, &MapScene::tileSelected, this, &MainWindow::onTileSelected);
+
     tryDefaultGraficosDir();
     updateTitle();
     showMaximized();
@@ -111,6 +114,25 @@ void MainWindow::setupToolBar() {
     auto* toolbar = addToolBar("Herramientas");
     toolbar->setMovable(false);
 
+    auto* tool_group = new QActionGroup(this);
+    auto* paint_action = toolbar->addAction("Insertar");
+    paint_action->setCheckable(true);
+    paint_action->setChecked(true);
+    tool_group->addAction(paint_action);
+    auto* select_action = toolbar->addAction("Seleccionar");
+    select_action->setCheckable(true);
+    tool_group->addAction(select_action);
+
+    connect(paint_action, &QAction::triggered, this, [this]() {
+        scene_->setCurrentTool(MapScene::Tool::Paint);
+        view_->unsetCursor();
+    });
+    connect(select_action, &QAction::triggered, this, [this]() {
+        scene_->setCurrentTool(MapScene::Tool::Select);
+        view_->setCursor(Qt::PointingHandCursor);
+    });
+
+    toolbar->addSeparator();
     toolbar->addWidget(new QLabel("  Capa: ", this));
     layer_combo_ = new QComboBox(this);
     layer_combo_->addItem("Background", static_cast<int>(Layer::Background));
@@ -208,6 +230,26 @@ void MainWindow::onSaveAs() {
 
 void MainWindow::onUndo() { scene_->undo(); }
 void MainWindow::onRedo() { scene_->redo(); }
+
+void MainWindow::onTileSelected(Tile tile) {
+    walkable_check_->blockSignals(true);
+    walkable_check_->setChecked(tile.walkable);
+    walkable_check_->blockSignals(false);
+
+    for (int i = 0; i < region_combo_->count(); ++i) {
+        if (region_combo_->itemData(i).toInt() == static_cast<int>(tile.region)) {
+            region_combo_->blockSignals(true);
+            region_combo_->setCurrentIndex(i);
+            region_combo_->blockSignals(false);
+            break;
+        }
+    }
+
+    statusBar()->showMessage(QString("Caminable: %1 - Región: %2")
+                                     .arg(tile.walkable ? "Si" : "No")
+                                     .arg(region_combo_->currentText()),
+                             3000);
+}
 
 void MainWindow::onZoomIn() { view_->scale(1.25, 1.25); }
 void MainWindow::onZoomOut() { view_->scale(0.8, 0.8); }

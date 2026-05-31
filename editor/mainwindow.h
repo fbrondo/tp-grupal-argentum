@@ -39,6 +39,7 @@ private:
     void onZoomOut();
     void onToggleFullscreen();
     void onSelectGraficosDir();
+    void onTileSelected(Tile tile);
     void setupEditor();
     void setupToolBar();
     void loadMapIntoScene();
