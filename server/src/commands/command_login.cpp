@@ -6,6 +6,6 @@ LoginCommand::LoginCommand(Id id, const std::string& name, const std::string& pa
     this->password = pass;
 }
 
-void LoginCommand::execute(World& world) {
+/*void LoginCommand::execute(World& world) {
     //world.addPlayer(this->client_id);
-}
+}*/

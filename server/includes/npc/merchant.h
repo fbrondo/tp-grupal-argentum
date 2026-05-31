@@ -30,7 +30,7 @@ private:
 
 public:
     Merchant(TypeNPC type, std::string&& name, Position&& pos,
-             std::map<TypeItem, std::unique_ptr<Item>> store);
+             std::map<TypeItem, std::unique_ptr<Item>>&& store);
     ~Merchant() = default;
     //void interact(const Id& id_player, World& word, Comand& cmd) override;
 };

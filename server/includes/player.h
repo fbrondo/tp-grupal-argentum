@@ -44,7 +44,7 @@ public:
     
     
     Player(Player&&) = default;
-    Player& operator=(Player&&) = default;
+    Player& operator=(Player&&) = delete;
 
     Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t level);
 

@@ -21,7 +21,7 @@ Player&& Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase, Inve
         - El oro y nivel inicial los obtengo de mis archivos game.toml
         - La position me la a dar el mundo (seguramente en una zona segura)
     */
-    Player new_player(std::move(inv), this->info_races[race], this->info_clases[clase], level);
+    Player new_player(std::move(inv), this->info_races.at(race), this->info_clases.at(clase), level);
     return std::move(new_player);
 }
 void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
@@ -33,7 +33,8 @@ void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
         response_register = std::make_unique<ResponseLogin>(false, "Ese nombre no esta disponible. Por favor elige otro.");
     } else { /*No hay conciendencia, registro al nuevo jugador*/
         Inventory inv(50, 16);
-        this->players.insert({id, this->initPlayer(race, clase, std::move(inv), 1)});
+        Player new_player = this->initPlayer(race, clase, std::move(inv), 1);
+        this->players.emplace(id, std::move(new_player));
         register_cmd->execute(this->world_game);
         response_register = std::make_unique<ResponseLogin>(true);
     }
@@ -45,6 +46,7 @@ void Gameloop::executeMovePlayer(MoveCommand* cmd) {
         cmd->execute(this->world_game);
         Snapshot snap = this->resp.buildSnapshot(this->players, this->world_game);
         std::unique_ptr<ResponseSnapshot> response = std::make_unique<ResponseSnapshot>(std::move(snap));
+        monitor.executeBroadcast(std::move(response));
     }
 }
 

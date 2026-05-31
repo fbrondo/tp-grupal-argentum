@@ -12,5 +12,5 @@ private:
 
 public:
     LoginCommand(Id id, const std::string& name, const std::string& pass);
-    void execute(World& world) override;
+    // void execute(World& world) override;
 };

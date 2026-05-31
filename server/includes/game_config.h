@@ -20,10 +20,10 @@ public:
     GameConfig(const GameConfig& other) = delete;
     GameConfig& operator=(const GameConfig& other) = delete;
     
-    GameConfig(const Path config_dir_);  
-    
-    const PathConfig getPaths();
-    std::map<TypeItem, std::unique_ptr<Item>>&& loadItems();
+    GameConfig(Path config_dir_);
+
+    PathConfig getPaths();
+    std::map<TypeItem, std::unique_ptr<Item>> loadItems();
 };
 
 

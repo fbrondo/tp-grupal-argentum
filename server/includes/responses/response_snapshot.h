@@ -9,10 +9,10 @@ class ResponseSnapshot : public Response {
 private:
     Snapshot snap;
 public:
-    ResponseSnapshot(Snapshot&& snp);
-    ~ResponseSnapshot() = default;
+    explicit ResponseSnapshot(Snapshot&& snp);
+    ~ResponseSnapshot() override = default;
     /*Cada comando va a definir su propio execute*/ 
-    void execute(ServerProtocol& protocol) override {};
+    void execute(ServerProtocol& protocol) override;
 };
 
 

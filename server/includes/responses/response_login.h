@@ -7,11 +7,12 @@
 
 class ResponseLogin : public Response{
 private:
-    bool succes;
+    bool success;
     std::string error_msg;
 public:
-    ResponseLogin(const bool succes, const std::string error_msg = "");
-    ~ResponseLogin() = default;
+    explicit ResponseLogin(bool success_);
+    ResponseLogin(bool success_, std::string error_msg);
+    ~ResponseLogin() override = default;
      
     void execute(ServerProtocol& protocol) override ;
 };

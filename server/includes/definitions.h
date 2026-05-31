@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 #include <tuple>
-#include <unordered_map>
+#include <map>
 #include "common/includes/queue.h"
 #include "common/includes/types.h"
 #include "server/includes/commands/command.h"
@@ -18,7 +18,7 @@ using Path = std::filesystem::path;
 using QueueCmd = Queue<std::unique_ptr<Command>>;
 
 /*Mapa con las colas de respuestas - las colas de los senders*/
-using MapQueueResp = std::unordered_map<Id, Queue<std::unique_ptr<Response>>>;
+using MapQueueResp = std::map<Id, Queue<std::unique_ptr<Response>>>;
 using QueueResp = Queue<std::unique_ptr<Response>>;
 
 /*Lo que retornan los distintos commands */

@@ -10,7 +10,7 @@
 #define INDEX_HAND 3   /*arma u objeto magico*/
 
 Equipment::Equipment(/* args */):
-        equipment_container(MAX_EQUIPMENT_SIZE, nullptr) /*4 slots todos vacios*/ {}
+        equipment_container(MAX_EQUIPMENT_SIZE) /*4 slots todos vacios*/ {}
 
 void Equipment::equipHandItem(std::unique_ptr<ItemInstace> item_inst) {
     this->equipment_container[INDEX_HAND] = std::move(item_inst);
@@ -51,7 +51,7 @@ void Equipment::equipItem(std::unique_ptr<ItemInstace> item_inst) {
 
 std::unique_ptr<ItemInstace> Equipment::removeItem(Id id_inst_item) {
     for (auto& itemIns: this->equipment_container) {
-        if (itemIns && itemIns->id_instance == id_inst_item) {
+        if (itemIns && itemIns->id == id_inst_item) {
             return std::move(itemIns);
         }
     }

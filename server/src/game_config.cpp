@@ -3,8 +3,9 @@
 #include <toml++/toml.hpp>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
-GameConfig::GameConfig(const Path config_dir_):config_dir(config_dir) {}
+GameConfig::GameConfig(Path config_dir_):config_dir(std::move(config_dir_)) {}
 
 void GameConfig::loadPaths() {
     
@@ -17,11 +18,11 @@ void GameConfig::loadPaths() {
     this->path_conf.map_path = config["map"]["path"].value_or("LANZAR EXCEPTCION");
 }
 
-const PathConfig GameConfig::getPaths() {
+PathConfig GameConfig::getPaths() {
     return this->path_conf;
 }
 
-std::map<TypeItem, std::unique_ptr<Item>>&& GameConfig::loadItems() {
+std::map<TypeItem, std::unique_ptr<Item>> GameConfig::loadItems() {
     std::map<TypeItem, std::unique_ptr<Item>> items;
 
     Path path = this->config_dir / "items.toml";
@@ -53,17 +54,17 @@ std::map<TypeItem, std::unique_ptr<Item>>&& GameConfig::loadItems() {
         
         auto range = static_cast<uint16_t>(item["range"].value_or(0));
 
-        if(type == ITEM_ATTACK) {
+        if(classif == ITEM_ATTACK) {
             if(descp == "MELEE_WEAPON") {
                 items[type] = std::make_unique<Weapon>(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam);
             } else if(descp == "MAGICAL") {
                 items[type] = std::make_unique<MagicWeapon>(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam, mana_cost, range);
             } else if(descp == "RANGED_WEAPON") {
-                items[type] = std::make_unique<MagicWeapon>(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam, range);
+                items[type] = std::make_unique<RangedWeapon>(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam, range);
             }   
-        } else if(type == ITEM_DEFENSIVE) {
+        } else if(classif == ITEM_DEFENSIVE) {
             items[type] = std::make_unique<Defense>(type, body, classif, std::move(name), sell_price, purch_price, min_def, max_def);
-        } else if(type == ITEM_HEALING) {
+        } else if(classif == ITEM_HEALING) {
              if(descp == "POTION") {
                 items[type] = std::make_unique<Item>(type, body, classif, std::move(name), sell_price, purch_price);
             } else if(descp == "MAGICAL") {
@@ -71,5 +72,5 @@ std::map<TypeItem, std::unique_ptr<Item>>&& GameConfig::loadItems() {
             }
         }
     }
-    return std::move(items);
+    return items;
 }

@@ -3,7 +3,7 @@
 
 class ClientCommand {
 public:
-    ClientCommand();
+    ClientCommand() = default;
     virtual void execute(ClientProtocol& protocol) const = 0;
     virtual ~ClientCommand() = default;
 };
