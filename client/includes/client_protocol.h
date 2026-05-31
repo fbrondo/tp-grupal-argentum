@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 
-#include "./common/includes/protocol.h"
-#include "./common/includes/socket.h"
+#include "common/includes/protocol.h"
+#include "common/includes/socket.h"
 #include "server/includes/server_protocol.h"
 
 enum class TypeEventClient {

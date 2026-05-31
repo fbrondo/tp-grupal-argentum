@@ -3,6 +3,7 @@
 #include <string>
 
 #include "command.h"
+#include "../world.h"
 
 class ChatCommand: public Command {
 private:

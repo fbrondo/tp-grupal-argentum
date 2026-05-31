@@ -1,6 +1,7 @@
 #pragma once
 
 #include "command.h"
+#include "../world.h"
 
 class UseItemCommand: public Command {
 private:

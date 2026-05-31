@@ -1,6 +1,8 @@
 #pragma once
 
 #include "command.h"
+#include "../world.h"
+
 
 class InteractCommand: public Command {
     uint32_t npc_id;

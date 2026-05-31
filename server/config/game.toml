@@ -1,0 +1,10 @@
+[player_state_init]
+level = 1
+#life_init = 100
+#manaInit = 50
+golden_init = 50
+max_inventory_items = 40
+#-------------------------------------------------------------------------------------------------------
+[clan]
+max_members = 16
+

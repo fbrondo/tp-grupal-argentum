@@ -1,16 +1,18 @@
-#pragma once
+#ifndef CLIENTHANDLER_H
+#define CLIENTHANDLER_H
+//#pragma once
 
 #include <memory>
 #include <string>
-#include <utility>
 
-#include "../includes/commands/command.h"
-#include "../includes/snapshot.h"
+#include "common/includes/types.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 
-#include "server_client_receiver.h"
-#include "server_client_sender.h"
+#include "client_receiver.h"
+#include "client_sender.h"
+#include "definitions.h"
+#include "monitor_queues.h"
 
 /*Cada vez que un cliente se conecta, el servidor crea un ClientHandler para encapsular toda la
  lógica relacionada a esa conexión. Se encarga de mantener el estado del cliente y coordinar el
@@ -18,30 +20,32 @@
 
 class ClientHandler {
 private:
-    uint32_t player_id;
+    Id player_id;
+    bool joinable;
     Socket socket;
     ServerProtocol protocol;
 
-    Queue<std::unique_ptr<Command>>& command_queue;
-    Queue<Snapshot> send_queue;
+    QueueCmd& command_queue;
+    MonitorQueues& monitor;
+    QueueResp& send_queue;
 
     ClientReceiver receiver;
     ClientSender sender;
-    bool joinable = true;
 
 public:
-    ClientHandler(uint32_t player_id, Socket&& socket, Queue<std::unique_ptr<Command>>& cmd_q);
+    ClientHandler(const ClientHandler&) = delete;
+    ClientHandler& operator=(const ClientHandler&) = delete;
+
+    ClientHandler(Id player_id, Socket&& socket, QueueCmd& cmd_q, MonitorQueues& monitor);
 
     void start();
     void stop();
     void join();
 
-    Queue<Snapshot>& get_send_queue();
+    /*QueueResp& get_send_queue();*/
 
     bool is_alive();
-
     ~ClientHandler();
-
-    ClientHandler(const ClientHandler&) = delete;
-    ClientHandler& operator=(const ClientHandler&) = delete;
 };
+
+#endif

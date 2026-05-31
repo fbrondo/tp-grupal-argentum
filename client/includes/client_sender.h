@@ -2,9 +2,8 @@
 #include <memory>
 
 #include "client/includes/commands/command_client.h"
+#include "client/includes/client_protocol.h"
 #include "common/includes/thread.h"
-
-#include "client_protocol.h"
 
 class ClientSender: public Thread {
 private:

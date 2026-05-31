@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
 
 constexpr size_t MAX_NAME_SIZE = 30;
 
@@ -17,7 +18,8 @@ enum ClientOpcode : uint8_t {
     INTERACT = 9,
     BUY_ITEM = 10,
     SELL_ITEM = 11,
-    DISCONNECT = 12
+    DISCONNECT = 12,
+    CREATE_CHARACTER = 13
 };
 
 enum ServerOpcode : uint8_t {
