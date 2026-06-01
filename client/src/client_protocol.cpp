@@ -23,6 +23,24 @@ void ClientProtocol::sendLogin(const std::string& name, const std::string& pass)
         throw std::runtime_error(mssgErr);
     }
 }
+void ClientProtocol::sendRegister(const std::string& name, const std::string& password,
+                                  const uint8_t race, const uint8_t clase) const {
+    MsgRegister msg;
+    std::memset(msg.name, 0, sizeof(msg.name));
+    std::memset(msg.pass, 0, sizeof(msg.pass));
+    msg.race = race;
+    msg.clase = clase;
+
+    std::strncpy(msg.name, name.c_str(), sizeof(msg.name) - 1);
+    std::strncpy(msg.pass, password.c_str(), sizeof(msg.pass) - 1);
+    try {
+        socket.sendall(&msg, sizeof(MsgRegister));
+    } catch (const std::exception& e) {
+        std::string mssgErr = "ERROR IN sendLogin -- ";
+        mssgErr += e.what();
+        throw std::runtime_error(mssgErr);
+    }
+}
 
 void ClientProtocol::sendMove(const uint8_t direction) const {
     MsgMove msg;

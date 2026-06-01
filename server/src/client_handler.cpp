@@ -25,12 +25,6 @@ bool ClientHandler::is_alive() { return this->receiver.is_alive() || this->sende
 void ClientHandler::stop() {
     this->receiver.stop();
     this->sender.stop();
-
-    send_queue.close();
-    //  try {
-    //      this->socket.shutdown(2);
-    //      this->socket.close();
-    //  } catch (...) {}
 }
 
 void ClientHandler::join() {
@@ -41,8 +35,6 @@ void ClientHandler::join() {
     this->receiver.join();
     this->sender.join();
 }
-
- /*QueueResp& ClientHandler::get_send_queue() { return this->send_queue; }*/
 
 ClientHandler::~ClientHandler() {
     this->stop();

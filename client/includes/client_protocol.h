@@ -33,6 +33,7 @@ public:
 
     // Mandar comandos al Servidor
     void sendLogin(const std::string& name, const std::string& pass) const;
+    void sendRegister(const std::string& name, const std::string& password, const uint8_t race, const uint8_t clase) const;
     void sendMove(uint8_t direction) const;
     void sendAttack(uint32_t target_id) const;
     void sendChat(const std::string& msg) const;

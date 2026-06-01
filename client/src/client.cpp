@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL_image.h>
 
+#include "client/includes/commands/command_create_character.h"
 #include "client/includes/commands/command_move.h"
 
 Client::Client(const char* host, const char* port):
@@ -145,6 +146,8 @@ void Client::launch() {
         init_SDL();
         sender.start();
         receiver.start();
+        auto create = std::make_unique<CreateCharacterCommandClient>();
+        cmd_queue.push(std::move(create));
         while (is_running) {
             if (!receiver.is_alive() || !sender.is_alive()) {
                 break;  // En caso de que alguno de los hilos falle, salir del loop

@@ -41,6 +41,14 @@ struct MsgLogin {
     char pass[MAX_NAME_SIZE];
 };
 
+struct MsgRegister {
+    uint8_t opcode = CREATE_CHARACTER;
+    char name[MAX_NAME_SIZE];
+    char pass[MAX_NAME_SIZE];
+    uint8_t race;
+    uint8_t clase;
+};
+
 struct MsgMove {
     uint8_t opcode = MOVE;
     uint8_t direction;
