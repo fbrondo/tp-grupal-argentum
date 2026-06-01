@@ -1,7 +1,10 @@
 #include "server/includes/world.h"
-#include "common/includes/map/layer.h"
 
-World::World(const std::filesystem::path& path):map(MapSerializer::load(path)), limit_height(this->map.height()), limit_width(this->map.width()){
+#include <iostream>
+
+#include "common/includes/map/layer.h"
+#include <iostream>
+World::World(const std::filesystem::path& path):map(MapSerializer::load(path)), limit_height(10/*this->map.height()*/), limit_width(10/*this->map.width()*/){
     this->buildTilesWorld();
 }
 
@@ -9,11 +12,11 @@ void World::buildTilesWorld() {
     this->map_tiles.resize(this->limit_height, std::vector<TileWorld>(this->limit_width));
     for (uint32_t y = 0; y < this->limit_height; y++) {
         for (uint32_t x = 0; x < this->limit_width; x++) {
-            const Tile obj = this->map.tile_at(x, y, Layer::Object);
+            //const Tile obj = this->map.tile_at(x, y, Layer::Object);
             //const Tile backg = this->map.tile_at(x, y,Layer::Background);
             //this->map_tiles[x][y] = obj;
 
-            this->map_tiles[x][y].walkable = obj.walkable;
+            this->map_tiles[x][y].walkable = true;//obj.walkable;
             //this->map_tiles[x][y].region = sprite_region
 
         }
@@ -108,6 +111,7 @@ void World::spawnPlayer(const Id& player_id) {
     /* Un nuevo jugador - recien registrado, su posicion sera en uno de los pueblos (zona segura)*/
     PlayerInstance player_inst(Position{4,4}, DOWN); /*La posicion esta harcodeada para probar*/
     this->players_positions.insert({player_id, player_inst});
+    std::cout << "Posicion Player: (" << players_positions[player_id].position.x << "," << players_positions[player_id].position.y << ")"<< std::endl;
 }
 
 void World::removePlayer(const Id& player_id) {

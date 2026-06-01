@@ -1,4 +1,6 @@
 #include "server/includes/gameloop.h"
+
+#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -25,25 +27,28 @@ Gameloop::Gameloop(GameConfig& game_conf, MonitorQueues& monitor, QueueCmd& cmmd
     - Uno que ya estaba registrado y solo estamos cargando sus datos.
 */
 Player Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level) {
-    /*El oro:50, el nivel 1 y la posicion no seran harcodeados
-        - El oro y nivel inicial los obtengo de mis archivos game.toml
-        - La position me la a dar el mundo (seguramente en una zona segura)
-    */
     Player new_player(std::move(inv), this->info_races.at(race), this->info_clases.at(clase), level);
     return new_player;
 }
 void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     auto [id, username, pass, race, clase] = register_cmd->getRegistrationInfo();
-    std::unique_ptr<ResponseLogin> response_register;
 
-    /*Comprobamos que el username no coincide con el de ningun jugador ya registrado*/
-    if(this->persistence.exists(username)) {
+    std::cout << " -- Client Arrived --" << std::endl;
+    std::cout << " id: " << id << std::endl;
+    std::cout << " username: " << username << std::endl;
+    std::cout << " pass: " << pass << std::endl;
+    std::cout << " race: " << race << std::endl;
+    std::cout << " clase: " << clase << std::endl;
+
+    std::unique_ptr<ResponseLogin> response_register;
+    if(this->persistence.exists(username)) {  /*Comprobamos que el username no coincide con el de ningun jugador ya registrado*/
         response_register = std::make_unique<ResponseLogin>(false, "Ese nombre no esta disponible. Por favor elige otro.");
-    } else { /*No hay conciendencia, registro al nuevo jugador*/
+    } else {
         Inventory inv(50, 16);
         Player new_player = this->initPlayer(race, clase, std::move(inv), 1);
         this->players.emplace(id, std::move(new_player));
         register_cmd->execute(this->world_game);
+        std::cout << "Se registro exitosamente" << std::endl;
         response_register = std::make_unique<ResponseLogin>(true);
     }
     this->monitor.queueTheServerResponse(id, std::move(response_register));
@@ -63,7 +68,8 @@ void Gameloop::execuetRequest() {
     while (this->commands_queue.try_pop(cmd)) {
         if (CreateCharacterCommand* register_cmd = dynamic_cast<CreateCharacterCommand*>(cmd.get())) {
             this->registerNewPlayer(register_cmd);
-        } else if (MoveCommand* move_cmd = dynamic_cast<MoveCommand*>(cmd.get())) {
+        } 
+        else if (MoveCommand* move_cmd = dynamic_cast<MoveCommand*>(cmd.get())) {
             this->executeMovePlayer(move_cmd);
         }
         
