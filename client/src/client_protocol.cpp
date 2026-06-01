@@ -12,15 +12,12 @@ void ClientProtocol::sendLogin(const std::string& name, const std::string& pass)
     MsgLogin msg;
     std::memset(msg.name, 0, sizeof(msg.name));
     std::memset(msg.pass, 0, sizeof(msg.pass));
-
     std::strncpy(msg.name, name.c_str(), sizeof(msg.name) - 1);
     std::strncpy(msg.pass, pass.c_str(), sizeof(msg.pass) - 1);
     try {
         socket.sendall(&msg, sizeof(MsgLogin));
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendLogin -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendLogin -- ") + e.what());
     }
 }
 
@@ -30,9 +27,7 @@ void ClientProtocol::sendMove(const uint8_t direction) const {
     try {
         socket.sendall(&msg, sizeof(MsgMove));
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendMove -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendMove -- ") + e.what());
     }
 }
 
@@ -42,9 +37,7 @@ void ClientProtocol::sendAttack(const uint32_t target_id) const {
     try {
         socket.sendall(&msg, sizeof(MsgAttack));
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendAttack -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendAttack -- ") + e.what());
     }
 }
 
@@ -61,19 +54,15 @@ void ClientProtocol::sendChat(const std::string& msg) const {
     std::memcpy(buffer.data() + offset, &len, sizeof(len));
     offset += sizeof(len);
 
-    if (!msg.empty()) {
+    if (!msg.empty())
         std::memcpy(buffer.data() + offset, msg.data(), msg.size());
-    }
 
     try {
         socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendChat -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendChat -- ") + e.what());
     }
 }
-
 
 void ClientProtocol::sendUseItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
@@ -82,9 +71,7 @@ void ClientProtocol::sendUseItem(const uint8_t slot_index) const {
     try {
         socket.sendall(&msg, sizeof(MsgSlotItem));
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendUseItem -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendUseItem -- ") + e.what());
     }
 }
 
@@ -95,9 +82,7 @@ void ClientProtocol::sendDropItem(const uint8_t slot_index) const {
     try {
         socket.sendall(&msg, sizeof(MsgSlotItem));
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendDropItem -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendDropItem -- ") + e.what());
     }
 }
 
@@ -114,16 +99,13 @@ void ClientProtocol::sendCommand(const std::string& cmd) const {
     std::memcpy(buffer.data() + offset, &len, sizeof(len));
     offset += sizeof(len);
 
-    if (!cmd.empty()) {
+    if (!cmd.empty())
         std::memcpy(buffer.data() + offset, cmd.data(), cmd.size());
-    }
 
     try {
         socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendCommand -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendCommand -- ") + e.what());
     }
 }
 
@@ -133,9 +115,7 @@ void ClientProtocol::sendInteract(const uint32_t npc_id) const {
     try {
         socket.sendall(&msg, sizeof(MsgInteract));
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendInteract -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendInteract -- ") + e.what());
     }
 }
 
@@ -144,9 +124,7 @@ void ClientProtocol::sendTakeItem() const {
     try {
         socket.sendall(&opcode, 1);
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendTakeItem -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendTakeItem -- ") + e.what());
     }
 }
 
@@ -160,9 +138,7 @@ void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint16_t item_id,
     try {
         socket.sendall(&msg, sizeof(MsgTrade));
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendBuyItem -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendBuyItem -- ") + e.what());
     }
 }
 
@@ -176,9 +152,7 @@ void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint16_t item_id,
     try {
         socket.sendall(&msg, sizeof(MsgTrade));
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendSellItem -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendSellItem -- ") + e.what());
     }
 }
 
@@ -187,27 +161,69 @@ void ClientProtocol::sendDisconnect() const {
     try {
         socket.sendall(&opcode, 1);
     } catch (const std::exception& e) {
-        std::string mssgErr = "ERROR IN sendDisconnect -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendDisconnect -- ") + e.what());
     }
 }
 
-bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
+void ClientProtocol::sendSignup(const std::string& user, const std::string& password) const {
+    MsgSignup msg{};
+    std::strncpy(msg.user, user.c_str(), sizeof(msg.user) - 1);
+    std::strncpy(msg.password, password.c_str(), sizeof(msg.password) - 1);
+    try {
+        socket.sendall(&msg, sizeof(MsgSignup));
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendSignup -- ") + e.what());
+    }
+}
+
+void ClientProtocol::sendCharacterCreate(const std::string& name, uint8_t race,
+                                         uint8_t clase) const {
+    MsgCharacterCreate msg{};
+    std::strncpy(msg.name, name.c_str(), sizeof(msg.name) - 1);
+    msg.race = race;
+    msg.clase = clase;
+    try {
+        socket.sendall(&msg, sizeof(MsgCharacterCreate));
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendCharacterCreate -- ") + e.what());
+    }
+}
+
+bool ClientProtocol::recvResponse(uint8_t expected_opcode, std::string& out_message) const {
+    uint8_t opcode;
+    if (socket.recvall(&opcode, 1) <= 0)
+        return false;
+    if (opcode != expected_opcode)
+        return false;
+
+    uint8_t success;
+    socket.recvall(&success, 1);
+
+    uint16_t len;
+    socket.recvall(&len, 2);
+    len = ntohs(len);
+
+    out_message.resize(len);
+    if (len > 0)
+        socket.recvall(out_message.data(), len);
+
+    return success == 1;
+}
+
+bool ClientProtocol::receiveMessage(EventClient& out_event) const {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0) {
-        out_evento.type = TypeEventClient::DISCONNECTION;
+        out_event.type = TypeEventClient::DISCONNECTION;
         return false;
     }
 
     switch (opcode) {
         case SNAPSHOT: {
-            out_evento.type = TypeEventClient::UPDATE_WORLD;
-            out_evento.world.players.clear();
-            out_evento.world.npcs.clear();
-            out_evento.world.items_on_floor.clear();
+            out_event.type = TypeEventClient::UPDATE_WORLD;
+            out_event.world.players.clear();
+            out_event.world.npcs.clear();
+            out_event.world.items_on_floor.clear();
 
-            // 1. Jugadores
             uint16_t p_count;
             socket.recvall(&p_count, 2);
             p_count = ntohs(p_count);
@@ -220,10 +236,9 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
                 p.body_id = ntohs(p.body_id);
                 p.head_id = ntohs(p.head_id);
                 p.weapon_id = ntohs(p.weapon_id);
-                out_evento.world.players.push_back(p);
+                out_event.world.players.push_back(p);
             }
 
-            // 2. NPCs
             uint16_t n_count;
             socket.recvall(&n_count, 2);
             n_count = ntohs(n_count);
@@ -233,10 +248,9 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
                 n.id = ntohl(n.id);
                 n.type_id = ntohs(n.type_id);
                 n.hp_actual = ntohs(n.hp_actual);
-                out_evento.world.npcs.push_back(n);
+                out_event.world.npcs.push_back(n);
             }
 
-            // 3. Items
             uint16_t i_count;
             socket.recvall(&i_count, 2);
             i_count = ntohs(i_count);
@@ -244,56 +258,56 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
                 ItemGroundSnapshotData it;
                 socket.recvall(&it, sizeof(ItemGroundSnapshotData));
                 it.item_id = ntohs(it.item_id);
-                out_evento.world.items_on_floor.push_back(it);
+                out_event.world.items_on_floor.push_back(it);
             }
             break;
         }
         case PLAYER_STATS: {
-            out_evento.type = TypeEventClient::OWN_STATS;
-            out_evento.stats.opcode = opcode;
+            out_event.type = TypeEventClient::OWN_STATS;
+            out_event.stats.opcode = opcode;
 
-            socket.recvall(&out_evento.stats.hp, 4);
-            out_evento.stats.hp = ntohl(out_evento.stats.hp);
+            socket.recvall(&out_event.stats.hp, 4);
+            out_event.stats.hp = ntohl(out_event.stats.hp);
 
-            socket.recvall(&out_evento.stats.mana, 4);
-            out_evento.stats.mana = ntohl(out_evento.stats.mana);
+            socket.recvall(&out_event.stats.mana, 4);
+            out_event.stats.mana = ntohl(out_event.stats.mana);
 
-            socket.recvall(&out_evento.stats.gold, 4);
-            out_evento.stats.gold = ntohl(out_evento.stats.gold);
+            socket.recvall(&out_event.stats.gold, 4);
+            out_event.stats.gold = ntohl(out_event.stats.gold);
 
-            socket.recvall(&out_evento.stats.exp, 4);
-            out_evento.stats.exp = ntohl(out_evento.stats.exp);
+            socket.recvall(&out_event.stats.exp, 4);
+            out_event.stats.exp = ntohl(out_event.stats.exp);
 
-            socket.recvall(&out_evento.stats.level, 1);
+            socket.recvall(&out_event.stats.level, 1);
             break;
         }
         case LOGIN_RESPONSE: {
-            out_evento.type = TypeEventClient::LOGIN_RESPONSE;
+            out_event.type = TypeEventClient::LOGIN_RESPONSE;
             uint8_t success;
             socket.recvall(&success, 1);
 
             uint16_t len;
             socket.recvall(&len, 2);
             len = ntohs(len);
-            out_evento.text_payload.resize(len);
-            socket.recvall(out_evento.text_payload.data(), len);
+            out_event.text_payload.resize(len);
+            socket.recvall(out_event.text_payload.data(), len);
             break;
         }
         case CHANGE_MAP: {
-            out_evento.type = TypeEventClient::MAP_CHANGE;
-            socket.recvall(&out_evento.map_id, 2);
-            out_evento.map_id = ntohs(out_evento.map_id);
+            out_event.type = TypeEventClient::MAP_CHANGE;
+            socket.recvall(&out_event.map_id, 2);
+            out_event.map_id = ntohs(out_event.map_id);
             break;
         }
         case CHAT_MSG:
         case ACTION_ERROR: {
-            out_evento.type = (opcode == CHAT_MSG) ? TypeEventClient::CHAT_MSG :
-                                                     TypeEventClient::ERROR_ACTION;
+            out_event.type = (opcode == CHAT_MSG) ? TypeEventClient::CHAT_MSG :
+                                                    TypeEventClient::ERROR_ACTION;
             uint16_t len;
             socket.recvall(&len, 2);
             len = ntohs(len);
-            out_evento.text_payload.resize(len);
-            socket.recvall(out_evento.text_payload.data(), len);
+            out_event.text_payload.resize(len);
+            socket.recvall(out_event.text_payload.data(), len);
             break;
         }
         default:

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 #include "./common/includes/protocol.h"
 #include "./common/includes/socket.h"
@@ -22,6 +23,7 @@ struct EventClient {
     std::string text_payload;  // Se usa para mensajes de chat, errores o el "OK"/"ERROR" del login
     uint16_t map_id;           // Se usa para CAMBIO_MAPA
 };
+
 #pragma pack(push, 1)
 
 class ClientProtocol {
@@ -45,9 +47,16 @@ public:
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendDisconnect() const;
 
+    // Pre-game operations (signup, character)
+    void sendSignup(const std::string& user, const std::string& password) const;
+    void sendCharacterCreate(const std::string& name, uint8_t race, uint8_t clase) const;
+
     // Recibir actualizaciones del Servidor
     // Lee del socket para actualizar la interfaz grafica
-    bool receiveMessage(EventClient& out_evento) const;
+    bool receiveMessage(EventClient& out_event) const;
+
+    // Synchronous menu luncher recv
+    bool recvResponse(uint8_t expected_opcode, std::string& out_message) const;
 };
 
 #pragma pack(pop)
