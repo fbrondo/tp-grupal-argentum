@@ -23,4 +23,5 @@ target_sources(taller_common
         includes/map/map_serializer.h
         includes/sprite_definition.h
         includes/sprite_loader.h
+        includes/types.h
     )

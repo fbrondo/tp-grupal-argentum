@@ -14,6 +14,7 @@
 #include "client_protocol.h"
 #include "client_receiver.h"
 #include "client_sender.h"
+#include "sound_manager.h"
 
 using SDL2pp::Rect;
 using SDL2pp::Renderer;
@@ -48,6 +49,7 @@ private:
     std::optional<Renderer> renderer;
     std::optional<Texture> body_tex;
     std::optional<Texture> head_tex;
+    std::optional<SoundManager> sound_manager;
 
     bool is_running = true;
     uint32_t it = 0;

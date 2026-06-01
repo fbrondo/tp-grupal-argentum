@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "common/includes/types.h"
+
 #pragma pack(push, 1)
 
 struct PlayerSnapshotData {
@@ -51,9 +53,9 @@ struct VisualEffect {
 };
 
 struct SoundEffectSnapshotData {
-    uint8_t effect_id;
-    uint32_t pos_x;           // Coordenada X donde ocurrio (para audio posicional)
-    uint32_t pos_y;           // Coordenada Y 
+    SoundEffectID effect_id;
+    uint32_t pos_x;  // Coordenada X donde ocurrio (para audio posicional)
+    uint32_t pos_y;  // Coordenada Y
 };
 
 #pragma pack(pop)

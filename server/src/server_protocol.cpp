@@ -17,8 +17,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
                               sizeof(uint16_t)  // Cantidad de NPCs
                               + (state.npcs.size() * sizeof(NpcSnapshotData)) +
                               sizeof(uint16_t)  // Cantidad de Items
-                              + (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData))
-                              + sizeof(uint16_t)  // Cantidad de efectos sonoros
+                              + (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData)) +
+                              sizeof(uint16_t)  // Cantidad de efectos sonoros
                               + (state.sound_effects.size() * sizeof(SoundEffectSnapshotData));
 
     std::vector<char> buffer(size_total);
@@ -87,7 +87,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
     offset += sizeof(s_count_net);
 
     for (auto s: state.sound_effects) {
-        s.effect_id = htons(s.effect_id);
+        uint16_t id_numerico = static_cast<uint16_t>(s.effect_id);
+        s.effect_id = static_cast<SoundEffectID>(htons(id_numerico));
         s.pos_x = htonl(s.pos_x);
         s.pos_y = htonl(s.pos_y);
 

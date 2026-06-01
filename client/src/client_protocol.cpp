@@ -258,14 +258,20 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
             uint16_t sound_count;
             socket.recvall(&sound_count, 2);
             sound_count = ntohs(sound_count);
+
             for (uint16_t i = 0; i < sound_count; ++i) {
                 SoundEffectSnapshotData e;
                 socket.recvall(&e, sizeof(SoundEffectSnapshotData));
-                e.effect_id = ntohs(e.effect_id);
+
+                uint16_t id_red = static_cast<uint16_t>(e.effect_id);
+                e.effect_id = static_cast<SoundEffectID>(ntohs(id_red));
+
                 e.pos_x = ntohl(e.pos_x);
                 e.pos_y = ntohl(e.pos_y);
+
                 out_evento.world.sound_effects.push_back(e);
             }
+
             break;
         }
         case PLAYER_STATS: {

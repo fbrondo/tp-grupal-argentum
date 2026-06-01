@@ -12,7 +12,7 @@ Client::Client(const char* host, const char* port):
 
 void Client::init_SDL() {
     // El orden importa: SDL primero, luego imagen, luego ventana, luego renderer, luego texturas
-    sdl.emplace(SDL_INIT_VIDEO);
+    sdl.emplace(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
     img.emplace(IMG_INIT_PNG);
     window.emplace("Argentum Online", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_W,
                    WINDOW_H, SDL_WINDOW_RESIZABLE);
@@ -37,6 +37,7 @@ void Client::init_SDL() {
     }
     SDL_SetColorKey(head.Get(), SDL_TRUE, SDL_MapRGB(head.Get()->format, 0, 0, 0));
     head_tex.emplace(*renderer, Surface(std::move(head)));
+    sound_manager.emplace();
 }
 
 void Client::handle_events() {
@@ -116,6 +117,13 @@ void Client::update_state_from_server() {
             player_state.pos_x = event.world.players[0].pos_x;
             player_state.pos_y = event.world.players[0].pos_y;
             player_state.dir = event.world.players[0].direction;
+            if (sound_manager.has_value()) {
+                for (const auto& sound_data: event.world.sound_effects) {
+                    sound_manager->play_effect(sound_data.effect_id, sound_data.pos_x,
+                                               sound_data.pos_y, player_state.pos_x,
+                                               player_state.pos_y);
+                }
+            }
         }
     }
 }
