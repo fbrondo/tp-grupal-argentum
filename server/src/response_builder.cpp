@@ -14,6 +14,4 @@ Snapshot ResponseBuilder:: buildSnapshot(const std::map<Id,Player>& players, Wor
     return snap;
 }
 
-ResponseBuilder::~ResponseBuilder()
-{
-}
+ResponseBuilder::~ResponseBuilder()= default;

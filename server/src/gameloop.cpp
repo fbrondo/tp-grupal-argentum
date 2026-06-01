@@ -4,7 +4,6 @@
 #include <string>
 #include <utility>
 #include "server/includes/core/snapshot.h"
-#include "server/includes/responses/response.h"
 #include "server/includes/responses/response_login.h"
 #include "server/includes/responses/response_snapshot.h"
 
@@ -16,13 +15,13 @@ paths(game_conf.getPaths()), world_game(paths.map_path), monitor(monitor), comma
     - Uno que se registra
     - Uno que ya estaba registrado y solo estamos cargando sus datos.
 */
-Player&& Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level) {
+Player Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level) {
     /*El oro:50, el nivel 1 y la posicion no seran harcodeados
         - El oro y nivel inicial los obtengo de mis archivos game.toml
         - La position me la a dar el mundo (seguramente en una zona segura)
     */
     Player new_player(std::move(inv), this->info_races.at(race), this->info_clases.at(clase), level);
-    return std::move(new_player);
+    return new_player;
 }
 void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     auto [id, username, pass, race, clase] = register_cmd->getRegistrationInfo();

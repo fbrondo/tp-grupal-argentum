@@ -75,7 +75,7 @@ public:
 
     /*Consultas para validar*/
     bool isWalkable(const Id& id_player, const Direction dir);
-    bool isSafeZONE(const Position& pos);
+    bool isSafeZONE(const Position& /*pos*/);
 
     /*void loadPlayer(const Id& player_id, Position&& position, Direction dir)*/
     void spawnPlayer(const Id& player_id);

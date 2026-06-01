@@ -10,7 +10,7 @@ void World::buildTilesWorld() {
     for (uint32_t y = 0; y < this->limit_height; y++) {
         for (uint32_t x = 0; x < this->limit_width; x++) {
             const Tile obj = this->map.tile_at(x, y, Layer::Object);
-            const Tile backg = this->map.tile_at(x, y,Layer::Background);
+            //const Tile backg = this->map.tile_at(x, y,Layer::Background);
             //this->map_tiles[x][y] = obj;
 
             this->map_tiles[x][y].walkable = obj.walkable;
@@ -99,7 +99,9 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
     return true;
 }
 
-bool World::isSafeZONE(const Position& pos) {}
+bool World::isSafeZONE(const Position& /*pos*/) {
+    return true;
+}
 
 /*El estado del mundo cambia*/
 void World::spawnPlayer(const Id& player_id) {
@@ -109,7 +111,7 @@ void World::spawnPlayer(const Id& player_id) {
 }
 
 void World::removePlayer(const Id& player_id) {
-
+    this->players_positions.erase(player_id);
 }
 
 void World::movePlayer(const Id& player_id, Direction dir) {

@@ -226,13 +226,10 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
 
 // Asumo que tendremos una estructura Command y Action_type para agregar eventos a la queue
 bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
-   
-    // if (socket.recvall(&opcode, 1) <= 0)
-    //     return false;
-    if(this->socket.is_stream_recv_closed()) {
-        return false;
-    }
     uint8_t opcode;
+    if (socket.recvall(&opcode, 1) <= 0)
+        return false;
+
     switch (opcode) {
         case LOGIN: {
             MsgLogin login;
@@ -240,7 +237,7 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             this->socket.recvall(login.pass, sizeof(login.pass));
             login.name[sizeof(login.name) - 1] = '\0';
             login.pass[sizeof(login.pass) - 1] = '\0';
-            auto cmd = std::make_unique<LoginCommand>(player_id, std::string(login.name), std::string(login.pass));
+            auto cmd = std::make_unique<LoginCommand>(static_cast<Id>(player_id), std::string(login.name), std::string(login.pass));
             queue.push(std::move(cmd));
             //queue.push(std::make_unique<LoginCommand>(player_id, std::string(login.name), std::string(login.pass)));
             break;

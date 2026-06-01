@@ -57,7 +57,7 @@ private:
     PersistenceManager persistence; /*Esto tal vez deberia pasarse por referencia*/
    
 
-    Player&& initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level);
+    Player initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level);
     void registerNewPlayer(CreateCharacterCommand* register_cmd);
     void executeMovePlayer(MoveCommand* move_cmd);
     void execuetRequest();

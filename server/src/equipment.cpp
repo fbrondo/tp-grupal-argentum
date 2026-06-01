@@ -70,4 +70,4 @@ std::vector<const ItemInstace*> Equipment::getEquipmentDefensive() {
     return equipment_def;
 }
 
-Equipment::~Equipment() {}
+Equipment::~Equipment() = default;
