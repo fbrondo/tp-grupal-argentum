@@ -227,12 +227,13 @@ void ServerProtocol::sendMap(const Map& map) {
     // Opcode (1B) + Width (4B) + Height (4B) + (Cantidad de Tiles * Tamaño de 1 Tile)
     // Cada Tile tiene sprite_id (4B) + walkable (1B) = 5B.
     const size_t total_tiles = map.width() * map.height() * layer_count;
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + (total_tiles * 5);
+    const size_t size_total =
+            sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + (total_tiles * 5);
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
-    constexpr uint8_t opcode = MAP_DATA; 
+    constexpr uint8_t opcode = MAP_DATA;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
 
@@ -244,18 +245,19 @@ void ServerProtocol::sendMap(const Map& map) {
     std::memcpy(buffer.data() + offset, &h_net, sizeof(h_net));
     offset += sizeof(h_net);
 
-    std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details, Layer::Object, Layer::Roof};
-    
-    for (Layer layer : layers) {
+    std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details, Layer::Object,
+                                             Layer::Roof};
+
+    for (Layer layer: layers) {
         for (int y = 0; y < map.height(); ++y) {
             for (int x = 0; x < map.width(); ++x) {
                 const Tile& tile = map.tile_at(x, y, layer);
-                
+
                 // Convertimos y copiamos el sprite_id (4 bytes)
                 int32_t sprite_id_net = htonl(tile.sprite_id);
                 std::memcpy(buffer.data() + offset, &sprite_id_net, sizeof(sprite_id_net));
                 offset += sizeof(sprite_id_net);
-        
+
                 // Convertimos y copiamos el walkable (1 byte)
                 uint8_t walkable_byte = tile.walkable ? 1 : 0;
                 std::memcpy(buffer.data() + offset, &walkable_byte, sizeof(walkable_byte));

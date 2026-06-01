@@ -15,10 +15,10 @@
 #include "commands/command_sell_item.h"
 #include "commands/command_take_item.h"
 #include "commands/command_use_item.h"
+#include "common/includes/map/map.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
-#include "common/includes/map/map.h"
 
 #include "snapshot.h"
 

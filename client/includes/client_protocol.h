@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 #include "./common/includes/protocol.h"
 #include "./common/includes/socket.h"

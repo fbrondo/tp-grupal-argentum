@@ -119,17 +119,18 @@ void Client::update_state_from_server() {
         }
         if (event.type == TypeEventClient::MAP_DATA) {
             mapa_actual.emplace("MapaServidor", event.map.width, event.map.height);
-            
-            std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details, Layer::Object, Layer::Roof};
+
+            std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details,
+                                                     Layer::Object, Layer::Roof};
             size_t index_plano = 0;
-            
-            for (Layer layer : layers) {
+
+            for (Layer layer: layers) {
                 for (int y = 0; y < event.map.height; ++y) {
                     for (int x = 0; x < event.map.width; ++x) {
                         Tile& tile_local = mapa_actual->tile_at(x, y, layer);
                         tile_local.sprite_id = event.map.tiles[index_plano].sprite_id;
                         tile_local.walkable = event.map.tiles[index_plano].walkable;
-                    
+
                         index_plano++;
                     }
                 }
