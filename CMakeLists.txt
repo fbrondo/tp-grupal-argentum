@@ -20,6 +20,7 @@ option(TALLER_TESTS "Enable / disable tests." ON)
 option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
 option(TALLER_EDITOR "Enable / disable editor program." ON)
+option(TALLER_LAUNCHER "Enable / disable launcher program." ON)
 option(TALLER_MAKE_WARNINGS_AS_ERRORS "Enable / disable warnings as errors." ON)
 
 message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
@@ -182,6 +183,29 @@ if(TALLER_EDITOR)
     set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     target_link_libraries(taller_editor taller_common Qt6::Widgets)
+endif()
+
+if(TALLER_LAUNCHER)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+    add_executable(taller_launcher)
+
+    set_target_properties(taller_launcher PROPERTIES
+        AUTOMOC ON
+        AUTOUIC ON
+        AUTORCC ON
+    )
+
+    target_include_directories(taller_launcher SYSTEM PRIVATE
+        $<TARGET_PROPERTY:Qt6::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+    )
+
+    add_dependencies(taller_launcher taller_common)
+    add_subdirectory(launcher)
+
+    set_project_warnings(taller_launcher ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+
+    target_link_libraries(taller_launcher taller_common Qt6::Widgets)
 endif()
 
 
