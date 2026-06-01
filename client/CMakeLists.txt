@@ -7,9 +7,11 @@ target_sources(taller_client
         src/client_sender.cpp
         src/client_receiver.cpp
         src/commands/command_move.cpp
+        src/menu_handler.cpp
     PUBLIC
     # .h files
         includes/client_protocol.h
+        includes/menu_handler.h
         includes/client.h
         includes/client_sender.h
         includes/client_receiver.h
