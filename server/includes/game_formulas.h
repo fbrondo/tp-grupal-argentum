@@ -7,7 +7,7 @@
 class GameFormulas {
 
 private:
-    static std::mt19937 rng;
+    std::mt19937 rng;
 
 public:
     /* (1) Calculo de vida maxima*/

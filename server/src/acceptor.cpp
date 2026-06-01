@@ -23,10 +23,13 @@ void Acceptor::run() {
 
     try {
         while (should_keep_running()) {
+            std::cout << "Entro en acceptor..." << std::endl;
             Socket peer = this->listen.accept();
             Id player_id = this->next_id++;
             auto client = std::make_unique<ClientHandler>(player_id, std::move(peer), this->queue_cmd, this->monitor);
+            std::cout << "Antes de start..." << std::endl;
             client->start();
+            std::cout << "Luego de start..." << std::endl;
             this->reap();
             players.push_back(std::move(client));
         }

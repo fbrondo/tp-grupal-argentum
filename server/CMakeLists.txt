@@ -13,7 +13,8 @@ target_sources(taller_server
         src/commands/command_use_item.cpp
         src/commands/command_sell_item.cpp
         src/commands/command_take_item.cpp
-        
+
+        src/npc/npc.cpp
         src/npc/banker.cpp
         src/npc/criature.cpp
         src/npc/merchant.cpp
