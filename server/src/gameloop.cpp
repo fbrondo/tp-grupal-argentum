@@ -37,8 +37,8 @@ void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     std::cout << " id: " << id << std::endl;
     std::cout << " username: " << username << std::endl;
     std::cout << " pass: " << pass << std::endl;
-    std::cout << " race: " << race << std::endl;
-    std::cout << " clase: " << clase << std::endl;
+    std::cout << " race: " << std::to_string(race) << std::endl;
+    std::cout << " clase: " << std::to_string(clase) << std::endl;
 
     std::unique_ptr<ResponseLogin> response_register;
     if(this->persistence.exists(username)) {  /*Comprobamos que el username no coincide con el de ningun jugador ya registrado*/
@@ -46,7 +46,9 @@ void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     } else {
         Inventory inv(50, 16);
         Player new_player = this->initPlayer(race, clase, std::move(inv), 1);
+        std::cout << "Se inicializo" << std::endl;
         this->players.emplace(id, std::move(new_player));
+        std::cout << "Se agrego" << std::endl;
         register_cmd->execute(this->world_game);
         std::cout << "Se registro exitosamente" << std::endl;
         response_register = std::make_unique<ResponseLogin>(true);

@@ -110,7 +110,7 @@ bool World::isSafeZONE(const Position& /*pos*/) {
 void World::spawnPlayer(const Id& player_id) {
     /* Un nuevo jugador - recien registrado, su posicion sera en uno de los pueblos (zona segura)*/
     PlayerInstance player_inst(Position{4,4}, DOWN); /*La posicion esta harcodeada para probar*/
-    this->players_positions.insert({player_id, player_inst});
+    this->players_positions.emplace(player_id, player_inst);
     std::cout << "Posicion Player: (" << players_positions[player_id].position.x << "," << players_positions[player_id].position.y << ")"<< std::endl;
 }
 
