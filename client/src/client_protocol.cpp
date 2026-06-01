@@ -296,6 +296,32 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
             socket.recvall(out_evento.text_payload.data(), len);
             break;
         }
+        case MAP_DATA: {
+            out_evento.type = TypeEventClient::MAP_DATA;
+
+            uint32_t w_net, h_net;
+            socket.recvall(&w_net, 4);
+            socket.recvall(&h_net, 4);
+
+            out_evento.map.width = ntohl(w_net);
+            out_evento.map.height = ntohl(h_net);
+            out_evento.map.tiles.clear();
+
+            size_t total_tiles = out_evento.map.width * out_evento.map.height * layer_count;
+            out_evento.map.tiles.resize(total_tiles);
+
+            for (size_t i = 0; i < total_tiles; ++i) {
+                int32_t sprite_id_net;
+                uint8_t walkable_byte;
+
+                socket.recvall(&sprite_id_net, 4);
+                socket.recvall(&walkable_byte, 1);
+
+                out_evento.map.tiles[i].sprite_id = ntohl(sprite_id_net);
+                out_evento.map.tiles[i].walkable = (walkable_byte == 1);
+            }
+            break;
+        }
         default:
             return true;
     }

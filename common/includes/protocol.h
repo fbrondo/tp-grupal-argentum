@@ -27,7 +27,8 @@ enum ServerOpcode : uint8_t {
     PLAYER_STATS = 53,
     INVENTORY_UPDATE = 54,
     CHAT_MSG = 55,
-    ACTION_ERROR = 56
+    ACTION_ERROR = 56,
+    MAP_DATA = 57
 };
 
 #pragma pack(push, 1)

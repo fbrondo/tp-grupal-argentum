@@ -61,6 +61,7 @@ private:
     ClientReceiver receiver;
 
     Player player_state;
+    std::optional<Map> mapa_actual;
 
     void init_SDL();
     void update_state_from_server();
