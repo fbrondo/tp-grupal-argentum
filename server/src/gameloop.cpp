@@ -7,9 +7,19 @@
 #include "server/includes/responses/response_login.h"
 #include "server/includes/responses/response_snapshot.h"
 
-Gameloop::Gameloop(GameConfig& game_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue): 
-paths(game_conf.getPaths()), world_game(paths.map_path), monitor(monitor), commands_queue(cmmds_queue), persistence("data/") {
-    
+Gameloop::Gameloop(GameConfig& game_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue) try :
+    paths(game_conf.getPaths()),
+    world_game(paths.map_path),
+    monitor(monitor),
+    commands_queue(cmmds_queue),
+    persistence("data/") {
+    std::cerr << "Gameloop construido OK" << std::endl;
+} catch (const std::exception& e) {
+    std::cerr << "EXCEPCION en constructor Gameloop: " << e.what() << std::endl;
+    throw;
+} catch (...) {
+    std::cerr << "EXCEPCION DESCONOCIDA en constructor Gameloop" << std::endl;
+    throw;
 }
 /*Levantamos un jugador - Deberia servir tanto para
     - Uno que se registra

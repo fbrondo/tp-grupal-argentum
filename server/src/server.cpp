@@ -22,8 +22,12 @@ void Server::start() {
 
     Acceptor acceptorPlayers(this->serverName, monitor, commands_queue);
     acceptorPlayers.start();
+
+    std::cerr << "Antes de construir Gameloop..." << std::endl;
     Gameloop gameWord(this->config, monitor, commands_queue);
+    std::cerr << "Gameloop construido, antes de start..." << std::endl;
     gameWord.start();
+    std::cerr << "Gameloop started OK" << std::endl;
 
     std::string comandExit;
     while (std::getline(std::cin, comandExit)) {

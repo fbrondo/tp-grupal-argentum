@@ -5,7 +5,9 @@
 #include <string>
 #include <utility>
 
-GameConfig::GameConfig(Path config_dir_):config_dir(std::move(config_dir_)) {}
+GameConfig::GameConfig(Path config_dir_): config_dir(std::move(config_dir_)) {
+    this->loadPaths();
+}
 
 void GameConfig::loadPaths() {
     

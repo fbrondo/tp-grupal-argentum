@@ -1,6 +1,7 @@
 #include "../includes/persistence_manager.h"
 
-PersistenceManager::PersistenceManager(const std::filesystem::path& path)  {
+PersistenceManager::PersistenceManager(const std::filesystem::path& path) {
+    std::filesystem::create_directories(path);
     std::filesystem::path data_path = path / "player.dat";
     std::filesystem::path index_data_path = path / "player.idx";
 

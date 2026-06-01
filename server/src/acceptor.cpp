@@ -1,6 +1,7 @@
 #include "server/includes/acceptor.h"
 
 #include <algorithm>
+#include <cstring>
 #include <utility>
 
 #include <arpa/inet.h>
@@ -24,7 +25,8 @@ void Acceptor::run() {
     try {
         while (should_keep_running()) {
             std::cout << "Entro en acceptor..." << std::endl;
-            Socket peer = this->listen.accept();
+            Socket peer = listen.accept();
+            std::cout << "Acepto el socket..." << std::endl;
             Id player_id = this->next_id++;
             auto client = std::make_unique<ClientHandler>(player_id, std::move(peer), this->queue_cmd, this->monitor);
             std::cout << "Antes de start..." << std::endl;
@@ -35,8 +37,8 @@ void Acceptor::run() {
         }
     } catch (const LibError& e) {
         if (should_keep_running()) {
-            std::cerr << "Error en Acceptor::run -- Socket acceptador cerrado --" << e.what()
-                      << std::endl;
+            std::cerr << "errno: " << errno << " - " << strerror(errno) << std::endl;
+            std::cerr << e.what() << std::endl;
         }
     } catch (const std::exception& e) {
         std::cerr << "Error en Acceptor::run --" << e.what() << std::endl;
