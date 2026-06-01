@@ -1,11 +1,12 @@
 #include "common/includes/map/map_serializer.h"
-
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
 #include "common/includes/toml_config.h"
 
 Map MapSerializer::load(const std::filesystem::path& filepath) {
+    std::cout << "--- Serializando Map: "<< filepath <<" ---" << std::endl;
     TomlConfig cfg(filepath);
 
     std::string name = cfg.get_or<std::string>("metadata.name", "");
@@ -32,7 +33,7 @@ Map MapSerializer::load(const std::filesystem::path& filepath) {
             tiles[j].walkable = walkable[j];
         }
     }
-
+    std::cout << "--- Termino serializacion Map: "<< filepath <<" ---" << std::endl;
     return map;
 }
 

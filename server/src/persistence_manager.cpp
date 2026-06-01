@@ -1,20 +1,19 @@
-#include "../includes/persistence_manager.h"
+#include "server/includes/persistence_manager.h"
 
-PersistenceManager::PersistenceManager(const std::filesystem::path& path) {
-    std::filesystem::create_directories(path);
-    std::filesystem::path data_path = path / "player.dat";
-    std::filesystem::path index_data_path = path / "player.idx";
-
-    /*Permito leer, escribir, bytes puros sin interpretar, escrituta al final*/
-    this->data_file.open(data_path, std::ios::in | std::ios::out | std::ios::binary | std::ios::app);
+PersistenceManager::PersistenceManager(const PathConfig& paths) {
+    //std::filesystem::create_directories(path);
+    std::filesystem::path data_players = paths.players_data;
+    std::filesystem::path data_index_player = paths.players_indx;
+    /*Permite leer, escribir, bytes puros sin interpretar, escrituta al final*/
+    this->data_file.open(data_players, std::ios::in | std::ios::out | std::ios::binary | std::ios::app);
     if(!this->data_file.is_open()) {
         throw std::runtime_error("Error al cargar datos al server");
     }
-    this->loadIndex(index_data_path);
+    this->loadIndex(data_index_player);
 }
 
 bool PersistenceManager::exists(const std::string& username) const {
-    return this->index.count(username) > 0;
+    return this->index.contains(username);
 }
 
 void PersistenceManager::saveIndexEntry(const std::string& name,std::streampos offset) {
@@ -27,8 +26,8 @@ void PersistenceManager::saveIndexEntry(const std::string& name,std::streampos o
 }
 
 /*Cargamos el index en memoria*/
-void PersistenceManager::loadIndex(const std::filesystem::path& index_data_path) {
-    std::ifstream idxFile(index_data_path, std::ios::binary);
+void PersistenceManager::loadIndex(const std::filesystem::path& index_data) {
+    std::ifstream idxFile(index_data, std::ios::binary);
     if (!idxFile.is_open()) return;  // primera vez — índice vacío
 
     /* el índice está guardado como pares (nombre, offset)*/
@@ -44,12 +43,10 @@ void PersistenceManager::loadIndex(const std::filesystem::path& index_data_path)
         idxFile.read(reinterpret_cast<char*>(&offset), sizeof(offset));
         this->index[username] = offset;
     }
-
 }
 
  /* va al final del archivo y guarda el offset en el index*/
 void PersistenceManager::savePlayer(const PlayerData& data) {
-   
     this->data_file.seekp(0, std::ios::end); /*se mueve el curso hacia el final del archivo*/
     std::streampos offset = this->data_file.tellp(); /*tellp nos da la posicion en que quedo*/
     this->data_file.write(reinterpret_cast<const char*>(&data), sizeof(PlayerData));

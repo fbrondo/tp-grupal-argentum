@@ -19,6 +19,7 @@
 #include "core/instances.h"
 #include "player.h"
 
+
 /*Representa mi mundo del juego:
     - Se sopne que recibo algo del editor para crear mi matriz
     - Una vez que se como es el mundo, esta clase sera la encargada modificar su estado
@@ -69,7 +70,7 @@ public:
     World& operator=(const World& other) = delete;
 
     //World() = default;
-    explicit World(const std::filesystem::path& path);
+    World(const std::filesystem::path& path);
    
     ~World() = default;
 

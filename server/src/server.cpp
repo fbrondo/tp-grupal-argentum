@@ -1,9 +1,7 @@
-#include "../includes/server.h"
+#include "server/includes/server.h"
 
 #include <sstream>
-#include <stdexcept>
 #include <string>
-#include <utility>
 #include <filesystem>
 #include "server/includes/definitions.h"
 #include "server/includes/gameloop.h"
@@ -11,15 +9,15 @@
 #include "server/includes/monitor_queues.h"
 
 
-Server::Server(const char* serverName): serverName(serverName), config(std::filesystem::path{CONFIG_PATH}) {
-    // Deberia leer los archivos toml e inicializar las estructuras
+Server::Server(const char* serverName, const char* config_path): serverName(serverName), config(Path{config_path}) {
 }
 
 
 void Server::start() {
+    std::cout << "Server started" << std::endl;
     QueueCmd commands_queue;
-    MonitorQueues monitor;
 
+    MonitorQueues monitor;
     Acceptor acceptorPlayers(this->serverName, monitor, commands_queue);
     acceptorPlayers.start();
 

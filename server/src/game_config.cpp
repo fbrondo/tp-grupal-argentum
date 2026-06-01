@@ -1,23 +1,54 @@
 #include "server/includes/game_config.h"
-#include "common/includes/types.h"
-#include <toml++/toml.hpp>
+
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 
+#include <toml++/toml.hpp>
+#include "common/includes/types.h"
+
+
+
 GameConfig::GameConfig(Path config_dir_): config_dir(std::move(config_dir_)) {
     this->loadPaths();
 }
-
+Path GameConfig::loadPath(const Table& config, const std::string& setion_key, const std::string& field_key) const {
+    try {
+        std::string file_name = config[setion_key][field_key].value<std::string>().value();
+        Path file_path(file_name);
+        Path p = this->config_dir / file_path ;
+        std::cout << "--- Cargando ruta: "<< p <<" ---" << std::endl;
+        return p;
+    } catch (const std::exception& e) {
+        std::string mssgErr = "Error en loadPath -- "; mssgErr += e.what();
+        throw std::runtime_error(mssgErr);
+    }
+}
 void GameConfig::loadPaths() {
-    
-    Path path = this->config_dir / "rutas.toml";
-    toml::table config = toml::parse_file(path.string());
-    
-    this->path_conf.players_data = config["persistence_players"]["data_file"].value_or("players.dat");
-    this->path_conf.player_indx = config["persistence_players"]["data_indx"].value_or("players.idx");
-    this->path_conf.world_data = config["persistence_world"]["data_world"].value_or("wordl.dat");
-    this->path_conf.map_path = config["map"]["path"].value_or("LANZAR EXCEPTCION");
+    try {
+        Path path = this->config_dir / RUTAS_FILE;
+        std::cout << "--- Cargando rutas.tomls: "<< path <<" ---" << std::endl;
+        const Table config = toml::parse_file(path.string());
+        this->path_conf.players_data = this->loadPath(config, "persistence", "data_file");
+        this->path_conf.players_indx = this->loadPath(config, "persistence", "data_indx");
+        this->path_conf.world_data = this->loadPath(config, "persistence", "data_world");
+        this->path_conf.map_path = this->loadPath(config, "persistence", "map");
+    } catch (const toml::parse_error& err) {
+        std::string mssgErr = "Error en loadPath -- No se pudo parsear el archivo TOML";
+        mssgErr += err.description();
+        throw std::runtime_error(mssgErr);
+    }
+
+
+    //this->path_conf.players_data = this->config_dir / config["persistence_players"]["data_file"].value<std::string>().value();
+    //std::cout << "-- player_data: "<< path_conf.players_data << " --" << std::endl;
+    //this->path_conf.players_indx =  this->config_dir / config["persistence_players"]["data_indx"].value<std::string>().value();
+    //std::cout << "-- player_indx: "<< path_conf.players_indx << " --" << std::endl;
+    //this->path_conf.world_data=  this->config_dir / config["persistence_world"]["data_world"].value<std::string>().value();
+    //std::cout << "-- world_data: "<< path_conf.world_data << " --" << std::endl;
+    //this->path_conf.map_path =  this->config_dir / config["map"]["path"].value<std::string>().value();
+    //std::cout << "-- map_path: "<< path_conf.map_path << " --" << std::endl;
 }
 
 PathConfig GameConfig::getPaths() {
@@ -26,7 +57,6 @@ PathConfig GameConfig::getPaths() {
 
 std::map<TypeItem, std::unique_ptr<Item>> GameConfig::loadItems() {
     std::map<TypeItem, std::unique_ptr<Item>> items;
-
     Path path = this->config_dir / "items.toml";
     toml::table config = toml::parse_file(path.string());
     auto* items_array = config.get_as<toml::array>("items");

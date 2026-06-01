@@ -12,7 +12,7 @@ public:
     Server(const Server& other) = delete;
     Server& operator=(const Server& other) = delete;
 
-    explicit Server(const char* serverName);
+    explicit Server(const char* servername, const char* config_path);
     void start();
     ~Server();
 };

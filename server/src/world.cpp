@@ -1,4 +1,4 @@
-#include "../includes/world.h"
+#include "server/includes/world.h"
 #include "common/includes/map/layer.h"
 
 World::World(const std::filesystem::path& path):map(MapSerializer::load(path)), limit_height(this->map.height()), limit_width(this->map.width()){

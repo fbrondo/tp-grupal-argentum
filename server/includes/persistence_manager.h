@@ -4,7 +4,8 @@
 #include <fstream>
 #include <filesystem>
 #include <unordered_map>
-#include "core/data.h"
+#include "server/includes/core/data.h"
+#include "server/includes/core/config.h"
 
 class PersistenceManager {
 private:
@@ -14,7 +15,7 @@ private:
     void loadIndex(const std::filesystem::path& index_data_path);
 
 public:
-    explicit PersistenceManager(const std::filesystem::path& path);
+    explicit PersistenceManager(const PathConfig& paths);
 
     bool exists(const std::string& username) const;
     void savePlayer(const PlayerData& data);

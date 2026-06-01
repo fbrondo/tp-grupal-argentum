@@ -1,4 +1,4 @@
-#include "../../includes/commands/command_attack.h"
+#include "server/includes/commands/command_attack.h"
 
 AttackCommand::AttackCommand(uint32_t id, uint32_t target_id): Command(id), target_id(target_id) {}
 

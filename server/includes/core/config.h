@@ -1,9 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <cstdint>
-#include <string>
 #include <filesystem>
+#include "server/includes/definitions.h"
+
 struct InitialPlayerConfig {
     uint8_t level;
     uint32_t golden_init;
@@ -15,10 +15,10 @@ struct ClanConfig {
 };
 
 struct PathConfig {
-    std::filesystem::path players_data; /*datos de los usuarios*/
-    std::filesystem::path player_indx;
-    std::filesystem::path world_data; /*Donde guardo el estado del mundo*/
-    std::filesystem::path map_path; /*Donde esta guardado el map que me envia el editor*/
+    Path players_data; /*datos de los usuarios*/
+    Path players_indx;
+    Path world_data; /*Donde guardo el estado del mundo*/
+    Path map_path; /*Donde esta guardado el map que me envia el editor*/
 };
 
 #endif

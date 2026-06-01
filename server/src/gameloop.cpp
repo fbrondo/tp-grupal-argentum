@@ -1,5 +1,4 @@
 #include "server/includes/gameloop.h"
-
 #include <memory>
 #include <string>
 #include <utility>
@@ -12,7 +11,7 @@ Gameloop::Gameloop(GameConfig& game_conf, MonitorQueues& monitor, QueueCmd& cmmd
     world_game(paths.map_path),
     monitor(monitor),
     commands_queue(cmmds_queue),
-    persistence("data/") {
+    persistence(paths) {
     std::cerr << "Gameloop construido OK" << std::endl;
 } catch (const std::exception& e) {
     std::cerr << "EXCEPCION en constructor Gameloop: " << e.what() << std::endl;
