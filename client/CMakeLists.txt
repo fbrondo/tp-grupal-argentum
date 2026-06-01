@@ -17,5 +17,5 @@ target_sources(taller_client
         includes/commands/command_client.h
         includes/commands/command_move.h
         includes/sound_manager.h
-
+        
     )
