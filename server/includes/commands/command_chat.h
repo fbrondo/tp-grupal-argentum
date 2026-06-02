@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "../world.h"
+
 #include "command.h"
 
 class ChatCommand: public Command {

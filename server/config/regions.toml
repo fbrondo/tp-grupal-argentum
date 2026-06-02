@@ -1,0 +1,48 @@
+# REGIONES DEL MAPA DE ARGENTU. 
+# Son los atributos individuales que va a tener cada region.
+[regions.CIUDAD]
+safeZone = true #No se permiten player vs player ni NPCs
+minimalNumberMerchants = 2
+maximunNumberMerchants = 5
+minimalNumberPriest = 2
+maximunNumberPriest = 6
+minimalNumberBankers = 2
+maximunNumberBankers = 6
+#---------------------------------------------------------------------------------------------------
+[regions.PUEBLO]
+safeZone = true #No se permiten player vs player ni NPCs
+minimalNumberMerchants = 1
+maximunNumberMerchants = 4
+minimalNumberPriest = 1
+maximunNumberPriest = 3
+minimalNumberBankers = 1
+maximunNumberBankers = 2
+#------------------------------------------------------------------------------------------------------
+[regions.CAMPO]
+safeZone = false
+maxCriatures = 20
+#----------------------------------------------------------------------------------------------------
+[regions.BOSQUE]
+safeZone = false
+maxCriatures = 20 
+#----------------------------------------------------------------------------------------------------
+[regions.DESIERTO]
+safeZone = false
+maxCriatures = 20
+minTreasure = 2
+maxTreasure = 4
+timeSpawnTreasure = 5000 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados
+#----------------------------------------------------------------------------------------------------
+[regions.CAVERNA]
+safeZone = false
+maxCriatures = 20
+minTreasure = 4
+maxTreasure = 8
+timeSpawnTreasure = 50000 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados
+#--------------------------------------------------------------------------------------------------------
+[regions.MAZMORRA]
+safeZone = false
+maxCriatures = 40
+minTreasure = 6
+maxTreasure = 12
+timeSpawnTreasures = 60000 # cada cierto tiempo hago spawn de los tesoros que han sido recolectados

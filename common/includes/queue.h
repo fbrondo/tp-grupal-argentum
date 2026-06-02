@@ -41,6 +41,25 @@ public:
     Queue(): max_size(UINT_MAX - 1), closed(false) {}
     explicit Queue(const unsigned int max_size): max_size(max_size), closed(false) {}
 
+    // ==========================================
+    // AGREGA ESTO EN LA SECCIÓN PÚBLICA:
+    // ==========================================
+    Queue(Queue&& other) noexcept: max_size(other.max_size) {
+        std::unique_lock<std::mutex> lock(other.mtx);  // Bloqueamos la otra cola por seguridad
+        q = std::move(other.q);
+        closed = other.closed;
+        // Nota: Los mutex y condition_variables no se mueven, se quedan nuevos en 'this'
+    }
+
+    // El operador de asignación por movimiento (opcional pero recomendado)
+    Queue& operator=(Queue&& other) noexcept {
+        if (this != &other) {
+            std::scoped_lock lock(this->mtx, other.mtx);
+            q = std::move(other.q);
+            closed = other.closed;
+        }
+        return *this;
+    }
 
     bool try_push(T const& val) {
         std::unique_lock<std::mutex> lck(mtx);
@@ -61,6 +80,25 @@ public:
         return true;
     }
 
+    bool try_push(T&& val) {
+        std::unique_lock<std::mutex> lck(mtx);
+
+        if (closed) {
+            throw ClosedQueue();
+        }
+
+        if (q.size() == this->max_size) {
+            return false;
+        }
+
+        if (q.empty()) {
+            is_not_empty.notify_all();
+        }
+
+        q.push(std::move(val));
+        return true;
+    }
+
     bool try_pop(T& val) {
         std::unique_lock<std::mutex> lck(mtx);
 
@@ -75,7 +113,7 @@ public:
             is_not_full.notify_all();
         }
 
-        val = q.front();
+        val = std::move(q.front());
         q.pop();
         return true;
     }

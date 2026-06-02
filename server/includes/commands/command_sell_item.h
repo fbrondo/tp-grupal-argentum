@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../world.h"
+
 #include "command.h"
 
 class SellItemCommand: public Command {
