@@ -3,20 +3,35 @@
 #include <cstdint>
 #include <string>
 
-#pragma pack(push, 1)  // evita padding
+constexpr size_t MAX_DATA = 30;
+constexpr size_t MAX_EQUIPMENT   = 4;
+
+#pragma pack(push, 1)
+struct ItemInstanceData {
+    uint32_t instance_id;
+    uint16_t type_item;
+    uint8_t  classification;
+    uint8_t  body_part;
+};
+#pragma pack(pop)
+#pragma pack(push, 1)
 struct PlayerData {
-    char     username[32];
-    char     password[32];
+    char     username[MAX_DATA];
+    char     password[MAX_DATA];
+    // posición
+    int32_t  x;
+    int32_t  y;
+    // personaje
     uint8_t  race;
     uint8_t  clase;
-    uint16_t level;
+    // atributos
+    uint8_t  level;
     uint16_t hp;
     uint16_t mana;
-    uint16_t golden;
-    int32_t  pos_x;
-    int32_t  pos_y;
-    //inventario nombre de los items
-    //equipo nombre de los items
+    // inventario
+    uint32_t golden;
+    uint32_t number_of_items;
+    uint32_t number_of_equiments;
 };
 #pragma pack(pop)
 

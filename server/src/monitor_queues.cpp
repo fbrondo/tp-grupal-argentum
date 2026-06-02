@@ -27,6 +27,5 @@ void MonitorQueues::executeBroadcast(std::unique_ptr<ResponseSnapshot>&& respons
 
 void MonitorQueues::removeQueuesPlayer(const Id& player_id) {
     std::lock_guard lock(this->mut);
-    // this->queues_players[player_id].close();
     this->queues_players.erase(player_id);
 }

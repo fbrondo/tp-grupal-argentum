@@ -51,7 +51,7 @@ private:
     std::map<TypeItem, std::unique_ptr<Item>> info_items;
     std::map<Id, std::unique_ptr<NPC>> info_NPC;
 
-    Player initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level);
+    //Player initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level);
     void registerNewPlayer(CreateCharacterCommand* register_cmd);
     void executeMovePlayer(MoveCommand* move_cmd);
     void execuetRequest();

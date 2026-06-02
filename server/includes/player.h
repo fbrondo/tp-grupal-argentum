@@ -45,7 +45,7 @@ public:
     Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t level);
 
     /*Nuevo jugador registrado desde cero*/
-    Player(const Race& race, const Clase& clase, const PlayerStateInitConfig state_init);
+    Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init);
 
     bool isAlive();
     //const Position& getCurrentPosition() const;

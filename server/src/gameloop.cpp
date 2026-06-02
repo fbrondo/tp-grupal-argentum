@@ -23,10 +23,10 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
     - Uno que se registra
     - Uno que ya estaba registrado y solo estamos cargando sus datos.
 */
-Player Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level) {
-    Player new_player(std::move(inv), this->info_races.at(race), this->info_clases.at(clase), level);
-    return new_player;
-}
+// Player Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level) {
+//     Player new_player(std::move(inv), this->info_races.at(race), this->info_clases.at(clase), level);
+//     return new_player;
+// }
 void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     auto [id, username, pass, race, clase] = register_cmd->getRegistrationInfo();
 
@@ -41,14 +41,13 @@ void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     if(this->persistence.exists(username)) {  /*Comprobamos que el username no coincide con el de ningun jugador ya registrado*/
         response_register = std::make_unique<ResponseLogin>(false, "Ese nombre no esta disponible. Por favor elige otro.");
     } else {
-        Inventory inv(50, 16);
-        Player new_player = this->initPlayer(race, clase, std::move(inv), 1);
+        Player new_player(this->info_races[race], this->info_clases[clase], this->game_conf.player_init); //this->initPlayer(race, clase, std::move(inv), 1);
         this->players.emplace(id, std::move(new_player));
         register_cmd->execute(this->world_game);
-        std::cout << "Se registro exitosamente" << std::endl;
         response_register = std::make_unique<ResponseLogin>(true);
     }
     this->monitor.queueTheServerResponse(id, std::move(response_register));
+    std::cout << "Se registro exitosamente" << std::endl;
 }
 void Gameloop::executeMovePlayer(MoveCommand* cmd) {
     auto [player_id, direction] = cmd->getMoveInfo();

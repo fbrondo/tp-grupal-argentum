@@ -11,7 +11,7 @@ Player::Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uin
     this->level = level;
 }
 
-Player::Player(const Race& race, const Clase& clase, const PlayerStateInitConfig state_init): ch(race,clase) {
+Player::Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init): ch(race,clase) {
     this->level = state_init.level;
     this->inv = Inventory(state_init.golden_init, state_init.max_inventory);
 }
