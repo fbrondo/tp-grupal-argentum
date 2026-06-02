@@ -223,7 +223,57 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
     }
 }
 
-// Asumo que tendremos una estructura Command y Action_type para agregar eventos a la queue
+void ServerProtocol::sendMap(const Map& map) {
+    // Opcode (1B) + Width (4B) + Height (4B) + (Cantidad de Tiles * Tamaño de 1 Tile)
+    // Cada Tile tiene sprite_id (4B) + walkable (1B) = 5B.
+    const size_t total_tiles = map.width() * map.height() * layer_count;
+    const size_t size_total =
+            sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + (total_tiles * 5);
+
+    std::vector<char> buffer(size_total);
+    size_t offset = 0;
+
+    constexpr uint8_t opcode = MAP_DATA;
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
+
+    uint32_t w_net = htonl(static_cast<uint32_t>(map.width()));
+    std::memcpy(buffer.data() + offset, &w_net, sizeof(w_net));
+    offset += sizeof(w_net);
+
+    uint32_t h_net = htonl(static_cast<uint32_t>(map.height()));
+    std::memcpy(buffer.data() + offset, &h_net, sizeof(h_net));
+    offset += sizeof(h_net);
+
+    std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details, Layer::Object,
+                                             Layer::Roof};
+
+    for (Layer layer: layers) {
+        for (int y = 0; y < map.height(); ++y) {
+            for (int x = 0; x < map.width(); ++x) {
+                const Tile& tile = map.tile_at(x, y, layer);
+
+                // Convertimos y copiamos el sprite_id (4 bytes)
+                int32_t sprite_id_net = htonl(tile.sprite_id);
+                std::memcpy(buffer.data() + offset, &sprite_id_net, sizeof(sprite_id_net));
+                offset += sizeof(sprite_id_net);
+
+                // Convertimos y copiamos el walkable (1 byte)
+                uint8_t walkable_byte = tile.walkable ? 1 : 0;
+                std::memcpy(buffer.data() + offset, &walkable_byte, sizeof(walkable_byte));
+                offset += sizeof(walkable_byte);
+            }
+        }
+    }
+    try {
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        std::string mssgErr = "Error en sendMap -- ";
+        mssgErr += e.what();
+        throw std::runtime_error(mssgErr);
+    }
+}
+
 bool ServerProtocol::readCommand(uint32_t player_id, Queue<std::unique_ptr<Command>>& queue) {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0)

@@ -15,6 +15,7 @@
 #include "commands/command_sell_item.h"
 #include "commands/command_take_item.h"
 #include "commands/command_use_item.h"
+#include "common/includes/map/map.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
@@ -38,6 +39,7 @@ public:
     void sendLoginResponse(bool success, const std::string& error_msg = "") const;
     void sendChangeMap(uint16_t map_id) const;
     void sendActionError(const std::string& error_msg) const;
+    void sendMap(const Map& map);
 
     // Recibir un comando del Cliente
     bool readCommand(uint32_t player_id,

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 #include "./common/includes/protocol.h"
 #include "./common/includes/socket.h"
@@ -12,7 +13,14 @@ enum class TypeEventClient {
     CHAT_MSG,
     ERROR_ACTION,
     LOGIN_RESPONSE,
-    MAP_CHANGE
+    MAP_CHANGE,
+    MAP_DATA
+};
+
+struct MapData {
+    int width{0};
+    int height{0};
+    std::vector<Tile> tiles;
 };
 
 struct EventClient {
@@ -21,7 +29,9 @@ struct EventClient {
     MsgPlayerStats stats;
     std::string text_payload;  // Se usa para mensajes de chat, errores o el "OK"/"ERROR" del login
     uint16_t map_id;           // Se usa para CAMBIO_MAPA
+    MapData map;               // Se usa para MAP_DATA
 };
+
 #pragma pack(push, 1)
 
 class ClientProtocol {
