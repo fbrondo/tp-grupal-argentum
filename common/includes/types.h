@@ -91,17 +91,17 @@ enum TypeNPC : uint8_t {
 
 #endif
 /*-------------------------------------------------------------------------------------------------*/
-#ifndef __ID_REGION__
-#define __ID_REGION__
-enum TypeRegion : uint8_t {
-    FILED = 1, /*CAMPO*/
-    FOREST,    /*BOSQUE*/
-    DESERT,    /*DESIERTO*/
-    CAVE,      /*CAVERNAS*/
-    DUNGEON,   /*MAZMORRA*/
-    CITY,       /*CIUDAD*/
-    VILLAGE,    /*PUEBLO*/
-};
-#endif
+// #ifndef __ID_REGION__
+// #define __ID_REGION__
+// enum TypeRegion : uint8_t {
+//     FIELD = 1, /*CAMPO*/
+//     FOREST,    /*BOSQUE*/
+//     DESERT,    /*DESIERTO*/
+//     CAVER,      /*CAVERNAS*/
+//     DUNGEON,   /*MAZMORRA*/
+//     CITY,       /*CIUDAD*/
+//     TOWN,    /*PUEBLO*/
+// };
+// #endif
 
 #endif

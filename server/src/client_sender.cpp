@@ -12,7 +12,7 @@ void ClientSender::run() {
         while (should_keep_running()) {
             std::unique_ptr<Response> response_server;
             try {
-                response_server = std::move(outgoing_queue.pop());
+                response_server = this->outgoing_queue.pop();
             } catch (const ClosedQueue&) {
                 break;
             }

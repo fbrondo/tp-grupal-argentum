@@ -4,34 +4,29 @@
 #include <string>
 
 constexpr size_t MAX_DATA = 30;
-constexpr size_t MAX_EQUIPMENT   = 4;
-
-#pragma pack(push, 1)
-struct ItemInstanceData {
-    uint32_t instance_id;
-    uint16_t type_item;
-    uint8_t  classification;
-    uint8_t  body_part;
-};
-#pragma pack(pop)
 #pragma pack(push, 1)
 struct PlayerData {
     char     username[MAX_DATA];
     char     password[MAX_DATA];
-    // posición
+    /* posición*/
     int32_t  x;
     int32_t  y;
-    // personaje
+    /*Caracteristicas del personaje*/
     uint8_t  race;
     uint8_t  clase;
-    // atributos
+
+    /* Atributos del jugador*/
     uint8_t  level;
     uint16_t hp;
     uint16_t mana;
-    // inventario
+
+    /* inventario*/
     uint32_t golden;
     uint32_t number_of_items;
-    uint32_t number_of_equiments;
+
+    /*Equipo*/
+    uint32_t number_of_items_equiment;
+
 };
 #pragma pack(pop)
 

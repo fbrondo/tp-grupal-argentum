@@ -4,7 +4,8 @@
 
 #define STATE_DEAD 0
 
-Player::Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t level): inv(std::move(inv_)), ch(ch_race, ch_clase) {
+Player::Player(Inventory&& inv_, const Race& race, const Clase& clase, uint8_t level):
+inv(std::move(inv_)), ch(race, clase) {
     const Statistics statics = ch.getStatistics();
     this->hp = this->hpMax(statics.constitution);
     this->mana = this->manaMax(statics.intelligense);

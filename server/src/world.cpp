@@ -3,22 +3,22 @@
 #include <iostream>
 
 #include "common/includes/map/layer.h"
-#include <iostream>
+#include "server/print.h"
+
+#include "printf.h"
+
 World::World(const std::filesystem::path& path):map(MapSerializer::load(path)), limit_height(10/*this->map.height()*/), limit_width(10/*this->map.width()*/){
     this->buildTilesWorld();
 }
 
 void World::buildTilesWorld() {
-    this->map_tiles.resize(this->limit_height, std::vector<TileWorld>(this->limit_width));
+    this->map_tiles.resize(this->limit_height, std::vector<Tile>(this->limit_width));
     for (uint32_t y = 0; y < this->limit_height; y++) {
         for (uint32_t x = 0; x < this->limit_width; x++) {
-            //const Tile obj = this->map.tile_at(x, y, Layer::Object);
-            //const Tile backg = this->map.tile_at(x, y,Layer::Background);
-            //this->map_tiles[x][y] = obj;
-
-            this->map_tiles[x][y].walkable = true;//obj.walkable;
-            //this->map_tiles[x][y].region = sprite_region
-
+            const Tile& obj = this->map.tile_at(x, y, Layer::Object);
+            const Tile& bg  = this->map.tile_at(x, y, Layer::Background);
+            this->map_tiles[x][y].walkable = obj.walkable;
+            this->map_tiles[x][y].region   = bg.region;
         }
     }
      /*Sabiendo cuentas regiones hay y donde se ubican, inicializo los npc*/
@@ -47,7 +47,6 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
         default:
             break;
     }
-    std::cout << "New_position: (" << new_pos.x << "," << new_pos.y << ")"<< std::endl;
     return new_pos;
 }
 
@@ -71,7 +70,6 @@ bool World::isOccupied(const Position& pos) {
     if (!this->map_tiles[pos.x][pos.y].walkable) {
         return true;
     }
-
     return false;
 }
 /*Consultas para validar*/
@@ -113,7 +111,7 @@ void World::spawnPlayer(const Id& player_id) {
     /* Un nuevo jugador - recien registrado, su posicion sera en uno de los pueblos (zona segura)*/
     PlayerInstance player_inst(Position{4,4}, DOWN); /*La posicion esta harcodeada para probar*/
     this->players_positions.emplace(player_id, player_inst);
-    std::cout << "Posicion Player: (" << players_positions[player_id].position.x << "," << players_positions[player_id].position.y << ")"<< std::endl;
+    Print::printPositionPlayerUpdate(player_id,this->players_positions.at(player_id));
 }
 
 void World::removePlayer(const Id& player_id) {
@@ -121,10 +119,9 @@ void World::removePlayer(const Id& player_id) {
 }
 
 void World::movePlayer(const Id& player_id, Direction dir) {
-    Position new_pos = this->calculatePosition(player_id, dir);
-    this->players_positions[player_id].position = std::move(new_pos);
+    this->players_positions[player_id].position = this->calculatePosition(player_id, dir);;
     this->players_positions[player_id].direct = dir;
-    std::cout << "Posicion Player: (" << players_positions[player_id].position.x << "," << players_positions[player_id].position.y << ")"<< std::endl;
+    Print::printPositionPlayerUpdate(player_id,this->players_positions.at(player_id));
 }
 
 const PlayerInstance& World::playerInformationInTheWorld(const Id& player_id) {

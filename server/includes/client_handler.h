@@ -36,13 +36,11 @@ public:
     ClientHandler(const ClientHandler&) = delete;
     ClientHandler& operator=(const ClientHandler&) = delete;
 
-    ClientHandler(Id player_id, Socket&& socket, QueueCmd& cmd_q, MonitorQueues& monitor);
+    ClientHandler(Id id_, Socket&& socket, QueueCmd& cmd_q, MonitorQueues& monitor);
 
     void start();
     void stop();
     void join();
-
-    /*QueueResp& get_send_queue();*/
 
     bool is_alive();
     ~ClientHandler();

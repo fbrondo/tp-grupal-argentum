@@ -1,7 +1,7 @@
 #pragma once
 
-enum class Region {
-    Cavern,
+enum Region {
+    Cavern = 1,
     Dungeon,
     Forest,
     Desert,

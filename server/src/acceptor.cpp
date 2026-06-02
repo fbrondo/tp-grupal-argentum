@@ -29,6 +29,7 @@ void Acceptor::run() {
             std::cout << "Acepto el socket..." << std::endl;
             Id player_id = this->next_id++;
             auto client = std::make_unique<ClientHandler>(player_id, std::move(peer), this->queue_cmd, this->monitor);
+            std::cout << "id: " << std::to_string(player_id)<< std::endl;
             std::cout << "Antes de start..." << std::endl;
             client->start();
             std::cout << "Luego de start..." << std::endl;

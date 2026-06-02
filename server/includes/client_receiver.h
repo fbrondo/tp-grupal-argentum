@@ -6,10 +6,8 @@
 #include <stdexcept>
 
 #include "common/includes/types.h"
-#include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/thread.h"
-
 #include "server/includes/definitions.h"
 #include "server/includes/server_protocol.h"
 

@@ -1,9 +1,6 @@
 #include "server/includes/client_receiver.h"
 
-#include <cstdint>
 #include <memory>
-#include <stdexcept>
-
 #include "common/includes/queue.h"
 
 ClientReceiver::ClientReceiver(const Id& player_id, ServerProtocol& protocol, QueueCmd& commands_queue, QueueResp& outgoing_queue):
@@ -27,10 +24,6 @@ void ClientReceiver::run() {
     try {
         commands_queue.push(std::make_unique<DisconnectCommand>(this->player_id));
     } catch (const ClosedQueue&) {}
-
-    // try {
-    //     outgoing_queue.close();
-    // } catch (...) {}
 }
 
 ClientReceiver::~ClientReceiver() {

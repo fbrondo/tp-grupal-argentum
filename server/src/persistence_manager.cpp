@@ -12,6 +12,8 @@ PersistenceManager::PersistenceManager(const FileData& paths) {
     this->loadIndex(data_index_player);
 }
 
+
+
 bool PersistenceManager::exists(const std::string& username) const {
     return this->index.contains(username);
 }
