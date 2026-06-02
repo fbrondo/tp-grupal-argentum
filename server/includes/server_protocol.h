@@ -14,6 +14,7 @@
 #include "commands/command_login.h"
 #include "commands/command_move.h"
 #include "commands/command_sell_item.h"
+#include "commands/command_signup.h"
 #include "commands/command_take_item.h"
 #include "commands/command_use_item.h"
 #include "common/includes/protocol.h"

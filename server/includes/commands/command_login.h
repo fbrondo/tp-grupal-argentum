@@ -1,11 +1,13 @@
 #pragma once
 
 #include <string>
+#include <tuple>
 
 #include "common/includes/types.h"
-#include "server/includes/commands/command.h"
-class World;
 
+#include "command.h"
+
+using LoginInfo = std::tuple<Id, std::string, std::string>;
 
 class LoginCommand: public Command {
 private:
@@ -14,5 +16,6 @@ private:
 
 public:
     LoginCommand(Id id, const std::string& name, const std::string& pass);
+    LoginInfo getLoginInfo();
     void execute(World& world) override;
 };

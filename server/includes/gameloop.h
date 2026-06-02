@@ -17,6 +17,7 @@
 #include "server/includes/commands/command_login.h"
 #include "server/includes/commands/command_move.h"
 #include "server/includes/commands/command_sell_item.h"
+#include "server/includes/commands/command_signup.h"
 #include "server/includes/commands/command_take_item.h"
 #include "server/includes/commands/command_use_item.h"
 #include "server/includes/core/clase.h"
@@ -53,6 +54,8 @@ private:
 
     // Player initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t
     // level);
+    void handleSignup(SignupCommand* cmd);
+    void handleLogin(LoginCommand* cmd);
     void registerNewPlayer(CreateCharacterCommand* register_cmd);
     void executeMovePlayer(MoveCommand* move_cmd);
     void execuetRequest();

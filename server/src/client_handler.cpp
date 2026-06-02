@@ -13,7 +13,7 @@ ClientHandler::ClientHandler(Id player_id, Socket&& socket, QueueCmd& cmd_q,
         command_queue(cmd_q),
         monitor(monitor),
         send_queue(monitor.addQueuePlayer(player_id)),
-        receiver(player_id, protocol, command_queue, this->send_queue),
+        receiver(this->player_id, protocol, command_queue, this->send_queue),
         sender(protocol, this->send_queue) {}
 
 void ClientHandler::start() {

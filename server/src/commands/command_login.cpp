@@ -5,4 +5,6 @@ LoginCommand::LoginCommand(Id id, const std::string& name, const std::string& pa
     this->password = pass;
 }
 
+LoginInfo LoginCommand::getLoginInfo() { return std::make_tuple(client_id, username, password); }
+
 void LoginCommand::execute(World& /*world*/) {}

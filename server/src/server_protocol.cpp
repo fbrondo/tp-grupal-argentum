@@ -273,8 +273,9 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             socket.recvall(signup.password, sizeof(signup.password));
             signup.user[sizeof(signup.user) - 1] = '\0';
             signup.password[sizeof(signup.password) - 1] = '\0';
-            sendSignupResponse(false, "Not yet implemented");
-            return false;
+            queue.push(std::make_unique<SignupCommand>(player_id, std::string(signup.user),
+                                                       std::string(signup.password)));
+            break;
         }
         case MOVE: {
             uint8_t dir;
