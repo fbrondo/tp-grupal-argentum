@@ -40,11 +40,7 @@
     <addaction name="actionRehacer"/>
     <addaction name="separator"/>
     <addaction name="separator"/>
-    <addaction name="actionCortar"/>
-    <addaction name="actionCopiar"/>
-    <addaction name="actionPegar"/>
     <addaction name="separator"/>
-    <addaction name="actionEliminar"/>
    </widget>
    <widget class="QMenu" name="menuVer">
     <property name="title">
@@ -52,16 +48,9 @@
     </property>
     <addaction name="actionPantalla_Completa"/>
     <addaction name="separator"/>
-    <addaction name="actionOcultar_Herramientas"/>
     <addaction name="separator"/>
     <addaction name="actionZoom"/>
     <addaction name="actionZoom_2"/>
-   </widget>
-   <widget class="QMenu" name="menuHerramientas">
-    <property name="title">
-     <string>Herramientas</string>
-    </property>
-    <addaction name="actionSeleccionar_graficos"/>
    </widget>
    <widget class="QMenu" name="menuAyuda">
     <property name="title">
@@ -73,7 +62,6 @@
    <addaction name="menuArchivo"/>
    <addaction name="menuEditar"/>
    <addaction name="menuVer"/>
-   <addaction name="menuHerramientas"/>
    <addaction name="menuAyuda"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
