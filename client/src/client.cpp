@@ -113,9 +113,14 @@ void Client::update_state_from_server() {
             is_running = false;
             return;
         }
+        if (event.type == TypeEventClient::LOGIN_RESPONSE) {
+            is_running = true;
+        }
         if (event.type == TypeEventClient::UPDATE_WORLD && !event.world.players.empty()) {
-            player_state.pos_x = event.world.players[0].pos_x;
-            player_state.pos_y = event.world.players[0].pos_y;
+            std::cout << "Posicion x: " << event.world.players[0].pos_x << std::endl;
+            std::cout << "Posicion y: " << event.world.players[0].pos_y << std::endl;
+            player_state.pos_x = event.world.players[0].pos_x * TILE_SIZE;
+            player_state.pos_y = event.world.players[0].pos_y * TILE_SIZE;
             player_state.dir = event.world.players[0].direction;
         }
     }

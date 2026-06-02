@@ -28,6 +28,7 @@ static constexpr int WINDOW_W = 800;
 static constexpr int WINDOW_H = 600;
 static constexpr int TARGET_FPS = 60;
 static constexpr int FRAME_MS = 1000 / TARGET_FPS;
+static constexpr int TILE_SIZE = 32;
 static constexpr int BODY_W = 19;
 static constexpr int BODY_H = 37;
 static constexpr int HEAD_W = 13;

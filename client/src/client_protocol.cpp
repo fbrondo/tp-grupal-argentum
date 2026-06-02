@@ -233,6 +233,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
                 PlayerSnapshotData p;
                 socket.recvall(&p, sizeof(PlayerSnapshotData));
                 p.id = ntohl(p.id);
+                p.pos_x = ntohl(p.pos_x);
+                p.pos_y = ntohl(p.pos_y);
                 p.max_hp = ntohs(p.max_hp);
                 p.hp = ntohs(p.hp);
                 p.body_id = ntohs(p.body_id);
@@ -288,10 +290,9 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
         case LOGIN_RESPONSE: {
             out_evento.type = TypeEventClient::LOGIN_RESPONSE;
             uint8_t success;
-            socket.recvall(&success, 1);
-
             uint16_t len;
-            socket.recvall(&len, 2);
+            socket.recvall(&success, sizeof(success));
+            socket.recvall(&len, sizeof(len));
             len = ntohs(len);
             out_evento.text_payload.resize(len);
             socket.recvall(out_evento.text_payload.data(), len);
@@ -299,7 +300,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_evento) const {
         }
         case CHANGE_MAP: {
             out_evento.type = TypeEventClient::MAP_CHANGE;
-            socket.recvall(&out_evento.map_id, 2);
+            socket.recvall(&out_evento.map_id, sizeof(out_evento));
             out_evento.map_id = ntohs(out_evento.map_id);
             break;
         }
