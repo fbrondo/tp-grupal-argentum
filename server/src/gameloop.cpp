@@ -6,6 +6,7 @@
 #include "server/includes/core/snapshot.h"
 #include "server/includes/responses/response_login.h"
 #include "server/includes/responses/response_snapshot.h"
+using  RespSnapshot = std::unique_ptr<ResponseSnapshot>;
 
 Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue):
     monitor(monitor),
@@ -19,42 +20,28 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
     loader_conf.loadClases(this->info_clases);
     loader_conf.loadItems(this->info_items);
 }
-/*Levantamos un jugador - Deberia servir tanto para
-    - Uno que se registra
-    - Uno que ya estaba registrado y solo estamos cargando sus datos.
-*/
-// Player Gameloop::initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level) {
-//     Player new_player(std::move(inv), this->info_races.at(race), this->info_clases.at(clase), level);
-//     return new_player;
-// }
+
 void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     auto [id, username, pass, race, clase] = register_cmd->getRegistrationInfo();
-
-    std::cout << " -- Client Arrived --" << std::endl;
-    std::cout << " id: " << id << std::endl;
-    std::cout << " username: " << username << std::endl;
-    std::cout << " pass: " << pass << std::endl;
-    std::cout << " race: " << std::to_string(race) << std::endl;
-    std::cout << " clase: " << std::to_string(clase) << std::endl;
-
-    std::unique_ptr<ResponseLogin> response_register;
     if(this->persistence.exists(username)) {  /*Comprobamos que el username no coincide con el de ningun jugador ya registrado*/
-        response_register = std::make_unique<ResponseLogin>(false, "Ese nombre no esta disponible. Por favor elige otro.");
-    } else {
-        Player new_player(this->info_races[race], this->info_clases[clase], this->game_conf.player_init); //this->initPlayer(race, clase, std::move(inv), 1);
-        this->players.emplace(id, std::move(new_player));
-        register_cmd->execute(this->world_game);
-        response_register = std::make_unique<ResponseLogin>(true);
+       this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(false, "Ese nombre no esta disponible. Por favor elige otro."));
+        return;
     }
-    this->monitor.queueTheServerResponse(id, std::move(response_register));
-    std::cout << "Se registro exitosamente" << std::endl;
+    Player new_player(this->info_races.at(race), this->info_clases.at(clase), this->game_conf.player_init); //this->initPlayer(race, clase, std::move(inv), 1);
+    this->players.emplace(id, std::move(new_player));
+    register_cmd->execute(this->world_game);
+    this->monitor.queueTheServerResponse(id,std::make_unique<ResponseLogin>(true));
+    Snapshot snap = this->resp.buildSnapshot(this->players, this->world_game);
+    RespSnapshot resp = std::make_unique<ResponseSnapshot>(std::move(snap));
+    monitor.executeBroadcast(std::move(resp));
 }
+
 void Gameloop::executeMovePlayer(MoveCommand* cmd) {
     auto [player_id, direction] = cmd->getMoveInfo();
     if (this->world_game.isWalkable(player_id, direction)) {
         cmd->execute(this->world_game);
         Snapshot snap = this->resp.buildSnapshot(this->players, this->world_game);
-        std::unique_ptr<ResponseSnapshot> response = std::make_unique<ResponseSnapshot>(std::move(snap));
+        RespSnapshot response = std::make_unique<ResponseSnapshot>(std::move(snap));
         monitor.executeBroadcast(std::move(response));
     }
 }

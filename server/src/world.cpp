@@ -122,6 +122,7 @@ void World::movePlayer(const Id& player_id, Direction dir) {
     Position new_pos = this->calculatePosition(player_id, dir);
     this->players_positions[player_id].position = new_pos;
     this->players_positions[player_id].direct = dir;
+    std::cout << "Posicion Player: (" << players_positions[player_id].position.x << "," << players_positions[player_id].position.y << ")"<< std::endl;
 }
 
 const PlayerInstance& World::playerInformationInTheWorld(const Id& player_id) {

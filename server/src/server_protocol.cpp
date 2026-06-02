@@ -239,7 +239,6 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             login.pass[sizeof(login.pass) - 1] = '\0';
             auto cmd = std::make_unique<LoginCommand>(static_cast<Id>(player_id), std::string(login.name), std::string(login.pass));
             queue.push(std::move(cmd));
-            //queue.push(std::make_unique<LoginCommand>(player_id, std::string(login.name), std::string(login.pass)));
             break;
         } 
         case CREATE_CHARACTER: {
