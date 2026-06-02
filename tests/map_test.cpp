@@ -1,5 +1,6 @@
 #include "common/includes/map/map.h"
 
+#include <filesystem>
 #include <fstream>
 
 #include "common/includes/map/map_serializer.h"
@@ -45,6 +46,7 @@ TEST(MapLayerTest, TileAtDefaultValues) {
     const Tile& t = map.tile_at(1, 1, Layer::Background);
     EXPECT_EQ(t.sprite_id, 0);
     EXPECT_TRUE(t.walkable);
+    EXPECT_EQ(t.region, Region::Field);
 }
 
 TEST(MapLayerTest, TileAtModify) {

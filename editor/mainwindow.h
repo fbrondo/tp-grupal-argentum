@@ -6,6 +6,7 @@
 
 #include "common/includes/map/layer.h"
 #include "common/includes/map/map.h"
+#include "common/includes/map/tile.h"
 
 class MapScene;
 class MapView;
@@ -32,10 +33,13 @@ private:
     void onOpen();
     void onSave();
     void onSaveAs();
+    void onUndo();
+    void onRedo();
     void onZoomIn();
     void onZoomOut();
     void onToggleFullscreen();
     void onSelectGraficosDir();
+    void onTileSelected(Tile tile);
     void setupEditor();
     void setupToolBar();
     void loadMapIntoScene();
@@ -52,4 +56,5 @@ private:
     TileWidget* tile_widget_;
     QComboBox* layer_combo_;
     QCheckBox* walkable_check_;
+    QComboBox* region_combo_;
 };
