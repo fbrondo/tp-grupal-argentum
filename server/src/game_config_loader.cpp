@@ -14,6 +14,7 @@ GameConfigLoader::GameConfigLoader(Path config_dir_): config_dir(std::move(confi
     this->loadPaths();
 }
 
+
 Path GameConfigLoader::loadPath(const Table& config, const std::string& section_key, const std::string& field_key) const {
     try {
         Path path = this->config_dir / (config[section_key][field_key].value<std::string>().value());
