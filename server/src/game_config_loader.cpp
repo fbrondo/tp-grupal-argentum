@@ -9,17 +9,19 @@
 
 #include "common/includes/core/Statistics.h"
 #include "common/includes/types.h"
+#include "server/includes/game_config_loader.h"
+#include "server/print.h"
 
 GameConfigLoader::GameConfigLoader(Path config_dir_): config_dir(std::move(config_dir_)) {
     this->loadPaths();
 }
+
 
 Path GameConfigLoader::loadPath(const Table& config, const std::string& section_key,
                                 const std::string& field_key) const {
     try {
         Path path =
                 this->config_dir / (config[section_key][field_key].value<std::string>().value());
-        std::cout << "--- Cargando ruta: " << path << " ---" << std::endl;
         return path;
     } catch (const std::exception& e) {
         std::string mssgErr = "Error en loadPath -- ";
@@ -31,7 +33,6 @@ Path GameConfigLoader::loadPath(const Table& config, const std::string& section_
 void GameConfigLoader::loadPaths() {
     try {
         Path path = this->config_dir / FILE_PATHS;
-        std::cout << "--- Cargando paths.toml: " << path << " ---" << std::endl;
         const Table config = toml::parse_file(path.string());
         this->paths.game = this->loadPath(config, "configuration", "game");
         this->paths.clases = this->loadPath(config, "configuration", "clases");
@@ -44,6 +45,8 @@ void GameConfigLoader::loadPaths() {
         this->data.indx_players = this->loadPath(config, "data", "indx_players");
         this->data.world = this->loadPath(config, "data", "world");
         this->data.map = this->loadPath(config, "data", "map");
+
+        Print::printLoadPathsAndFiles(path, this->paths, this->data);
     } catch (const toml::parse_error& err) {
         std::string mssgErr = "Error en loadPaths -- No se pudo parsear el archivo TOML";
         mssgErr += err.description();
@@ -154,23 +157,6 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info
         auto mana_cost = static_cast<uint16_t>(item["mana_cost"].value_or(0));
         auto range = static_cast<uint16_t>(item["range"].value_or(0));
 
-        std::cout << "-- Item: " << "\n"
-                  << " name=" << name << "\n"
-                  << " type=" << static_cast<int>(type) << "\n"
-                  << " descr=" << descp << "\n"
-                  << " classif=" << static_cast<int>(classif) << "\n"
-                  << " body=" << static_cast<int>(body) << "\n"
-                  << " sell=" << sell_price << "\n"
-                  << " purch=" << purch_price << "\n"
-                  << " min_dam=" << min_dam << "\n"
-                  << " max_dam=" << max_dam << "\n"
-                  << " min_def=" << min_def << "\n"
-                  << " max_def=" << max_def << "\n"
-                  << " mana_cost=" << mana_cost << "\n"
-                  << " range=" << range << "\n"
-                  << "\n"
-                  << std::endl;
-
         if (classif == ITEM_ATTACK) {
             if (descp == "MELEE_WEAPON") {
                 info_items[type] =
@@ -205,16 +191,19 @@ GameConfig GameConfigLoader::getdGameConfiguration() {
     try {
         Table config = toml::parse_file(paths.game.string());
 
+        /*Estado inicial del jugador*/
         auto player_init = config["player_state_init"];
         PlayerStateInitConfig state_init;
         state_init.level = static_cast<uint8_t>(player_init["level"].value_or(0));
         state_init.golden_init = static_cast<uint32_t>(player_init["golden_init"].value_or(0));
         state_init.max_inventory = static_cast<uint32_t>(player_init["max_inventory"].value_or(0));
 
+        /*Condiciones de un clan*/
         auto clan_info = config["clan"];
         ClanConfig clan_conf;
         clan_conf.max_members = static_cast<uint32_t>(clan_info["max_members"].value_or(10));
 
+        /*Tiempos del juego*/
         auto times_info = config["times"];
         TimesConfig times;
         times.server_update_frecuency =

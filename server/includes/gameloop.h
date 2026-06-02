@@ -56,6 +56,9 @@ private:
     // level);
     void handleSignup(SignupCommand* cmd);
     void handleLogin(LoginCommand* cmd);
+    void initNewPlayer(Id player_id, const TypeRace& race, const TypeClase& clase);
+    // void initPlayer();
+    void executeBroacastSnapshot();
     void registerNewPlayer(CreateCharacterCommand* register_cmd);
     void executeMovePlayer(MoveCommand* move_cmd);
     void execuetRequest();

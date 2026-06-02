@@ -1,4 +1,4 @@
-#include "../includes/client_handler.h"
+#include "server/includes/client_handler.h"
 
 
 // Incluimos las nuevas abstracciones de este TP
@@ -12,9 +12,9 @@ ClientHandler::ClientHandler(Id player_id, Socket&& socket, QueueCmd& cmd_q,
         protocol(this->socket),
         command_queue(cmd_q),
         monitor(monitor),
-        send_queue(monitor.addQueuePlayer(player_id)),
-        receiver(this->player_id, protocol, command_queue, this->send_queue),
-        sender(protocol, this->send_queue) {}
+        send_queue(this->monitor.addQueuePlayer(this->player_id)),
+        receiver(this->player_id, this->protocol, this->command_queue, this->send_queue),
+        sender(this->protocol, this->send_queue) {}
 
 void ClientHandler::start() {
     this->receiver.start();

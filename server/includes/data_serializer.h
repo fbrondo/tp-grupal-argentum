@@ -1,0 +1,5 @@
+#ifndef DATA_SERIALIZAR_H
+#define DATA_SERIALIZAR_H
+
+
+#endif  // TALLER_TP_DATA_SERIALIZAR_H

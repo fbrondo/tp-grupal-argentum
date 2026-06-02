@@ -37,30 +37,40 @@
 // Saber que zonas son seguras
 // class Map;
 
-struct TileWorld {
-    TypeRegion region;
-    bool walkable;
-};
-
 struct StateWorld {
 
     /*Lista de npc*/
     /*Lista de items en el piso*/
 };
 
+struct Zone {
+    Id zone_id;
+    Region region;
+    uint32_t tile_count{0};
+    std::vector<Position> tiles;  // posiciones de todos los tiles de la zona
+};
+
+using MatrizBool = std::vector<std::vector<bool>>;
+using MatrizMap = std::vector<std::vector<Tile>>;
 
 class World {
 private:
     Map map;
     const uint32_t limit_height;
     const uint32_t limit_width;
-    std::vector<std::vector<TileWorld>> map_tiles;  // matriz
+
+    std::vector<Zone> zones;                // todas las zonas identificadas
+    std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
+
+    MatrizMap map_tiles;  // matriz
     std::map<Id, PlayerInstance> players_positions;
     std::map<Id, NpcInstance> npcs_positions;
     std::map<Id, ItemInstace> items_on_flor;
+    std::map<Region, uint32_t> region_count;
 
     void buildTilesWorld();
-    /*construye la matriz con lo que viene en map*/
+    void identifyZones();
+    void floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone);
     Position calculatePosition(const Id& player_id, const Direction dir);
 
     bool isOccupied(const Position& pos);

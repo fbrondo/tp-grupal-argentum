@@ -28,10 +28,13 @@ struct PlayerData {
     uint8_t level;
     uint16_t hp;
     uint16_t mana;
-    // inventario
+
+    /* inventario*/
     uint32_t golden;
     uint32_t number_of_items;
-    uint32_t number_of_equiments;
+
+    /*Equipo*/
+    uint32_t number_of_items_equiment;
 };
 #pragma pack(pop)
 

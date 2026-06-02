@@ -43,7 +43,7 @@ public:
     Player(Player&&) = default;
     Player& operator=(Player&&) = delete;
 
-    Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t level);
+    Player(Inventory&& inv_, const Race& race, const Clase& clase, uint8_t level);
 
     /*Nuevo jugador registrado desde cero*/
     Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init);

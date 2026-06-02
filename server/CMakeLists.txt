@@ -30,6 +30,7 @@ target_sources(taller_server
         src/client_handler.cpp
         src/client_receiver.cpp
         src/client_sender.cpp
+        src/data_serializer.cpp
         src/equipment.cpp
         src/game_config_loader.cpp
         src/game_formulas.cpp
@@ -42,6 +43,8 @@ target_sources(taller_server
         src/server_protocol.cpp
         src/server.cpp
         src/world.cpp
+
+        print.cpp
         
     PUBLIC
     # .h files
@@ -87,6 +90,7 @@ target_sources(taller_server
         includes/client_handler.h
         includes/client_receiver.h
         includes/client_sender.h
+        includes/data_serializer.h
         includes/definitions.h
         includes/equipment.h
         includes/game_config_loader.h
@@ -99,6 +103,8 @@ target_sources(taller_server
         includes/server_protocol.h
         includes/server.h
         includes/world.h
+
+        print.h
 
     )
 
