@@ -6,34 +6,32 @@
 #include "server/includes/core/snapshot.h"
 #include "server/includes/responses/response_login.h"
 #include "server/includes/responses/response_snapshot.h"
-using  RespSnapshot = std::unique_ptr<ResponseSnapshot>;
 
-Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue):
-    monitor(monitor),
-    commands_queue(cmmds_queue),
+using RespSnap = std::unique_ptr<ResponseSnapshot>;
+const std::string error_login = "Ese nombre no esta disponible. Por favor elige otro.";
+Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue): monitor(monitor), commands_queue(cmmds_queue),
     files_data(loader_conf.getFilesData()),
     game_conf(loader_conf.getdGameConfiguration()),
     world_game(this->files_data.map),
-    persistence(this->files_data)
-    {
+    persistence(this->files_data) {
     loader_conf.loadRaces(this->info_races) ;
     loader_conf.loadClases(this->info_clases);
     loader_conf.loadItems(this->info_items);
 }
 
-void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
-    auto [id, username, pass, race, clase] = register_cmd->getRegistrationInfo();
+void Gameloop::registerNewPlayer(CreateCharacterCommand* cmd) {
+    auto [id, username, pass, race, clase] = cmd->getRegistrationInfo();
     if(this->persistence.exists(username)) {  /*Comprobamos que el username no coincide con el de ningun jugador ya registrado*/
        this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(false, "Ese nombre no esta disponible. Por favor elige otro."));
         return;
     }
     Player new_player(this->info_races.at(race), this->info_clases.at(clase), this->game_conf.player_init); //this->initPlayer(race, clase, std::move(inv), 1);
     this->players.emplace(id, std::move(new_player));
-    register_cmd->execute(this->world_game);
+    cmd->execute(this->world_game);
     this->monitor.queueTheServerResponse(id,std::make_unique<ResponseLogin>(true));
     Snapshot snap = this->resp.buildSnapshot(this->players, this->world_game);
-    RespSnapshot resp = std::make_unique<ResponseSnapshot>(std::move(snap));
-    monitor.executeBroadcast(std::move(resp));
+    RespSnap resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
+    monitor.executeBroadcast(std::move(resp_snap));
 }
 
 void Gameloop::executeMovePlayer(MoveCommand* cmd) {
@@ -41,8 +39,8 @@ void Gameloop::executeMovePlayer(MoveCommand* cmd) {
     if (this->world_game.isWalkable(player_id, direction)) {
         cmd->execute(this->world_game);
         Snapshot snap = this->resp.buildSnapshot(this->players, this->world_game);
-        RespSnapshot response = std::make_unique<ResponseSnapshot>(std::move(snap));
-        monitor.executeBroadcast(std::move(response));
+         RespSnap resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
+        monitor.executeBroadcast(std::move(resp_snap));
     }
 }
 

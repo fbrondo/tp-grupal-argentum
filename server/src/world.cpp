@@ -30,11 +30,11 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
     switch (dir) {
         case DOWN:
             new_pos.x = pos.x;
-            new_pos.y = pos.y - 1;
+            new_pos.y = pos.y + 1;
             break;
         case UP:
             new_pos.x = pos.x;
-            new_pos.y = pos.y + 1;
+            new_pos.y = pos.y - 1;
             break;
         case LEFT:
             new_pos.x = pos.x - 1;
@@ -47,6 +47,7 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
         default:
             break;
     }
+    std::cout << "New_position: (" << new_pos.x << "," << new_pos.y << ")"<< std::endl;
     return new_pos;
 }
 
@@ -84,12 +85,13 @@ bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir
         case LEFT:
             return (pos.x > 0);
         case RIGHT:
-            return (pos.x + 1 < this->limit_height);
+            return (pos.x + 1 < this->limit_width);
         default:
             break;
     }
     return false;
 }
+
 bool World::isWalkable(const Id& player_id, const Direction dir) {
 
     if (!this->isThisPlayerWithinTheLimits(player_id, dir)) {
@@ -120,7 +122,7 @@ void World::removePlayer(const Id& player_id) {
 
 void World::movePlayer(const Id& player_id, Direction dir) {
     Position new_pos = this->calculatePosition(player_id, dir);
-    this->players_positions[player_id].position = new_pos;
+    this->players_positions[player_id].position = std::move(new_pos);
     this->players_positions[player_id].direct = dir;
     std::cout << "Posicion Player: (" << players_positions[player_id].position.x << "," << players_positions[player_id].position.y << ")"<< std::endl;
 }
