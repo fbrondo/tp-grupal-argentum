@@ -29,7 +29,7 @@ target_sources(taller_server
         src/client_receiver.cpp
         src/client_sender.cpp
         src/equipment.cpp
-        src/game_config.cpp
+        src/game_config_loader.cpp
         src/game_formulas.cpp
         src/gameloop.cpp
         src/main.cpp
@@ -85,7 +85,7 @@ target_sources(taller_server
         includes/client_sender.h
         includes/definitions.h
         includes/equipment.h
-        includes/game_config.h
+        includes/game_config_loader.h
         includes/game_formulas.h
         includes/gameloop.h
         includes/monitor_queues.h

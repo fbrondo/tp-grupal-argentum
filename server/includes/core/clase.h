@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-#include "common/includes/core/statics.h"
+#include "common/includes/core/Statistics.h"
 #include "common/includes/types.h"
 
 /*Representa una clase
@@ -17,22 +17,20 @@ struct Clase {
 
     TypeClase type;
     std::string name;
-    Statics statics;
-
-    uint16_t hpFactor;         /*factor de vida*/
-    uint16_t meditationFactor; /*factor de recuperacion de mana - Recup por tiempo*/
-    uint16_t manaFactor;       /*factor de mana - Para el limite de ManaMax*/
-
-    Clase(TypeClase type, std::string&& name, Statics&& st, uint16_t lifeF, uint16_t medF,
-          uint16_t manaF):
+    uint16_t hp_factor;         /*factor de vida*/
+    uint16_t meditation_factor; /*factor de recuperacion de mana - Recup por tiempo*/
+    uint16_t mana_factor;       /*factor de mana - Para el limite de ManaMax*/
+    Statistics statistics;
+    
+    Clase(TypeClase type, std::string&& name, uint16_t hp_f, uint16_t med_f, uint16_t mana_f, Statistics&& st):
             type(type),
             name(std::move(name)),
-            statics(std::move(st)),
-            hpFactor(lifeF),
-            meditationFactor(medF),
-            manaFactor(manaF) {}
+            hp_factor(hp_f),
+            meditation_factor(med_f),
+            mana_factor(mana_f),
+            statistics(st){}
 
-    virtual ~Clase() = default;
+    ~Clase() = default;
 };
 
 #endif

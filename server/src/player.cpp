@@ -1,18 +1,20 @@
-#include "../includes/player.h"
-
-#include "../includes/game_formulas.h"
-#include "common/includes/core/statics.h"
+#include "server/includes/player.h"
+#include "server/includes/game_formulas.h"
+#include "common/includes/core/Statistics.h"
 
 #define STATE_DEAD 0
 
 Player::Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t level): inv(std::move(inv_)), ch(ch_race, ch_clase) {
-    const Statics statics = ch.getStatics();
+    const Statistics statics = ch.getStatistics();
     this->hp = this->hpMax(statics.constitution);
     this->mana = this->manaMax(statics.intelligense);
     this->level = level;
-    //this->dir = DOWN; /*Por default mira hacia abajo*/
 }
 
+Player::Player(const Race& race, const Clase& clase, const PlayerStateInitConfig state_init): ch(race,clase) {
+    this->level = state_init.level;
+    this->inv = Inventory(state_init.golden_init, state_init.max_inventory);
+}
 uint16_t Player::hpMax(const uint16_t& constitution) {
     const uint16_t& hp_f_race = this->ch.getHpFactorRace();
     const uint16_t& hp_f_clase = this->ch.getHpFactorClase();

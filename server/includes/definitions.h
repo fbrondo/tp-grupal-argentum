@@ -12,8 +12,6 @@
 #include "server/includes/responses/response.h"
 #include "server/includes/core/snapshot.h"
 
-using Path = std::filesystem::path;
-
 /*Cola de comandos*/
 using QueueCmd = Queue<std::unique_ptr<Command>>;
 

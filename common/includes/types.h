@@ -53,7 +53,6 @@ enum ItemClassification : uint8_t {
 
 #endif
 /*------------------------------------------------------------------------------------------------*/
-
 #ifndef __ID_RACE__
 #define __ID_RACE__
 enum TypeRace : uint8_t {
@@ -62,7 +61,6 @@ enum TypeRace : uint8_t {
     DWARF,     /*ENANO*/
     GNOME      /*GNOMO*/
 };
-
 #endif
 
 /*-------------------------------------------------------------------------------------------------*/
@@ -74,7 +72,6 @@ enum TypeClase : uint8_t {
     PALADIN,    /*PALADIN*/
     WARRIOR     /*GUERRERO*/
 };
-
 #endif
 
 /*-------------------------------------------------------------------------------------------------*/
@@ -102,6 +99,8 @@ enum TypeRegion : uint8_t {
     DESERT,    /*DESIERTO*/
     CAVE,      /*CAVERNAS*/
     DUNGEON,   /*MAZMORRA*/
+    CITY,       /*CIUDAD*/
+    VILLAGE,    /*PUEBLO*/
 };
 #endif
 

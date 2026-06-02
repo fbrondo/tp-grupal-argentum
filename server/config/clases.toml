@@ -1,52 +1,52 @@
 # LAS CLASES QUE PUEDEN TENER UN PERSONAJE 
 [[clases]]
-id = 201
+id_type = 1
 name = "Mago"
-lifeFactor =  4 # factor de vida
-metitationFactor = 10 #factor de meditacion
-manaFactor = 10 #factor de mana
+life_factor =  4 # factor de vida
+metitation_factor = 10 #factor de meditacion
+mana_factor = 10 #factor de mana
 
-[[clases.statics]]
-intelligense = 5
-consititution = 1
+[[clases.statistics]]
+intelligence = 5
+constitution = 1
 strength = 1
 agility = 2
 #-----------------------------------------------------------------------------------------------------
 [[clases]]
-id = 202
+id_type = 2
 name = "Clérigo"
-lifeFactor =  6 # factor de vida
-metitationFactor = 8 #factor de meditacion
-manaFactor = 8 #factor de mana
+life_factor =  6 # factor de vida
+metitation_factor = 8 #factor de meditacion
+mana_factor = 8 #factor de mana
 
-[[clases.statics]]
-intelligense = 4
-consititution = 2
+[[clases.statistics]]
+intelligence = 4
+constitution = 2
 strength = 3
 agility = 3
 #-----------------------------------------------------------------------------------------------------
 [[clases]]
-id = 203
+id_type = 3
 name = "Paladin"
-lifeFactor = 8  #factor de vida
-metitationFactor = 6 #factor de meditacion
-manaFactor = 6 #factor de mana
+life_factor = 8  #factor de vida
+metitation_factor = 6 #factor de meditacion
+mana_factor = 6 #factor de mana
 
-[[clases.statics]]
-intelligense = 2
-consititution = 3
+[[clases.statistics]]
+intelligence = 2
+constitution = 3
 strength = 5
 agility = 4
 #-------------------------------------------------------------------------------------------------------
 [[clases]]
-id = 204
+id_type = 4
 name = "Guerrero"
-lifeFactor =  10 # factor de vida
-metitationFactor = 0 #factor de meditacion
-manaFactor = 0 #factor de mana
+life_factor =  10 # factor de vida
+metitation_factor = 0 #factor de meditacion
+mana_Ractor = 0 #factor de mana
 
-[[clases.statics]]
-intelligense = 1
-consititution = 4
+[[clases.statistics]]
+intelligence = 1
+constitution = 4
 strength = 7
 agility = 5

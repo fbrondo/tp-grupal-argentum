@@ -1,21 +1,21 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
-#include "common/includes/core/statics.h"
-#include "core/clase.h"
-#include "core/race.h"
+#include "common/includes/core/Statistics.h"
+#include "server/includes/core/clase.h"
+#include "server/includes/core/race.h"
 
 class Character {
 private:
     const Race& race;
     const Clase& clase;
-    Statics statics;
+    Statistics stats;
 
 public:
     Character(const Race& ch_race, const Clase& ch_clase);
 
     /*statics*/
-    const Statics& getStatics() const;
+    const Statistics& getStatistics() const;
 
     const uint16_t& getHpFactorRace();
     const uint16_t& getHpFactorClase();

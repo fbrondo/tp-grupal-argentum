@@ -15,7 +15,7 @@ private:
     void loadIndex(const std::filesystem::path& index_data_path);
 
 public:
-    explicit PersistenceManager(const PathConfig& paths);
+    explicit PersistenceManager(const FileData& paths);
 
     bool exists(const std::string& username) const;
     void savePlayer(const PlayerData& data);

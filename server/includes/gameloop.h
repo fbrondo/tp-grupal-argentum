@@ -3,10 +3,8 @@
 
 #include <map>
 #include <memory>
-
 #include "common/includes/thread.h"
 #include "common/includes/types.h"
-
 #include "server/includes/core/config.h"
 #include "server/includes/commands/command.h"
 #include "server/includes/commands/command_move.h"
@@ -21,40 +19,37 @@
 #include "server/includes/commands/command_take_item.h"
 #include "server/includes/commands/command_use_item.h"
 #include "server/includes/commands/command_create_character.h"
-
 #include "server/includes/core/item.h"
 #include "server/includes/core/race.h"
 #include "server/includes/core/clase.h"
+#include "server/includes/core/config.h"
 #include "server/includes/persistence_manager.h"
 #include "server/includes/response_builder.h"
 #include "server/includes/definitions.h"
 #include "server/includes/monitor_queues.h"
 #include "server/includes/player.h"
 #include "server/includes/world.h"
-#include "server/includes/game_config.h"
-
-
-class MoveCommand;
+#include "server/includes/game_config_loader.h"
 
 class Gameloop: public Thread {
 
 private:
-    PathConfig paths;
-    InitialPlayerConfig player_state_init;
-    ClanConfig clan_conf;
-
-    World world_game;
     MonitorQueues& monitor;
     QueueCmd& commands_queue;
-    ResponseBuilder resp;
-    PersistenceManager persistence; /*Esto tal vez deberia pasarse por referencia*/
 
-    std::map<Id,Player> players;
+    const FileData files_data;
+    const GameConfig game_conf;
+    World world_game;
+    PersistenceManager persistence;
+    /*Esto tal vez deberia pasarse por referencia*/
+    ResponseBuilder resp;
+
     std::unordered_map<TypeRace, Race> info_races;
     std::unordered_map<TypeClase, Clase> info_clases;
 
-    std::map<TypeItem, std::unique_ptr<Item>> config_items;
-    std::map<Id, std::unique_ptr<NPC>> config_NPC;
+    std::map<Id,Player> players;
+    std::map<TypeItem, std::unique_ptr<Item>> info_items;
+    std::map<Id, std::unique_ptr<NPC>> info_NPC;
 
     Player initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t level);
     void registerNewPlayer(CreateCharacterCommand* register_cmd);
@@ -62,7 +57,7 @@ private:
     void execuetRequest();
 
 public:
-    explicit Gameloop(GameConfig& game_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue);
+    explicit Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue);
     void run() override;
 };
 

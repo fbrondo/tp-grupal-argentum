@@ -1,12 +1,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "server/includes/game_config.h"
+#include "server/includes/game_config_loader.h"
 class Server {
 
 private:
     const char* serverName;  // Pasar una referencia al acceptor
-    GameConfig config;
+    GameConfigLoader config;
 
 public:
     Server(const Server& other) = delete;

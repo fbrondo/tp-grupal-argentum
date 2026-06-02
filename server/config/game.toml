@@ -1,10 +1,30 @@
 [player_state_init]
 level = 1
-#life_init = 100
-#manaInit = 50
 golden_init = 50
-max_inventory_items = 40
+max_inventory = 40
 #-------------------------------------------------------------------------------------------------------
 [clan]
 max_members = 16
+
+#------------------------------------------------------------------------------------------------------
+[times]
+# frecuencia de actualizacion del servidor. El juego procesa la logica 30 veces por segundos.
+server_update_frecuency = 30
+
+# Cada medio segundo el servidor refresca las estadisitcas (vida, mana).
+# Aqui es donde se nota la regenacion de vida y mana por tiempo
+update_player_atributes = 500
+
+# Los monstruos tardan 3 segundos en aparecer (respawn) despues de morir o iniciar el mapa.
+# cada cierto tiempo hago spawn de los npcs que han sido vencidos
+spawn_npcs = 3000
+
+# AL tirar un objeto al suelo (soltar) desaparecera para siempre tras 60 segundos
+disappear_dropped_item = 60000
+
+# Auto save. El servidor guarda el progreso de los jugadores en el base cada 60 segundos.
+pesist_data = 60000
+
+#
+npc_attack_cooldown = 1000
 

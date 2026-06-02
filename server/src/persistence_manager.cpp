@@ -1,9 +1,9 @@
 #include "server/includes/persistence_manager.h"
 
-PersistenceManager::PersistenceManager(const PathConfig& paths) {
+PersistenceManager::PersistenceManager(const FileData& paths) {
     //std::filesystem::create_directories(path);
-    std::filesystem::path data_players = paths.players_data;
-    std::filesystem::path data_index_player = paths.players_indx;
+    std::filesystem::path data_players = paths.players;
+    std::filesystem::path data_index_player = paths.indx_players;
     /*Permite leer, escribir, bytes puros sin interpretar, escrituta al final*/
     this->data_file.open(data_players, std::ios::in | std::ios::out | std::ios::binary | std::ios::app);
     if(!this->data_file.is_open()) {

@@ -1,5 +1,4 @@
 #include "server/includes/gameloop.h"
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -8,19 +7,17 @@
 #include "server/includes/responses/response_login.h"
 #include "server/includes/responses/response_snapshot.h"
 
-Gameloop::Gameloop(GameConfig& game_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue) try :
-    paths(game_conf.getPaths()),
-    world_game(paths.map_path),
+Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue):
     monitor(monitor),
     commands_queue(cmmds_queue),
-    persistence(paths) {
-    std::cerr << "Gameloop construido OK" << std::endl;
-} catch (const std::exception& e) {
-    std::cerr << "EXCEPCION en constructor Gameloop: " << e.what() << std::endl;
-    throw;
-} catch (...) {
-    std::cerr << "EXCEPCION DESCONOCIDA en constructor Gameloop" << std::endl;
-    throw;
+    files_data(loader_conf.getFilesData()),
+    game_conf(loader_conf.getdGameConfiguration()),
+    world_game(this->files_data.map),
+    persistence(this->files_data)
+    {
+    loader_conf.loadRaces(this->info_races) ;
+    loader_conf.loadClases(this->info_clases);
+    loader_conf.loadItems(this->info_items);
 }
 /*Levantamos un jugador - Deberia servir tanto para
     - Uno que se registra
@@ -46,9 +43,7 @@ void Gameloop::registerNewPlayer(CreateCharacterCommand* register_cmd) {
     } else {
         Inventory inv(50, 16);
         Player new_player = this->initPlayer(race, clase, std::move(inv), 1);
-        std::cout << "Se inicializo" << std::endl;
         this->players.emplace(id, std::move(new_player));
-        std::cout << "Se agrego" << std::endl;
         register_cmd->execute(this->world_game);
         std::cout << "Se registro exitosamente" << std::endl;
         response_register = std::make_unique<ResponseLogin>(true);

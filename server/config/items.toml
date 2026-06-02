@@ -1,7 +1,7 @@
 # ARMAS DE COMBATE A MANO -------------------------------------------------------------------------------------------------
 
 [[items]]
-idItem = 1 # Espada
+id_type = 1 # Espada
 name = "Espada"
 description = "MELEE_WEAPON"
 body_part = 3 #HAND
@@ -12,7 +12,7 @@ selling_price = 5
 purchase_price = 10
 
 [[items]]
-idItem = 2 # Hacha 
+id_type = 2 # Hacha
 name = "Hacha"
 description = "MELEE_WEAPON"
 body_part = 3 #HAND
@@ -23,7 +23,7 @@ selling_price = 6
 purchase_price = 12
 
 [[items]]
-idItem = 3 # Martillo
+id_type = 3 # Martillo
 name = "Martillo"
 description = "MELEE_WEAPON"
 body_part = 3 #HAND
@@ -35,7 +35,7 @@ purchase_price = 10
 
 #OBJETOS MAGICOS -------------------------------------------------------------------------------------------------------------
 [[items]]
-idItem = 4 # vara de fresno
+id_type = 4 # vara de fresno
 name = "Vara de fresno"
 description = "MAGICAL"
 body_part = 3 #HAND
@@ -48,7 +48,7 @@ selling_price = 10
 purchase_price = 15
 
 [[items]]
-idItem = 5 # Baculo nudoso 
+id_type = 5 # Baculo nudoso
 name = "Báculo nudoso"
 description = "MAGICAL"
 body_part = 3 #HAND
@@ -61,7 +61,7 @@ selling_price = 6
 purchase_price = 12
 
 [[items]]
-idItem = 6 # Baculo engarzado 
+id_type = 6 # Baculo engarzado
 name = "Báculo engarzado"
 description = "MAGICAL"
 body_part = 3 #HAND
@@ -74,7 +74,7 @@ selling_price = 15
 purchase_price = 20
 
 [[items]]
-idItem = 7 # flauta elfica 
+id_type = 7 # flauta elfica
 name = "Flauta élfica"
 description = "MAGICAL"
 body_part = 3 #HAND
@@ -86,7 +86,7 @@ purchase_price = 20
 
 # ARMAS DE COMBATE A DISTANCIA -------------------------------------------------------------------------------------------------------
 [[items]]
-idItem = 8 # arco simple 
+id_type = 8 # arco simple
 name = "Arco simple"
 description = "RANGED_WEAPON"
 body_part = 3 #HAND
@@ -98,7 +98,7 @@ selling_price = 5
 purchase_price = 10
 
 [[items]]
-idItem = 9 # arco compuesto
+id_type = 9 # arco compuesto
 name = "Arco compuesto"
 description = "RANGED_WEAPON"
 body_part = 3 #HAND
@@ -111,7 +111,7 @@ purchase_price = 18
  
 # OBJETOS DE DEFENSA ------ -----------------------------------------------------------------------------------------------
 [[items]]
-idItem = 10 # armadura de cuero
+id_type = 10 # armadura de cuero
 name = "Armadura de cuero"
 description = "DEFENSE_EQUIPMENT"
 body_part = 2 #BACK
@@ -122,7 +122,7 @@ selling_price = 4
 purchase_price = 6
 
 [[items]]
-idItem = 11 # armadura de placas
+id_type = 11 # armadura de placas
 name = "Armadura de placas"
 description = "DEFENSE_EQUIPMENT"
 body_part = 2 #BACK
@@ -133,7 +133,7 @@ selling_price = 6
 purchase_price = 8
 
 [[items]]
-idItem = 12 # Tunica azul 
+id_type = 12 # Tunica azul
 name = "Tunica azul"
 description = "DEFENSE_EQUIPMENT"
 body_part = 2 #BACK
@@ -144,7 +144,7 @@ selling_price = 6
 purchase_price = 10
 
 [[items]]
-idItem = 13 # capucha
+id_type = 13 # capucha
 name = "Capucha"
 description = "DEFENSE_EQUIPMENT"
 body_part = 1 #HEAD
@@ -155,7 +155,7 @@ selling_price = 4
 purchase_price = 6
 
 [[items]]
-idItem = 14 # casco de hierro 
+id_type = 14 # casco de hierro
 name = "Casco de hierro"
 description = "DEFENSE_EQUIPMENT"
 body_part = 1 #HEAD
@@ -166,7 +166,7 @@ selling_price = 5
 purchase_price = 10
 
 [[items]]
-idItem = 15 # escudo de tortuga
+id_type = 15 # escudo de tortuga
 name = "Escudo de tortuga"
 description = "DEFENSE_EQUIPMENT"
 body_part = 3 #HAND
@@ -177,7 +177,7 @@ selling_price = 5
 purchase_price = 10
 
 [[items]]
-idItem = 16 # escudo de hierro 
+id_type = 16 # escudo de hierro
 name = "Escudo de hierro"
 description = "DEFENSE_EQUIPMENT"
 body_part = 3 #HAND
@@ -188,7 +188,7 @@ selling_price = 5
 purchase_price = 10
 
 [[items]]
-idItem = 17 # sombrero magico
+id_type = 17 # sombrero magico
 name = "Sombrero mágico"
 description = "DEFENSE_EQUIPMENT"
 body_part = 1 #HEAD
@@ -200,7 +200,7 @@ purchase_price = 10
 
 # POCIONES ----------------------------------------------------------------------------------------------------------------- 
 [[items]]
-idItem = 18 # pocion vida
+id_type = 18 # pocion vida
 name = "poción restauradora de vida"
 description = "POTION"
 body_part = 4 #MOUTH
@@ -209,7 +209,7 @@ selling_price = 5
 purchase_price = 10
 
 [[items]]
-idItem = 19 # pocion vida
+id_type = 19 # pocion vida
 name = "poción restauradora de mana"
 description = "POTION"
 body_part = 4 #MOUTH

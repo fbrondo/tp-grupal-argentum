@@ -11,7 +11,7 @@ target_sources(taller_common
         src/sprite_loader.cpp
     PUBLIC
     # .h files
-        includes/core/statics.h
+        includes/core/Statistics.h
 
         includes/map/tile.h
         includes/map/layer.h

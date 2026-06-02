@@ -1,5 +1,0 @@
-[persistence]
-data_file = "data/players.dat"
-data_indx = "data/players.idx"
-data_world = "data/world.dat" #guardo el estado del mundo
-map = "data/mapa-01.toml" #despues deberia ser data/mapa.toml
