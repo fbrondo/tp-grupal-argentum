@@ -1,5 +1,6 @@
 #include "print.h"
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <cstdlib>
 #include "common/includes/direction.h"
@@ -41,6 +42,26 @@ std::string claseToString(TypeClase clase) {
     }
 }
 
+std::string tileToString(Region region) {
+    switch (region) {
+        case Region::Cavern:
+            return "CAVERNA";
+        case Region::Dungeon:
+            return "MAZMORRA";
+        case Region::Forest:
+            return "BOSQUE";
+        case Region::Desert:
+            return "DESIERTO";
+        case Region::Field:
+            return "CAMPO";
+        case Region::City:
+            return "CIUDAD";
+        case Region::Town:
+            return "PUEBLO";
+    }
+    return "field";
+}
+
 void initServer() {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
@@ -51,6 +72,22 @@ void initServer() {
         std::cout << borde << SALTO << mensaje << SALTO << borde << std::endl;
     }
 }
+// void printinitMatrizMap(std::vector<std::vector<Tile>> map, const uint32_t height, const uint32_t width) {
+//     const char* env_p = std::getenv("DEBUG");
+//     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+//     if (debug_mode) {
+//         std::ostringstream oss;
+//         oss << "--- Tu Matriz ---" << std::endl;
+//         for (uint32_t i = 0; i < height; i++) {  /*recorre columnas*/
+//             for (uint32_t j = 0; j < width ; j++) { // Recorre las filas
+//                 std::cout << "[" << tileToString(map[j][i].region) << "]"; // \t añade un espacio de tabulación
+//             }
+//         }
+//         std::string message = oss.str();
+//         print_message_console(message);
+//
+//     }
+// }
 
 void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config, const FileData& file_data) {
     const char* env_p = std::getenv("DEBUG");
@@ -99,6 +136,7 @@ void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config, c
         // Piso de la caja
         oss << borde_horizontal;
         print_message_console(oss.str());
+
     }
 }
 
@@ -112,7 +150,7 @@ void printNewPlayerArrived(const Id& id, const std::string& name, const std::str
         oss << "- username: " << name << "\n";
         oss << "- pass: " << pass << "\n";
         oss << "- race: " << RaceToString(rac) << "\n";
-        oss << "- clase: " << claseToString(clase);
+        oss << "- clase: " << claseToString(clase) << SALTO;
         oss << " ===================================" << "\n";
         std::string message = oss.str();
         print_message_console(message);

@@ -1,14 +1,15 @@
 #include "server/includes/world.h"
 
-#include <iostream>
-
+#include <stack>
 #include "common/includes/map/layer.h"
 #include "server/print.h"
 
-#include "printf.h"
+
 
 World::World(const std::filesystem::path& path):map(MapSerializer::load(path)), limit_height(10/*this->map.height()*/), limit_width(10/*this->map.width()*/){
     this->buildTilesWorld();
+    this->identifyZones();
+    //Print::printinitMatrizMap(this->map_tiles, this->limit_height, this->limit_width);
 }
 
 void World::buildTilesWorld() {
@@ -21,7 +22,56 @@ void World::buildTilesWorld() {
             this->map_tiles[x][y].region   = bg.region;
         }
     }
-     /*Sabiendo cuentas regiones hay y donde se ubican, inicializo los npc*/
+}
+
+void World::floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone) {
+    std::stack<Position> stack;
+    stack.push(pos_start);
+    while (!stack.empty()) {
+        auto pos = stack.top();
+        stack.pop();
+
+        if (pos.x >= static_cast<uint32_t>(this->limit_width))  continue;
+        if (pos.y >= static_cast<uint32_t>(this->limit_height)) continue;
+        if (visited[pos.x][pos.y]) continue;
+        if (this->map_tiles[pos.x][pos.y].region != region) continue;
+
+        visited[pos.x][pos.y] = true;
+        zone.tile_count++;
+        zone.tiles.push_back(Position{pos.x, pos.y});
+
+        if (pos.x + 1 < static_cast<uint32_t>(this->limit_width)) {
+            stack.push(Position{pos.x + 1, pos.y}); //puedo reutilizar calcular posicio
+        }
+        if (pos.x > 0) {
+            stack.push({pos.x - 1, pos.y}); //puedo reutilizar calcular posicion
+        }
+        if (pos.y + 1 < static_cast<uint32_t>(this->limit_height)) {
+            stack.push({pos.x, pos.y + 1}); //puedo reutilizar calcular posicion
+        }
+        if (pos.y > 0) {
+            stack.push({pos.x, pos.y - 1}); //puedo reutilizar calcular posicion
+        }
+    }
+}
+
+void World::identifyZones() {
+    MatrizBool visited( this->limit_width, std::vector<bool>(this->limit_height, false));
+
+    for (uint32_t y = 0; y < this->limit_height; y++) {
+        for (uint32_t x = 0; x < this->limit_width; x++) {
+            if (visited[x][y]) continue;
+            /*Tile no visitado, es decir nueva zona*/
+            Region region = this->map_tiles[x][y].region;
+            Zone zone;
+            zone.region  = region;
+            zone.zone_id = static_cast<uint32_t>(this->zones.size());
+
+            this->floodFill(Position{x, y}, region, visited, zone);
+            this->zones.push_back(std::move(zone));
+            this->zone_count[region]++;
+        }
+    }
 }
 
 Position World::calculatePosition(const Id& player_id, const Direction dir) {

@@ -22,6 +22,6 @@ using QueueResp = Queue<std::unique_ptr<Response>>;
 /*Lo que retornan los distintos commands */
 using RegisterInfo = std::tuple<Id, std::string, std::string, TypeRace, TypeClase>;
 using MoveInfo = std::tuple<Id, Direction>;
-// using MapMatriz =  std::vector<std::vector<Tiles>>;
+//using MapMatriz =  std::vector<std::vector<Tile>>;
 
 #endif
