@@ -287,7 +287,7 @@ int Socket::sendsome(const void* data, unsigned int sz) {
      * Esta en nosotros luego hace el chequeo correspondiente
      * (ver más abajo).
      * */
-    int s = send(this->skt, static_cast<char*>(data), sz, MSG_NOSIGNAL);
+    int s = send(this->skt, static_cast<const char*>(data), sz, MSG_NOSIGNAL);
     if (s == -1) {
         /*
          * Este es un caso especial: cuando enviamos algo pero en el medio
@@ -358,7 +358,7 @@ int Socket::sendall(const void* data, unsigned int sz) {
     unsigned int sent = 0;
 
     while (sent < sz) {
-        int s = sendsome(static_cast<char*>(data) + sent, sz - sent);
+        int s = sendsome(static_cast<const char*>(data) + sent, sz - sent);
 
         /* Véase los comentarios de `Socket::recvall` */
         if (s <= 0) {
