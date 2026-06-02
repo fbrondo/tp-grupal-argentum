@@ -18,6 +18,20 @@ Para correr los tests
 
 `make test`
 
+### Launcher
+
+El launcher (Qt6) está deshabilitado por defecto. Para compilarlo se requiere Qt6 instalado:
+
+```bash
+sudo apt install qt6-base-dev
+```
+
+Luego compilar habilitando el target:
+
+```bash
+make EXTRA_GENERATE="-DTALLER_LAUNCHER=ON"
+```
+
 ## Dependencias
 Se deben instalar las siguientes dependencias
 ```
