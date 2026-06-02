@@ -14,6 +14,10 @@ MapScene::MapScene(QObject* parent): QGraphicsScene(parent) {}
 void MapScene::loadMap(Map* map, std::array<Sprite*, layer_count> sprites) {
     map_ = map;
     sprites_ = sprites;
+    undo_stack_.clear();
+    redo_stack_.clear();
+    emit undoAvailable(false);
+    emit redoAvailable(false);
     rebuildScene();
 }
 
@@ -26,6 +30,10 @@ void MapScene::setCurrentLayer(Layer layer) {
 void MapScene::setCurrentSpriteId(int sprite_id) { current_sprite_id_ = sprite_id; }
 
 void MapScene::setCurrentWalkable(bool walkable) { current_walkable_ = walkable; }
+
+void MapScene::setCurrentRegion(Region region) { current_region_ = region; }
+
+void MapScene::setCurrentTool(Tool tool) { current_tool_ = tool; }
 
 void MapScene::rebuildScene() {
     clear();
@@ -164,6 +172,29 @@ std::vector<std::pair<int, int>> MapScene::occupiedCells(int ax, int ay, int spr
     return cells;
 }
 
+void MapScene::applyTileChange(int ax, int ay, Layer layer, const Tile& old_tile,
+                               const Tile& new_tile) {
+    if (layer == current_layer_) {
+        if (old_tile.sprite_id != 0) {
+            for (auto [nx, ny]: occupiedCells(ax, ay, old_tile.sprite_id))
+                anchor_at_[tileIndex(nx, ny)] = -1;
+        }
+    }
+
+    map_->tile_at(ax, ay, layer) = new_tile;
+
+    if (layer == current_layer_) {
+        if (new_tile.sprite_id != 0) {
+            int anchor_idx = tileIndex(ax, ay);
+            for (auto [nx, ny]: occupiedCells(ax, ay, new_tile.sprite_id))
+                anchor_at_[tileIndex(nx, ny)] = anchor_idx;
+        }
+    }
+
+    updateAllLayersVisual(ax, ay);
+    emit tileModified(ax, ay);
+}
+
 void MapScene::paintAt(QPointF scene_pos) {
     if (!map_ || current_sprite_id_ == 0)
         return;
@@ -173,21 +204,20 @@ void MapScene::paintAt(QPointF scene_pos) {
         return;
 
     // Block paint if any cell in the sprite's footprint is already occupied.
-    auto cells = occupiedCells(x, y, current_sprite_id_);
-    for (auto [nx, ny]: cells) {
+    for (auto [nx, ny]: occupiedCells(x, y, current_sprite_id_)) {
         if (anchor_at_[tileIndex(nx, ny)] != -1)
             return;
     }
 
-    Tile& tile = map_->tile_at(x, y, current_layer_);
-    tile.sprite_id = current_sprite_id_;
-    tile.walkable = current_walkable_;
+    Tile old_tile = map_->tile_at(x, y, current_layer_);
+    Tile new_tile{current_sprite_id_, current_walkable_, current_region_};
 
-    int anchor_idx = tileIndex(x, y);
-    for (auto [nx, ny]: cells) anchor_at_[tileIndex(nx, ny)] = anchor_idx;
+    redo_stack_.clear();
+    undo_stack_.push_back({current_layer_, x, y, old_tile, new_tile});
+    emit undoAvailable(true);
+    emit redoAvailable(false);
 
-    updateTileVisual(x, y);
-    emit tileModified(x, y);
+    applyTileChange(x, y, current_layer_, old_tile, new_tile);
 }
 
 void MapScene::eraseAt(QPointF scene_pos) {
@@ -205,19 +235,69 @@ void MapScene::eraseAt(QPointF scene_pos) {
     int ax = anchor_idx % map_->width();
     int ay = anchor_idx / map_->width();
 
-    Tile& anchor_tile = map_->tile_at(ax, ay, current_layer_);
-    int sprite_id = anchor_tile.sprite_id;
+    Tile old_tile = map_->tile_at(ax, ay, current_layer_);
+    Tile new_tile{0, true};
 
-    // Release all cells in the sprite's footprint before clearing the anchor.
-    for (auto [nx, ny]: occupiedCells(ax, ay, sprite_id)) anchor_at_[tileIndex(nx, ny)] = -1;
+    redo_stack_.clear();
+    undo_stack_.push_back({current_layer_, ax, ay, old_tile, new_tile});
+    emit undoAvailable(true);
+    emit redoAvailable(false);
 
-    anchor_tile.sprite_id = 0;
-    anchor_tile.walkable = true;
-    updateTileVisual(ax, ay);
-    emit tileModified(ax, ay);
+    applyTileChange(ax, ay, current_layer_, old_tile, new_tile);
+}
+
+void MapScene::undo() {
+    if (undo_stack_.empty())
+        return;
+    TileChange change = undo_stack_.back();
+    undo_stack_.pop_back();
+    redo_stack_.push_back(change);
+
+    applyTileChange(change.ax, change.ay, change.layer, change.new_tile, change.old_tile);
+
+    emit undoAvailable(!undo_stack_.empty());
+    emit redoAvailable(true);
+}
+
+void MapScene::redo() {
+    if (redo_stack_.empty())
+        return;
+    TileChange change = redo_stack_.back();
+    redo_stack_.pop_back();
+    undo_stack_.push_back(change);
+
+    applyTileChange(change.ax, change.ay, change.layer, change.old_tile, change.new_tile);
+
+    emit undoAvailable(true);
+    emit redoAvailable(!redo_stack_.empty());
+}
+
+void MapScene::selectAt(QPointF scene_pos) {
+    if (!map_)
+        return;
+    int x = static_cast<int>(scene_pos.x()) / BASE_TILE_PX;
+    int y = static_cast<int>(scene_pos.y()) / BASE_TILE_PX;
+    if (x < 0 || y < 0 || x >= map_->width() || y >= map_->height())
+        return;
+
+    int anchor_idx = anchor_at_[tileIndex(x, y)];
+    if (anchor_idx != -1) {
+        int ax = anchor_idx % map_->width();
+        int ay = anchor_idx / map_->width();
+        emit tileSelected(map_->tile_at(ax, ay, current_layer_));
+    } else {
+        emit tileSelected(map_->tile_at(x, y, current_layer_));
+    }
 }
 
 void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+    if (current_tool_ == Tool::Select) {
+        if (event->button() == Qt::LeftButton) {
+            selectAt(event->scenePos());
+            event->accept();
+        }
+        return;
+    }
     if (event->button() == Qt::LeftButton) {
         painting_ = true;
         paintAt(event->scenePos());
@@ -230,6 +310,13 @@ void MapScene::mousePressEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+    if (current_tool_ == Tool::Select) {
+        if (event->buttons() & Qt::LeftButton) {
+            selectAt(event->scenePos());
+            event->accept();
+        }
+        return;
+    }
     if (painting_) {
         paintAt(event->scenePos());
         event->accept();

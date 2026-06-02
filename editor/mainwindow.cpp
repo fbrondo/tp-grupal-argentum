@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include <QActionGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
@@ -43,6 +44,17 @@ MainWindow::MainWindow(QWidget* parent):
     connect(ui_->actionAbrir, &QAction::triggered, this, &MainWindow::onOpen);
     connect(ui_->actionGuardar, &QAction::triggered, this, &MainWindow::onSave);
     connect(ui_->actionGuardar_Como, &QAction::triggered, this, &MainWindow::onSaveAs);
+
+    ui_->actionDeshacer->setShortcut(QKeySequence::Undo);
+    ui_->actionDeshacer->setEnabled(false);
+    connect(ui_->actionDeshacer, &QAction::triggered, this, &MainWindow::onUndo);
+    connect(scene_, &MapScene::undoAvailable, ui_->actionDeshacer, &QAction::setEnabled);
+
+    ui_->actionRehacer->setShortcut(QKeySequence::Redo);
+    ui_->actionRehacer->setEnabled(false);
+    connect(ui_->actionRehacer, &QAction::triggered, this, &MainWindow::onRedo);
+    connect(scene_, &MapScene::redoAvailable, ui_->actionRehacer, &QAction::setEnabled);
+
     connect(ui_->actionZoom, &QAction::triggered, this, &MainWindow::onZoomIn);
     connect(ui_->actionZoom_2, &QAction::triggered, this, &MainWindow::onZoomOut);
     connect(ui_->actionSeleccionar_graficos, &QAction::triggered, this,
@@ -56,6 +68,8 @@ MainWindow::MainWindow(QWidget* parent):
     connect(scene_, &MapScene::tileModified, this, [this](int x, int y) {
         statusBar()->showMessage(QString("Tile (%1, %2) modificado").arg(x).arg(y), 2000);
     });
+
+    connect(scene_, &MapScene::tileSelected, this, &MainWindow::onTileSelected);
 
     tryDefaultGraficosDir();
     updateTitle();
@@ -79,6 +93,7 @@ void MainWindow::setupEditor() {
         layer_combo_->setCurrentIndex(static_cast<int>(layer));
         layer_combo_->blockSignals(false);
         scene_->setCurrentLayer(layer);
+        region_combo_->setEnabled(layer == Layer::Background);
     });
 
     view_ = new MapView(scene_, this);
@@ -99,6 +114,25 @@ void MainWindow::setupToolBar() {
     auto* toolbar = addToolBar("Herramientas");
     toolbar->setMovable(false);
 
+    auto* tool_group = new QActionGroup(this);
+    auto* paint_action = toolbar->addAction("Insertar");
+    paint_action->setCheckable(true);
+    paint_action->setChecked(true);
+    tool_group->addAction(paint_action);
+    auto* select_action = toolbar->addAction("Seleccionar");
+    select_action->setCheckable(true);
+    tool_group->addAction(select_action);
+
+    connect(paint_action, &QAction::triggered, this, [this]() {
+        scene_->setCurrentTool(MapScene::Tool::Paint);
+        view_->unsetCursor();
+    });
+    connect(select_action, &QAction::triggered, this, [this]() {
+        scene_->setCurrentTool(MapScene::Tool::Select);
+        view_->setCursor(Qt::PointingHandCursor);
+    });
+
+    toolbar->addSeparator();
     toolbar->addWidget(new QLabel("  Capa: ", this));
     layer_combo_ = new QComboBox(this);
     layer_combo_->addItem("Background", static_cast<int>(Layer::Background));
@@ -113,12 +147,28 @@ void MainWindow::setupToolBar() {
     walkable_check_->setChecked(true);
     toolbar->addWidget(walkable_check_);
 
+    toolbar->addSeparator();
+    toolbar->addWidget(new QLabel("  Región: ", this));
+    region_combo_ = new QComboBox(this);
+    region_combo_->addItem("Campo", static_cast<int>(Region::Field));
+    region_combo_->addItem("Ciudad", static_cast<int>(Region::City));
+    region_combo_->addItem("Pueblo", static_cast<int>(Region::Town));
+    region_combo_->addItem("Bosque", static_cast<int>(Region::Forest));
+    region_combo_->addItem("Desierto", static_cast<int>(Region::Desert));
+    region_combo_->addItem("Caverna", static_cast<int>(Region::Cavern));
+    region_combo_->addItem("Mazmorra", static_cast<int>(Region::Dungeon));
+    toolbar->addWidget(region_combo_);
+
     connect(layer_combo_, &QComboBox::currentIndexChanged, this, [this](int idx) {
         Layer layer = static_cast<Layer>(layer_combo_->itemData(idx).toInt());
         scene_->setCurrentLayer(layer);
         tile_widget_->setCurrentLayer(layer);
+        region_combo_->setEnabled(layer == Layer::Background);
     });
     connect(walkable_check_, &QCheckBox::toggled, scene_, &MapScene::setCurrentWalkable);
+    connect(region_combo_, &QComboBox::currentIndexChanged, this, [this](int idx) {
+        scene_->setCurrentRegion(static_cast<Region>(region_combo_->itemData(idx).toInt()));
+    });
 
     toolbar->addSeparator();
     toolbar->addAction(ui_->actionPantalla_Completa);
@@ -176,6 +226,29 @@ void MainWindow::onSaveAs() {
     file_path_ = path;
     onSave();
     updateTitle();
+}
+
+void MainWindow::onUndo() { scene_->undo(); }
+void MainWindow::onRedo() { scene_->redo(); }
+
+void MainWindow::onTileSelected(Tile tile) {
+    walkable_check_->blockSignals(true);
+    walkable_check_->setChecked(tile.walkable);
+    walkable_check_->blockSignals(false);
+
+    for (int i = 0; i < region_combo_->count(); ++i) {
+        if (region_combo_->itemData(i).toInt() == static_cast<int>(tile.region)) {
+            region_combo_->blockSignals(true);
+            region_combo_->setCurrentIndex(i);
+            region_combo_->blockSignals(false);
+            break;
+        }
+    }
+
+    statusBar()->showMessage(QString("Caminable: %1 - Región: %2")
+                                     .arg(tile.walkable ? "Si" : "No")
+                                     .arg(region_combo_->currentText()),
+                             3000);
 }
 
 void MainWindow::onZoomIn() { view_->scale(1.25, 1.25); }
