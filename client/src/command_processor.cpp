@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 
+#include <SDL2/SDL.h>
+
 #include "client/includes/client.h"
 #include "client/includes/menu_handler.h"
 
@@ -63,6 +65,8 @@ bool CommandProcessor::processCreateCharacter() const {
 }
 
 int CommandProcessor::launchGame() const {
+    SDL(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    // SDL2pp::SDLTTF sdl_ttf;
     Client client(argv_[1], argv_[2]);
     client.launch();
     return 0;

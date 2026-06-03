@@ -8,36 +8,10 @@ Client::Client(const char* host, const char* port):
         skt(host, port),
         protocol(this->skt),
         sender(protocol, cmd_queue),
-        receiver(protocol, events_queue) {}
-
-void Client::init_SDL() {
-    // El orden importa: SDL primero, luego imagen, luego ventana, luego renderer, luego texturas
-    sdl.emplace(SDL_INIT_VIDEO);
-    img.emplace(IMG_INIT_PNG);
-    window.emplace("Argentum Online", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_W,
-                   WINDOW_H, SDL_WINDOW_RESIZABLE);
-
-    if (const Surface icon(IMG_Load("client/assets/icon.png")); icon.Get()) {
-        window->SetIcon(icon);
-    }
-
-    renderer.emplace(*window, -1, SDL_RENDERER_ACCELERATED);
-
-    // Color key negro para transparencia (fondo negro del PNG → transparente)
-    Surface body(IMG_Load("client/assets/body.png"));
-    if (!body.Get()) {
-        throw std::runtime_error(std::string("No se pudo cargar body.png: ") + IMG_GetError());
-    }
-    SDL_SetColorKey(body.Get(), SDL_TRUE, SDL_MapRGB(body.Get()->format, 0, 0, 0));
-    body_tex.emplace(*renderer, Surface(std::move(body)));
-
-    Surface head(IMG_Load("client/assets/head.png"));
-    if (!head.Get()) {
-        throw std::runtime_error(std::string("No se pudo cargar head.png: ") + IMG_GetError());
-    }
-    SDL_SetColorKey(head.Get(), SDL_TRUE, SDL_MapRGB(head.Get()->format, 0, 0, 0));
-    head_tex.emplace(*renderer, Surface(std::move(head)));
-}
+        receiver(protocol, events_queue),
+        img(IMG_INIT_JPG | IMG_INIT_PNG),
+        window("Argentum Online"),
+        texture_manager(window.get_renderer(), window) {}
 
 void Client::handle_events() {
     SDL_Event event;
@@ -83,13 +57,10 @@ void Client::handle_events() {
     }
 }
 
-void Client::clear_display() {
-    renderer->SetDrawColor(34, 139, 34, 255);
-    renderer->Clear();
-}
+void Client::clear_display() { window.clear(); }
 
 void Client::render_in_z_order() {
-    Rect src_body(0, 0, BODY_W, BODY_H);
+    /*Rect src_body(0, 0, BODY_W, BODY_H);
     Rect dst_body(static_cast<int>(player_state.pos_x), static_cast<int>(player_state.pos_y),
                   BODY_W, BODY_H);
     renderer->Copy(*body_tex, src_body, dst_body);
@@ -97,9 +68,9 @@ void Client::render_in_z_order() {
     Rect src_head(0, 0, HEAD_W, HEAD_H);
     Rect dst_head(static_cast<int>(player_state.pos_x) + (BODY_W - HEAD_W) / 2,
                   static_cast<int>(player_state.pos_y) - HEAD_H + 3, HEAD_W, HEAD_H);
-    renderer->Copy(*head_tex, src_head, dst_head);
+    renderer->Copy(*head_tex, src_head, dst_head);*/
 
-    renderer->Present();
+    window.present();
 }
 
 void Client::update_state_from_server() {
@@ -144,7 +115,7 @@ void Client::close() {
 
 void Client::launch() {
     try {
-        init_SDL();
+        // init_SDL();
         sender.start();
         receiver.start();
         while (is_running) {

@@ -11,6 +11,7 @@ target_sources(taller_client
         src/menu_handler.cpp
         src/command_processor.cpp
         src/texture_manager.cpp
+        src/window/windowSDL.cpp
     PUBLIC
     # .h files
         includes/client_protocol.h
@@ -23,4 +24,6 @@ target_sources(taller_client
         includes/commands/command_move.h
         includes/commands/command_create_character.h
         includes/texture_manager.h
+        includes/window/window.h
+        includes/window/windowSDL.h
     )

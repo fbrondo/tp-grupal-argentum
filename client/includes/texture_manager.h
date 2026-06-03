@@ -1,12 +1,14 @@
 #pragma once
 
-#include <stdexcept>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL2pp/SDL2pp.hh>
+
+#include "client/includes/window/windowSDL.h"
 
 // Estructura limpia para representar una animación de una acción específica
 struct AnimationClip {
@@ -22,22 +24,20 @@ struct AnimationState {
 
 class TextureManager {
 private:
-    SDL_Renderer* renderer;
+    SDL2pp::Renderer& renderer;
+    WindowSDL& window;
 
     // El diccionario centralizado de Texturas
-    std::unordered_map<std::string, SDL_Texture*> textures;
+    std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>> textures;
 
     // Diccionario para mapear nombres de animaciones a sus respectivos cuadros/clips
     // Ejemplo clave: "player_walk_up", "player_idle_down"
     std::unordered_map<std::string, AnimationClip> animations;
 
-    void free_textures();
-
 public:
-    explicit TextureManager(SDL_Renderer* renderer);
+    explicit TextureManager(SDL2pp::Renderer& renderer_, WindowSDL& window_);
     ~TextureManager();
 
-    // No queremos clonar el manejador por accidente (Buenas prácticas)
     TextureManager(const TextureManager&) = delete;
     TextureManager& operator=(const TextureManager&) = delete;
 
@@ -45,15 +45,15 @@ public:
     bool load_texture(const std::string& id, const std::string& filename);
 
     // Registrar una animación cortando el spritesheet por grilla estándar
-    void register_grid_animation(const std::string& anim_id, const std::string& texture_id,
+    void register_grid_animation(const std::string& anim_id, /*const std::string& texture_id,*/
                                  int start_x, int start_y, int frame_width, int frame_height,
                                  int frame_count, uint32_t speed_ms);
 
     // Obtener la textura cruda si se necesita
-    SDL_Texture* get_texture(const std::string& id) const;
+    const SDL2pp::Texture& get_texture(const std::string& id) const;
 
     // Obtener los datos de un clip de animación
     const AnimationClip& get_animation(const std::string& anim_id) const;
 
-    int get_current_animation_frame(const AnimationState& state, const AnimationClip& clip);
+    uint32_t get_current_animation_frame(const AnimationState& state, const AnimationClip& clip);
 };

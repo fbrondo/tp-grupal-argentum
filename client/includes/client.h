@@ -1,14 +1,13 @@
 #pragma once
-#include <cstdint>
-#include <memory>
-#include <optional>
 
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
+#include <memory>
+
+#include <SDL2pp/SDL.hh>
 #include <SDL2pp/SDLImage.hh>
 
+#include "client/includes/texture_manager.h"
+#include "client/includes/window/windowSDL.h"
 #include "commands/command_client.h"
-#include "common/includes/direction.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
 
@@ -22,17 +21,10 @@ using SDL2pp::SDL;
 using SDL2pp::SDLImage;
 using SDL2pp::Surface;
 using SDL2pp::Texture;
-using SDL2pp::Window;
 
-static constexpr int WINDOW_W = 800;
-static constexpr int WINDOW_H = 600;
 static constexpr int TARGET_FPS = 60;
 static constexpr int FRAME_MS = 1000 / TARGET_FPS;
 static constexpr int TILE_SIZE = 32;
-static constexpr int BODY_W = 19;
-static constexpr int BODY_H = 37;
-static constexpr int HEAD_W = 13;
-static constexpr int HEAD_H = 14;
 
 struct PlayerPosition {
     uint32_t pos_x;
@@ -42,16 +34,6 @@ struct PlayerPosition {
 
 class Client {
 private:
-    std::optional<SDL> sdl;
-    std::optional<SDLImage> img;
-    std::optional<Window> window;
-    std::optional<Renderer> renderer;
-    std::optional<Texture> body_tex;
-    std::optional<Texture> head_tex;
-
-    bool is_running = true;
-    uint32_t it = 0;
-
     Socket skt;
     ClientProtocol protocol;
 
@@ -60,9 +42,15 @@ private:
     ClientSender sender;
     ClientReceiver receiver;
 
+    SDLImage img;
+    WindowSDL window;
+    TextureManager texture_manager;
     PlayerPosition player_state;
 
-    void init_SDL();
+    bool is_running = true;
+    uint32_t it = 0;
+
+    // void init_SDL();
     void update_state_from_server();
     void handle_events();
     void clear_display();
