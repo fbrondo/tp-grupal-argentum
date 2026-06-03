@@ -1,7 +1,8 @@
 #include "client/includes/texture_manager.h"
+
 #include <iostream>
 
-TextureManager::TextureManager(SDL_Renderer* renderer) : renderer(renderer) {}
+TextureManager::TextureManager(SDL_Renderer* renderer): renderer(renderer) {}
 
 bool TextureManager::load_texture(const std::string& id, const std::string& filename) {
     // Si ya existe, evitamos recargarla
@@ -19,11 +20,11 @@ bool TextureManager::load_texture(const std::string& id, const std::string& file
     return true;
 }
 
-void TextureManager::register_grid_animation(const std::string& anim_id, const std::string& texture_id,
-                                             int start_x, int start_y, 
-                                             int frame_width, int frame_height, 
+void TextureManager::register_grid_animation(const std::string& anim_id,
+                                             const std::string& texture_id, int start_x,
+                                             int start_y, int frame_width, int frame_height,
                                              int frame_count, uint32_t speed_ms) {
-    
+
     AnimationClip clip;
     clip.frame_rate_ms = speed_ms;
 
@@ -34,7 +35,7 @@ void TextureManager::register_grid_animation(const std::string& anim_id, const s
         rect.y = start_y;
         rect.w = frame_width;
         rect.h = frame_height;
-        
+
         clip.frames.push_back(rect);
     }
 
@@ -59,7 +60,8 @@ const AnimationClip& TextureManager::get_animation(const std::string& anim_id) c
 
 // Esta función determina qué cuadro (índice) de la animación corresponde dibujar ahora.
 // Devuelve el índice del frame dentro del vector de la animación.
-int TextureManager::get_current_animation_frame(const AnimationState& state, const AnimationClip& clip) {
+int TextureManager::get_current_animation_frame(const AnimationState& state,
+                                                const AnimationClip& clip) {
     // 1. Calculamos cuánto tiempo pasó en milisegundos desde que empezó la animación
     uint32_t elapsed_time = SDL_GetTicks() - state.start_time;
 
@@ -68,7 +70,8 @@ int TextureManager::get_current_animation_frame(const AnimationState& state, con
     int total_frames_elapsed = elapsed_time / clip.frame_rate_ms;
 
     int num_frames = clip.frames.size();
-    if (num_frames == 0) return 0;
+    if (num_frames == 0)
+        return 0;
 
     if (state.is_looping) {
         // Si loopea (camina, respira), usamos el operador módulo % para reiniciar limpiamente
@@ -83,7 +86,7 @@ int TextureManager::get_current_animation_frame(const AnimationState& state, con
 }
 
 void TextureManager::free_textures() {
-    for (auto& pair : textures) {
+    for (auto& pair: textures) {
         if (pair.second != nullptr) {
             SDL_DestroyTexture(pair.second);
         }
@@ -91,6 +94,4 @@ void TextureManager::free_textures() {
     textures.clear();
 }
 
-TextureManager::~TextureManager() {
-    free_textures();
-}
+TextureManager::~TextureManager() { free_textures(); }
