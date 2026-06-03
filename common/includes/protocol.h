@@ -17,7 +17,9 @@ enum ClientOpcode : uint8_t {
     INTERACT = 9,
     BUY_ITEM = 10,
     SELL_ITEM = 11,
-    DISCONNECT = 12
+    DISCONNECT = 12,
+    SIGNUP = 13,
+    CHARACTER_CREATE = 15,
 };
 
 enum ServerOpcode : uint8_t {
@@ -28,12 +30,14 @@ enum ServerOpcode : uint8_t {
     INVENTORY_UPDATE = 54,
     CHAT_MSG = 55,
     ACTION_ERROR = 56,
-    MAP_DATA = 57
+    SIGNUP_RESPONSE = 57,
+    CHARACTER_CREATE_RESPONSE = 59,
+    MAP_DATA = 61,
 };
 
 #pragma pack(push, 1)
 
-// Structs del Cliente
+// Client message structs
 struct MsgLogin {
     uint8_t opcode = LOGIN;
     char name[MAX_NAME_SIZE];
@@ -51,7 +55,7 @@ struct MsgAttack {
 };
 
 struct MsgSlotItem {
-    uint8_t opcode;  // Puede ser USE_ITEM o DROP_ITEM
+    uint8_t opcode;  // USE_ITEM or DROP_ITEM
     uint8_t slot_index;
 };
 
@@ -61,8 +65,8 @@ struct MsgInteract {
 };
 
 struct MsgTrade {
-    uint8_t opcode;   // BUY_ITEM o SELL_ITEM
-    uint32_t npc_id;  // ID del comerciante
+    uint8_t opcode;  // BUY_ITEM or SELL_ITEM
+    uint32_t npc_id;
     uint16_t item_id;
     uint16_t quantity;
 };
@@ -82,6 +86,19 @@ struct MsgInventoryUpdate {
     uint16_t item_id;
     uint16_t quantity;
     uint8_t is_equipped;
+};
+
+struct MsgSignup {
+    uint8_t opcode = SIGNUP;
+    char user[MAX_NAME_SIZE];
+    char password[MAX_NAME_SIZE];
+};
+
+struct MsgCharacterCreate {
+    uint8_t opcode = CHARACTER_CREATE;
+    char name[MAX_NAME_SIZE];
+    uint8_t race;
+    uint8_t clase;
 };
 
 #pragma pack(pop)

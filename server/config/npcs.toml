@@ -1,0 +1,133 @@
+#REGIONES DONDE PUEDEN APARARECER ESTOS NPCS -> CAMPOS,BOSQUES, DESIERTOS, CAVERNAS, MAZMORRAS
+#-----------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 1 #puede no ser necesario si ya tengo el id
+name = "Goblin"
+attack_range = 4
+hp_max_initial = 40
+
+[[npcs.regions]] #En el campo solo van a aparecer goblin que esten en estos niveles "faciles"
+id_region = 5 #CAMPO
+minimalLevel = 1
+maximunLevel = 8
+
+[[npcs.regions]] #En el bosque solo van a aparecer goblin que esten en estos niveles "medios"
+id_region = 3 #FOREST
+minimalLevel = 9
+maximunLevel = 14
+# -------------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 2
+name = "Araña"
+attack_range = 4
+hp_max_initial = 60
+
+[[npcs.regions]] #En las mazmorras solo van a aparecer estas arañas que tiene en estos niveles "dificiles"
+id_region =  2 #MAZMORRA
+minimalLevel = 32
+maximunLevel = 38
+
+[[npcs.regions]] #En las cavernas solo van a aparecer estas arañas que tiene en estos niveles "dificiles"
+id_region = 1 #CAVERNA
+minimalLevel = 24
+maximunLevel = 30
+
+[[npcs.regions]] #En los bosques solo van a aparecer estas arañas que tiene en estos niveles "medios"
+id_region = 3 #FOREST
+minimalLevel = 10
+maximunLevel = 15
+#------------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 3
+name = "Esqueletos"
+attack_range = 3
+hp_max_initial = 80
+
+[[npcs.regions]] #En el campo solo van a aparecer esqueletos que esten en estos niveles "dificiles"
+id_region = 2 #MAZMORRA
+minimalLevel = 30
+maximunLevel = 40
+
+[[npcs.regions]] #En el bosque solo van a aparecer esqueletos que esten en estos niveles "medios-dificiles"
+id_region = 4 #DESERT
+minimalLevel = 17
+maximunLevel = 23
+#------------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 4
+name = "Orco"
+attack_range = 6
+hp_max_initial = 100
+
+[[npcs.regions]] #En las mazmorras solo van a aparecer orcos que esten en estos niveles "dificiles"
+id_region =  2 #MAZMORRA
+minimalLevel = 31
+maximunLevel = 40
+
+[[npcs.regions]] #En las cavernas solo van a aparecer orcos que esten en estos niveles "dificiles"
+id_region = 1 #CAVERNA
+minimalLevel = 25
+maximunLevel = 30
+
+[[npcs.regions]] #En el Desierto solo van a aparecer orcos que esten en estos niveles "medio/dificiles"
+id_region = 4 #DESERT
+minimalLevel = 17
+maximunLevel = 20
+#------------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 5
+name = "Golem"
+attack_range = 3
+hp_max_initial = 120
+
+[[npcs.regions]] #En el desierto solo van a aparecer golem que esten en estos niveles "medio/dificiles"
+id_region = 4 #DESERT
+minimalLevel = 17
+maximunLevel = 22
+
+[[npcs.regions]] #En las cavernas solo van a aparecer golem que esten en estos niveles "dificiles"
+id_region = 1 #CAVERNA
+minimalLevel = 24
+maximunLevel = 30
+#-------------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 6
+name = "Zombie"
+attack_range = 4
+hp_max_initial = 150
+
+[[npcs.regions]] #En el desierto solo van a aparecer zombies que esten en estos niveles dificiles"
+id_region = 2 #MAZMORRA
+minimalLevel = 30
+maximunLevel = 40
+#------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 7
+name = "Comerciante"
+
+[[npcs.regions]]
+id_region = 7 #PUEBLO
+
+[[npcs.regions]] 
+id_region = 6 # CITY
+#------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 8
+name = "Sacerdote"
+
+[[npcs.regions]]
+id_region = 7 #PUEBLO
+
+[[npcs.regions]] 
+id_region = 6 # CITY
+#----------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 9
+name = "Banquero"
+
+[[npcs.regions]]
+id_region = 7 #PUEBLO
+
+[[npcs.regions]] 
+id_region = 6 #CITY
+#------------------------------------------------------------------------------------------------

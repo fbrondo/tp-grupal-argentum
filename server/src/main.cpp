@@ -1,21 +1,24 @@
+#include <cerrno>
 #include <iostream>
+#include <stdexcept>
 
-#include "./common/includes/toml_config.h"
+#include "server/includes/server.h"
 
-int main(const int argc, char* argv[]) {
-    const char* config_path = (argc > 1) ? argv[1] : "config.toml";
+#define ARGC 2
+#define SERVER_NAME 1
 
-    // TODO: Delete this in the next iteration. Is a test.
-    try {
-        const TomlConfig config(config_path);
+int main(int argc, char const* argv[]) {
 
-        std::cout << "=== Argentum Server Config ===\n";
-        std::cout << "[server]" << std::endl;
-        std::cout << "  port:        " << config.get_or<int64_t>("server.port", 8080) << "\n";
-    } catch (const toml::parse_error& e) {
-        std::cerr << "Failed to read config: " << e << "\n";
-        return 1;
+    if (argc != ARGC) {
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    try {
+        Server sv(argv[SERVER_NAME], CONFIG_PATH);
+        sv.start();
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }

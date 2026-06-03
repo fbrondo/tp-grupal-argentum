@@ -3,17 +3,18 @@
 #include <cstdint>
 #include <memory>
 
-// Lo delcaro por adelantado asumiendo que le pasamos el mundo para ejecutar un comando
-class World;
+#include "../world.h"
+#include "common/includes/types.h"
 
 class Command {
 protected:
-    uint32_t client_id;
+    Id client_id;
 
 public:
-    explicit Command(uint32_t id): client_id(id) {}
+    explicit Command(Id id_): client_id(id_) {}
     virtual ~Command() = default;
 
+    const Id& getIdPlayer() { return this->client_id; }
     // Cada comando va a definir su propio execute
     virtual void execute(World& world) = 0;
 };

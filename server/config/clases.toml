@@ -1,0 +1,52 @@
+# LAS CLASES QUE PUEDEN TENER UN PERSONAJE 
+[[clases]]
+id_type = 1
+name = "Mago"
+life_factor =  4 # factor de vida
+metitation_factor = 10 #factor de meditacion
+mana_factor = 10 #factor de mana
+
+[[clases.statistics]]
+intelligence = 5
+constitution = 1
+strength = 1
+agility = 2
+#-----------------------------------------------------------------------------------------------------
+[[clases]]
+id_type = 2
+name = "Clérigo"
+life_factor =  6 # factor de vida
+metitation_factor = 8 #factor de meditacion
+mana_factor = 8 #factor de mana
+
+[[clases.statistics]]
+intelligence = 4
+constitution = 2
+strength = 3
+agility = 3
+#-----------------------------------------------------------------------------------------------------
+[[clases]]
+id_type = 3
+name = "Paladin"
+life_factor = 8  #factor de vida
+metitation_factor = 6 #factor de meditacion
+mana_factor = 6 #factor de mana
+
+[[clases.statistics]]
+intelligence = 2
+constitution = 3
+strength = 5
+agility = 4
+#-------------------------------------------------------------------------------------------------------
+[[clases]]
+id_type = 4
+name = "Guerrero"
+life_factor =  10 # factor de vida
+metitation_factor = 0 #factor de meditacion
+mana_Ractor = 0 #factor de mana
+
+[[clases.statistics]]
+intelligence = 1
+constitution = 4
+strength = 7
+agility = 5

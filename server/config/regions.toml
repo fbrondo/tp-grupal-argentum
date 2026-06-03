@@ -1,0 +1,54 @@
+# REGIONES DEL MAPA DE ARGENTU. 
+# Son los atributos individuales que va a tener cada region.
+[[regions]]
+id_type = 1 #CAVERNA
+is_safe_zone = false
+max_criatures = 20
+min_treasure = 4
+max_treasure = 8
+#--------------------------------------------------------------------------------------------------------
+[[regions]]
+id_type = 2 #MAZMORRA
+is_safe_zone = false
+max_criatures = 40
+min_treasure = 6
+max_treasure = 12
+#----------------------------------------------------------------------------------------------------
+[[regions]]
+id_type = 3 #FOREST
+is_safe_zone = false
+max_criatures = 20
+#----------------------------------------------------------------------------------------------------
+[[regions]]
+id_type = 4 #DESERT
+is_safe_zone = false
+max_criatures = 20
+min_treasure = 2
+max_treasure = 4
+#----------------------------------------------------------------------------------------------------
+[[regions]]
+id_type = 5 #CAMPO
+is_safe_zone = false
+max_criatures = 20
+#--------------------------------------------------------------------------------------------
+[[regions]]
+id_type = 6 # CITY
+is_safe_zone = true #No se permiten player vs player ni NPCs
+minimal_merchants = 2
+maximun_merchants = 5
+minimal_priest = 2
+maximun_priest = 6
+minimal_bankers = 2
+maximun_bankers = 6
+#---------------------------------------------------------------------------------------------------
+[[regions]]
+id_type = 7 #PUEBLO
+is_safe_zone = true #No se permiten player vs player ni NPCs
+minimal_merchants = 1
+maximun_merchants = 4
+minimal_priest = 1
+maximun_priest = 3
+minimal_bankers = 1
+maximun_bankers = 2
+#------------------------------------------------------------------------------------------------------
+

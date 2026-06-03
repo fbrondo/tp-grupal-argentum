@@ -76,9 +76,6 @@ void Client::handle_events() {
             }
 
             if (is_move) {
-                // El comando viaja por la queue al ClientSender,
-                // que llama a protocol.sendMove(). El estado local
-                // solo se actualiza cuando llega el snapshot del servidor.
                 auto cmd = std::make_unique<MoveCommandClient>(dir);
                 cmd_queue.push(std::move(cmd));
             }
@@ -112,29 +109,15 @@ void Client::update_state_from_server() {
             is_running = false;
             return;
         }
-        if (event.type == TypeEventClient::UPDATE_WORLD && !event.world.players.empty()) {
-            player_state.pos_x = event.world.players[0].pos_x;
-            player_state.pos_y = event.world.players[0].pos_y;
-            player_state.dir = event.world.players[0].direction;
+        if (event.type == TypeEventClient::LOGIN_RESPONSE) {
+            is_running = true;
         }
-        if (event.type == TypeEventClient::MAP_DATA) {
-            mapa_actual.emplace("MapaServidor", event.map.width, event.map.height);
-
-            std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details,
-                                                     Layer::Object, Layer::Roof};
-            size_t index_plano = 0;
-
-            for (Layer layer: layers) {
-                for (int y = 0; y < event.map.height; ++y) {
-                    for (int x = 0; x < event.map.width; ++x) {
-                        Tile& tile_local = mapa_actual->tile_at(x, y, layer);
-                        tile_local.sprite_id = event.map.tiles[index_plano].sprite_id;
-                        tile_local.walkable = event.map.tiles[index_plano].walkable;
-
-                        index_plano++;
-                    }
-                }
-            }
+        if (event.type == TypeEventClient::UPDATE_WORLD && !event.world.players.empty()) {
+            std::cout << "Posicion x: " << event.world.players[0].pos_x << std::endl;
+            std::cout << "Posicion y: " << event.world.players[0].pos_y << std::endl;
+            player_state.pos_x = event.world.players[0].pos_x * TILE_SIZE;
+            player_state.pos_y = event.world.players[0].pos_y * TILE_SIZE;
+            player_state.dir = event.world.players[0].direction;
         }
     }
 }
@@ -166,7 +149,7 @@ void Client::launch() {
         receiver.start();
         while (is_running) {
             if (!receiver.is_alive() || !sender.is_alive()) {
-                break;  // En caso de que alguno de los hilos falle, salir del loop
+                break;
             }
             const uint32_t frame_start = SDL_GetTicks();
             update_state_from_server();

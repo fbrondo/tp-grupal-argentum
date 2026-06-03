@@ -41,7 +41,7 @@ private:
 public:
     explicit ClientProtocol(Socket& s);
 
-    // Mandar comandos al Servidor
+    // Game commands
     void sendLogin(const std::string& name, const std::string& pass) const;
     void sendMove(uint8_t direction) const;
     void sendAttack(uint32_t target_id) const;
@@ -55,9 +55,15 @@ public:
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendDisconnect() const;
 
-    // Recibir actualizaciones del Servidor
-    // Lee del socket para actualizar la interfaz grafica
-    bool receiveMessage(EventClient& out_evento) const;
+    // Pre-game operations (signup, character)
+    void sendSignup(const std::string& user, const std::string& password) const;
+    void sendCharacterCreate(const std::string& name, uint8_t race, uint8_t clase) const;
+
+    // Game loop receiver
+    bool receiveMessage(EventClient& out_event) const;
+
+    // Synchronous pre-game receiver
+    bool recvResponse(uint8_t expected_opcode, std::string& out_message) const;
 };
 
 #pragma pack(pop)
