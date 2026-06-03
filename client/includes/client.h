@@ -8,9 +8,9 @@
 #include <SDL2pp/SDLImage.hh>
 
 #include "commands/command_client.h"
+#include "common/includes/direction.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
-#include "common/includes/direction.h"
 
 #include "client_protocol.h"
 #include "client_receiver.h"
@@ -33,8 +33,6 @@ static constexpr int BODY_W = 19;
 static constexpr int BODY_H = 37;
 static constexpr int HEAD_W = 13;
 static constexpr int HEAD_H = 14;
-
-//enum Direction : uint8_t { DOWN, UP, LEFT, RIGHT };
 
 struct PlayerPosition {
     uint32_t pos_x;

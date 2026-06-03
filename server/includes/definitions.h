@@ -1,16 +1,18 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-#include <memory>
-#include <vector>
-#include <tuple>
-#include <map>
 #include <filesystem>
+#include <map>
+#include <memory>
+#include <string>
+#include <tuple>
+#include <vector>
+
 #include "common/includes/queue.h"
 #include "common/includes/types.h"
 #include "server/includes/commands/command.h"
-#include "server/includes/responses/response.h"
 #include "server/includes/core/snapshot.h"
+#include "server/includes/responses/response.h"
 
 /*Cola de comandos*/
 using QueueCmd = Queue<std::unique_ptr<Command>>;
@@ -22,6 +24,6 @@ using QueueResp = Queue<std::unique_ptr<Response>>;
 /*Lo que retornan los distintos commands */
 using RegisterInfo = std::tuple<Id, std::string, std::string, TypeRace, TypeClase>;
 using MoveInfo = std::tuple<Id, Direction>;
-// using MapMatriz =  std::vector<std::vector<Tiles>>;
+// using MapMatriz =  std::vector<std::vector<Tile>>;
 
 #endif

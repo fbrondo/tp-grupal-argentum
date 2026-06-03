@@ -1,7 +1,7 @@
-#include <iostream>
 #include <cerrno>
 #include <iostream>
 #include <stdexcept>
+
 #include "server/includes/server.h"
 
 #define ARGC 2

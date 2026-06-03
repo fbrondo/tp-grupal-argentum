@@ -9,6 +9,7 @@ target_sources(taller_server
         src/commands/command_drop_item.cpp
         src/commands/command_interact.cpp
         src/commands/command_login.cpp
+        src/commands/command_signup.cpp
         src/commands/command_move.cpp
         src/commands/command_use_item.cpp
         src/commands/command_sell_item.cpp
@@ -21,6 +22,7 @@ target_sources(taller_server
         src/npc/priest.cpp
 
         src/responses/response_login.cpp
+        src/responses/response_signup.cpp
         src/responses/response_snapshot.cpp
         
         src/acceptor.cpp
@@ -54,6 +56,7 @@ target_sources(taller_server
         includes/commands/command_drop_item.h
         includes/commands/command_interact.h
         includes/commands/command_login.h
+        includes/commands/command_signup.h
         includes/commands/command_move.h
         includes/commands/command_use_item.h
         includes/commands/command_sell_item.h
@@ -79,6 +82,7 @@ target_sources(taller_server
 
         includes/responses/response.h
         includes/responses/response_login.h
+        includes/responses/response_signup.h
         includes/responses/response_snapshot.h
 
         includes/acceptor.h

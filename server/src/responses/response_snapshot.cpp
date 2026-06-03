@@ -2,6 +2,4 @@
 
 ResponseSnapshot::ResponseSnapshot(Snapshot&& snp): snap(std::move(snp)) {}
 
-void ResponseSnapshot::execute(ServerProtocol& protocol) {
-    protocol.sendSnapshot(this->snap);
-};
+void ResponseSnapshot::execute(ServerProtocol& protocol) { protocol.sendSnapshot(this->snap); }

@@ -1,15 +1,16 @@
 #ifndef MONITORQUEUES_H
 #define MONITORQUEUES_H
 
+#include <memory>
 #include <mutex>
-#include <memory>
 #include <unordered_map>
-#include <memory>
+
 #include "common/includes/queue.h"
 #include "common/includes/types.h"
+#include "core/snapshot.h"
 #include "responses/response.h"
 #include "server/includes/responses/response_snapshot.h"
-#include "core/snapshot.h"
+
 #include "definitions.h"
 
 

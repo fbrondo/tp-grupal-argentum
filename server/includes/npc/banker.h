@@ -11,7 +11,7 @@
 #include "../core/item.h"
 #include "../core/map.h"
 #include "common/includes/types.h"
-//#include "../commands/command.h"
+// #include "../commands/command.h"
 #include "../player.h"
 
 #include "citynpc.h"
@@ -37,7 +37,7 @@ private:
 public:
     Banker(TypeNPC type, std::string&& name, Position&& pos);
     ~Banker() = default;
-    //void interact(const Id& id_player, World& word, Comand& cmd) override;
+    // void interact(const Id& id_player, World& word, Comand& cmd) override;
 };
 
 #endif

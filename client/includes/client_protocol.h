@@ -1,8 +1,9 @@
 #pragma once
 #include <string>
+#include <vector>
 
-#include "common/includes/protocol.h"
-#include "common/includes/socket.h"
+#include "./common/includes/protocol.h"
+#include "./common/includes/socket.h"
 #include "server/includes/server_protocol.h"
 
 enum class TypeEventClient {
@@ -12,7 +13,14 @@ enum class TypeEventClient {
     CHAT_MSG,
     ERROR_ACTION,
     LOGIN_RESPONSE,
-    MAP_CHANGE
+    MAP_CHANGE,
+    MAP_DATA
+};
+
+struct MapData {
+    int width{0};
+    int height{0};
+    std::vector<Tile> tiles;
 };
 
 struct EventClient {
@@ -21,7 +29,9 @@ struct EventClient {
     MsgPlayerStats stats;
     std::string text_payload;  // Se usa para mensajes de chat, errores o el "OK"/"ERROR" del login
     uint16_t map_id;           // Se usa para CAMBIO_MAPA
+    MapData map;               // Se usa para MAP_DATA
 };
+
 #pragma pack(push, 1)
 
 class ClientProtocol {
@@ -31,9 +41,8 @@ private:
 public:
     explicit ClientProtocol(Socket& s);
 
-    // Mandar comandos al Servidor
+    // Game commands
     void sendLogin(const std::string& name, const std::string& pass) const;
-    void sendRegister(const std::string& name, const std::string& password, const uint8_t race, const uint8_t clase) const;
     void sendMove(uint8_t direction) const;
     void sendAttack(uint32_t target_id) const;
     void sendChat(const std::string& msg) const;
@@ -46,9 +55,15 @@ public:
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendDisconnect() const;
 
-    // Recibir actualizaciones del Servidor
-    // Lee del socket para actualizar la interfaz grafica
-    bool receiveMessage(EventClient& out_evento) const;
+    // Pre-game operations (signup, character)
+    void sendSignup(const std::string& user, const std::string& password) const;
+    void sendCharacterCreate(const std::string& name, uint8_t race, uint8_t clase) const;
+
+    // Game loop receiver
+    bool receiveMessage(EventClient& out_event) const;
+
+    // Synchronous pre-game receiver
+    bool recvResponse(uint8_t expected_opcode, std::string& out_message) const;
 };
 
 #pragma pack(pop)

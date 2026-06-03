@@ -1,5 +1,7 @@
 #include "../includes/equipment.h"
 
+#include <algorithm>
+
 #include "common/includes/types.h"
 
 #define MAX_EQUIPMENT_SIZE 4
@@ -50,11 +52,11 @@ void Equipment::equipItem(std::unique_ptr<ItemInstace> item_inst) {
 }
 
 std::unique_ptr<ItemInstace> Equipment::removeItem(Id id_inst_item) {
-    for (auto& itemIns: this->equipment_container) {
-        if (itemIns && itemIns->id == id_inst_item) {
-            return std::move(itemIns);
-        }
-    }
+    auto it = std::find_if(
+            equipment_container.begin(), equipment_container.end(),
+            [id_inst_item](const auto& item) { return item && item->id == id_inst_item; });
+    if (it != equipment_container.end())
+        return std::move(*it);
     return nullptr;
 }
 

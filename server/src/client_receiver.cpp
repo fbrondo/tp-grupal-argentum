@@ -1,9 +1,11 @@
 #include "server/includes/client_receiver.h"
 
 #include <memory>
+
 #include "common/includes/queue.h"
 
-ClientReceiver::ClientReceiver(const Id& player_id, ServerProtocol& protocol, QueueCmd& commands_queue, QueueResp& outgoing_queue):
+ClientReceiver::ClientReceiver(const Id& player_id, ServerProtocol& protocol,
+                               QueueCmd& commands_queue, QueueResp& outgoing_queue):
         player_id(player_id),
         protocol(protocol),
         commands_queue(commands_queue),
@@ -18,7 +20,8 @@ void ClientReceiver::run() {
             }
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error en ClientReceiver (" << this->player_id << "): " << e.what() << std::endl;
+        std::cerr << "Error en ClientReceiver (" << this->player_id << "): " << e.what()
+                  << std::endl;
     } catch (...) {}
     /*Avisamos al GameLoop que este jugador ya no está para que limpie el modelo*/
     try {

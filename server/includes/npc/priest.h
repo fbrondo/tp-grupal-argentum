@@ -9,9 +9,8 @@
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
 #include "server/includes/npc/citynpc.h"
-//#include "command.h"
+// #include "command.h"
 #include "server/includes/player.h"
-
 
 
 class Comand;
@@ -29,9 +28,10 @@ private:
     std::map<TypeItem, std::unique_ptr<Item>> store;
 
 public:
-    Priest(TypeNPC type, std::string&& name, Position&& pos, std::map<TypeItem, std::unique_ptr<Item>>&& store_);
+    Priest(TypeNPC type, std::string&& name, Position&& pos,
+           std::map<TypeItem, std::unique_ptr<Item>>&& store_);
     ~Priest() = default;
-    //void interact(const Id& id_player, World& word, Comand& cmd) override;
+    // void interact(const Id& id_player, World& word, Comand& cmd) override;
 };
 
 #endif

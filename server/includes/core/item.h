@@ -8,10 +8,10 @@
 
 /*VER SI ESTO PUEDE IR EN OTRO LADO*/
 enum BodyPart : uint8_t {
-    HEAD = 1,  /*Cabeza - casco, capucha, sombrero*/
-    BACK,  /*Dorso - armadura, tunica*/
-    HAND,  /*Mano* - escudo, arma, objeto */
-    MOUTH, /*Boca - posiciones*/
+    HEAD = 1, /*Cabeza - casco, capucha, sombrero*/
+    BACK,     /*Dorso - armadura, tunica*/
+    HAND,     /*Mano* - escudo, arma, objeto */
+    MOUTH,    /*Boca - posiciones*/
 };
 
 /*Un Item es equipable y almacenable en un inventario/tienda */
@@ -24,7 +24,8 @@ struct Item {
     uint16_t selling_price;
     uint16_t purchase_price;
 
-    Item(TypeItem type, BodyPart body, ItemClassification classif_, std::string&& name, uint16_t sell_price, uint16_t purch_price):
+    Item(TypeItem type, BodyPart body, ItemClassification classif_, std::string&& name,
+         uint16_t sell_price, uint16_t purch_price):
             type(type),
             body_part_use(body),
             classif(classif_),
@@ -45,8 +46,8 @@ struct Defense: Item {
     uint16_t minimal_defense;
     uint16_t maximun_defense;
 
-    Defense(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price,
-            uint16_t min_def, uint16_t max_def):
+    Defense(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
+            uint16_t sell_price, uint16_t purch_price, uint16_t min_def, uint16_t max_def):
             Item(type, body, classif, std::move(name), sell_price, purch_price),
             minimal_defense(min_def),
             maximun_defense(max_def) {}
@@ -61,8 +62,8 @@ struct Weapon: Item {
     uint16_t minimal_damage;
     uint16_t maximun_damage;
 
-    Weapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price,
-           uint16_t min_dam, uint16_t max_dam):
+    Weapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
+           uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam):
             Item(type, body, classif, std::move(name), sell_price, purch_price),
             minimal_damage(min_dam),
             maximun_damage(max_dam) {}
@@ -75,8 +76,9 @@ struct Weapon: Item {
 struct RangedWeapon: Weapon {
     uint16_t rangedAttack;
 
-    RangedWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price,
-                 uint16_t min_dam, uint16_t max_dam, uint16_t range):
+    RangedWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
+                 uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam,
+                 uint16_t range):
             Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam),
             rangedAttack(range) {}
 };
@@ -88,7 +90,8 @@ struct ObjectMagic: Item {
     uint16_t mana_cost;
     uint16_t range;
 
-    ObjectMagic(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price, uint16_t m_cost, uint16_t range):
+    ObjectMagic(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
+                uint16_t sell_price, uint16_t purch_price, uint16_t m_cost, uint16_t range):
             Item(type, body, classif, std::move(name), sell_price, purch_price),
             mana_cost(m_cost),
             range(range) {}
@@ -101,8 +104,9 @@ struct MagicWeapon: Weapon {
     uint16_t mana_cost;
     uint16_t range;
 
-    MagicWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name, uint16_t sell_price, uint16_t purch_price,
-                uint16_t min_dam, uint16_t max_dam, uint16_t m_cost, uint16_t range):
+    MagicWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
+                uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam,
+                uint16_t m_cost, uint16_t range):
             Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam),
             mana_cost(m_cost),
             range(range) {}

@@ -2,7 +2,7 @@
 #define CITYNPC_H
 
 #include "common/includes/types.h"
-//#include "../commands/command.h"
+// #include "../commands/command.h"
 
 #include <string>
 #include <utility>
@@ -24,7 +24,7 @@ public:
     CityNPC(TypeNPC type, std::string&& name, Position&& pos):
             NPC(type, std::move(name), std::move(pos)) {}
     virtual ~CityNPC() = default;
-    //virtual void interact(const Id& id_player, World& word, Comand& cmd) = 0;
+    // virtual void interact(const Id& id_player, World& word, Comand& cmd) = 0;
 };
 
 #endif

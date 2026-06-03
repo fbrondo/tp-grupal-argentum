@@ -1,4 +1,5 @@
 #include "common/includes/map/map_serializer.h"
+
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -43,7 +44,7 @@ static Region regionFromString(const std::string& region_str) {
 }
 
 Map MapSerializer::load(const std::filesystem::path& filepath) {
-    std::cout << "--- Serializando Map: "<< filepath <<" ---" << std::endl;
+    std::cout << "--- Serializando Map: " << filepath << " ---" << std::endl;
     TomlConfig cfg(filepath);
 
     std::string name = cfg.get_or<std::string>("metadata.name", "");
@@ -72,7 +73,7 @@ Map MapSerializer::load(const std::filesystem::path& filepath) {
             tiles[j].region = (j < regions.size()) ? regionFromString(regions[j]) : Region::Field;
         }
     }
-    std::cout << "--- Termino serializacion Map: "<< filepath <<" ---" << std::endl;
+    std::cout << "--- Termino serializacion Map: " << filepath << " ---" << std::endl;
     return map;
 }
 

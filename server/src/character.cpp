@@ -1,8 +1,10 @@
 #include "../includes/character.h"
 
 Character::Character(const Race& ch_race, const Clase& ch_clase): race(ch_race), clase(ch_clase) {
-    this->stats.intelligense = this->clase.statistics.intelligense + this->race.statistics.intelligense;
-    this->stats.constitution = this->clase.statistics.constitution + this->race.statistics.constitution;
+    this->stats.intelligense =
+            this->clase.statistics.intelligense + this->race.statistics.intelligense;
+    this->stats.constitution =
+            this->clase.statistics.constitution + this->race.statistics.constitution;
     this->stats.strength = this->clase.statistics.strength + this->race.statistics.strength;
     this->stats.agility = this->clase.statistics.agility + this->race.statistics.agility;
 }

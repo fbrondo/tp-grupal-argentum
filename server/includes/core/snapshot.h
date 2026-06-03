@@ -1,6 +1,6 @@
 #ifndef SNAPSHOT_H
 #define SNAPSHOT_H
-//#pragma once
+// #pragma once
 
 #include <cstdint>
 #include <string>
@@ -19,13 +19,13 @@ struct PlayerSnapshotData {
     uint16_t hp;
     uint16_t max_hp;
     uint16_t mana;
-    uint16_t max_mana; 
+    uint16_t max_mana;
 
     uint8_t body_id;
     uint8_t head_id;
     uint8_t weapon_id;
     uint8_t shield_id;
-    
+
     uint8_t raza;
     uint8_t clase;
     uint8_t flags;  // Estados especiales (por ej: bit 0 = invisible, bit 1 = meditando, etc.)
@@ -56,7 +56,7 @@ struct VisualEffect {
 #pragma pack(pop)
 
 struct Snapshot {
-    //uint32_t turn_number;  // Turno actual
+    // uint32_t turn_number;  // Turno actual
 
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;

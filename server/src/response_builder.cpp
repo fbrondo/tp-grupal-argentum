@@ -1,6 +1,7 @@
 #include "server/includes/response_builder.h"
+
 #include "server/includes/core/instances.h"
-Snapshot ResponseBuilder:: buildSnapshot(const std::map<Id,Player>& players, World& world) {
+Snapshot ResponseBuilder::buildSnapshot(const std::map<Id, Player>& players, World& world) {
     Snapshot snap;
     for (auto& [id, player]: players) {
         const PlayerInstance& inst = world.playerInformationInTheWorld(id);
@@ -14,4 +15,4 @@ Snapshot ResponseBuilder:: buildSnapshot(const std::map<Id,Player>& players, Wor
     return snap;
 }
 
-ResponseBuilder::~ResponseBuilder()= default;
+ResponseBuilder::~ResponseBuilder() = default;

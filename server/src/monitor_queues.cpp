@@ -12,7 +12,8 @@ QueueResp& MonitorQueues::addQueuePlayer(const Id& player_id) {
     this->queues_players.emplace(player_id, std::move(new_queue));
     return queues_players.at(player_id);
 }
-void MonitorQueues::queueTheServerResponse(const Id& player_id, std::unique_ptr<Response>&& response_server) {
+void MonitorQueues::queueTheServerResponse(const Id& player_id,
+                                           std::unique_ptr<Response>&& response_server) {
     this->queues_players[player_id].try_push(std::move(response_server));
 }
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "server/includes/commands/command.h"
 #include "../world.h"
+#include "server/includes/commands/command.h"
 
 class AttackCommand: public Command {
 private:

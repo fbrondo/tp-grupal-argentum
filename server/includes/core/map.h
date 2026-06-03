@@ -1,7 +1,7 @@
 #ifndef MAP_H
 #define MAP_H
-//#include "common/includes/map/map.h"
-//#include "common/includes/map/map_serializer.h"
+// #include "common/includes/map/map.h"
+// #include "common/includes/map/map_serializer.h"
 #include "common/includes/types.h"
 
 struct Position {
@@ -9,20 +9,16 @@ struct Position {
     uint32_t y;
 
     /*Operador de igualdad*/
-    bool operator==(const Position& other) const {
-        return (x == other.x && y == other.y);
-    }
+    bool operator==(const Position& other) const { return (x == other.x && y == other.y); }
 
     /*Operadot de desigualdad*/
-    bool operator!=(const Position& other) const{
-        return !(*this == other);
-    }
+    bool operator!=(const Position& other) const { return !(*this == other); }
 
     bool operator<(const Position& other) const {
         return x < other.x || (x == other.x && y < other.y);
     }
 
-    Position() = default;
+    Position(): x(0), y(0) {}
     Position(uint32_t x_, uint32_t y_): x(x_), y(y_) {}
 
     Position(Position&&) = default;

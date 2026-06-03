@@ -1,13 +1,13 @@
 #ifndef CLIENTHANDLER_H
 #define CLIENTHANDLER_H
-//#pragma once
+// #pragma once
 
 #include <memory>
 #include <string>
 
-#include "common/includes/types.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
+#include "common/includes/types.h"
 
 #include "client_receiver.h"
 #include "client_sender.h"

@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 
-#include "client/includes/commands/command_client.h"
 #include "client/includes/client_protocol.h"
+#include "client/includes/commands/command_client.h"
 #include "common/includes/thread.h"
 
 class ClientSender: public Thread {

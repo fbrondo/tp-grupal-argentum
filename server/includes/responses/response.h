@@ -7,7 +7,7 @@ class Response {
 public:
     Response(/* args */) = default;
     virtual ~Response() = default;
-    /*Cada comando va a definir su propio execute*/ 
+    /*Cada comando va a definir su propio execute*/
     virtual void execute(ServerProtocol& protocol) = 0;
 };
 

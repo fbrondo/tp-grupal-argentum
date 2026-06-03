@@ -5,13 +5,14 @@
 #include <map>
 #include <memory>
 #include <string>
-#include "common/includes/types.h"
+
 #include "common/includes/direction.h"
-#include "server/includes/core/instances.h"
-#include "server/includes/core/map.h"
-#include "server/includes/core/inventory.h"
-#include "server/includes/core/config.h"
+#include "common/includes/types.h"
 #include "server/includes/character.h"
+#include "server/includes/core/config.h"
+#include "server/includes/core/instances.h"
+#include "server/includes/core/inventory.h"
+#include "server/includes/core/map.h"
 #include "server/includes/equipment.h"
 #include "server/includes/game_formulas.h"
 
@@ -38,7 +39,7 @@ private:
 public:
     Player(const Player& other) = delete;
     Player& operator=(const Player& other) = delete;
-    
+
     Player(Player&&) = default;
     Player& operator=(Player&&) = delete;
 
@@ -48,8 +49,8 @@ public:
     Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init);
 
     bool isAlive();
-    //const Position& getCurrentPosition() const;
-    //void updatePosition(Position&& new_pos);
+    // const Position& getCurrentPosition() const;
+    // void updatePosition(Position&& new_pos);
 
     /*tirar item*/
     /*equipar item*/

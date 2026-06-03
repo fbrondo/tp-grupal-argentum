@@ -17,7 +17,7 @@ struct FileData {
     Path players; /*datos de los usuarios*/
     Path indx_players;
     Path world; /*Donde guardo el estado del mundo*/
-    Path map; /*Donde esta guardado el map que me envia el editor*/
+    Path map;   /*Donde esta guardado el map que me envia el editor*/
 };
 struct PlayerStateInitConfig {
     uint8_t level;
@@ -43,8 +43,8 @@ struct GameConfig {
     ClanConfig clan;
     TimesConfig times;
 
-    GameConfig(PlayerStateInitConfig p_init, ClanConfig clan, TimesConfig times):
-    player_init(p_init), clan(clan), times(times) {}
+    GameConfig(PlayerStateInitConfig p_init, ClanConfig clan, const TimesConfig& times):
+            player_init(p_init), clan(clan), times(times) {}
 };
 
 #endif

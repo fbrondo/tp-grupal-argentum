@@ -1,7 +1,9 @@
 #include "client/includes/commands/command_create_character.h"
 
-CreateCharacterCommandClient::CreateCharacterCommandClient() {}
+CreateCharacterCommandClient::CreateCharacterCommandClient(std::string name, uint8_t race,
+                                                           uint8_t clase):
+        name(std::move(name)), race(race), clase(clase) {}
 
 void CreateCharacterCommandClient::execute(ClientProtocol& protocol) const {
-    protocol.sendRegister(username, password, race, clase);
+    protocol.sendCharacterCreate(name, race, clase);
 }

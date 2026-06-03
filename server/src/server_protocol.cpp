@@ -1,8 +1,11 @@
 #include "../includes/server_protocol.h"
 
 #include <cstring>
+
 #include <arpa/inet.h>
+
 #include "common/includes/direction.h"
+#include "common/includes/map/layer.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
@@ -10,13 +13,11 @@
 ServerProtocol::ServerProtocol(Socket& s): socket(s) {}
 
 void ServerProtocol::sendSnapshot(const Snapshot& state) const {
-    const size_t size_total = sizeof(uint8_t)     // Opcode
-                              + sizeof(uint16_t)  // Cantidad de jugadores
-                              + (state.players.size() * sizeof(PlayerSnapshotData)) +
-                              sizeof(uint16_t)  // Cantidad de NPCs
-                              + (state.npcs.size() * sizeof(NpcSnapshotData)) +
-                              sizeof(uint16_t)  // Cantidad de Items
-                              + (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData));
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t) +
+                              (state.players.size() * sizeof(PlayerSnapshotData)) +
+                              sizeof(uint16_t) + (state.npcs.size() * sizeof(NpcSnapshotData)) +
+                              sizeof(uint16_t) +
+                              (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData));
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -25,9 +26,6 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
 
-    /*Jugadores*/
-    //const auto p_size = static_cast<uint16_t>(state.players.size());
-    //const uint16_t p_count_net = htons(p_size);
     const uint16_t p_count_net = htons(static_cast<uint16_t>(state.players.size()));
     std::memcpy(buffer.data() + offset, &p_count_net, sizeof(p_count_net));
     offset += sizeof(p_count_net);
@@ -41,14 +39,10 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         p.body_id = htons(p.body_id);
         p.head_id = htons(p.head_id);
         p.weapon_id = htons(p.weapon_id);
-
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));
         offset += sizeof(PlayerSnapshotData);
     }
 
-    /** NPCs */
-    //const auto n_size = static_cast<uint16_t>(state.npcs.size());
-    //const uint16_t n_count_net = htons(n_size);
     const uint16_t n_count_net = htons(static_cast<uint16_t>(state.npcs.size()));
     std::memcpy(buffer.data() + offset, &n_count_net, sizeof(n_count_net));
     offset += sizeof(n_count_net);
@@ -56,16 +50,13 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
     for (auto n: state.npcs) {
         n.id = htonl(n.id);
         n.pos_x = htonl(n.pos_x);
-        n.pos_y = htonl(n.pos_y);  
+        n.pos_y = htonl(n.pos_y);
         n.type_id = htons(n.type_id);
         n.hp_actual = htons(n.hp_actual);
         std::memcpy(buffer.data() + offset, &n, sizeof(NpcSnapshotData));
         offset += sizeof(NpcSnapshotData);
     }
 
-    /*Items en el piso*/
-    // const auto i_size = static_cast<uint16_t>(state.items_on_floor.size());
-    // const uint16_t i_count_net = htons(i_size);
     const uint16_t i_count_net = htons(static_cast<uint16_t>(state.items_on_floor.size()));
     std::memcpy(buffer.data() + offset, &i_count_net, sizeof(i_count_net));
     offset += sizeof(i_count_net);
@@ -74,7 +65,6 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         i.item_id = htons(i.item_id);
         i.pos_x = htonl(i.pos_x);
         i.pos_y = htonl(i.pos_y);
-
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));
         offset += sizeof(ItemGroundSnapshotData);
     }
@@ -82,48 +72,42 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
     try {
         socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en sendSnapshot -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendSnapshot -- ") + e.what());
     }
 }
 
 void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
-    MsgPlayerStats temp_stats = stats;
-    temp_stats.hp = htonl(stats.hp);
-    temp_stats.mana = htonl(stats.mana);
-    temp_stats.gold = htonl(stats.gold);
-    temp_stats.exp = htonl(stats.exp);
-    temp_stats.level = stats.level;
+    MsgPlayerStats temp = stats;
+    temp.hp = htonl(stats.hp);
+    temp.mana = htonl(stats.mana);
+    temp.gold = htonl(stats.gold);
+    temp.exp = htonl(stats.exp);
+    temp.level = stats.level;
     try {
-        socket.sendall(&temp_stats, sizeof(MsgPlayerStats));
+        socket.sendall(&temp, sizeof(MsgPlayerStats));
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en sendPlayerStats -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendPlayerStats -- ") + e.what());
     }
 }
 
 void ServerProtocol::sendInventoryUpdate(const MsgInventoryUpdate& inv) const {
-    MsgInventoryUpdate temp_inv = inv;
-    temp_inv.item_id = htons(inv.item_id);
-    temp_inv.quantity = htons(inv.quantity);
+    MsgInventoryUpdate temp = inv;
+    temp.item_id = htons(inv.item_id);
+    temp.quantity = htons(inv.quantity);
     try {
-        socket.sendall(&temp_inv, sizeof(MsgInventoryUpdate));
+        socket.sendall(&temp, sizeof(MsgInventoryUpdate));
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en sendInventoryUpdate -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendInventoryUpdate -- ") + e.what());
     }
 }
 
-void ServerProtocol::sendLoginResponse(const bool success, const std::string& message) const {
-    const size_t total_size = sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t) + message.size();
+void ServerProtocol::sendSimpleResponse(uint8_t opcode, bool success,
+                                        const std::string& msg) const {
+    const size_t total_size = sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t) + msg.size();
 
     std::vector<char> buffer(total_size);
     size_t offset = 0;
 
-    constexpr uint8_t opcode = LOGIN_RESPONSE;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
 
@@ -131,26 +115,34 @@ void ServerProtocol::sendLoginResponse(const bool success, const std::string& me
     std::memcpy(buffer.data() + offset, &res, sizeof(res));
     offset += sizeof(res);
 
-    const uint16_t len = htons(static_cast<uint16_t>(message.size()));
+    const uint16_t len = htons(static_cast<uint16_t>(msg.size()));
     std::memcpy(buffer.data() + offset, &len, sizeof(len));
     offset += sizeof(len);
 
-    if (!message.empty()) {
-        std::memcpy(buffer.data() + offset, message.data(), message.size());
-    }
+    if (!msg.empty())
+        std::memcpy(buffer.data() + offset, msg.data(), msg.size());
 
     try {
-        this->socket.sendall(buffer.data(), buffer.size());
+        socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en sendLoginResponse -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendSimpleResponse -- ") + e.what());
     }
+}
+
+void ServerProtocol::sendLoginResponse(bool success, const std::string& msg) const {
+    sendSimpleResponse(LOGIN_RESPONSE, success, msg);
+}
+
+void ServerProtocol::sendSignupResponse(bool success, const std::string& msg) const {
+    sendSimpleResponse(SIGNUP_RESPONSE, success, msg);
+}
+
+void ServerProtocol::sendCharacterCreateResponse(bool success, const std::string& msg) const {
+    sendSimpleResponse(CHARACTER_CREATE_RESPONSE, success, msg);
 }
 
 void ServerProtocol::sendChangeMap(const uint16_t map_id) const {
     constexpr size_t total_size = sizeof(uint8_t) + sizeof(uint16_t);
-
     std::vector<char> buffer(total_size);
     size_t offset = 0;
 
@@ -164,15 +156,12 @@ void ServerProtocol::sendChangeMap(const uint16_t map_id) const {
     try {
         socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en sendChangeMap -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendChangeMap -- ") + e.what());
     }
 }
 
 void ServerProtocol::sendChatMsg(const std::string& message) const {
     const size_t total_size = sizeof(uint8_t) + sizeof(uint16_t) + message.size();
-
     std::vector<char> buffer(total_size);
     size_t offset = 0;
 
@@ -184,22 +173,18 @@ void ServerProtocol::sendChatMsg(const std::string& message) const {
     std::memcpy(buffer.data() + offset, &len, sizeof(len));
     offset += sizeof(len);
 
-    if (!message.empty()) {
+    if (!message.empty())
         std::memcpy(buffer.data() + offset, message.data(), message.size());
-    }
 
     try {
         socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en sendChatMsg -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendChatMsg -- ") + e.what());
     }
 }
 
 void ServerProtocol::sendActionError(const std::string& error_msg) const {
     const size_t total_size = sizeof(uint8_t) + sizeof(uint16_t) + error_msg.size();
-
     std::vector<char> buffer(total_size);
     size_t offset = 0;
 
@@ -211,20 +196,58 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
     std::memcpy(buffer.data() + offset, &len, sizeof(len));
     offset += sizeof(len);
 
-    if (!error_msg.empty()) {
+    if (!error_msg.empty())
         std::memcpy(buffer.data() + offset, error_msg.data(), error_msg.size());
-    }
 
     try {
         socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en sendActionError -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN sendActionError -- ") + e.what());
     }
 }
 
-// Asumo que tendremos una estructura Command y Action_type para agregar eventos a la queue
+void ServerProtocol::sendMap(const Map& map) {
+    const size_t total_tiles = map.width() * map.height() * layer_count;
+    const size_t size_total =
+            sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + (total_tiles * 5);
+
+    std::vector<char> buffer(size_total);
+    size_t offset = 0;
+
+    constexpr uint8_t opcode = MAP_DATA;
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
+
+    uint32_t w_net = htonl(static_cast<uint32_t>(map.width()));
+    std::memcpy(buffer.data() + offset, &w_net, sizeof(w_net));
+    offset += sizeof(w_net);
+
+    uint32_t h_net = htonl(static_cast<uint32_t>(map.height()));
+    std::memcpy(buffer.data() + offset, &h_net, sizeof(h_net));
+    offset += sizeof(h_net);
+
+    std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details, Layer::Object,
+                                             Layer::Roof};
+    for (Layer layer: layers) {
+        for (int y = 0; y < map.height(); ++y) {
+            for (int x = 0; x < map.width(); ++x) {
+                const Tile& tile = map.tile_at(x, y, layer);
+                int32_t sprite_id_net = htonl(tile.sprite_id);
+                std::memcpy(buffer.data() + offset, &sprite_id_net, sizeof(sprite_id_net));
+                offset += sizeof(sprite_id_net);
+                uint8_t walkable_byte = tile.walkable ? 1 : 0;
+                std::memcpy(buffer.data() + offset, &walkable_byte, sizeof(walkable_byte));
+                offset += sizeof(walkable_byte);
+            }
+        }
+    }
+    try {
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendMap -- ") + e.what());
+    }
+}
+
 bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0)
@@ -237,48 +260,40 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             this->socket.recvall(login.pass, sizeof(login.pass));
             login.name[sizeof(login.name) - 1] = '\0';
             login.pass[sizeof(login.pass) - 1] = '\0';
-            auto cmd = std::make_unique<LoginCommand>(static_cast<Id>(player_id), std::string(login.name), std::string(login.pass));
-            queue.push(std::move(cmd));
+            queue.push(std::make_unique<LoginCommand>(
+                    static_cast<Id>(player_id), std::string(login.name), std::string(login.pass)));
             break;
-        } 
-        case CREATE_CHARACTER: {
-            MsgLogin login; 
-            socket.recvall(login.name, sizeof(login.name));
-            socket.recvall(login.pass, sizeof(login.pass));
-            login.name[sizeof(login.name) - 1] = '\0';
-            login.pass[sizeof(login.pass) - 1] = '\0';
-
-            uint8_t race_byte;
-            uint8_t clase_byte;
-            socket.recvall(&race_byte, sizeof(uint8_t));
-            socket.recvall(&clase_byte, sizeof(uint8_t));
-
-            TypeRace race = static_cast<TypeRace>(race_byte);
-            TypeClase clase = static_cast<TypeClase>(clase_byte);
-            auto cmd = std::make_unique<CreateCharacterCommand>(
-                player_id, 
-                std::move(std::string(login.name)),
-                std::move(std::string(login.pass)), 
-                race, 
-                clase
-            );
-            
-            queue.push(std::move(cmd));
+        }
+        case SIGNUP: {
+            MsgSignup signup;
+            socket.recvall(signup.user, sizeof(signup.user));
+            socket.recvall(signup.password, sizeof(signup.password));
+            signup.user[sizeof(signup.user) - 1] = '\0';
+            signup.password[sizeof(signup.password) - 1] = '\0';
+            queue.push(std::make_unique<SignupCommand>(player_id, std::string(signup.user),
+                                                       std::string(signup.password)));
+            break;
+        }
+        case CHARACTER_CREATE: {
+            MsgCharacterCreate msg;
+            socket.recvall(msg.name, sizeof(msg.name));
+            socket.recvall(&msg.race, sizeof(msg.race));
+            socket.recvall(&msg.clase, sizeof(msg.clase));
+            msg.name[sizeof(msg.name) - 1] = '\0';
+            queue.push(std::make_unique<CreateCharacterCommand>(
+                    player_id, std::string(msg.name), std::string(""),
+                    static_cast<TypeRace>(msg.race), static_cast<TypeClase>(msg.clase)));
             break;
         }
         case MOVE: {
             uint8_t dir;
             this->socket.recvall(&dir, 1);
-            auto cmd = std::make_unique<MoveCommand>(player_id, dir);
-            queue.push(std::move(cmd));
-            //queue.push(std::make_unique<MoveCommand>(player_id, static_cast<Direction>(dir)));
+            queue.push(std::make_unique<MoveCommand>(player_id, dir));
             break;
         }
         case ATTACK: {
             uint32_t target_id;
             socket.recvall(&target_id, 4);
-            //auto cmd = std::make_unique<AttackCommand>(player_id, ntohl(target_id));
-            //queue.push(std::move(cmd));
             queue.push(std::make_unique<AttackCommand>(player_id, ntohl(target_id)));
             break;
         }
@@ -289,38 +304,28 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             len = ntohs(len);
             std::string texto(len, '\0');
             socket.recvall(texto.data(), len);
-            auto cmd = std::make_unique<ChatCommand>(player_id, std::move(texto));
-            queue.push(std::move(cmd));
-            //queue.push(std::make_unique<ChatCommand>(player_id, std::move(texto)));
+            queue.push(std::make_unique<ChatCommand>(player_id, std::move(texto)));
             break;
         }
         case USE_ITEM:
         case DROP_ITEM: {
             uint8_t slot;
             socket.recvall(&slot, 1);
-            std::unique_ptr<Command> cmd;
-            if (opcode == ClientOpcode::USE_ITEM) {
-                cmd = std::make_unique<UseItemCommand>(player_id, slot);
-                //queue.push(std::make_unique<UseItemCommand>(player_id, slot));
+            if (opcode == USE_ITEM) {
+                queue.push(std::make_unique<UseItemCommand>(player_id, slot));
             } else {
-                cmd = std::make_unique<DropItemCommand>(player_id, slot);
-                //queue.push(std::make_unique<DropItemCommand>(player_id, slot));
+                queue.push(std::make_unique<DropItemCommand>(player_id, slot));
             }
-            queue.push(std::move(cmd));
             break;
         }
         case INTERACT: {
             uint32_t npc_id;
             socket.recvall(&npc_id, 4);
-            auto cmd = std::make_unique<InteractCommand>(player_id, ntohl(npc_id));
-            queue.push(std::move(cmd));
-            //queue.push(std::make_unique<InteractCommand>(player_id, ntohl(npc_id)));
+            queue.push(std::make_unique<InteractCommand>(player_id, ntohl(npc_id)));
             break;
         }
         case TAKE_ITEM: {
-            auto cmd = std::make_unique<TakeItemCommand>(player_id);
-            queue.push(std::move(cmd));
-            //queue.push(std::make_unique<TakeItemCommand>(player_id));
+            queue.push(std::make_unique<TakeItemCommand>(player_id));
             break;
         }
         case BUY_ITEM:
@@ -328,31 +333,21 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             uint32_t npc_id;
             uint16_t item_id;
             uint16_t quantity;
-
             socket.recvall(&npc_id, 4);
             socket.recvall(&item_id, 2);
             socket.recvall(&quantity, 2);
-
             npc_id = ntohl(npc_id);
             item_id = ntohs(item_id);
             quantity = ntohs(quantity);
-            std::unique_ptr<Command> cmd;
             if (opcode == BUY_ITEM) {
-                cmd = std::make_unique<BuyItemCommand>(player_id, npc_id, item_id, quantity);
-                //queue.push(std::make_unique<BuyItemCommand>(player_id, npc_id, item_id, quantity));
+                queue.push(std::make_unique<BuyItemCommand>(player_id, npc_id, item_id, quantity));
             } else {
-                cmd = std::make_unique<SellItemCommand>(player_id, npc_id, item_id, quantity);
-                //queue.push(std::make_unique<SellItemCommand>(player_id, npc_id, item_id, quantity));
+                queue.push(std::make_unique<SellItemCommand>(player_id, npc_id, item_id, quantity));
             }
-            queue.push(std::move(cmd));
             break;
         }
         case DISCONNECT: {
-            auto cmd = std::make_unique<DisconnectCommand>(player_id);
-            queue.push(std::move(cmd));
-            //queue.push(std::make_unique<DisconnectCommand>(player_id));
-
-            // Devolvemos false para que el cliente deje de recibir
+            queue.push(std::make_unique<DisconnectCommand>(player_id));
             return false;
         }
         default:
@@ -365,9 +360,7 @@ void ServerProtocol::shutdown_peer() {
     try {
         socket.shutdown(1);
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en shutdown_peer -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN shutdown_peer -- ") + e.what());
     }
 }
 
@@ -375,8 +368,6 @@ void ServerProtocol::close_peer() const {
     try {
         socket.close();
     } catch (const std::exception& e) {
-        std::string mssgErr = "Error en close_peer -- ";
-        mssgErr += e.what();
-        throw std::runtime_error(mssgErr);
+        throw std::runtime_error(std::string("ERROR IN close_peer -- ") + e.what());
     }
 }

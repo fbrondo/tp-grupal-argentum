@@ -24,15 +24,15 @@ void Acceptor::run() {
 
     try {
         while (should_keep_running()) {
-            std::cout << "Entro en acceptor..." << std::endl;
+
             Socket peer = listen.accept();
-            std::cout << "Acepto el socket..." << std::endl;
+
             Id player_id = this->next_id++;
-            auto client = std::make_unique<ClientHandler>(player_id, std::move(peer), this->queue_cmd, this->monitor);
-            std::cout << "id: " << std::to_string(player_id)<< std::endl;
-            std::cout << "Antes de start..." << std::endl;
+            auto client = std::make_unique<ClientHandler>(player_id, std::move(peer),
+                                                          this->queue_cmd, this->monitor);
+
             client->start();
-            std::cout << "Luego de start..." << std::endl;
+
             this->reap();
             players.push_back(std::move(client));
         }

@@ -1,7 +1,12 @@
 #include "server/includes/client_handler.h"
 
-ClientHandler::ClientHandler(Id id_, Socket&& socket, QueueCmd& cmd_q, MonitorQueues& monitor):
-        player_id(id_),
+
+// Incluimos las nuevas abstracciones de este TP
+// #include "command.h"
+
+ClientHandler::ClientHandler(Id player_id, Socket&& socket, QueueCmd& cmd_q,
+                             MonitorQueues& monitor):
+        player_id(player_id),
         joinable(true),
         socket(std::move(socket)),
         protocol(this->socket),

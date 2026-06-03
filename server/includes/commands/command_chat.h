@@ -2,8 +2,9 @@
 
 #include <string>
 
-#include "command.h"
 #include "../world.h"
+
+#include "command.h"
 
 class ChatCommand: public Command {
 private:

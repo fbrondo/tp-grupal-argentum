@@ -2,9 +2,10 @@
 
 #include <memory>
 #include <utility>
+
 #include "server/includes/responses/response.h"
 
-ClientSender::ClientSender(ServerProtocol& protocol,  QueueResp& outgoing_queue):
+ClientSender::ClientSender(ServerProtocol& protocol, QueueResp& outgoing_queue):
         protocol(protocol), outgoing_queue(outgoing_queue) {}
 
 void ClientSender::run() {
@@ -21,5 +22,4 @@ void ClientSender::run() {
     } catch (const std::exception& e) {
         std::cerr << "Error en ClientSender: " << e.what() << std::endl;
     } catch (...) {}
-
 }

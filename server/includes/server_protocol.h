@@ -3,26 +3,28 @@
 #include <string>
 #include <vector>
 
-#include "definitions.h"
-#include "common/includes/types.h"
 #include "commands/command.h"
 #include "commands/command_attack.h"
 #include "commands/command_buy_item.h"
 #include "commands/command_chat.h"
+#include "commands/command_create_character.h"
 #include "commands/command_disconnect.h"
 #include "commands/command_drop_item.h"
 #include "commands/command_interact.h"
 #include "commands/command_login.h"
 #include "commands/command_move.h"
 #include "commands/command_sell_item.h"
+#include "commands/command_signup.h"
 #include "commands/command_take_item.h"
 #include "commands/command_use_item.h"
-#include "commands/command_create_character.h"
+#include "common/includes/map/map.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
-
+#include "common/includes/types.h"
 #include "core/snapshot.h"
+
+#include "definitions.h"
 
 #pragma pack(push, 1)
 
@@ -30,20 +32,26 @@ class ServerProtocol {
 private:
     Socket& socket;
 
+    void sendSimpleResponse(uint8_t opcode, bool success, const std::string& msg) const;
+
 public:
     explicit ServerProtocol(Socket& s);
 
-    // Mandar datos al Cliente
+    // Send data to client
     void sendSnapshot(const Snapshot& state) const;
     void sendPlayerStats(const MsgPlayerStats& stats) const;
     void sendInventoryUpdate(const MsgInventoryUpdate& inv) const;
     void sendChatMsg(const std::string& msg) const;
-    void sendLoginResponse(const bool success, const std::string& error_msg = "") const;
+    void sendLoginResponse(bool success, const std::string& msg = "") const;
+    void sendSignupResponse(bool success, const std::string& msg = "") const;
+    void sendCharacterCreateResponse(bool success, const std::string& msg = "") const;
     void sendChangeMap(uint16_t map_id) const;
     void sendActionError(const std::string& error_msg) const;
+    void sendMap(const Map& map);
 
-    /*Recibir un comando del Cliente. Devuelve false si el clientese desconecto */ 
-    bool readCommand(Id player_id, QueueCmd& queue); 
+    // Returns false when the client disconnects
+    bool readCommand(Id player_id, QueueCmd& queue);
+
     void shutdown_peer();
     void close_peer() const;
 };

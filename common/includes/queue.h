@@ -44,8 +44,8 @@ public:
     // ==========================================
     // AGREGA ESTO EN LA SECCIÓN PÚBLICA:
     // ==========================================
-    Queue(Queue&& other) noexcept : max_size(other.max_size) {
-        std::unique_lock<std::mutex> lock(other.mtx); // Bloqueamos la otra cola por seguridad
+    Queue(Queue&& other) noexcept: max_size(other.max_size) {
+        std::unique_lock<std::mutex> lock(other.mtx);  // Bloqueamos la otra cola por seguridad
         q = std::move(other.q);
         closed = other.closed;
         // Nota: Los mutex y condition_variables no se mueven, se quedan nuevos en 'this'

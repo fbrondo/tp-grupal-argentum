@@ -8,15 +8,17 @@ target_sources(taller_client
         src/client_receiver.cpp
         src/commands/command_move.cpp
         src/commands/command_create_character.cpp
-        src/texture_manager.cpp
+        src/menu_handler.cpp
+        src/command_processor.cpp
     PUBLIC
     # .h files
         includes/client_protocol.h
+        includes/menu_handler.h
+        includes/command_processor.h
         includes/client.h
         includes/client_sender.h
         includes/client_receiver.h
         includes/commands/command_client.h
         includes/commands/command_move.h
         includes/commands/command_create_character.h
-        includes/texture_manager.h
     )

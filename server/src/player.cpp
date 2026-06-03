@@ -1,18 +1,20 @@
 #include "server/includes/player.h"
-#include "server/includes/game_formulas.h"
+
 #include "common/includes/core/Statistics.h"
+#include "server/includes/game_formulas.h"
 
 #define STATE_DEAD 0
 
-Player::Player(Inventory&& inv_, const Race& race, const Clase& clase, uint8_t level):
-inv(std::move(inv_)), ch(race, clase) {
+Player::Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t level):
+        inv(std::move(inv_)), ch(ch_race, ch_clase) {
     const Statistics statics = ch.getStatistics();
     this->hp = this->hpMax(statics.constitution);
     this->mana = this->manaMax(statics.intelligense);
     this->level = level;
 }
 
-Player::Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init): ch(race,clase) {
+Player::Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init):
+        ch(race, clase) {
     this->level = state_init.level;
     this->inv = Inventory(state_init.golden_init, state_init.max_inventory);
 }
@@ -28,9 +30,9 @@ uint16_t Player::manaMax(const uint16_t& intelligense) {
     return this->form.calculationMaximunHp(intelligense, mana_f_race, mana_f_clase, this->level);
 }
 
-//const Position& Player::getCurrentPosition() const { return this->pos; }
+// const Position& Player::getCurrentPosition() const { return this->pos; }
 
-///void Player::updatePosition(Position&& new_pos) { this->pos = std::move(new_pos); }
+/// void Player::updatePosition(Position&& new_pos) { this->pos = std::move(new_pos); }
 
 bool Player::isAlive() { return this->hp == STATE_DEAD; }
 

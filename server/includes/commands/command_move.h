@@ -1,9 +1,10 @@
 #pragma once
 
-#include "command.h"
-#include "../world.h"
 #include "../definitions.h"
+#include "../world.h"
 #include "common/includes/direction.h"
+
+#include "command.h"
 
 
 class MoveCommand: public Command {

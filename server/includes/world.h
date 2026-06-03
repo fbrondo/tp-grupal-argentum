@@ -8,15 +8,17 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "common/includes/map/tile.h"
+
+#include "common/includes/direction.h"
 #include "common/includes/map/map.h"
 #include "common/includes/map/map_serializer.h"
-#include "common/includes/direction.h"
+#include "common/includes/map/tile.h"
 #include "common/includes/types.h"
+#include "core/instances.h"
 #include "core/item.h"
 #include "core/map.h"
 #include "npc/npc.h"
-#include "core/instances.h"
+
 #include "player.h"
 
 
@@ -33,15 +35,23 @@
 // Saber las pocisiones de los jugadores
 // Cuando toque guardar
 // Saber que zonas son seguras
-//class Map;
+// class Map;
 
 struct StateWorld {
-  
+
     /*Lista de npc*/
     /*Lista de items en el piso*/
-
 };
 
+struct Zone {
+    Id zone_id;
+    Region region;
+    uint32_t tile_count{0};
+    std::vector<Position> tiles;  // posiciones de todos los tiles de la zona
+};
+
+using MatrizBool = std::vector<std::vector<bool>>;
+using MatrizMap = std::vector<std::vector<Tile>>;
 
 class World {
 private:
@@ -49,23 +59,30 @@ private:
     const uint32_t limit_height;
     const uint32_t limit_width;
 
-    std::vector<std::vector<Tile>> map_tiles;  // matriz
+    std::vector<Zone> zones;                // todas las zonas identificadas
+    std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
+
+    MatrizMap map_tiles;  // matriz
     std::map<Id, PlayerInstance> players_positions;
     std::map<Id, NpcInstance> npcs_positions;
     std::map<Id, ItemInstace> items_on_flor;
     std::map<Region, uint32_t> region_count;
 
     void buildTilesWorld();
+    void identifyZones();
+    void floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone);
     Position calculatePosition(const Id& player_id, const Direction dir);
-    
+
     bool isOccupied(const Position& pos);
     bool isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir);
 
 public:
     World(const World& other) = delete;
     World& operator=(const World& other) = delete;
-    World(const std::filesystem::path& path);
-   
+
+    // World() = default;
+    explicit World(const std::filesystem::path& path);
+
     ~World() = default;
 
     /*Consultas para validar*/

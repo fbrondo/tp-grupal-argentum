@@ -2,7 +2,6 @@
 
 #include <SDL2/SDL_image.h>
 
-#include "client/includes/commands/command_create_character.h"
 #include "client/includes/commands/command_move.h"
 
 Client::Client(const char* host, const char* port):
@@ -77,9 +76,6 @@ void Client::handle_events() {
             }
 
             if (is_move) {
-                // El comando viaja por la queue al ClientSender,
-                // que llama a protocol.sendMove(). El estado local
-                // solo se actualiza cuando llega el snapshot del servidor.
                 auto cmd = std::make_unique<MoveCommandClient>(dir);
                 cmd_queue.push(std::move(cmd));
             }
@@ -151,11 +147,9 @@ void Client::launch() {
         init_SDL();
         sender.start();
         receiver.start();
-        auto create = std::make_unique<CreateCharacterCommandClient>();
-        cmd_queue.push(std::move(create));
         while (is_running) {
             if (!receiver.is_alive() || !sender.is_alive()) {
-                break;  // En caso de que alguno de los hilos falle, salir del loop
+                break;
             }
             const uint32_t frame_start = SDL_GetTicks();
             update_state_from_server();

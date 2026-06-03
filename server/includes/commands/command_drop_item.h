@@ -1,7 +1,8 @@
 #pragma once
 
-#include "command.h"
 #include "../world.h"
+
+#include "command.h"
 
 class DropItemCommand: public Command {
 private:
