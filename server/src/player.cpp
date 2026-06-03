@@ -43,10 +43,19 @@ PlayerData Player::getPlayerData() {
     PlayerData data{};
     std::strncpy(data.username, user.username.c_str(), MAX_DATA);
     std::strncpy(data.password, user.password.c_str(), MAX_DATA);
-    data.x = position.x;
-    data.y = position.y;
+
+    /*Pose del jugador - Posicion y direccion de mirada*/
+    data.x = pose.position.x;
+    data.y = pose.position.y;
+    data.direction = pose.direct;
+    
+    /*PERSONAJE*/
     data.race = static_cast<uint8_t>(this->ch.getTypeRace());
     data.clase = static_cast<uint8_t>(this->ch.getTypeClase());
+    data.head = static_cast<uint8_t>(this->ch.getTypeHead());
+    data.body = static_cast<uint8_t>(this->ch.getTypeBody());
+
+    /*Atributos actuales*/
     data.level = this->level;
     data.hp = this->hp;
     data.mana = this->mana;

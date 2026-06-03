@@ -23,6 +23,9 @@ public:
     TypeRace getTypeRace() const;
     TypeClase getTypeClase() const;
 
+    const uint8_t& getTypeHead() const;
+    const uint8_t& getTypeBody() const;
+
     const uint16_t& getHpFactorRace();
     const uint16_t& getHpFactorClase();
 

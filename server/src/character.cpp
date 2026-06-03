@@ -18,6 +18,12 @@ const Statistics& Character::getStatistics() const { return this->stats; }
 TypeRace Character::getTypeRace() const { return this->race.type; }
 TypeClase Character::getTypeClase() const { return this->clase.type; }
 
+const uint8_t& Character::getTypeHead() const {
+        return this->head;
+}
+const uint8_t& Character::getTypeBody() const {
+        return this->body;
+}
 
 const uint16_t& Character::getHpFactorRace() { return this->race.hp_factor; }
 const uint16_t& Character::getHpFactorClase() { return this->clase.hp_factor; }
