@@ -11,7 +11,7 @@ ClientSender::ClientSender(ServerProtocol& protocol, QueueResp& outgoing_queue):
 void ClientSender::run() {
     try {
         while (should_keep_running()) {
-            std::unique_ptr<Response> response_server;
+            std::shared_ptr<Response> response_server;
             try {
                 response_server = this->outgoing_queue.pop();
             } catch (const ClosedQueue&) {

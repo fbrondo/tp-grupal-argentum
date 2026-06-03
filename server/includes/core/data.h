@@ -4,14 +4,13 @@
 #include <string>
 
 constexpr size_t MAX_DATA = 30;
+constexpr size_t MAX_INVENTORY = 50;
 constexpr size_t MAX_EQUIPMENT = 4;
 
 #pragma pack(push, 1)
 struct ItemInstanceData {
-    uint32_t instance_id;
+    uint32_t id;
     uint16_t type_item;
-    uint8_t classification;
-    uint8_t body_part;
 };
 #pragma pack(pop)
 #pragma pack(push, 1)
@@ -31,10 +30,12 @@ struct PlayerData {
 
     /* inventario*/
     uint32_t golden;
-    uint32_t number_of_items;
+    uint32_t number_of_items_inv;
+    ItemInstanceData inventory[MAX_INVENTORY];
 
     /*Equipo*/
-    uint32_t number_of_items_equiment;
+    uint32_t number_of_items_equip;
+    ItemInstanceData equipment[MAX_EQUIPMENT];
 };
 #pragma pack(pop)
 

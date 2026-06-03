@@ -14,62 +14,63 @@
 Equipment::Equipment(/* args */):
         equipment_container(MAX_EQUIPMENT_SIZE) /*4 slots todos vacios*/ {}
 
-void Equipment::equipHandItem(std::unique_ptr<ItemInstace> item_inst) {
-    this->equipment_container[INDEX_HAND] = std::move(item_inst);
+void Equipment::equipHandItem(ItemInstace* item_inst) {
+    this->equipment_container[INDEX_HAND] = item_inst;
 }
 
-void Equipment::equipItemDefensive(std::unique_ptr<ItemInstace> item_inst) {
+void Equipment::equipItemDefensive(ItemInstace* item_inst) {
 
     switch (item_inst->body_part_use) {
         case HEAD:
-            this->equipment_container[INDEX_HEAD] = std::move(item_inst);
+            this->equipment_container[INDEX_HEAD] = item_inst;
             break;
         case BACK:
-            this->equipment_container[INDEX_BACK] = std::move(item_inst);
+            this->equipment_container[INDEX_BACK] = item_inst;
             break;
         case HAND:
-            this->equipment_container[INDEX_SHIELD] = std::move(item_inst);
+            this->equipment_container[INDEX_SHIELD] = item_inst;
             break;
         default:
             break;
     }
 }
 
-void Equipment::equipItem(std::unique_ptr<ItemInstace> item_inst) {
+void Equipment::equipItem(ItemInstace* item_inst) {
     switch (item_inst->classification) {
         case ITEM_DEFENSIVE:
-            this->equipItemDefensive(std::move(item_inst));
+            this->equipItemDefensive(item_inst);
             break;
         case ITEM_ATTACK: /*arma de combate a mano o a distancia*/
-            this->equipHandItem(std::move(item_inst));
+            this->equipHandItem(item_inst);
             break;
         case ITEM_HEALING: /*objeto magico*/
-            this->equipHandItem(std::move(item_inst));
+            this->equipHandItem(item_inst);
             break;
         default:
             break;
     }
 }
 
-std::unique_ptr<ItemInstace> Equipment::removeItem(Id id_inst_item) {
-    auto it = std::find_if(
-            equipment_container.begin(), equipment_container.end(),
-            [id_inst_item](const auto& item) { return item && item->id == id_inst_item; });
-    if (it != equipment_container.end())
-        return std::move(*it);
-    return nullptr;
+void Equipment::removeItem(Id id_inst_item) {
+    for (size_t i = INDEX_HEAD; i <= INDEX_SHIELD; i++) {
+        if (this->equipment_container[i] && id_inst_item == this->equipment_container[i]->id) {
+            this->equipment_container[INDEX_HAND] = nullptr;
+        }
+    }
 }
 
 TypeItem Equipment::getHandItem() { return this->equipment_container[INDEX_HAND]->type; }
 
-std::vector<const ItemInstace*> Equipment::getEquipmentDefensive() {
-    std::vector<const ItemInstace*> equipment_def;
+std::vector<std::tuple<Id, TypeItem>> Equipment::getEquipment() {
+    std::vector<std::tuple<Id, TypeItem>> equipment;
     for (size_t i = INDEX_HEAD; i <= INDEX_SHIELD; i++) {
         if (this->equipment_container[i]) {
-            equipment_def.push_back(this->equipment_container[i].get());
+            auto id = this->equipment_container[i]->id;
+            auto type = this->equipment_container[i]->type;
+            equipment.push_back(std::make_tuple(id, type));
         }
     }
-    return equipment_def;
+    return equipment;
 }
 
 Equipment::~Equipment() = default;

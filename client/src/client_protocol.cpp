@@ -167,10 +167,11 @@ void ClientProtocol::sendDisconnect() const {
     }
 }
 
-void ClientProtocol::sendSignup(const std::string& user, const std::string& password) const {
+void ClientProtocol::sendSignup(const std::string& user, const std::string& password, const CharacterTraits& traits) const {
     MsgSignup msg{};
     std::strncpy(msg.user, user.c_str(), sizeof(msg.user) - 1);
     std::strncpy(msg.password, password.c_str(), sizeof(msg.password) - 1);
+    msg.traits = traits;
     try {
         socket.sendall(&msg, sizeof(MsgSignup));
     } catch (const std::exception& e) {

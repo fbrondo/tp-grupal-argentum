@@ -1,7 +1,8 @@
 #pragma once
-
 #include <cstdint>
 #include <vector>
+
+#include "common//includes/core/character_traits.h"
 
 constexpr size_t MAX_NAME_SIZE = 30;
 
@@ -92,13 +93,14 @@ struct MsgSignup {
     uint8_t opcode = SIGNUP;
     char user[MAX_NAME_SIZE];
     char password[MAX_NAME_SIZE];
+    CharacterTraits traits;
 };
 
-struct MsgCharacterCreate {
-    uint8_t opcode = CHARACTER_CREATE;
-    char name[MAX_NAME_SIZE];
-    uint8_t race;
-    uint8_t clase;
-};
+// struct MsgCharacterCreate {
+//     uint8_t opcode = CHARACTER_CREATE;
+//     char name[MAX_NAME_SIZE];
+//     uint8_t race;
+//     uint8_t clase;
+// };
 
 #pragma pack(pop)

@@ -1,5 +1,6 @@
 #include "server/includes/persistence_manager.h"
 
+
 PersistenceManager::PersistenceManager(const FileData& paths) {
     // std::filesystem::create_directories(path);
     std::filesystem::path data_players = paths.players;
@@ -19,7 +20,7 @@ bool PersistenceManager::exists(const std::string& username) const {
 }
 
 void PersistenceManager::saveIndexEntry(const std::string& name, std::streampos offset) {
-    /*player.idx puede estar harcodeado?*/
+    /*player.idx puede estar harcodeado?-> nop*/
     std::ofstream idxFile("players.idx", std::ios::binary | std::ios::app);
     uint8_t name_length = static_cast<uint8_t>(name.size());
     idxFile.write(reinterpret_cast<const char*>(&name_length), sizeof(name_length));

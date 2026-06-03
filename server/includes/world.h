@@ -93,7 +93,7 @@ public:
     void spawnPlayer(const Id& player_id);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
-    const PlayerInstance& playerInformationInTheWorld(const Id& player_id);
+    const Position& playerInformationInTheWorld(const Id& player_id);
 };
 
 #endif

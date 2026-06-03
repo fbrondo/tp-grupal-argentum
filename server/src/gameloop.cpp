@@ -67,7 +67,7 @@ void Gameloop::handleLogin(LoginCommand* cmd) {
 
 void Gameloop::executeBroacastSnapshot() {
     Snapshot snap = this->resp.buildSnapshot(this->players, this->world_game);
-    std::unique_ptr<ResponseSnapshot> resp_snap =
+    std::shared_ptr<ResponseSnapshot> resp_snap =
             std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
 }

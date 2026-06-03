@@ -1,20 +1,26 @@
 #include "server/includes/player.h"
 
+#include <cstring>
+#include <sstream>
+#include <vector>
+
 #include "common/includes/core/Statistics.h"
 #include "server/includes/game_formulas.h"
 
 #define STATE_DEAD 0
 
-Player::Player(Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t level):
-        inv(std::move(inv_)), ch(ch_race, ch_clase) {
-    const Statistics statics = ch.getStatistics();
-    this->hp = this->hpMax(statics.constitution);
-    this->mana = this->manaMax(statics.intelligense);
-    this->level = level;
-}
+// Player::Player(const Position& pos, Inventory&& inv_, const Race& ch_race, const Clase& ch_clase,
+// uint8_t level): position(pos), inv(std::move(inv_)), ch(ch_race, ch_clase) {
+//     const Statistics statics = ch.getStatistics();
+//     this->hp = this->hpMax(statics.constitution);
+//     this->mana = this->manaMax(statics.intelligense);
+//     this->level = level;
+// }
 
-Player::Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init):
-        ch(race, clase) {
+/**/
+Player::Player(User&& user_, const Position& pos, const Race& race, const Clase& clase,
+               const PlayerStateInitConfig& state_init):
+        user(std::move(user_)), position(pos), ch(race, clase) {
     this->level = state_init.level;
     this->inv = Inventory(state_init.golden_init, state_init.max_inventory);
 }
@@ -30,9 +36,38 @@ uint16_t Player::manaMax(const uint16_t& intelligense) {
     return this->form.calculationMaximunHp(intelligense, mana_f_race, mana_f_clase, this->level);
 }
 
-// const Position& Player::getCurrentPosition() const { return this->pos; }
 
-/// void Player::updatePosition(Position&& new_pos) { this->pos = std::move(new_pos); }
+PlayerData Player::getPlayerData() {
+    PlayerData data{};
+    std::strncpy(data.username, user.username.c_str(), MAX_DATA);
+    std::strncpy(data.password, user.password.c_str(), MAX_DATA);
+    data.x = position.x;
+    data.y = position.y;
+    data.race = static_cast<uint8_t>(this->ch.getTypeRace());
+    data.clase = static_cast<uint8_t>(this->ch.getTypeClase());
+    data.level = this->level;
+    data.hp = this->hp;
+    data.mana = this->mana;
+
+    /*INVENTARIO*/
+    data.golden = this->inv.golden;
+    data.number_of_items_inv = static_cast<uint32_t>(this->inv.inventory.size());
+    size_t i = 0;
+    for (const auto& [id_instance, item]: this->inv.inventory) {
+        data.inventory[i].id = id_instance;  // inventario[i].idInstance;
+        data.inventory[i].type_item = static_cast<uint8_t>(item->type);
+        i += 1;
+    }
+    /*EQUIPO*/
+    std::vector<std::tuple<Id, TypeItem>> equip = this->equipment.getEquipment();
+    data.number_of_items_equip = static_cast<uint32_t>(equip.size());
+    for (size_t j = 0; j < equip.size(); j++) {
+        auto [id, type] = equip[j];
+        data.equipment[i].id = id;
+        data.equipment[i].type_item = static_cast<uint8_t>(type);
+    }
+    return data;
+}
 
 bool Player::isAlive() { return this->hp == STATE_DEAD; }
 

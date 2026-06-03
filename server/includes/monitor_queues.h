@@ -3,16 +3,13 @@
 
 #include <memory>
 #include <mutex>
-#include <unordered_map>
 
 #include "common/includes/queue.h"
 #include "common/includes/types.h"
-#include "core/snapshot.h"
 #include "responses/response.h"
 #include "server/includes/responses/response_snapshot.h"
 
 #include "definitions.h"
-
 
 class MonitorQueues {
 
@@ -28,8 +25,8 @@ public:
     QueueResp& addQueuePlayer(const Id& player_id);
 
     /*Se guarda la respuesta espeficia para un solo player en su correspondiente cola*/
-    void queueTheServerResponse(const Id& player_id, std::unique_ptr<Response>&& response_server);
-    void executeBroadcast(std::unique_ptr<ResponseSnapshot>&& response_snapshot);
+    void queueTheServerResponse(const Id& player_id, std::shared_ptr<Response>&& response_server);
+    void executeBroadcast(std::shared_ptr<ResponseSnapshot>&& response_snapshot);
     void removeQueuesPlayer(const Id& player_id);
 };
 

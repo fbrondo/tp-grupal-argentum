@@ -17,6 +17,10 @@ public:
     /*statics*/
     const Statistics& getStatistics() const;
 
+    /*Como son enum no cuesta mucho, es mejor retornar una copia que una referencia?*/
+    TypeRace getTypeRace() const;
+    TypeClase getTypeClase() const;
+
     const uint16_t& getHpFactorRace();
     const uint16_t& getHpFactorClase();
 
