@@ -34,8 +34,6 @@ static constexpr int BODY_H = 37;
 static constexpr int HEAD_W = 13;
 static constexpr int HEAD_H = 14;
 
-// enum Direction : uint8_t { DOWN, UP, LEFT, RIGHT };
-
 struct PlayerPosition {
     uint32_t pos_x;
     uint32_t pos_y;

@@ -76,9 +76,6 @@ void Client::handle_events() {
             }
 
             if (is_move) {
-                // El comando viaja por la queue al ClientSender,
-                // que llama a protocol.sendMove(). El estado local
-                // solo se actualiza cuando llega el snapshot del servidor.
                 auto cmd = std::make_unique<MoveCommandClient>(dir);
                 cmd_queue.push(std::move(cmd));
             }
@@ -152,7 +149,7 @@ void Client::launch() {
         receiver.start();
         while (is_running) {
             if (!receiver.is_alive() || !sender.is_alive()) {
-                break;  // En caso de que alguno de los hilos falle, salir del loop
+                break;
             }
             const uint32_t frame_start = SDL_GetTicks();
             update_state_from_server();

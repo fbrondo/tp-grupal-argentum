@@ -6,6 +6,8 @@
 
 #include <arpa/inet.h>
 
+#include "common/includes/map/layer.h"
+
 ClientProtocol::ClientProtocol(Socket& s): socket(s) {}
 
 void ClientProtocol::sendLogin(const std::string& name, const std::string& pass) const {
@@ -308,6 +310,20 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             len = ntohs(len);
             out_event.text_payload.resize(len);
             socket.recvall(out_event.text_payload.data(), len);
+            break;
+        }
+        case MAP_DATA: {
+            uint32_t w_net, h_net;
+            socket.recvall(&w_net, 4);
+            socket.recvall(&h_net, 4);
+            const size_t total_tiles =
+                    ntohl(w_net) * ntohl(h_net) * static_cast<size_t>(layer_count);
+            for (size_t i = 0; i < total_tiles; ++i) {
+                int32_t sprite_id_net;
+                uint8_t walkable_byte;
+                socket.recvall(&sprite_id_net, 4);
+                socket.recvall(&walkable_byte, 1);
+            }
             break;
         }
         default:

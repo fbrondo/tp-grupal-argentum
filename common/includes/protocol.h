@@ -32,6 +32,7 @@ enum ServerOpcode : uint8_t {
     ACTION_ERROR = 56,
     SIGNUP_RESPONSE = 57,
     CHARACTER_CREATE_RESPONSE = 59,
+    MAP_DATA = 61,
 };
 
 #pragma pack(push, 1)
