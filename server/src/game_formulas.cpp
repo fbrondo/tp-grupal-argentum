@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+
 #define EXP 1.1
 
 uint16_t GameFormulas::calculationMaximunHp(const uint16_t& constitution,
@@ -31,9 +32,20 @@ uint16_t GameFormulas::calculationOfManaMeditation(const uint16_t& meditationFac
 }
 
 uint16_t GameFormulas::calculationDamage(const uint16_t& strength, const uint16_t& minDamage,
-                                         const uint16_t& maxDamage) {
+                                         const uint16_t& maxDamage, bool& is_critical) {
     std::uniform_int_distribution<uint16_t> dist(minDamage, maxDamage);
-    return strength * dist(this->rng);
+    uint16_t final_damage = strength * dist(this->rng);
+
+    // Golpe critico?
+    std::uniform_int_distribution<int> crit_dist(1, 100);
+    if (crit_dist(this->rng) <= 10) {
+        is_critical = true;
+        final_damage *= 2;
+    } else {
+        is_critical = false;
+    }
+
+    return final_damage; 
 }
 
 uint16_t GameFormulas::calculationPointsExpAttack(const uint16_t& damage,
@@ -58,6 +70,43 @@ uint16_t GameFormulas::calculationGoldenMax(const uint16_t& levelPlayer) {
 }
 
 uint16_t GameFormulas::calculationGoldenNpcKill(const uint16_t& lifeMaxNpc) {
-    std::uniform_int_distribution<uint16_t> dist(0, 0.2);
-    return dist(this->rng) * lifeMaxNpc;
+    std::uniform_int_distribution<uint16_t> dist(0, 20);
+    uint16_t porcentaje = dist(this->rng);
+
+    return (lifeMaxNpc * porcentaje) / 100;
 }
+
+uint16_t GameFormulas::calculationDefense(
+        const std::vector<const ItemInstance*>& equipment_def,
+        const std::map<TypeItem, std::unique_ptr<Item>>& info_items) {
+    uint16_t defensa_total = 0;
+
+    for (const ItemInstance* item_inst: equipment_def) {
+        TypeItem type = item_inst->type;
+        const Item& item_template = *(info_items.at(type));
+
+        auto defense_data = dynamic_cast<const Defense*>(&item_template);
+
+        if (defense_data) {
+            uint16_t min_def = defense_data->minimal_defense;
+            uint16_t max_def = defense_data->maximun_defense;
+
+            if (max_def > 0) {
+                std::uniform_int_distribution<uint16_t> dist(min_def, max_def);
+                defensa_total += dist(this->rng);
+            }
+        }
+    }
+
+    return defensa_total;
+}
+
+bool GameFormulas::calculationDodge() {
+    std::uniform_int_distribution<uint16_t> dist(1, 100);
+
+    uint16_t dodge_chance = 10;
+
+    return dist(this->rng) <= dodge_chance;
+}
+
+std::mt19937& GameFormulas::getRng() { return this->rng; }

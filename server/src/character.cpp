@@ -1,8 +1,8 @@
 #include "../includes/character.h"
 
 Character::Character(const Race& ch_race, const Clase& ch_clase): race(ch_race), clase(ch_clase) {
-    this->stats.intelligense =
-            this->clase.statistics.intelligense + this->race.statistics.intelligense;
+    this->stats.intelligence =
+            this->clase.statistics.intelligence + this->race.statistics.intelligence;
     this->stats.constitution =
             this->clase.statistics.constitution + this->race.statistics.constitution;
     this->stats.strength = this->clase.statistics.strength + this->race.statistics.strength;
@@ -10,6 +10,11 @@ Character::Character(const Race& ch_race, const Clase& ch_clase): race(ch_race),
 }
 
 const Statistics& Character::getStatistics() const { return this->stats; }
+
+uint16_t Character::getStrength() const { return this->stats.getStrength(); }
+ uint16_t Character::getAgility() const { return this->stats.getAgility(); }
+ uint16_t Character::getIntelligence() const { return this->stats.getIntelligence(); }
+ uint16_t Character::getConstitution() const { return this->stats.getConstitution(); }
 
 const uint16_t& Character::getHpFactorRace() { return this->race.hp_factor; }
 const uint16_t& Character::getHpFactorClase() { return this->clase.hp_factor; }

@@ -5,3 +5,7 @@ AttackCommand::AttackCommand(uint32_t id, uint32_t target_id): Command(id), targ
 void AttackCommand::execute(World& /*world*/) {
     // world.player_attack(this->client_id, this->target_id);
 }
+
+std::pair<uint32_t, uint32_t> AttackCommand::getAttackInfo() {
+    return std::make_pair(this->client_id, this->target_id);
+}

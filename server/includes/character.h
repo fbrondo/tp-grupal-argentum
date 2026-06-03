@@ -17,6 +17,11 @@ public:
     /*statics*/
     const Statistics& getStatistics() const;
 
+    uint16_t getStrength() const; 
+    uint16_t getAgility() const;
+    uint16_t getIntelligence() const;
+    uint16_t getConstitution() const;
+
     const uint16_t& getHpFactorRace();
     const uint16_t& getHpFactorClase();
 

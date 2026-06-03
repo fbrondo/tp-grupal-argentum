@@ -5,18 +5,17 @@
 #include <utility>
 
 #include "../core/map.h"
+#include "../core/entity.h"
 #include "common/includes/types.h"
 
-class NPC {
 
-protected:
-    const TypeNPC type;
-    const std::string name;
-    Position pos;
+class NPC: public Entity {
+private:
+    TypeNPC type_npc;
+    std::string name;
 
 public:
-    NPC(TypeNPC type_, std::string&& name, Position&& pos_);
-    const Position& getCurrentPosition();
+    NPC(Id id, TypeNPC type, std::string&& name, Position&& pos, GameFormulas& formulas);
     virtual ~NPC() = default;
 };
 

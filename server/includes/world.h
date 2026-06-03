@@ -65,8 +65,10 @@ private:
     MatrizMap map_tiles;  // matriz
     std::map<Id, PlayerInstance> players_positions;
     std::map<Id, NpcInstance> npcs_positions;
-    std::map<Id, ItemInstace> items_on_flor;
+    std::map<Id, ItemInstance> items_on_flor;
     std::map<Region, uint32_t> region_count;
+    Id next_item_instance_id{1};
+    const std::map<TypeItem, std::unique_ptr<Item>>& info_items;
 
     void buildTilesWorld();
     void identifyZones();
@@ -81,7 +83,7 @@ public:
     World& operator=(const World& other) = delete;
 
     // World() = default;
-    explicit World(const std::filesystem::path& path);
+    explicit World(const std::filesystem::path& path, const std::map<TypeItem, std::unique_ptr<Item>>& info_items);
 
     ~World() = default;
 
@@ -94,6 +96,9 @@ public:
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
     const PlayerInstance& playerInformationInTheWorld(const Id& player_id);
+
+    Id spawnItemOnFloor(const Position& pos, TypeItem item_type);
+    Id spawnGoldOnFloor(const Position& pos, uint16_t amount);
 };
 
 #endif

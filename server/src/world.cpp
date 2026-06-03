@@ -4,10 +4,11 @@
 
 #include "common/includes/map/layer.h"
 #include "server/print.h"
-World::World(const std::filesystem::path& path):
+World::World(const std::filesystem::path& path, const std::map<TypeItem, std::unique_ptr<Item>>& info_items) :
         map(MapSerializer::load(path)),
         limit_height(10 /*this->map.height()*/),
-        limit_width(10 /*this->map.width()*/) {
+        limit_width(10 /*this->map.width()*/),
+        info_items(info_items) {
     this->buildTilesWorld();
     this->identifyZones();
     // Print::printinitMatrizMap(this->map_tiles, this->limit_height, this->limit_width);
@@ -177,4 +178,40 @@ void World::movePlayer(const Id& player_id, Direction dir) {
 
 const PlayerInstance& World::playerInformationInTheWorld(const Id& player_id) {
     return this->players_positions[player_id];
+}
+
+Id World::spawnItemOnFloor(const Position& pos, TypeItem item_type) {
+    Id instance_id = this->next_item_instance_id++;
+
+    const Item& template_item = *(this->info_items.at(item_type));
+    
+    ItemInstance new_item_instance(
+        instance_id, 
+        item_type, 
+        template_item.getClassif(),
+        template_item.getBodyPart(),
+        pos,
+        1
+    );
+
+    this->items_on_flor.emplace(instance_id, std::move(new_item_instance));
+    return instance_id;
+}
+
+Id World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
+    if (amount == 0) return 0;
+
+    Id instance_id = this->next_item_instance_id++;
+
+    ItemInstance gold_instance(
+        instance_id, 
+        TypeItem::GOLD,                  
+        ItemClassification::ITEM_HEALING,     // O usa una clasificación genérica si tenés
+        BodyPart::NONE,                  // No se equipa
+        pos,                             
+        amount 
+    );
+
+    this->items_on_flor.emplace(instance_id, std::move(gold_instance));
+    return instance_id;
 }

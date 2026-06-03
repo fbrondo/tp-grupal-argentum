@@ -2,7 +2,12 @@
 #define GAME_FORMULAS_H
 
 #include <cstdint>
+#include <map>
+#include <memory>
 #include <random>
+#include <vector>
+
+#include "core/instances.h"
 
 class GameFormulas {
 
@@ -30,7 +35,7 @@ public:
 
     /* (6) Dano de ataque*/
     uint16_t calculationDamage(const uint16_t& strength, const uint16_t& minDamage,
-                               const uint16_t& maxlDamage);
+                               const uint16_t& maxDamage, bool& is_critical);
 
     /* (7) Puntos de experiencia por ataque*/
     uint16_t calculationPointsExpAttack(const uint16_t& damage, const uint8_t& opponentsLevel,
@@ -50,7 +55,13 @@ public:
     uint16_t calculationGoldenNpcKill(const uint16_t& lifeMaxNpc);
 
     /* (12) Puntos por defensa*/
-    // uint16_t calculationPointsDefense();
+    uint16_t calculationDefense(const std::vector<const ItemInstance*>& equipment_def,
+                                const std::map<TypeItem, std::unique_ptr<Item>>& info_items);
+
+    /* (13) Evadir un ataque*/
+    bool calculationDodge();
+
+    std::mt19937& getRng();
 };
 
 #endif

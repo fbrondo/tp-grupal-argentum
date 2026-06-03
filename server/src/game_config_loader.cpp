@@ -58,7 +58,7 @@ Statistics GameConfigLoader::loadTableStatistics(Table_array* stats_array) {
     Statistics stats;
     if (stats_array && !stats_array->empty()) {
         Table& stats_table = *(*stats_array)[0].as_table();
-        stats.intelligense = static_cast<uint16_t>(
+        stats.intelligence = static_cast<uint16_t>(
                 stats_table["intelligence"].value_or(0));  // Ojo con la "s" en tu archivo
         stats.constitution = static_cast<uint16_t>(
                 stats_table["constitution"].value_or(0));  // Ojo con la "i" intermedia

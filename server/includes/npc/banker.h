@@ -20,7 +20,7 @@ class Comand;
 class World;
 struct BanckAccount {
     uint16_t golden;
-    std::vector<std::unique_ptr<ItemInstace>> safe_box;
+    std::vector<std::unique_ptr<ItemInstance>> safe_box;
 };
 
 /*Banquero - Interaccion:
@@ -35,7 +35,7 @@ private:
     std::map<TypeItem, std::unique_ptr<Item>> store;
 
 public:
-    Banker(TypeNPC type, std::string&& name, Position&& pos);
+    Banker(Id id, TypeNPC type, std::string&& name, Position&& pos, GameFormulas& formulas);
     ~Banker() = default;
     // void interact(const Id& id_player, World& word, Comand& cmd) override;
 };

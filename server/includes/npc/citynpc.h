@@ -21,8 +21,8 @@
 */
 class CityNPC: public NPC {
 public:
-    CityNPC(TypeNPC type, std::string&& name, Position&& pos):
-            NPC(type, std::move(name), std::move(pos)) {}
+    CityNPC(Id id, TypeNPC type, std::string&& name, Position&& pos, GameFormulas& formulas) :
+        NPC(id, type, std::move(name), std::move(pos), formulas) {}
     virtual ~CityNPC() = default;
     // virtual void interact(const Id& id_player, World& word, Comand& cmd) = 0;
 };

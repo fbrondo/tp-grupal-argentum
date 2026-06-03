@@ -9,6 +9,7 @@
 #include "common/includes/direction.h"
 #include "common/includes/types.h"
 #include "server/includes/character.h"
+#include "server/includes/core/combat_entity.h"
 #include "server/includes/core/config.h"
 #include "server/includes/core/instances.h"
 #include "server/includes/core/inventory.h"
@@ -21,9 +22,8 @@ struct User {
     std::string password;
 };
 
-class Player {
+class Player: public CombatEntity {
 private:
-    uint16_t hp;
     uint16_t mana;
     uint16_t exp;
     uint8_t level;
@@ -31,7 +31,6 @@ private:
     Inventory inv;
     Equipment equipment;
     Character ch;
-    GameFormulas form;
 
     uint16_t hpMax(const uint16_t& constitution);
     uint16_t manaMax(const uint16_t& intelligense);
@@ -39,26 +38,23 @@ private:
 public:
     Player(const Player& other) = delete;
     Player& operator=(const Player& other) = delete;
-
     Player(Player&&) = default;
     Player& operator=(Player&&) = delete;
 
-    Player(Inventory&& inv_, const Race& race, const Clase& clase, uint8_t level);
+    Player(Id id, Position&& pos, Inventory&& inv_, const Race& race, const Clase& clase,
+           uint8_t level, GameFormulas& formulas);
+    Player(Id id, Position&& pos, const Race& race, const Clase& clase,
+           const PlayerStateInitConfig& state_init, GameFormulas& formulas);
 
-    /*Nuevo jugador registrado desde cero*/
-    Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init);
+    Equipment& getEquipment();
+    uint16_t calculateDamage(bool& is_critical,
+                             const std::map<TypeItem, std::unique_ptr<Item>>& info_items);
 
-    bool isAlive();
-    // const Position& getCurrentPosition() const;
-    // void updatePosition(Position&& new_pos);
+    void receiveDamage(uint16_t damage,
+                       const std::map<TypeItem, std::unique_ptr<Item>>& info_items) override;
+    void onDeath() override;  // El jugador se convierte en fantasma
 
-    /*tirar item*/
-    /*equipar item*/
-    /*recibir dano*/
-    /*usarItem*/
-
-    ~Player();
+    ~Player() override = default;
 };
-
 
 #endif
