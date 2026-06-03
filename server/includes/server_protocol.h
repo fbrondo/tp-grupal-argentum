@@ -7,7 +7,6 @@
 #include "commands/command_attack.h"
 #include "commands/command_buy_item.h"
 #include "commands/command_chat.h"
-#include "commands/command_create_character.h"
 #include "commands/command_disconnect.h"
 #include "commands/command_drop_item.h"
 #include "commands/command_interact.h"

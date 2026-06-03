@@ -40,7 +40,7 @@ private:
 
     const FileData files_data;
     const GameConfig game_conf;
-    World world_game;
+    World world;
     PersistenceManager persistence;
     /*Esto tal vez deberia pasarse por referencia*/
     ResponseBuilder resp;
@@ -56,8 +56,7 @@ private:
     // level);
     void handleSignup(SignupCommand* cmd);
     void handleLogin(LoginCommand* cmd);
-    void initNewPlayer(Id player_id, const TypeRace& race, const TypeClase& clase);
-    // void initPlayer();
+
     void executeBroacastSnapshot();
     void registerNewPlayer(CreateCharacterCommand* register_cmd);
     void executeMovePlayer(MoveCommand* move_cmd);

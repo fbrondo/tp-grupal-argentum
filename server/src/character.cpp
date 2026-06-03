@@ -1,6 +1,9 @@
 #include "../includes/character.h"
 
-Character::Character(const Race& ch_race, const Clase& ch_clase): race(ch_race), clase(ch_clase) {
+Character::Character(const Race& race, const Clase& clase, uint8_t head_, uint8_t body_):
+        race(race), clase(clase) {
+    this->head = head_;
+    this->body = body_;
     this->stats.intelligense =
             this->clase.statistics.intelligense + this->race.statistics.intelligense;
     this->stats.constitution =

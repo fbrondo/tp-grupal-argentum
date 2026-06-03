@@ -62,7 +62,6 @@ void World::floodFill(const Position pos_start, Region region, MatrizBool& visit
 
 void World::identifyZones() {
     MatrizBool visited(this->limit_width, std::vector<bool>(this->limit_height, false));
-
     for (uint32_t y = 0; y < this->limit_height; y++) {
         for (uint32_t x = 0; x < this->limit_width; x++) {
             if (visited[x][y])
@@ -81,7 +80,7 @@ void World::identifyZones() {
 }
 
 Position World::calculatePosition(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id].position;
+    const Position& pos = this->players_positions[player_id];
     Position new_pos;
     switch (dir) {
         case DOWN:
@@ -109,8 +108,8 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
 
 bool World::isOccupied(const Position& pos) {
     /*Verificamos que no haya otro jugador*/
-    for (auto& [id, player]: this->players_positions) {
-        if (player.position == pos) {
+    for (auto& [id, position]: this->players_positions) {
+        if (position == pos) {
             return true;
         }
     }
@@ -129,7 +128,7 @@ bool World::isOccupied(const Position& pos) {
 }
 /*Consultas para validar*/
 bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id].position;
+    const Position& pos = this->players_positions[player_id];
     switch (dir) {
         case DOWN:
             return (pos.y + 1 < this->limit_height);
@@ -161,10 +160,10 @@ bool World::isSafeZONE(const Position& /*pos*/) { return true; }
 
 /*El estado del mundo cambia*/
 void World::spawnPlayer(const Id& player_id) {
-    /* Un nuevo jugador - recien registrado, su posicion sera en uno de los pueblos (zona segura)*/
-    PlayerInstance player_inst(Position{4, 4}, DOWN); /*La posicion esta harcodeada para probar*/
-    this->players_positions.emplace(player_id, player_inst);
-    Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
+
+    Position position(Position{4, 4}); /*La posicion esta harcodeada para probar*/
+    this->players_positions.emplace(player_id, position);
+    // Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
 }
 
 void World::removePlayer(const Id& player_id) { this->players_positions.erase(player_id); }
@@ -175,6 +174,6 @@ void World::movePlayer(const Id& player_id, Direction dir) {
     Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
 }
 
-const PlayerInstance& World::playerInformationInTheWorld(const Id& player_id) {
+Position World::positionPlayerInTheWorld(const Id& player_id) {
     return this->players_positions[player_id];
 }

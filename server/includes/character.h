@@ -7,12 +7,14 @@
 
 class Character {
 private:
+    uint8_t head;
+    uint8_t body;
     const Race& race;
     const Clase& clase;
     Statistics stats;
 
 public:
-    Character(const Race& ch_race, const Clase& ch_clase);
+    Character(const Race& race, const Clase& clase, uint8_t head, uint8_t body);
 
     /*statics*/
     const Statistics& getStatistics() const;

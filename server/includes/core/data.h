@@ -21,6 +21,8 @@ struct PlayerData {
     int32_t x;
     int32_t y;
     // personaje
+    uint8_t head;
+    uint8_t body;
     uint8_t race;
     uint8_t clase;
     // atributos

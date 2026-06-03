@@ -276,7 +276,7 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             socket.recvall(&signup.traits.clase, sizeof(signup.traits.clase));
             signup.user[sizeof(signup.user) - 1] = '\0';
             signup.password[sizeof(signup.password) - 1] = '\0';
-            //CharacterTraits traits = signup.traits;
+            // CharacterTraits traits = signup.traits;
 
             queue.push(std::make_unique<SignupCommand>(player_id, std::string(signup.user),
                                                        std::string(signup.password),

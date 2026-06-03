@@ -18,9 +18,9 @@
 // }
 
 /**/
-Player::Player(User&& user_, const Position& pos, const Race& race, const Clase& clase,
+Player::Player(User&& user_, Pose&& pose_, Character&& ch_,
                const PlayerStateInitConfig& state_init):
-        user(std::move(user_)), position(pos), ch(race, clase) {
+        user(std::move(user_)), pose(pose_), ch(std::move(ch_)) {
     this->level = state_init.level;
     this->inv = Inventory(state_init.golden_init, state_init.max_inventory);
 }
@@ -35,7 +35,9 @@ uint16_t Player::manaMax(const uint16_t& intelligense) {
     const uint16_t& mana_f_clase = this->ch.getManaFactorClase();
     return this->form.calculationMaximunHp(intelligense, mana_f_race, mana_f_clase, this->level);
 }
-
+void Player::updatePose(Position position, Direction direct) {
+    this->pose = Pose{position, direct};
+}
 
 PlayerData Player::getPlayerData() {
     PlayerData data{};

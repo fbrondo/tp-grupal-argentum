@@ -5,7 +5,7 @@ SignupCommand::SignupCommand(Id id, const string& username, const string& pass,
         Command(id), username(username), password(pass), charact(std::move(charact)) {}
 
 SignupInfo SignupCommand::getSignupInfo() {
-    return std::make_tuple(this->client_id, this->username, this->password, this->charact);
+    return std::make_tuple(client_id, this->username, this->password, this->charact);
 }
 
-void SignupCommand::execute(World& /*world*/) {}
+void SignupCommand::execute(World& world) { world.spawnPlayer(client_id); }

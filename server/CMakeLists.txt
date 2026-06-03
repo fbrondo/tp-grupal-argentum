@@ -4,7 +4,6 @@ target_sources(taller_server
         src/commands/command_attack.cpp
         src/commands/command_buy_item.cpp
         src/commands/command_chat.cpp
-        src/commands/command_create_character.cpp
         src/commands/command_disconnect.cpp
         src/commands/command_drop_item.cpp
         src/commands/command_interact.cpp
@@ -30,7 +29,6 @@ target_sources(taller_server
         src/client_handler.cpp
         src/client_receiver.cpp
         src/client_sender.cpp
-        src/data_serializer.cpp
         src/equipment.cpp
         src/game_config_loader.cpp
         src/game_formulas.cpp
@@ -61,7 +59,6 @@ target_sources(taller_server
         includes/commands/command_use_item.h
         includes/commands/command_sell_item.h
         includes/commands/command_take_item.h
-        includes/commands/command_create_character.h
 
         includes/core/clase.h
         includes/core/config.h
@@ -90,7 +87,6 @@ target_sources(taller_server
         includes/client_handler.h
         includes/client_receiver.h
         includes/client_sender.h
-        includes/data_serializer.h
         includes/definitions.h
         includes/equipment.h
         includes/game_config_loader.h
