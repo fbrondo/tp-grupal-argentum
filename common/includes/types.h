@@ -78,20 +78,20 @@ enum TypeClase : uint8_t {
 #ifndef __ID_NPC__
 #define __ID_NPC__
 enum TypeNPC : uint8_t {
-    FIELD_GOBLIN = 1,   /*GOBLIN DE CAMPO*/
-    FOREST_GOBLIN,      /*GOBLIN DE BOSQUE*/
-    SKELETON,           /*ESQUELETO*/
-    WARRIOR_SKELETON,   /*ESQUELETO GUERRERO*/
-    ZOMBIE,             /*ZOMBIE*/
-    DUNGEON_SPIDER,     /*ARANA DE MAZMORRA*/
-    CAVE_SPIDER,        /*ARANA DE CAVERNA*/
-    FOREST_SPIDER,      /*ARANA DE BOSQUE*/
-    ORC,                /*ORCO*/
-    GOLEM,              /*GOLEM*/
-    INFERNAL_GOLEM,     /*GOLEM INFERNAL*/
-    PRIEST,             /*SACERDOTA*/
-    BANKER,             /*BANQUERO*/
-    MERCHANT            /*COMERCIANTE*/
+    FIELD_GOBLIN = 1, /*GOBLIN DE CAMPO*/
+    FOREST_GOBLIN,    /*GOBLIN DE BOSQUE*/
+    SKELETON,         /*ESQUELETO*/
+    WARRIOR_SKELETON, /*ESQUELETO GUERRERO*/
+    ZOMBIE,           /*ZOMBIE*/
+    DUNGEON_SPIDER,   /*ARANA DE MAZMORRA*/
+    CAVE_SPIDER,      /*ARANA DE CAVERNA*/
+    FOREST_SPIDER,    /*ARANA DE BOSQUE*/
+    ORC,              /*ORCO*/
+    GOLEM,            /*GOLEM*/
+    INFERNAL_GOLEM,   /*GOLEM INFERNAL*/
+    PRIEST,           /*SACERDOTA*/
+    BANKER,           /*BANQUERO*/
+    MERCHANT          /*COMERCIANTE*/
 };
 
 #endif
