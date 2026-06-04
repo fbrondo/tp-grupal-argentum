@@ -1,9 +1,9 @@
 #include "login_window.h"
 
 #include <QCoreApplication>
+#include <QProcess>
 #include <QPushButton>
 
-#include "character_window.h"
 #include "signup_window.h"
 #include "ui_login_window.h"
 
@@ -41,6 +41,14 @@ bool LoginWindow::tryLogin(const QString& host, const QString& port, const QStri
     return runClient({host, port, "--login", user, pass}, out_payload);
 }
 
+void LoginWindow::launchGame(const QString& host, const QString& port) {
+    const QString binary = QCoreApplication::applicationDirPath() + "/taller_client";
+
+    // TODO: Review this
+    QProcess::startDetached(binary, {host, port});
+    QApplication::quit();
+}
+
 void LoginWindow::onLogin() {
     const QString host = ui_->hostEdit->text().trimmed();
     const QString port = ui_->portEdit->text().trimmed();
@@ -61,7 +69,7 @@ void LoginWindow::onLogin() {
         return;
     }
 
-    openCharacterWindow(host, port, user, pass, payload);
+    launchGame(host, port);
 }
 
 void LoginWindow::onSignup() {
@@ -69,15 +77,6 @@ void LoginWindow::onSignup() {
     const QString port = ui_->portEdit->text().trimmed();
     auto* sw = new SignupWindow(host, port, this);
     sw->show();
-    hide();
-}
-
-void LoginWindow::openCharacterWindow(const QString& host, const QString& port, const QString& user,
-                                      const QString& pass, const QString& payload) {
-
-    // TOOD: Implement
-    auto* win = new CharacterWindow(host, port, user, pass, payload);
-    win->show();
     hide();
 }
 

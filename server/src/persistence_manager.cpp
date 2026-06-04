@@ -2,16 +2,13 @@
 
 
 PersistenceManager::PersistenceManager(const FileData& paths) {
-    // std::filesystem::create_directories(path);
-    std::filesystem::path data_players = paths.players;
-    std::filesystem::path data_index_player = paths.indx_players;
-    /*Permite leer, escribir, bytes puros sin interpretar, escrituta al final*/
-    this->data_file.open(data_players,
+    this->index_path = paths.indx_players;
+    this->data_file.open(paths.players,
                          std::ios::in | std::ios::out | std::ios::binary | std::ios::app);
     if (!this->data_file.is_open()) {
         throw std::runtime_error("Error al cargar datos al server");
     }
-    this->loadIndex(data_index_player);
+    this->loadIndex(this->index_path);
 }
 
 
@@ -20,8 +17,7 @@ bool PersistenceManager::exists(const std::string& username) const {
 }
 
 void PersistenceManager::saveIndexEntry(const std::string& name, std::streampos offset) {
-    /*player.idx puede estar harcodeado?-> nop*/
-    std::ofstream idxFile("players.idx", std::ios::binary | std::ios::app);
+    std::ofstream idxFile(this->index_path, std::ios::binary | std::ios::app);
     uint8_t name_length = static_cast<uint8_t>(name.size());
     idxFile.write(reinterpret_cast<const char*>(&name_length), sizeof(name_length));
     idxFile.write(name.data(), name_length);

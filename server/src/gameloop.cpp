@@ -49,23 +49,21 @@ void Gameloop::handleSignup(SignupCommand* cmd) {
     PlayerData player_data = new_player.getPlayerData();
     this->persistence.savePlayer(player_data);
     this->players.emplace(id, std::move(new_player));
-
     /*Informacion que se envia al usuario*/
-    this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true));
-    this->executeBroacastSnapshot();
+    this->monitor.queueTheServerResponse(id, std::make_unique<ResponseSignup>(true));
 }
 
 void Gameloop::handleLogin(LoginCommand* cmd) {
     auto [id, username, password] = cmd->getLoginInfo();
     if (!this->persistence.exists(username)) {
         this->monitor.queueTheServerResponse(
-                id, std::make_unique<ResponseLogin>(false, "User not found."));
+                id, std::make_unique<ResponseLogin>(false, "El usuario no existe"));
         return;
     }
     PlayerData data = this->persistence.loadPlayer(username);
     if (std::string(data.password) != password) {
         this->monitor.queueTheServerResponse(
-                id, std::make_unique<ResponseLogin>(false, "Wrong password."));
+                id, std::make_unique<ResponseLogin>(false, "La contraseña es incorrecta."));
         return;
     }
     if (data.level == 0) {

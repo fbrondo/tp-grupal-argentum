@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QApplication>
 #include <QMainWindow>
 #include <QProcess>
 #include <QString>
@@ -28,8 +29,7 @@ private:
     bool runClient(const QStringList& args, QString& out_stdout);
     bool tryLogin(const QString& host, const QString& port, const QString& user,
                   const QString& pass, QString& out_payload);
-    void openCharacterWindow(const QString& host, const QString& port, const QString& user,
-                             const QString& pass, const QString& payload);
+    void launchGame(const QString& host, const QString& port);
     void setStatus(const QString& msg);
     void setBusy(bool busy);
 

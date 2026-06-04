@@ -1,10 +1,10 @@
 #include "signup_window.h"
 
+#include <QApplication>
 #include <QCoreApplication>
 #include <QPainter>
 #include <QPushButton>
 
-#include "character_window.h"
 #include "ui_signup_window.h"
 
 static const QStringList RACES = {"Humano", "Elfo", "Enano", "Gnomo"};
@@ -152,10 +152,11 @@ void SignupWindow::onCrear() {
     setStatus("Registrando...");
 
     QString ignored;
-    if (!runClient(
-                {host_, port_, "--signup", user, pass, QString::number(race_idx_),
-                 QString::number(clase_idx_), QString::number(head_id_), QString::number(body_id_)},
-                ignored)) {
+    if (!runClient({host_, port_, "--signup", user, pass,
+                    QString::number(race_idx_ + 1),   // TypeRace starts at 1
+                    QString::number(clase_idx_ + 1),  // TypeClase starts at 1
+                    QString::number(head_id_), QString::number(body_id_)},
+                   ignored)) {
         setBusy(false);
         return;
     }
@@ -168,9 +169,9 @@ void SignupWindow::onCrear() {
         return;
     }
 
-    auto* win = new CharacterWindow(host_, port_, user, pass, payload);
-    win->show();
-    close();
+    const QString binary = QCoreApplication::applicationDirPath() + "/taller_client";
+    QProcess::startDetached(binary, {host_, port_});
+    QApplication::quit();
 }
 
 void SignupWindow::onVolver() {
