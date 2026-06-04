@@ -26,6 +26,11 @@ public:
     const uint8_t& getTypeHead() const;
     const uint8_t& getTypeBody() const;
 
+    uint16_t getStrength() const;
+    uint16_t getAgility() const;
+    uint16_t getIntelligence() const;
+    uint16_t getConstitution() const;
+
     const uint16_t& getHpFactorRace();
     const uint16_t& getHpFactorClase();
 

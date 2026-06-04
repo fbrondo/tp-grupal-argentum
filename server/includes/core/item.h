@@ -7,7 +7,7 @@
 #include "common/includes/types.h"
 
 /*VER SI ESTO PUEDE IR EN OTRO LADO*/
-enum BodyPart : uint8_t {
+enum class BodyPart : uint8_t {
     HEAD = 1, /*Cabeza - casco, capucha, sombrero*/
     BACK,     /*Dorso - armadura, tunica*/
     HAND,     /*Mano* - escudo, arma, objeto */
@@ -33,6 +33,9 @@ struct Item {
             selling_price(sell_price),
             purchase_price(purch_price) {}
 
+    virtual uint16_t getRange() const { return 1; }
+    virtual ItemClassification getClassif() const { return this->classif; }
+    virtual BodyPart getBodyPart() const { return this->body_part_use; }
     virtual ~Item() = default;
 };
 
@@ -81,6 +84,8 @@ struct RangedWeapon: Weapon {
                  uint16_t range):
             Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam),
             rangedAttack(range) {}
+
+    uint16_t getRange() const override { return this->rangedAttack; }
 };
 
 /* Con esto puedo representar un objeto magico, el mas simple:
@@ -95,6 +100,8 @@ struct ObjectMagic: Item {
             Item(type, body, classif, std::move(name), sell_price, purch_price),
             mana_cost(m_cost),
             range(range) {}
+
+    uint16_t getRange() const override { return this->range; }
 };
 /* Con esto puedo representar las armas magicas:
     - Baculo engarzado.
@@ -110,6 +117,8 @@ struct MagicWeapon: Weapon {
             Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam),
             mana_cost(m_cost),
             range(range) {}
+
+    uint16_t getRange() const override { return this->range; }
 };
 
 

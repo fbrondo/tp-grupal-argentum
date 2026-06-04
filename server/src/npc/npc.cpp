@@ -1,5 +1,6 @@
 #include "../../includes/npc/npc.h"
-NPC::NPC(TypeNPC type_, std::string&& name, Position&& pos_):
-        type(type_), name(std::move(name)), pos(std::move(pos_)) {}
 
-const Position& NPC::getCurrentPosition() { return this->pos; }
+NPC::NPC(Id id_, TypeNPC type_, std::string&& name_, Position&& pos_, GameFormulas& formulas_):
+    Entity(id_, std::move(pos_), formulas_), 
+    type_npc(type_),
+    name(std::move(name_)) {}

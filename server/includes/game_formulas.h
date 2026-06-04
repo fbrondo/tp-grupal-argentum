@@ -2,7 +2,12 @@
 #define GAME_FORMULAS_H
 
 #include <cstdint>
+#include <map>
+#include <memory>
 #include <random>
+#include <vector>
+
+#include "core/instances.h"
 
 class GameFormulas {
 

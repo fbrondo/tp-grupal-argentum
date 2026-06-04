@@ -7,15 +7,18 @@
 #include "item.h"
 #include "map.h"
 
-struct ItemInstace {
+struct ItemInstance {
     Id id;
     TypeItem type;
     ItemClassification classification; /* DEFENSIVE, ATTACK, HEALING*/
     BodyPart body_part_use;
     Position pos; /*Nota cuando este equipado seguramente tenga la misma posicion que el jugador*/
+    uint32_t amount; // cuanto oro/pociones hay en la pila
 
-    ItemInstace(const Id id_, TypeItem type, ItemClassification classif, BodyPart body_part):
-            id(id_), type(type), classification(classif), body_part_use(body_part) {}
+    ItemInstance(const Id id_, TypeItem type, ItemClassification classif, 
+                 BodyPart body_part, Position pos, uint32_t amount = 1):
+            id(id_), type(type), classification(classif), 
+            body_part_use(body_part), pos(pos), amount(amount) {}
 };
 
 struct NpcInstance {

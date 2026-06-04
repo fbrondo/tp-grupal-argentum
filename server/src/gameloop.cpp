@@ -93,6 +93,65 @@ void Gameloop::executeMovePlayer(MoveCommand* cmd) {
     }
 }
 
+void Gameloop::executeAttackPlayer(AttackCommand* cmd) {
+    auto [attacker_id, target_id] = cmd->getAttackInfo();
+
+    if (this->players.count(attacker_id) == 0)
+        return;
+    Player& attacker = this->players.at(attacker_id);
+
+    if (!attacker.isAlive())
+        return;
+
+    // FILTRO DE ARMA
+    TypeItem weapon_type = attacker.getEquipment().getHandItem();
+    if (weapon_type == TypeItem::NONE)
+        return;
+
+    // BUSCAMOS A LA VÍCTIMA
+    CombatEntity* victim = nullptr;
+
+    if (this->players.count(target_id) > 0) {
+        victim = &this->players.at(target_id);
+    } else if (this->info_NPC.count(target_id) > 0) {
+        NPC* npc_generico = this->info_NPC.at(target_id).get();
+        victim = dynamic_cast<CombatEntity*>(npc_generico);
+        if (!victim) {
+            return;
+        }
+    }
+
+    if (!victim)
+        return;
+
+    // CHEQUEO DE DISTANCIA
+    Position pos_attacker = attacker.getPosition();
+    Position pos_target = victim->getPosition();
+
+    int distance = std::abs(static_cast<int>(pos_attacker.x) - static_cast<int>(pos_target.x)) +
+                   std::abs(static_cast<int>(pos_attacker.y) - static_cast<int>(pos_target.y));
+
+    // CHEQUEO DE RANGO
+    const Item& item_template = *(this->info_items.at(weapon_type));
+    uint16_t range = item_template.getRange();
+
+    if (distance > range)
+        return;
+
+    // CALCULO DE DAÑO
+    bool is_critical = false;
+    uint16_t damage = attacker.calculateDamage(is_critical, this->info_items);
+
+    if (!is_critical && victim->dodgeAttack()) {
+        // Registrar sonido de esquivado
+        return;
+    }
+
+    victim->receiveDamage(damage, this->info_items);
+
+    this->executeBroacastSnapshot();
+}
+
 void Gameloop::execuetRequest() {
     std::unique_ptr<Command> cmd;
     while (this->commands_queue.try_pop(cmd)) {
@@ -105,6 +164,8 @@ void Gameloop::execuetRequest() {
             this->handleLogin(login_cmd);
         } else if (MoveCommand* move_cmd = dynamic_cast<MoveCommand*>(cmd.get())) {
             this->executeMovePlayer(move_cmd);
+        } else if (AttackCommand* attack_cmd = dynamic_cast<AttackCommand*>(cmd.get())) {
+            this->executeAttackPlayer(attack_cmd);
         } else {
             std::cerr << "[Gameloop] -> UnknownCommand (discarded)" << std::endl;
         }

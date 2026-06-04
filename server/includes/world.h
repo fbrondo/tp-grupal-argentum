@@ -67,6 +67,8 @@ private:
     std::map<Id, NpcInstance> npcs_positions;
     std::map<Id, ItemInstace> items_on_flor;
     std::map<Region, uint32_t> region_count;
+    Id next_item_instance_id{1};
+    const std::map<TypeItem, std::unique_ptr<Item>>& info_items;
 
     void buildTilesWorld();
     void identifyZones();

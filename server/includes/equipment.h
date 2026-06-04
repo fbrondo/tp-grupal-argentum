@@ -27,6 +27,8 @@ public:
 
     /*Vendio, solto el item o lo quito del equipo*/
     void removeItem(Id id_inst_item);
+    /*Vendio o solto el item*/
+    std::unique_ptr<ItemInstance> removeItem(Id id_inst_item);
 
     /*Necesario para calcular los puntos de defensa*/
     std::vector<std::tuple<Id, TypeItem>> getEquipment();
@@ -35,5 +37,6 @@ public:
      * server sabra que hacer */
     TypeItem getHandItem();
 };
+
 
 #endif

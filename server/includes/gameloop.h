@@ -51,6 +51,7 @@ private:
     std::map<Id, Player> players;
     std::map<TypeItem, std::unique_ptr<Item>> info_items;
     std::map<Id, std::unique_ptr<NPC>> info_NPC;
+    GameFormulas formulas;
 
     // Player initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t
     // level);

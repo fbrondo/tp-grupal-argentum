@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+
 #define EXP 1.1
 
 uint16_t GameFormulas::calculationMaximunHp(const uint16_t& constitution,

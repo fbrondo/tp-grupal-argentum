@@ -4,10 +4,11 @@
 
 #include "common/includes/map/layer.h"
 #include "server/print.h"
-World::World(const std::filesystem::path& path):
+World::World(const std::filesystem::path& path, const std::map<TypeItem, std::unique_ptr<Item>>& info_items) :
         map(MapSerializer::load(path)),
         limit_height(10 /*this->map.height()*/),
-        limit_width(10 /*this->map.width()*/) {
+        limit_width(10 /*this->map.width()*/),
+        info_items(info_items) {
     this->buildTilesWorld();
     this->identifyZones();
     // Print::printinitMatrizMap(this->map_tiles, this->limit_height, this->limit_width);
