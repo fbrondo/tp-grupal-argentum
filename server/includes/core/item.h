@@ -14,6 +14,11 @@ enum BodyPart : uint8_t {
     MOUTH,    /*Boca - posiciones*/
 };
 
+struct GoldPile {
+    uint32_t amount;
+    Position pos;
+};
+
 /*Un Item es equipable y almacenable en un inventario/tienda */
 // consultar si es preferible usar una clase. Lo hice un struct porque no como tal no maneja logica.
 struct Item {

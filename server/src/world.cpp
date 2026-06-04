@@ -7,7 +7,7 @@
 World::World(const std::filesystem::path& path /*, const MapItems& info_items*/):
         map(MapSerializer::load(path)),
         limit_height(10 /*this->map.height()*/),
-        limit_width(10 /*this->map.width()*/),
+        limit_width(10 /*this->map.width()*/)
 /*info_items(info_items)*/ {
     this->buildTilesWorld();
     this->identifyZones();
@@ -189,7 +189,8 @@ int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const I
                    std::abs(static_cast<int>(pos_attacker.y) - static_cast<int>(pos_target.y));
     return distance;
 }
-Id World::spawnItemOnFloor(const Position& pos, TypeItem item_type) {
+
+void World::spawnItemOnFloor(const Position& pos, TypeItem item_type) {
     Id instance_id = this->next_item_instance_id++;
 
     const Item& template_item = *(this->info_items.at(item_type));
@@ -201,19 +202,33 @@ Id World::spawnItemOnFloor(const Position& pos, TypeItem item_type) {
     return instance_id;
 }
 
-Id World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
-    if (amount == 0)
-        return 0;
+void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
+    if (amount == 0) return;
 
-    Id instance_id = this->next_item_instance_id++;
+    for (auto& pile : this->gold_on_floor) {
+        if (pile.second.pos == pos) {
+            pile.second.amount += amount;
+            return;
+        }
+    }
 
-    ItemInstance gold_instance(instance_id, GOLD,
-                               ITEM_HEALING,    // O usa una clasificación genérica si tenés
-                               BodyPart::NONE,  // No se equipa
-                               pos
-                               // amount
-    );
+    GoldPile new_pile;
+    new_pile.amount = amount;
+    new_pile.pos = pos;
 
-    this->items_on_flor.emplace(instance_id, std::move(gold_instance));
-    return instance_id;
+    //Bueno aca faltaria asignar un id a la pila de oro
+    this->gold_on_floor.emplace(new_instance_id, std::move(new_pile));
+}
+
+void World::collectGoldAt(const Position& pos, Id& player_gold) {
+    auto it = this->gold_on_floor.begin();
+    while (it != this->gold_on_floor.end()) {
+        if (it->second.pos == pos) {
+            player_gold += it->second.amount;
+            it = this->gold_on_floor.erase(it);
+            return;
+        } else {
+            ++it;
+        }
+    }
 }

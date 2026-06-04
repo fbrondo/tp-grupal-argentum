@@ -46,6 +46,12 @@ struct ItemGroundSnapshotData {
     uint32_t pos_y;
 };
 
+struct GoldPileGroundSnapshotData {
+    uint32_t amount;
+    uint32_t pos_x;
+    uint32_t pos_y;
+};
+
 // No estoy seguro aun como manejar los efectos visuales
 struct VisualEffect {
     uint32_t pos_x;
@@ -61,6 +67,7 @@ struct Snapshot {
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;
     std::vector<ItemGroundSnapshotData> items_on_floor;
+    std::vector<GoldPileGroundSnapshotData> gold_piles;
 
     std::vector<VisualEffect> effects;
 };
