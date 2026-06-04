@@ -56,8 +56,8 @@ public:
     void sendDisconnect() const;
 
     // Pre-game operations (signup, character)
-    void sendSignup(const std::string& user, const std::string& password) const;
-    void sendCharacterCreate(const std::string& name, uint8_t race, uint8_t clase) const;
+    void sendSignup(const std::string& user, const std::string& password, uint8_t race,
+                    uint8_t clase, uint16_t head_id, uint16_t body_id) const;
 
     // Game loop receiver
     bool receiveMessage(EventClient& out_event) const;

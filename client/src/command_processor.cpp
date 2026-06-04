@@ -23,8 +23,6 @@ int CommandProcessor::run() const {
         return processSignup() ? 0 : 1;
     if (mode == "--login")
         return processLogin() ? 0 : 1;
-    if (mode == "--create-character")
-        return processCreateCharacter() ? 0 : 1;
 
     std::cerr << "Unknown flag: " << mode << std::endl;
     return 1;
@@ -32,12 +30,16 @@ int CommandProcessor::run() const {
 
 bool CommandProcessor::processSignup() const {
     if (argc_ != SIGNUP_ARG) {
-        std::cerr << "Usage: " << argv_[0] << " <host> <port> --signup <user> <password>"
+        std::cerr << "Usage: " << argv_[0]
+                  << " <host> <port> --signup <user> <password> <race> <class> <head_id> <body_id>"
                   << std::endl;
         return false;
     }
     MenuHandler handler(argv_[1], argv_[2]);
-    return handler.doSignup(argv_[4], argv_[5]);
+    return handler.doSignup(argv_[4], argv_[5], static_cast<uint8_t>(std::stoi(argv_[6])),
+                            static_cast<uint8_t>(std::stoi(argv_[7])),
+                            static_cast<uint16_t>(std::stoi(argv_[8])),
+                            static_cast<uint16_t>(std::stoi(argv_[9])));
 }
 
 bool CommandProcessor::processLogin() const {
@@ -48,18 +50,6 @@ bool CommandProcessor::processLogin() const {
     }
     MenuHandler handler(argv_[1], argv_[2]);
     return handler.doLogin(argv_[4], argv_[5]);
-}
-
-bool CommandProcessor::processCreateCharacter() const {
-    if (argc_ != CREATE_CHARACTER_ARG) {
-        std::cerr << "Usage: " << argv_[0] << " <host> <port> --create-character"
-                  << " <user> <password> <name> <race> <class>" << std::endl;
-        return false;
-    }
-    MenuHandler handler(argv_[1], argv_[2]);
-    return handler.doCreateCharacter(argv_[4], argv_[5], argv_[6],
-                                     static_cast<uint8_t>(std::stoi(argv_[7])),
-                                     static_cast<uint8_t>(std::stoi(argv_[8])));
 }
 
 int CommandProcessor::launchGame() const {

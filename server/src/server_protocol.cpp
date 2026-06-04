@@ -137,9 +137,6 @@ void ServerProtocol::sendSignupResponse(bool success, const std::string& msg) co
     sendSimpleResponse(SIGNUP_RESPONSE, success, msg);
 }
 
-void ServerProtocol::sendCharacterCreateResponse(bool success, const std::string& msg) const {
-    sendSimpleResponse(CHARACTER_CREATE_RESPONSE, success, msg);
-}
 
 void ServerProtocol::sendChangeMap(const uint16_t map_id) const {
     constexpr size_t total_size = sizeof(uint8_t) + sizeof(uint16_t);
@@ -268,23 +265,19 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             MsgSignup signup;
             socket.recvall(signup.user, sizeof(signup.user));
             socket.recvall(signup.password, sizeof(signup.password));
+            socket.recvall(&signup.race, sizeof(signup.race));
+            socket.recvall(&signup.clase, sizeof(signup.clase));
+            socket.recvall(&signup.head_id, sizeof(signup.head_id));
+            socket.recvall(&signup.body_id, sizeof(signup.body_id));
             signup.user[sizeof(signup.user) - 1] = '\0';
             signup.password[sizeof(signup.password) - 1] = '\0';
+            signup.head_id = ntohs(signup.head_id);
+            signup.body_id = ntohs(signup.body_id);
             queue.push(std::make_unique<SignupCommand>(player_id, std::string(signup.user),
                                                        std::string(signup.password)));
             break;
         }
-        case CHARACTER_CREATE: {
-            MsgCharacterCreate msg;
-            socket.recvall(msg.name, sizeof(msg.name));
-            socket.recvall(&msg.race, sizeof(msg.race));
-            socket.recvall(&msg.clase, sizeof(msg.clase));
-            msg.name[sizeof(msg.name) - 1] = '\0';
-            queue.push(std::make_unique<CreateCharacterCommand>(
-                    player_id, std::string(msg.name), std::string(""),
-                    static_cast<TypeRace>(msg.race), static_cast<TypeClase>(msg.clase)));
-            break;
-        }
+
         case MOVE: {
             uint8_t dir;
             this->socket.recvall(&dir, 1);

@@ -19,7 +19,6 @@ enum ClientOpcode : uint8_t {
     SELL_ITEM = 11,
     DISCONNECT = 12,
     SIGNUP = 13,
-    CHARACTER_CREATE = 15,
 };
 
 enum ServerOpcode : uint8_t {
@@ -31,7 +30,6 @@ enum ServerOpcode : uint8_t {
     CHAT_MSG = 55,
     ACTION_ERROR = 56,
     SIGNUP_RESPONSE = 57,
-    CHARACTER_CREATE_RESPONSE = 59,
     MAP_DATA = 61,
 };
 
@@ -92,13 +90,10 @@ struct MsgSignup {
     uint8_t opcode = SIGNUP;
     char user[MAX_NAME_SIZE];
     char password[MAX_NAME_SIZE];
-};
-
-struct MsgCharacterCreate {
-    uint8_t opcode = CHARACTER_CREATE;
-    char name[MAX_NAME_SIZE];
     uint8_t race;
     uint8_t clase;
+    uint16_t head_id;
+    uint16_t body_id;
 };
 
 #pragma pack(pop)
