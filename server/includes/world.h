@@ -95,6 +95,10 @@ public:
     void spawnPlayer(const Id& player_id);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
+    const PlayerInstance& playerInformationInTheWorld(const Id& player_id);
+
+    Id spawnItemOnFloor(const Position& pos, TypeItem item_type);
+    Id spawnGoldOnFloor(const Position& pos, uint16_t amount);
     Position positionPlayerInTheWorld(const Id& player_id);
 };
 
