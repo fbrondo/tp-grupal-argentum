@@ -34,7 +34,7 @@ void Gameloop::handleSignup(SignupCommand* cmd) {
                                  static_cast<TypeClase>(traits.clase));
     if (this->persistence.exists(username)) {
         this->monitor.queueTheServerResponse(
-                id, std::make_unique<ResponseSignup>(false, "Username already taken."));
+                id, std::make_unique<ResponseSignup>(false, INVALID_REGISTER));
         return;
     }
     /*Creacion del jugador*/

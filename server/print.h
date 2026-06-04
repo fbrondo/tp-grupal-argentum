@@ -9,6 +9,7 @@
 #include "server/includes/core/config.h"
 #include "server/includes/core/instances.h"
 #include "server/includes/definitions.h"
+#include "server/includes/core/data.h"
 namespace Print {
 
 void print_message_console(const std::string& message);
@@ -22,6 +23,8 @@ void initServer();
 // void printinitMatrizMap(const std::vector<std::vector<Tile>>& map, const uint32_t height, const
 // uint32_t width);
 
+
+void printPlayerData(std::strign func, const PlayerData& player);
 /*Carga de archivos*/
 void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config,
                             const FileData& file_data);

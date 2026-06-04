@@ -88,6 +88,58 @@ void initServer() {
         std::cout << borde << SALTO << mensaje << SALTO << borde << std::endl;
     }
 }
+
+void printPlayerData(std::string func, const PlayerData& player) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+
+         std::vector<std::string> renglones = {
+                func + " DATOS JUGADOR "+ std::string(player.username) + " ---- ",
+                "",  // Línea vacía
+                " - Password:    " + std::string(player.password),
+                " - Races:   " + paths_config.races.string(),
+                " - Clases:  " + paths_config.clases.string(),
+                " - NPCs:    " + paths_config.npcs.string(),
+                " - Items:   " + paths_config.items.string(),
+                " - Regions: " + paths_config.regions.string(),
+                "",  // Línea vacía
+                "Rutas de Archivos de Datos:",
+                " - Players: " + file_data.players.string(),
+                " - Index:   " + file_data.indx_players.string(),
+                " - World:   " + file_data.world.string(),
+                " - Map:     " + file_data.map.string()};
+        size_t max_largo = 0;
+        auto it = std::max_element(
+                renglones.begin(), renglones.end(),
+                [](const auto& a, const auto& b) { return a.length() < b.length(); });
+        if (it != renglones.end())
+            max_largo = it->length();
+        // El ancho interior de la caja será el largo máximo más los espacios de cortesía a los
+        // costados
+        int ancho_caja = static_cast<int>(max_largo) + 4;
+        std::string borde_horizontal(ancho_caja, '-');
+        // Empezamos a armar el ostringstream
+        std::ostringstream oss;
+        // Techo de la caja
+        oss << borde_horizontal << SALTO;
+        // Recorremos los renglones guardados y los rellenamos dinámicamente
+        for (const auto& renglon: renglones) {
+            oss << "| " << renglon;
+            // Calculamos cuántos espacios le faltan a ESTE renglón específico para alcanzar al más
+            // largo
+            int espacios_necesarios = static_cast<int>(max_largo - renglon.length());
+            if (espacios_necesarios > 0) {
+                oss << std::string(espacios_necesarios, ' ');
+            }
+            oss << " |" << SALTO;
+        }
+        // Piso de la caja
+        oss << borde_horizontal;
+        print_message_console(oss.str());
+    }
+}
+
 // void printinitMatrizMap(std::vector<std::vector<Tile>> map, const uint32_t height, const uint32_t
 // width) {
 //     const char* env_p = std::getenv("DEBUG");
