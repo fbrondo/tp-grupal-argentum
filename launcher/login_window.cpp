@@ -4,6 +4,7 @@
 #include <QPushButton>
 
 #include "character_window.h"
+#include "signup_window.h"
 #include "ui_login_window.h"
 
 LoginWindow::LoginWindow(QWidget* parent): QMainWindow(parent), ui_(new Ui::LoginWindow) {
@@ -66,32 +67,9 @@ void LoginWindow::onLogin() {
 void LoginWindow::onSignup() {
     const QString host = ui_->hostEdit->text().trimmed();
     const QString port = ui_->portEdit->text().trimmed();
-    const QString user = ui_->signupUserEdit->text().trimmed();
-    const QString pass = ui_->signupPassEdit->text();
-
-    if (host.isEmpty() || port.isEmpty() || user.isEmpty() || pass.isEmpty()) {
-        setStatus("Complete todos los campos.");
-        return;
-    }
-
-    setStatus("Registrando...");
-    setBusy(true);
-
-    QString ignored;
-    if (!runClient({host, port, "--signup", user, pass}, ignored)) {
-        setBusy(false);
-        return;
-    }
-
-    setStatus("Iniciando sesión...");
-
-    QString payload;
-    if (!tryLogin(host, port, user, pass, payload)) {
-        setBusy(false);
-        return;
-    }
-
-    openCharacterWindow(host, port, user, pass, payload);
+    auto* sw = new SignupWindow(host, port, this);
+    sw->show();
+    hide();
 }
 
 void LoginWindow::openCharacterWindow(const QString& host, const QString& port, const QString& user,
