@@ -60,7 +60,7 @@ uint16_t Player::hpMax(const uint16_t& constitution) {
 uint16_t Player::manaMax(const uint16_t& intelligense) {
     const uint16_t& mana_f_race = this->ch.getManaFactorRace();
     const uint16_t& mana_f_clase = this->ch.getManaFactorClase();
-    return this->form.calculationMaximunHp(intelligense, mana_f_race, mana_f_clase, this->level);
+    return this->form.calculationMaximunMana(intelligense, mana_f_race, mana_f_clase, this->level);
 }
 void Player::updatePose(Position position, Direction direct) {
     this->pose = Pose{position, direct};

@@ -15,8 +15,7 @@ private:
     std::string name;
 
 public:
-    NPC(TypeNPC type_, std::string&& name, Position&& pos_);
-    const Position& getCurrentPosition();
+    NPC(Id id, TypeNPC type, std::string&& name, Position&& pos, GameFormulas& formulas);
     virtual ~NPC() = default;
 };
 

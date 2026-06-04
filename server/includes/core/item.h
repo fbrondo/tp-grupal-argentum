@@ -12,6 +12,7 @@ enum class BodyPart : uint8_t {
     BACK,     /*Dorso - armadura, tunica*/
     HAND,     /*Mano* - escudo, arma, objeto */
     MOUTH,    /*Boca - posiciones*/
+    NONE      /*Ninguna*/
 };
 
 /*Un Item es equipable y almacenable en un inventario/tienda */

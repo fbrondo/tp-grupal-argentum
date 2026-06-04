@@ -43,7 +43,8 @@ enum class TypeItem : uint8_t {
     IRON_SHIELD,     /*ESCUDO DE HIERRO*/
     MAGIC_HAT,       /*SOMBRERO MAGICO*/
     LIFE_POTION,     /*POCION VIDA*/
-    MANA_POTION      /*POCION MANA*/
+    MANA_POTION,     /*POCION MANA*/
+    GOLD             /*ORO*/
 };
 
 enum ItemClassification : uint8_t {

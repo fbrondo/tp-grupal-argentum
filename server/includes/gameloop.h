@@ -61,6 +61,7 @@ private:
     void executeBroacastSnapshot();
     void registerNewPlayer(CreateCharacterCommand* register_cmd);
     void executeMovePlayer(MoveCommand* move_cmd);
+    void executeAttackPlayer(AttackCommand* attack_cmd);
     void execuetRequest();
 
 public:

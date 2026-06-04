@@ -83,7 +83,7 @@ public:
     World& operator=(const World& other) = delete;
 
     // World() = default;
-    explicit World(const std::filesystem::path& path);
+    explicit World(const std::filesystem::path& path, const std::map<TypeItem, std::unique_ptr<Item>>& info_items);
 
     ~World() = default;
 
