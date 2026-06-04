@@ -1,20 +1,49 @@
 #REGIONES DONDE PUEDEN APARARECER ESTOS NPCS -> CAMPOS,BOSQUES, DESIERTOS, CAVERNAS, MAZMORRAS
 #-----------------------------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 1 #puede no ser necesario si ya tengo el id
+id_type = 1 #GOBLIN DE CAMPO
 name = "Goblin"
 attack_range = 4
 hp_max_initial = 40
-
-[[npcs.regions]] #En el campo solo van a aparecer goblin que esten en estos niveles "faciles"
 id_region = 5 #CAMPO
 minimalLevel = 1
 maximunLevel = 8
-
-[[npcs.regions]] #En el bosque solo van a aparecer goblin que esten en estos niveles "medios"
+#--------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 2 #GOBLIN DE CAMPO
+name = "Goblin"
+attack_range = 4
+hp_max_initial = 40
 id_region = 3 #FOREST
 minimalLevel = 9
 maximunLevel = 14
+#------------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 3 #ESQUELETO
+name = "Esqueleto"
+attack_range = 3
+hp_max_initial = 80
+id_region = 4 #DESERT
+minimalLevel = 17
+maximunLevel = 23
+#--------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 4 #ESQUELETO GUERRERO
+name = "Esqueleto"
+attack_range = 3
+hp_max_initial = 100
+id_region = 2 #MAZMORRA
+minimalLevel = 30
+maximunLevel = 40
+#-------------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 5
+name = "Zombie"
+attack_range = 4
+hp_max_initial = 150
+id_region = 2 #MAZMORRA
+minimalLevel = 30
+maximunLevel = 40
 # -------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
 id_type = 2
@@ -36,22 +65,7 @@ maximunLevel = 30
 id_region = 3 #FOREST
 minimalLevel = 10
 maximunLevel = 15
-#------------------------------------------------------------------------------------------------------------------------
-[[npcs]]
-id_type = 3
-name = "Esqueletos"
-attack_range = 3
-hp_max_initial = 80
 
-[[npcs.regions]] #En el campo solo van a aparecer esqueletos que esten en estos niveles "dificiles"
-id_region = 2 #MAZMORRA
-minimalLevel = 30
-maximunLevel = 40
-
-[[npcs.regions]] #En el bosque solo van a aparecer esqueletos que esten en estos niveles "medios-dificiles"
-id_region = 4 #DESERT
-minimalLevel = 17
-maximunLevel = 23
 #------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
 id_type = 4
@@ -89,17 +103,7 @@ maximunLevel = 22
 id_region = 1 #CAVERNA
 minimalLevel = 24
 maximunLevel = 30
-#-------------------------------------------------------------------------------------------------------------------------
-[[npcs]]
-id_type = 6
-name = "Zombie"
-attack_range = 4
-hp_max_initial = 150
 
-[[npcs.regions]] #En el desierto solo van a aparecer zombies que esten en estos niveles dificiles"
-id_region = 2 #MAZMORRA
-minimalLevel = 30
-maximunLevel = 40
 #------------------------------------------------------------------------------------------------
 [[npcs]]
 id_type = 7

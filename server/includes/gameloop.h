@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "common/includes/thread.h"
 #include "common/includes/types.h"
@@ -11,7 +12,6 @@
 #include "server/includes/commands/command_attack.h"
 #include "server/includes/commands/command_buy_item.h"
 #include "server/includes/commands/command_chat.h"
-#include "server/includes/commands/command_create_character.h"
 #include "server/includes/commands/command_drop_item.h"
 #include "server/includes/commands/command_interact.h"
 #include "server/includes/commands/command_login.h"
@@ -35,6 +35,7 @@
 class Gameloop: public Thread {
 
 private:
+    Id next_item_instance_id{1};
     MonitorQueues& monitor;
     QueueCmd& commands_queue;
 
@@ -48,20 +49,23 @@ private:
     std::unordered_map<TypeRace, Race> info_races;
     std::unordered_map<TypeClase, Clase> info_clases;
 
-    std::map<Id, Player> players;
+    std::map<Id, std::unique_ptr<Player>> players;
     std::map<TypeItem, std::unique_ptr<Item>> info_items;
     std::map<Id, std::unique_ptr<NPC>> info_NPC;
-    GameFormulas formulas;
 
-    // Player initPlayer(const TypeRace& race, const TypeClase& clase, Inventory&& inv, uint8_t
-    // level);
     void handleSignup(SignupCommand* cmd);
     void handleLogin(LoginCommand* cmd);
 
     void executeBroacastSnapshot();
-    void registerNewPlayer(CreateCharacterCommand* register_cmd);
+
     void executeMovePlayer(MoveCommand* move_cmd);
+
+    /*Metodos del Comando Attack*/
+    bool isItPossibleToAttack(const Id& player_id, const Id& victim, Weapon& weapon);
+    CombatEntity* inSearchOfTheVictimAttack(const Id& id_search);
+    std::vector<Defense*> getInfoAboutThePlayerDefensiveEquipment(const Id& player_id);
     void executeAttackPlayer(AttackCommand* attack_cmd);
+
     void execuetRequest();
 
 public:

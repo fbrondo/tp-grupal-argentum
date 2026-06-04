@@ -5,8 +5,7 @@
 
 #include "common/includes/core/character_traits.h"
 #include "common/includes/types.h"
-
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 using std::string;
 using SignupInfo = std::tuple<Id, string, string, CharacterTraits>;

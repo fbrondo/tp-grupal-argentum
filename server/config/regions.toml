@@ -5,14 +5,14 @@ id_type = 1 #CAVERNA
 is_safe_zone = false
 max_criatures = 20
 min_treasure = 4
-max_treasure = 8
+max_treasure = 6
 #--------------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 2 #MAZMORRA
 is_safe_zone = false
 max_criatures = 40
-min_treasure = 6
-max_treasure = 12
+min_treasure = 1
+max_treasure = 4
 #----------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 3 #FOREST

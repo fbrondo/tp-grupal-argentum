@@ -4,11 +4,11 @@
 
 #include "common/includes/map/layer.h"
 #include "server/print.h"
-World::World(const std::filesystem::path& path, const std::map<TypeItem, std::unique_ptr<Item>>& info_items) :
+World::World(const std::filesystem::path& path /*, const MapItems& info_items*/):
         map(MapSerializer::load(path)),
         limit_height(10 /*this->map.height()*/),
         limit_width(10 /*this->map.width()*/),
-        info_items(info_items) {
+/*info_items(info_items)*/ {
     this->buildTilesWorld();
     this->identifyZones();
     // Print::printinitMatrizMap(this->map_tiles, this->limit_height, this->limit_width);
@@ -117,7 +117,7 @@ bool World::isOccupied(const Position& pos) {
 
     /*verificamos que no hay un NPC*/
     for (auto& [id, instance_npc]: this->npcs_positions) {
-        if (instance_npc.position == pos) {
+        if (instance_npc.pose.position == pos) {
             return true;
         }
     }
@@ -161,17 +161,14 @@ bool World::isSafeZONE(const Position& /*pos*/) { return true; }
 
 /*El estado del mundo cambia*/
 void World::spawnPlayer(const Id& player_id) {
-
     Position position(Position{4, 4}); /*La posicion esta harcodeada para probar*/
     this->players_positions.emplace(player_id, position);
-    // Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
 }
 
 void World::removePlayer(const Id& player_id) { this->players_positions.erase(player_id); }
 
 void World::movePlayer(const Id& player_id, Direction dir) {
-    this->players_positions[player_id].position = this->calculatePosition(player_id, dir);
-    this->players_positions[player_id].direct = dir;
+    this->players_positions[player_id] = this->calculatePosition(player_id, dir);
     Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
 }
 
@@ -179,36 +176,42 @@ Position World::positionPlayerInTheWorld(const Id& player_id) {
     return this->players_positions[player_id];
 }
 
+Position World::positionNPCInTheWorld(const Id& npc_id) {
+    return this->npcs_positions[npc_id].pose.position;
+}
+
+
+int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {
+    const Position& pos_attacker =
+            this->players_positions.at(attacker_id);                    // attacker->getPosition();
+    const Position pos_target = this->players_positions.at(victim_id);  // victim->getPosition();
+    int distance = std::abs(static_cast<int>(pos_attacker.x) - static_cast<int>(pos_target.x)) +
+                   std::abs(static_cast<int>(pos_attacker.y) - static_cast<int>(pos_target.y));
+    return distance;
+}
 Id World::spawnItemOnFloor(const Position& pos, TypeItem item_type) {
     Id instance_id = this->next_item_instance_id++;
 
     const Item& template_item = *(this->info_items.at(item_type));
-    
-    ItemInstance new_item_instance(
-        instance_id, 
-        item_type, 
-        template_item.getClassif(),
-        template_item.getBodyPart(),
-        pos,
-        1
-    );
+
+    ItemInstance new_item_instance(instance_id, item_type, template_item.getClassif(),
+                                   template_item.getBodyPart(), pos, 1);
 
     this->items_on_flor.emplace(instance_id, std::move(new_item_instance));
     return instance_id;
 }
 
 Id World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
-    if (amount == 0) return 0;
+    if (amount == 0)
+        return 0;
 
     Id instance_id = this->next_item_instance_id++;
 
-    ItemInstance gold_instance(
-        instance_id, 
-        TypeItem::GOLD,                  
-        ItemClassification::ITEM_HEALING,     // O usa una clasificación genérica si tenés
-        BodyPart::NONE,                  // No se equipa
-        pos,                             
-        amount 
+    ItemInstance gold_instance(instance_id, GOLD,
+                               ITEM_HEALING,    // O usa una clasificación genérica si tenés
+                               BodyPart::NONE,  // No se equipa
+                               pos
+                               // amount
     );
 
     this->items_on_flor.emplace(instance_id, std::move(gold_instance));

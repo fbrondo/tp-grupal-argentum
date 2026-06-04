@@ -28,8 +28,8 @@ private:
     std::map<TypeItem, std::unique_ptr<Item>> store;
 
 public:
-    Priest(Id id, TypeNPC type, std::string&& name, Position&& pos,
-           std::map<TypeItem, std::unique_ptr<Item>>&& store_, GameFormulas& formulas);
+    Priest(TypeNPC type, std::string&& name, Pose&& pos,
+           std::map<TypeItem, std::unique_ptr<Item>>&& store_);
     ~Priest() = default;
     // void interact(const Id& id_player, World& word, Comand& cmd) override;
 };

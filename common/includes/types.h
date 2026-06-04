@@ -23,7 +23,7 @@ using IdTile = uint32_t;
 /*ID de los tipos de Items - Armas, Objetos Magicos, Equipos de defensa, pociones*/
 #ifndef __ID_ITEM__
 #define __ID_ITEM__
-enum class TypeItem : uint8_t {
+enum TypeItem : uint8_t {
     NONE = 0,        /*NADA*/
     SWORD,           /*ESPADA*/
     AXE,             /*HACHA*/

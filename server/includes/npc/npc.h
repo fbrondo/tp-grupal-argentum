@@ -4,10 +4,9 @@
 #include <string>
 #include <utility>
 
-#include "../core/map.h"
-#include "../core/entity.h"
 #include "common/includes/types.h"
-
+#include "server/includes/core/map.h"
+#include "server/includes/entity.h"
 
 class NPC: public Entity {
 private:
@@ -15,7 +14,7 @@ private:
     std::string name;
 
 public:
-    NPC(Id id, TypeNPC type, std::string&& name, Position&& pos, GameFormulas& formulas);
+    NPC(TypeNPC type, std::string&& name, Pose&& pos);
     virtual ~NPC() = default;
 };
 

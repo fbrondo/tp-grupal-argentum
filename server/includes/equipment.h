@@ -8,10 +8,10 @@
 
 class Equipment {
 private:
-    std::vector<ItemInstace*> equipment_container;
+    std::vector<ItemInstance*> equipment_container;
 
-    void equipHandItem(ItemInstace* item_inst);
-    void equipItemDefensive(ItemInstace* item_inst);
+    void equipHandItem(ItemInstance* item_inst);
+    void equipItemDefensive(ItemInstance* item_inst);
 
 public:
     Equipment(const Equipment&) = delete;             // No permitir copias
@@ -23,19 +23,17 @@ public:
     Equipment(/* args */);
     ~Equipment();
 
-    void equipItem(ItemInstace* item_inst);
+    void equipItem(ItemInstance* item_inst);
 
     /*Vendio, solto el item o lo quito del equipo*/
     void removeItem(Id id_inst_item);
-    /*Vendio o solto el item*/
-    std::unique_ptr<ItemInstance> removeItem(Id id_inst_item);
 
     /*Necesario para calcular los puntos de defensa*/
-    std::vector<std::tuple<Id, TypeItem>> getEquipment();
+    std::vector<std::tuple<Id, TypeItem>> getEquipmentDefensive();
 
     /* Utilizo su arma para atacar o con un objeto magico lanzo algun hechizo, con el TypeItem el
      * server sabra que hacer */
-    TypeItem getHandItem();
+    TypeItem getHandItem() const;
 };
 
 

@@ -2,7 +2,9 @@
 #define DATA_H
 #include <cstdint>
 #include <string>
+
 #include "common/includes/core/character_traits.h"
+
 constexpr size_t MAX_DATA = 30;
 constexpr size_t MAX_INVENTORY = 50;
 constexpr size_t MAX_EQUIPMENT = 4;

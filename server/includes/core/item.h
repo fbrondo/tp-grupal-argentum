@@ -7,12 +7,11 @@
 #include "common/includes/types.h"
 
 /*VER SI ESTO PUEDE IR EN OTRO LADO*/
-enum class BodyPart : uint8_t {
+enum BodyPart : uint8_t {
     HEAD = 1, /*Cabeza - casco, capucha, sombrero*/
     BACK,     /*Dorso - armadura, tunica*/
     HAND,     /*Mano* - escudo, arma, objeto */
     MOUTH,    /*Boca - posiciones*/
-    NONE      /*Ninguna*/
 };
 
 /*Un Item es equipable y almacenable en un inventario/tienda */
@@ -33,10 +32,6 @@ struct Item {
             name(std::move(name)),
             selling_price(sell_price),
             purchase_price(purch_price) {}
-
-    virtual uint16_t getRange() const { return 1; }
-    virtual ItemClassification getClassif() const { return this->classif; }
-    virtual BodyPart getBodyPart() const { return this->body_part_use; }
     virtual ~Item() = default;
 };
 
@@ -61,33 +56,34 @@ struct Defense: Item {
     - Espada
     - Martillo
     - Hacha
+    - Arco compuest
+    - Arco simple
 */
 struct Weapon: Item {
     uint16_t minimal_damage;
     uint16_t maximun_damage;
+    uint16_t range_attack;
 
     Weapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
-           uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam):
+           uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam,
+           uint16_t r_attack):
             Item(type, body, classif, std::move(name), sell_price, purch_price),
             minimal_damage(min_dam),
-            maximun_damage(max_dam) {}
+            maximun_damage(max_dam),
+            range_attack(r_attack) {}
 };
 
 /* Con esto puedo representa las arma de combate a distancia:
     - Arco compuest
     - Arco simple
 */
-struct RangedWeapon: Weapon {
-    uint16_t rangedAttack;
-
-    RangedWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
-                 uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam,
-                 uint16_t range):
-            Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam),
-            rangedAttack(range) {}
-
-    uint16_t getRange() const override { return this->rangedAttack; }
-};
+// struct RangedWeapon: Weapon {
+//     RangedWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
+//                  uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam,
+//                  uint16_t range):
+//             Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam,
+//             max_dam, range){}
+// };
 
 /* Con esto puedo representar un objeto magico, el mas simple:
     - flauta elfica -> lanza hechico que cura vida
@@ -95,32 +91,25 @@ struct RangedWeapon: Weapon {
 struct ObjectMagic: Item {
     uint16_t mana_cost;
     uint16_t range;
-
     ObjectMagic(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
                 uint16_t sell_price, uint16_t purch_price, uint16_t m_cost, uint16_t range):
             Item(type, body, classif, std::move(name), sell_price, purch_price),
             mana_cost(m_cost),
             range(range) {}
-
-    uint16_t getRange() const override { return this->range; }
 };
 /* Con esto puedo representar las armas magicas:
+    - Vara de fresno
     - Baculo engarzado.
     - Baculo nudoso.
 */
 struct MagicWeapon: Weapon {
     uint16_t mana_cost;
-    uint16_t range;
-
     MagicWeapon(TypeItem type, BodyPart body, ItemClassification classif, std::string&& name,
                 uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam,
                 uint16_t m_cost, uint16_t range):
-            Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam),
-            mana_cost(m_cost),
-            range(range) {}
-
-    uint16_t getRange() const override { return this->range; }
+            Weapon(type, body, classif, std::move(name), sell_price, purch_price, min_dam, max_dam,
+                   range),
+            mana_cost(m_cost) {}
 };
-
 
 #endif

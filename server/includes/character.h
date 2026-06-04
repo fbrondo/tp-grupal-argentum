@@ -1,7 +1,10 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
+#include <cstdint>
+
 #include "common/includes/core/Statistics.h"
+#include "common/includes/types.h"
 #include "server/includes/core/clase.h"
 #include "server/includes/core/race.h"
 
@@ -26,10 +29,10 @@ public:
     const uint8_t& getTypeHead() const;
     const uint8_t& getTypeBody() const;
 
-    uint16_t getStrength() const;
-    uint16_t getAgility() const;
-    uint16_t getIntelligence() const;
-    uint16_t getConstitution() const;
+    // uint16_t getStrength() const;
+    // uint16_t getAgility() const;
+    // uint16_t getIntelligence() const;
+    // uint16_t getConstitution() const;
 
     const uint16_t& getHpFactorRace();
     const uint16_t& getHpFactorClase();

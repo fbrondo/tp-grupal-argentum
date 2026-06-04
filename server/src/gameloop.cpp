@@ -44,9 +44,9 @@ void Gameloop::handleSignup(SignupCommand* cmd) {
                         this->info_clases.at(static_cast<TypeClase>(traits.clase)), traits.head,
                         traits.body);
     Pose pose(this->world.positionPlayerInTheWorld(id), UP);
-    Player new_player(std::move(user), std::move(pose), std::move(character),
-                      this->game_conf.player_init);
-    PlayerData player_data = new_player.getPlayerData();
+    std::unique_ptr<Player> new_player = std::make_unique<Player>(
+            std::move(user), std::move(pose), std::move(character), this->game_conf.player_init);
+    PlayerData player_data = new_player->getPlayerData();
     this->persistence.savePlayer(player_data);
     this->players.emplace(id, std::move(new_player));
 
@@ -72,10 +72,11 @@ void Gameloop::handleLogin(LoginCommand* cmd) {
         this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, "none"));
         return;
     }
-    std::ostringstream payload;
-    payload << data.username << " " << static_cast<int>(data.race) << " "
-            << static_cast<int>(data.clase) << " " << static_cast<int>(data.level);
-    this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, payload.str()));
+    // std::ostringstream payload;
+    // payload << data.username << " " << static_cast<int>(data.race) << " "
+    //         << static_cast<int>(data.clase) << " " << static_cast<int>(data.level);
+    // this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true,
+    // payload.str()));
 }
 
 void Gameloop::executeBroacastSnapshot() {
@@ -93,62 +94,77 @@ void Gameloop::executeMovePlayer(MoveCommand* cmd) {
     }
 }
 
-void Gameloop::executeAttackPlayer(AttackCommand* cmd) {
-    auto [attacker_id, target_id] = cmd->getAttackInfo();
-
-    if (this->players.count(attacker_id) == 0)
-        return;
-    Player& attacker = this->players.at(attacker_id);
-
-    if (!attacker.isAlive())
-        return;
-
-    // FILTRO DE ARMA
-    TypeItem weapon_type = attacker.getEquipment().getHandItem();
-    if (weapon_type == TypeItem::NONE)
-        return;
-
-    // BUSCAMOS A LA VÍCTIMA
-    CombatEntity* victim = nullptr;
-
-    if (this->players.count(target_id) > 0) {
-        victim = &this->players.at(target_id);
-    } else if (this->info_NPC.count(target_id) > 0) {
-        NPC* npc_generico = this->info_NPC.at(target_id).get();
-        victim = dynamic_cast<CombatEntity*>(npc_generico);
-        if (!victim) {
-            return;
-        }
+bool Gameloop::isItPossibleToAttack(const Id& player_id, const Id& victim_id, Weapon& weapon) {
+    MagicWeapon* magic_weapon = dynamic_cast<MagicWeapon*>(&weapon);
+    if (magic_weapon && !this->players[player_id]->hasEnoughMana(magic_weapon->range_attack)) {
+        return false;
     }
+    uint16_t range = weapon.range_attack;
+    int distance = this->world.distanceBetweenTheAttackerAndTheVictim(player_id, victim_id);
+    if (distance > range) {
+        return false;
+    }
+    return true;
+}
 
+CombatEntity* Gameloop::inSearchOfTheVictimAttack(const Id& id_search) {
+    CombatEntity* victim = nullptr;
+    if (this->players.count(id_search) > 0) {
+        victim = dynamic_cast<CombatEntity*>(this->players.at(id_search).get());
+    }
+    if (this->info_NPC.count(id_search) > 0) {
+        NPC* npc_generico = this->info_NPC.at(id_search).get();
+        victim = dynamic_cast<CombatEntity*>(npc_generico);
+    }
+    return victim;
+}
+
+std::vector<Defense*> Gameloop::getInfoAboutThePlayerDefensiveEquipment(const Id& player_id) {
+    std::vector<Defense*> info_equipment_defensive;
+    std::vector<TypeItem> equipmentTypes = this->players[player_id]->getEquipment();
+    for (auto Type: equipmentTypes) {
+        Defense* item_defensive = dynamic_cast<Defense*>(this->info_items.at(Type).get());
+        info_equipment_defensive.push_back(item_defensive);
+    }
+    return info_equipment_defensive;
+}
+
+
+void Gameloop::executeAttackPlayer(AttackCommand* cmd) {
+
+    auto [attacker_id, victim_id] = cmd->getAttackInfo();
+    /*Como ahora player desciende de otra clase es necesario usar unique_ptr*/
+    Player* attacker = this->players.at(attacker_id).get();
+    if (!attacker->isAlive())
+        return;
+    /*Vemos si tenemos un arma euipada*/
+    TypeItem weapon_type = attacker->getHandItem();
+    if (weapon_type == NONE)
+        return;
+    /*Buscamos a lo que se pide atacar*/
+    CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
     if (!victim)
         return;
 
-    // CHEQUEO DE DISTANCIA
-    Position pos_attacker = attacker.getPosition();
-    Position pos_target = victim->getPosition();
-
-    int distance = std::abs(static_cast<int>(pos_attacker.x) - static_cast<int>(pos_target.x)) +
-                   std::abs(static_cast<int>(pos_attacker.y) - static_cast<int>(pos_target.y));
-
-    // CHEQUEO DE RANGO
-    const Item& item_template = *(this->info_items.at(weapon_type));
-    uint16_t range = item_template.getRange();
-
-    if (distance > range)
+    Weapon* weapon = dynamic_cast<Weapon*>(this->info_items.at(weapon_type).get());
+    if (!weapon)
         return;
-
-    // CALCULO DE DAÑO
-    bool is_critical = false;
-    uint16_t damage = attacker.calculateDamage(is_critical, this->info_items);
-
-    if (!is_critical && victim->dodgeAttack()) {
-        // Registrar sonido de esquivado
+    if (!this->isItPossibleToAttack(attacker_id, victim_id, *weapon)) {
         return;
     }
-
-    victim->receiveDamage(damage, this->info_items);
-
+    bool is_critical = false;
+    uint16_t damage_by_attacker = attacker->calculateDamage(is_critical, *weapon);
+    if (!is_critical && victim->dodgeAttack()) {
+        return;  // Registrar sonido de esquivado
+    }
+    if (Player* player = dynamic_cast<Player*>(victim)) { /*Si la victima es un jugador*/
+        std::vector<Defense*> info_equip_defensive =
+                this->getInfoAboutThePlayerDefensiveEquipment(victim_id);
+        uint16_t defense_victim = player->calculateDefense(info_equip_defensive);
+        damage_by_attacker =
+                (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
+    }
+    victim->receiveDamage(damage_by_attacker);
     this->executeBroacastSnapshot();
 }
 

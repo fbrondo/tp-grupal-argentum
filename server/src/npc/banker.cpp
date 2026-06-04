@@ -1,6 +1,6 @@
-#include "../../includes/npc/banker.h"
+#include "server/includes/npc/banker.h"
 
-Banker::Banker(Id id, TypeNPC type, std::string&& name, Position&& pos, GameFormulas& formulas) :
-        CityNPC(id, type, std::move(name), std::move(pos), formulas) {}
+Banker::Banker(TypeNPC type, std::string&& name, Pose&& pose_):
+        CityNPC(type, std::move(name), std::move(pose_)) {}
 
 // void Banker::interact(const Id& id_player, World& word, Comand& cmd) {}

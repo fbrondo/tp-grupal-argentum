@@ -7,9 +7,10 @@
 #include "common/includes/map/tile.h"
 #include "common/includes/types.h"
 #include "server/includes/core/config.h"
+#include "server/includes/core/data.h"
 #include "server/includes/core/instances.h"
 #include "server/includes/definitions.h"
-#include "server/includes/core/data.h"
+
 namespace Print {
 
 void print_message_console(const std::string& message);
@@ -24,7 +25,7 @@ void initServer();
 // uint32_t width);
 
 
-void printPlayerData(std::strign func, const PlayerData& player);
+void printPlayerData(std::string func, const PlayerData& player);
 /*Carga de archivos*/
 void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config,
                             const FileData& file_data);
@@ -32,8 +33,8 @@ void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config,
 
 void printNewPlayerArrived(const Id& id, const std::string& username, const std::string& password,
                            TypeRace rac, TypeClase cl);
-void printPositionNewPlayer(const Id& id, const PlayerInstance& inst);
-void printPositionPlayerUpdate(const Id& id, const PlayerInstance& inst);
+// void printPositionNewPlayer(const Id& id, const PlayerInstance& inst);
+// void printPositionPlayerUpdate(const Id& id, const PlayerInstance& inst);
 
 };  // namespace Print
 

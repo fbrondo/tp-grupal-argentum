@@ -5,12 +5,10 @@
 #include <utility>
 #include <vector>
 
-#include "../core/combat_entity.h"
-#include "../core/map.h"
+#include "../combat_entity.h"
 #include "common/includes/types.h"
-
-#include "npc.h"
-#include "../world.h"
+#include "server/includes/core/map.h"
+#include "server/includes/world.h"
 
 /*Representa uba criatura
     - Goblin
@@ -26,18 +24,17 @@ private:
     World& world;
     TypeNPC type_creature;
     std::vector<TypeItem> drop_items_pool;
-    uint16_t drop_gold;
-
-public:
     const uint16_t range_attack;
     const uint16_t level;
+    // uint16_t drop_gold;
+
+public:
     /*Tiempo de recuperacion al dar un ataque*/
 
-    Creature(Id id, TypeNPC type, Position&& pos, uint16_t r_attack, uint16_t hp_max,
-             uint16_t level, GameFormulas& formulas, World& world);
-    void updatePosition(Position&& new_pos) override;
+    Creature(TypeNPC type, Pose&& pose_, uint16_t r_attack, uint16_t hp_max, uint16_t level,
+             World& world);
+    // void updatePosition(Pose&& new_pose) override;
     void onDeath() override;
-    // void attack()
 };
 
 

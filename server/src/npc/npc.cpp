@@ -1,6 +1,4 @@
-#include "../../includes/npc/npc.h"
+#include "server/includes/npc/npc.h"
 
-NPC::NPC(Id id_, TypeNPC type_, std::string&& name_, Position&& pos_, GameFormulas& formulas_):
-    Entity(id_, std::move(pos_), formulas_), 
-    type_npc(type_),
-    name(std::move(name_)) {}
+NPC::NPC(TypeNPC type_, std::string&& name_, Pose&& pose_):
+        Entity(std::move(pose_)), type_npc(type_), name(std::move(name_)) {}

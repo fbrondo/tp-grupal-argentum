@@ -161,7 +161,7 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info
             if (descp == "MELEE_WEAPON") {
                 info_items[type] =
                         std::make_unique<Weapon>(type, body, classif, std::move(name), sell_price,
-                                                 purch_price, min_dam, max_dam);
+                                                 purch_price, min_dam, max_dam, range);
             } else if (descp == "MAGICAL") {
                 info_items[type] = std::make_unique<MagicWeapon>(
                         type, body, classif, std::move(name), sell_price, purch_price, min_dam,

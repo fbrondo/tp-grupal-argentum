@@ -6,7 +6,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "common/includes/direction.h"
@@ -14,28 +13,26 @@
 #include "common/includes/map/map_serializer.h"
 #include "common/includes/map/tile.h"
 #include "common/includes/types.h"
-#include "core/instances.h"
-#include "core/item.h"
-#include "core/map.h"
-#include "npc/npc.h"
-
-#include "player.h"
-
-
+#include "server/includes/core/instances.h"
+#include "server/includes/core/item.h"
+#include "server/includes/core/map.h"
+#include "server/includes/npc/npc.h"
+#include "server/includes/player.h"
 /*Representa mi mundo del juego:
     - Se sopne que recibo algo del editor para crear mi matriz
     - Una vez que se como es el mundo, esta clase sera la encargada modificar su estado
     - Tambien es la que me devuelve el estado del mundo.
 */
 
-/*Responsabilidades*/
-// Tener todo el conocimiento de los tiles del mundo.
-// Saber que tipo de interaccion se tiene sobre una tiles
-// Ubicar los NPCs y saber sus ubicaciones.
-// Saber las pocisiones de los jugadores
-// Cuando toque guardar
-// Saber que zonas son seguras
-// class Map;
+/*Responsabilidades
+    -Tener todo el conocimiento de los tiles del mundo.
+    -Saber que tipo de interaccion se tiene sobre una tiles
+    -Ubicar los NPCs y saber sus ubicaciones.
+    -Saber las pocisiones de los jugadores
+    - Cuando toque guardar
+    - Saber que zonas son seguras
+*/
+
 
 struct StateWorld {
 
@@ -52,6 +49,8 @@ struct Zone {
 
 using MatrizBool = std::vector<std::vector<bool>>;
 using MatrizMap = std::vector<std::vector<Tile>>;
+using MapItems = std::map<TypeItem, std::unique_ptr<Item>>;
+using Path = std::filesystem::path;
 
 class World {
 private:
@@ -65,10 +64,10 @@ private:
     MatrizMap map_tiles;  // matriz
     std::map<Id, Position> players_positions;
     std::map<Id, NpcInstance> npcs_positions;
-    std::map<Id, ItemInstace> items_on_flor;
+    std::map<Id, ItemInstance> items_on_flor;
     std::map<Region, uint32_t> region_count;
-    Id next_item_instance_id{1};
-    const std::map<TypeItem, std::unique_ptr<Item>>& info_items;
+    // Id next_item_instance_id{1};
+    // const std::map<TypeItem, std::unique_ptr<Item>>& info_items;
 
     void buildTilesWorld();
     void identifyZones();
@@ -83,7 +82,7 @@ public:
     World& operator=(const World& other) = delete;
 
     // World() = default;
-    explicit World(const std::filesystem::path& path, const std::map<TypeItem, std::unique_ptr<Item>>& info_items);
+    explicit World(const Path& path /*, const MapItems& info_items*/);
 
     ~World() = default;
 
@@ -95,11 +94,14 @@ public:
     void spawnPlayer(const Id& player_id);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
-    const PlayerInstance& playerInformationInTheWorld(const Id& player_id);
 
     Id spawnItemOnFloor(const Position& pos, TypeItem item_type);
     Id spawnGoldOnFloor(const Position& pos, uint16_t amount);
+
     Position positionPlayerInTheWorld(const Id& player_id);
+    Position positionNPCInTheWorld(const Id& npc_id);
+
+    int distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id);
 };
 
 #endif
