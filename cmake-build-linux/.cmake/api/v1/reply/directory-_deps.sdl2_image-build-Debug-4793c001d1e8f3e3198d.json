@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/sdl2_image-build",
+		"source" : "cmake-build-linux/_deps/sdl2_image-src"
+	}
+}
