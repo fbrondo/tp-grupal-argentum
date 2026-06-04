@@ -2,7 +2,6 @@
 #define PLAYER_H
 
 #include <cstdint>
-#include <map>
 #include <memory>
 #include <string>
 
@@ -10,7 +9,7 @@
 #include "common/includes/types.h"
 #include "server/includes/character.h"
 #include "server/includes/core/config.h"
-#include "server/includes/core/instances.h"
+#include "server/includes/core/data.h"
 #include "server/includes/core/inventory.h"
 #include "server/includes/core/map.h"
 #include "server/includes/equipment.h"
@@ -19,6 +18,8 @@
 struct User {
     std::string username;
     std::string password;
+    User(std::string&& user, std::string&& pass):
+            username(std::move(user)), password(std::move(pass)) {}
 };
 
 class Player {
@@ -27,7 +28,8 @@ private:
     uint16_t mana;
     uint16_t exp;
     uint8_t level;
-
+    User user;
+    Pose pose;
     Inventory inv;
     Equipment equipment;
     Character ch;
@@ -43,14 +45,18 @@ public:
     Player(Player&&) = default;
     Player& operator=(Player&&) = delete;
 
-    Player(Inventory&& inv_, const Race& race, const Clase& clase, uint8_t level);
+    // Player(User&& user, const Position& pos, Inventory&& inv_, const Race& race, const Clase&
+    // clase, uint8_t level);
 
-    /*Nuevo jugador registrado desde cero*/
-    Player(const Race& race, const Clase& clase, const PlayerStateInitConfig& state_init);
+    /*Constructor para un jugador registrado desde cero - nuevo */
+    Player(User&& user, Pose&& pose, Character&& ch, const PlayerStateInitConfig& state_init);
 
     bool isAlive();
-    // const Position& getCurrentPosition() const;
-    // void updatePosition(Position&& new_pos);
+
+    /*El jugador nos devuelve los datos que seran guardados*/
+    PlayerData getPlayerData();
+    void updatePose(Position pos, Direction direct);
+
 
     /*tirar item*/
     /*equipar item*/

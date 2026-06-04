@@ -7,10 +7,10 @@
 MenuHandler::MenuHandler(const char* host, const char* port):
         socket(host, port), protocol(socket) {}
 
-bool MenuHandler::doSignup(const std::string& user, const std::string& password, uint8_t race,
-                           uint8_t clase, uint16_t head_id, uint16_t body_id) {
+bool MenuHandler::doSignup(const std::string& user, const std::string& password,
+                           const CharacterTraits& traits) {
     try {
-        protocol.sendSignup(user, password, race, clase, head_id, body_id);
+        protocol.sendSignup(user, password, traits);
         std::string msg;
         if (!protocol.recvResponse(SIGNUP_RESPONSE, msg)) {
             std::cerr << msg << std::endl;

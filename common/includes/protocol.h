@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "common/includes/core/character_traits.h"
+
 constexpr size_t MAX_NAME_SIZE = 30;
 
 enum ClientOpcode : uint8_t {
@@ -90,10 +92,7 @@ struct MsgSignup {
     uint8_t opcode = SIGNUP;
     char user[MAX_NAME_SIZE];
     char password[MAX_NAME_SIZE];
-    uint8_t race;
-    uint8_t clase;
-    uint16_t head_id;
-    uint16_t body_id;
+    CharacterTraits traits;
 };
 
 #pragma pack(pop)

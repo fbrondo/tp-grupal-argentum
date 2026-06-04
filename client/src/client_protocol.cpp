@@ -167,22 +167,18 @@ void ClientProtocol::sendDisconnect() const {
     }
 }
 
-void ClientProtocol::sendSignup(const std::string& user, const std::string& password, uint8_t race,
-                                uint8_t clase, uint16_t head_id, uint16_t body_id) const {
+void ClientProtocol::sendSignup(const std::string& user, const std::string& password,
+                                const CharacterTraits& traits) const {
     MsgSignup msg{};
     std::strncpy(msg.user, user.c_str(), sizeof(msg.user) - 1);
     std::strncpy(msg.password, password.c_str(), sizeof(msg.password) - 1);
-    msg.race = race;
-    msg.clase = clase;
-    msg.head_id = htons(head_id);
-    msg.body_id = htons(body_id);
+    msg.traits = traits;
     try {
         socket.sendall(&msg, sizeof(MsgSignup));
     } catch (const std::exception& e) {
         throw std::runtime_error(std::string("ERROR IN sendSignup -- ") + e.what());
     }
 }
-
 
 bool ClientProtocol::recvResponse(uint8_t expected_opcode, std::string& out_message) const {
     uint8_t opcode;

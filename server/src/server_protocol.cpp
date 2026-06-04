@@ -263,21 +263,23 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         }
         case SIGNUP: {
             MsgSignup signup;
+            // size_t bytes_restantes = sizeof(MsgSignup) - sizeof(signup.opcode);
+            // socket.recvall(&signup.user, bytes_restantes);
             socket.recvall(signup.user, sizeof(signup.user));
             socket.recvall(signup.password, sizeof(signup.password));
-            socket.recvall(&signup.race, sizeof(signup.race));
-            socket.recvall(&signup.clase, sizeof(signup.clase));
-            socket.recvall(&signup.head_id, sizeof(signup.head_id));
-            socket.recvall(&signup.body_id, sizeof(signup.body_id));
+            socket.recvall(&signup.traits.head, sizeof(signup.traits.head));
+            socket.recvall(&signup.traits.body, sizeof(signup.traits.body));
+            socket.recvall(&signup.traits.race, sizeof(signup.traits.race));
+            socket.recvall(&signup.traits.clase, sizeof(signup.traits.clase));
             signup.user[sizeof(signup.user) - 1] = '\0';
             signup.password[sizeof(signup.password) - 1] = '\0';
-            signup.head_id = ntohs(signup.head_id);
-            signup.body_id = ntohs(signup.body_id);
+            // CharacterTraits traits = signup.traits;
+
             queue.push(std::make_unique<SignupCommand>(player_id, std::string(signup.user),
-                                                       std::string(signup.password)));
+                                                       std::string(signup.password),
+                                                       std::move(signup.traits)));
             break;
         }
-
         case MOVE: {
             uint8_t dir;
             this->socket.recvall(&dir, 1);

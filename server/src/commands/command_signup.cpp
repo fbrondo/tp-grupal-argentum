@@ -1,8 +1,11 @@
 #include "server/includes/commands/command_signup.h"
 
-SignupCommand::SignupCommand(Id id, const std::string& username, const std::string& password):
-        Command(id), username(username), password(password) {}
+SignupCommand::SignupCommand(Id id, const string& username, const string& pass,
+                             CharacterTraits&& charact):
+        Command(id), username(username), password(pass), charact(std::move(charact)) {}
 
-SignupInfo SignupCommand::getSignupInfo() { return std::make_tuple(client_id, username, password); }
+SignupInfo SignupCommand::getSignupInfo() {
+    return std::make_tuple(client_id, this->username, this->password, this->charact);
+}
 
-void SignupCommand::execute(World& /*world*/) {}
+void SignupCommand::execute(World& world) { world.spawnPlayer(client_id); }

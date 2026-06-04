@@ -13,7 +13,7 @@
 #include "server/includes/responses/response_snapshot.h"
 #include "server/print.h"
 
-#define INVALID_REGISTER "Ese username no esta disponible. Por favor elige otro."
+#define INVALID_REGISTER "Username already taken."
 #define INVALID_LOGIN "El usuario o la contraseña son incorrectos."
 
 Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue):
@@ -21,7 +21,7 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
         commands_queue(cmmds_queue),
         files_data(loader_conf.getFilesData()),
         game_conf(loader_conf.getdGameConfiguration()),
-        world_game(this->files_data.map),
+        world(this->files_data.map),
         persistence(this->files_data) {
     loader_conf.loadRaces(this->info_races);
     loader_conf.loadClases(this->info_clases);
@@ -29,17 +29,30 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
 }
 
 void Gameloop::handleSignup(SignupCommand* cmd) {
-    auto [id, username, password] = cmd->getSignupInfo();
+    auto [id, username, pass, traits] = cmd->getSignupInfo();
+    Print::printNewPlayerArrived(id, username, pass, static_cast<TypeRace>(traits.race),
+                                 static_cast<TypeClase>(traits.clase));
     if (this->persistence.exists(username)) {
         this->monitor.queueTheServerResponse(
                 id, std::make_unique<ResponseSignup>(false, "Username already taken."));
         return;
     }
-    PlayerData data{};
-    std::strncpy(data.username, username.c_str(), sizeof(data.username) - 1);
-    std::strncpy(data.password, password.c_str(), sizeof(data.password) - 1);
-    this->persistence.savePlayer(data);
-    this->monitor.queueTheServerResponse(id, std::make_unique<ResponseSignup>(true));
+    /*Creacion del jugador*/
+    cmd->execute(this->world); /*Ubico al jugador en el mundo*/
+    User user(std::move(username), std::move(pass));
+    Character character(this->info_races.at(static_cast<TypeRace>(traits.race)),
+                        this->info_clases.at(static_cast<TypeClase>(traits.clase)), traits.head,
+                        traits.body);
+    Pose pose(this->world.positionPlayerInTheWorld(id), UP);
+    Player new_player(std::move(user), std::move(pose), std::move(character),
+                      this->game_conf.player_init);
+    PlayerData player_data = new_player.getPlayerData();
+    this->persistence.savePlayer(player_data);
+    this->players.emplace(id, std::move(new_player));
+
+    /*Informacion que se envia al usuario*/
+    this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true));
+    this->executeBroacastSnapshot();
 }
 
 void Gameloop::handleLogin(LoginCommand* cmd) {
@@ -66,36 +79,16 @@ void Gameloop::handleLogin(LoginCommand* cmd) {
 }
 
 void Gameloop::executeBroacastSnapshot() {
-    Snapshot snap = this->resp.buildSnapshot(this->players, this->world_game);
-    std::unique_ptr<ResponseSnapshot> resp_snap =
+    Snapshot snap = this->resp.buildSnapshot(this->players, this->world);
+    std::shared_ptr<ResponseSnapshot> resp_snap =
             std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
 }
 
-void Gameloop::initNewPlayer(Id player_id, const TypeRace& race, const TypeClase& clase) {
-    Player new_player(this->info_races.at(race), this->info_clases.at(clase),
-                      this->game_conf.player_init);
-    this->players.emplace(player_id, std::move(new_player));
-}
-
-void Gameloop::registerNewPlayer(CreateCharacterCommand* cmd) {
-    auto [player_id, username, pass, race, clase] = cmd->getRegistrationInfo();
-    Print::printNewPlayerArrived(player_id, username, pass, race, clase);
-    if (this->persistence.exists(username)) {
-        this->monitor.queueTheServerResponse(
-                player_id, std::make_unique<ResponseLogin>(false, INVALID_REGISTER));
-        return;
-    }
-    this->initNewPlayer(player_id, race, clase);
-    cmd->execute(this->world_game);
-    this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(true));
-    this->executeBroacastSnapshot();
-}
-
 void Gameloop::executeMovePlayer(MoveCommand* cmd) {
     auto [player_id, direction] = cmd->getMoveInfo();
-    if (this->world_game.isWalkable(player_id, direction)) {
-        cmd->execute(this->world_game);
+    if (this->world.isWalkable(player_id, direction)) {
+        cmd->execute(this->world);
         this->executeBroacastSnapshot();
     }
 }
@@ -110,10 +103,6 @@ void Gameloop::execuetRequest() {
         } else if (LoginCommand* login_cmd = dynamic_cast<LoginCommand*>(cmd.get())) {
             std::cerr << "[Gameloop] -> LoginCommand" << std::endl;
             this->handleLogin(login_cmd);
-        } else if (CreateCharacterCommand* register_cmd =
-                           dynamic_cast<CreateCharacterCommand*>(cmd.get())) {
-            std::cerr << "[Gameloop] -> CreateCharacterCommand" << std::endl;
-            this->registerNewPlayer(register_cmd);
         } else if (MoveCommand* move_cmd = dynamic_cast<MoveCommand*>(cmd.get())) {
             this->executeMovePlayer(move_cmd);
         } else {

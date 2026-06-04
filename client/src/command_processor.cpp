@@ -5,6 +5,7 @@
 
 #include "client/includes/client.h"
 #include "client/includes/menu_handler.h"
+#include "common/includes/core/character_traits.h"
 
 CommandProcessor::CommandProcessor(int argc, char* argv[]): argc_(argc), argv_(argv) {}
 
@@ -31,15 +32,18 @@ int CommandProcessor::run() const {
 bool CommandProcessor::processSignup() const {
     if (argc_ != SIGNUP_ARG) {
         std::cerr << "Usage: " << argv_[0]
-                  << " <host> <port> --signup <user> <password> <race> <class> <head_id> <body_id>"
+                  << " <host> <port> --signup <user> <password> <race> <class> <head> <body>"
                   << std::endl;
         return false;
     }
+    const CharacterTraits traits{
+            static_cast<uint8_t>(std::stoi(argv_[8])),  // head
+            static_cast<uint8_t>(std::stoi(argv_[9])),  // body
+            static_cast<uint8_t>(std::stoi(argv_[6])),  // race
+            static_cast<uint8_t>(std::stoi(argv_[7]))   // clase
+    };
     MenuHandler handler(argv_[1], argv_[2]);
-    return handler.doSignup(argv_[4], argv_[5], static_cast<uint8_t>(std::stoi(argv_[6])),
-                            static_cast<uint8_t>(std::stoi(argv_[7])),
-                            static_cast<uint16_t>(std::stoi(argv_[8])),
-                            static_cast<uint16_t>(std::stoi(argv_[9])));
+    return handler.doSignup(argv_[4], argv_[5], traits);
 }
 
 bool CommandProcessor::processLogin() const {
