@@ -2,7 +2,7 @@
 #define DATA_H
 #include <cstdint>
 #include <string>
-
+#include "common/includes/core/character_traits.h"
 constexpr size_t MAX_DATA = 30;
 constexpr size_t MAX_INVENTORY = 50;
 constexpr size_t MAX_EQUIPMENT = 4;
@@ -17,14 +17,12 @@ struct ItemInstanceData {
 struct PlayerData {
     char username[MAX_DATA];
     char password[MAX_DATA];
-    // posición
+    // Pose del personaje
     int32_t x;
     int32_t y;
+    uint8_t direction;
     // personaje
-    uint8_t head;
-    uint8_t body;
-    uint8_t race;
-    uint8_t clase;
+    CharacterTraits charact_traits;
     // atributos
     uint8_t level;
     uint16_t hp;

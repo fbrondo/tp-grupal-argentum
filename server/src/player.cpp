@@ -48,12 +48,12 @@ PlayerData Player::getPlayerData() {
     data.x = pose.position.x;
     data.y = pose.position.y;
     data.direction = pose.direct;
-    
+
     /*PERSONAJE*/
-    data.race = static_cast<uint8_t>(this->ch.getTypeRace());
-    data.clase = static_cast<uint8_t>(this->ch.getTypeClase());
-    data.head = static_cast<uint8_t>(this->ch.getTypeHead());
-    data.body = static_cast<uint8_t>(this->ch.getTypeBody());
+    data.charact_traits.race = static_cast<uint8_t>(this->ch.getTypeRace());
+    data.charact_traits.clase = static_cast<uint8_t>(this->ch.getTypeClase());
+    data.charact_traits.head = static_cast<uint8_t>(this->ch.getTypeHead());
+    data.charact_traits.body = static_cast<uint8_t>(this->ch.getTypeBody());
 
     /*Atributos actuales*/
     data.level = this->level;
