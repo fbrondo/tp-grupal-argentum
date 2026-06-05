@@ -11,7 +11,8 @@
 
 class PersistenceManager {
 private:
-    std::fstream data_file;                                 // archivo 1 — datos
+    std::fstream data_file;  // archivo 1 — datos
+    std::filesystem::path index_path;
     std::unordered_map<std::string, std::streampos> index;  // archivo 2 — índice en memoria
     void saveIndexEntry(const std::string& name, std::streampos offset);
     void loadIndex(const std::filesystem::path& index_data_path);

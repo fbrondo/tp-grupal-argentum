@@ -63,7 +63,7 @@ private:
     std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
 
     MatrizMap map_tiles;  // matriz
-    std::map<Id, PlayerInstance> players_positions;
+    std::map<Id, Position> players_positions;
     std::map<Id, NpcInstance> npcs_positions;
     std::map<Id, ItemInstace> items_on_flor;
     std::map<Region, uint32_t> region_count;
@@ -93,7 +93,7 @@ public:
     void spawnPlayer(const Id& player_id);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
-    const PlayerInstance& playerInformationInTheWorld(const Id& player_id);
+    Position positionPlayerInTheWorld(const Id& player_id);
 };
 
 #endif

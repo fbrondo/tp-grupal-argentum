@@ -1,6 +1,7 @@
 #include "../includes/server_protocol.h"
 
 #include <cstring>
+#include <iostream>
 
 #include <arpa/inet.h>
 
@@ -137,9 +138,6 @@ void ServerProtocol::sendSignupResponse(bool success, const std::string& msg) co
     sendSimpleResponse(SIGNUP_RESPONSE, success, msg);
 }
 
-void ServerProtocol::sendCharacterCreateResponse(bool success, const std::string& msg) const {
-    sendSimpleResponse(CHARACTER_CREATE_RESPONSE, success, msg);
-}
 
 void ServerProtocol::sendChangeMap(const uint16_t map_id) const {
     constexpr size_t total_size = sizeof(uint8_t) + sizeof(uint16_t);
@@ -266,23 +264,21 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         }
         case SIGNUP: {
             MsgSignup signup;
+            // size_t bytes_restantes = sizeof(MsgSignup) - sizeof(signup.opcode);
+            // socket.recvall(&signup.user, bytes_restantes);
             socket.recvall(signup.user, sizeof(signup.user));
             socket.recvall(signup.password, sizeof(signup.password));
+            socket.recvall(&signup.traits.head, sizeof(signup.traits.head));
+            socket.recvall(&signup.traits.body, sizeof(signup.traits.body));
+            socket.recvall(&signup.traits.race, sizeof(signup.traits.race));
+            socket.recvall(&signup.traits.clase, sizeof(signup.traits.clase));
             signup.user[sizeof(signup.user) - 1] = '\0';
             signup.password[sizeof(signup.password) - 1] = '\0';
+            // CharacterTraits traits = signup.traits;
+
             queue.push(std::make_unique<SignupCommand>(player_id, std::string(signup.user),
-                                                       std::string(signup.password)));
-            break;
-        }
-        case CHARACTER_CREATE: {
-            MsgCharacterCreate msg;
-            socket.recvall(msg.name, sizeof(msg.name));
-            socket.recvall(&msg.race, sizeof(msg.race));
-            socket.recvall(&msg.clase, sizeof(msg.clase));
-            msg.name[sizeof(msg.name) - 1] = '\0';
-            queue.push(std::make_unique<CreateCharacterCommand>(
-                    player_id, std::string(msg.name), std::string(""),
-                    static_cast<TypeRace>(msg.race), static_cast<TypeClase>(msg.clase)));
+                                                       std::string(signup.password),
+                                                       std::move(signup.traits)));
             break;
         }
         case MOVE: {

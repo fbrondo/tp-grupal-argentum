@@ -1,15 +1,23 @@
 #include "login_window.h"
 
 #include <QCoreApplication>
+#include <QGraphicsDropShadowEffect>
+#include <QProcess>
 #include <QPushButton>
 
-#include "character_window.h"
+#include "signup_window.h"
 #include "ui_login_window.h"
 
 LoginWindow::LoginWindow(QWidget* parent): QMainWindow(parent), ui_(new Ui::LoginWindow) {
     ui_->setupUi(this);
     connect(ui_->loginBtn, &QPushButton::clicked, this, &LoginWindow::onLogin);
     connect(ui_->signupBtn, &QPushButton::clicked, this, &LoginWindow::onSignup);
+
+    auto* cardShadow = new QGraphicsDropShadowEffect(this);
+    cardShadow->setBlurRadius(28);
+    cardShadow->setColor(QColor(0, 0, 0, 90));
+    cardShadow->setOffset(0, 6);
+    ui_->tabWidget->setGraphicsEffect(cardShadow);
 }
 
 LoginWindow::~LoginWindow() { delete ui_; }
@@ -40,6 +48,14 @@ bool LoginWindow::tryLogin(const QString& host, const QString& port, const QStri
     return runClient({host, port, "--login", user, pass}, out_payload);
 }
 
+void LoginWindow::launchGame(const QString& host, const QString& port) {
+    const QString binary = QCoreApplication::applicationDirPath() + "/taller_client";
+
+    // TODO: Review this
+    QProcess::startDetached(binary, {host, port});
+    QApplication::quit();
+}
+
 void LoginWindow::onLogin() {
     const QString host = ui_->hostEdit->text().trimmed();
     const QString port = ui_->portEdit->text().trimmed();
@@ -60,46 +76,14 @@ void LoginWindow::onLogin() {
         return;
     }
 
-    openCharacterWindow(host, port, user, pass, payload);
+    launchGame(host, port);
 }
 
 void LoginWindow::onSignup() {
     const QString host = ui_->hostEdit->text().trimmed();
     const QString port = ui_->portEdit->text().trimmed();
-    const QString user = ui_->signupUserEdit->text().trimmed();
-    const QString pass = ui_->signupPassEdit->text();
-
-    if (host.isEmpty() || port.isEmpty() || user.isEmpty() || pass.isEmpty()) {
-        setStatus("Complete todos los campos.");
-        return;
-    }
-
-    setStatus("Registrando...");
-    setBusy(true);
-
-    QString ignored;
-    if (!runClient({host, port, "--signup", user, pass}, ignored)) {
-        setBusy(false);
-        return;
-    }
-
-    setStatus("Iniciando sesión...");
-
-    QString payload;
-    if (!tryLogin(host, port, user, pass, payload)) {
-        setBusy(false);
-        return;
-    }
-
-    openCharacterWindow(host, port, user, pass, payload);
-}
-
-void LoginWindow::openCharacterWindow(const QString& host, const QString& port, const QString& user,
-                                      const QString& pass, const QString& payload) {
-
-    // TOOD: Implement
-    auto* win = new CharacterWindow(host, port, user, pass, payload);
-    win->show();
+    auto* sw = new SignupWindow(host, port, this);
+    sw->show();
     hide();
 }
 

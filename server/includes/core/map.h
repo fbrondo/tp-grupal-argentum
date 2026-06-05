@@ -1,8 +1,7 @@
 #ifndef MAP_H
 #define MAP_H
-// #include "common/includes/map/map.h"
-// #include "common/includes/map/map_serializer.h"
-#include "common/includes/types.h"
+
+#include "common/includes/direction.h"
 
 struct Position {
     uint32_t x;
@@ -28,5 +27,17 @@ struct Position {
     Position& operator=(const Position&) = default;
 };
 
+struct Pose {
+    Position position;
+    Direction direct;
+
+    Pose(Position pos_, Direction direct_): position(pos_), direct(direct_) {}
+
+    Pose(Pose&&) = default;
+    Pose& operator=(Pose&&) = default;
+
+    Pose(const Pose&) = default;
+    Pose& operator=(const Pose&) = default;
+};
 
 #endif

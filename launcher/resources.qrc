@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/assets">
+        <file alias="argentum.png">../common/assets/argentum.png</file>
+    </qresource>
+    <qresource prefix="/style">
+        <file alias="main.qss">style.qss</file>
+    </qresource>
+</RCC>
