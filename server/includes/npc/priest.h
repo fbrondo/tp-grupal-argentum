@@ -27,7 +27,6 @@ public:
     Priest(TypeNPC type, std::string&& name, Pose&& pos,
            std::map<TypeItem, std::unique_ptr<Item>>&& store_);
     ~Priest() = default;
-    // void interact(const Id& id_player, World& word, Comand& cmd) override;
 };
 
 #endif

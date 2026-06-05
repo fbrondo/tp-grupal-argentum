@@ -20,5 +20,5 @@ private:
 public:
     SignupCommand(Id id, const string& username, const string& pass, CharacterTraits&& charact);
     SignupInfo getSignupInfo();
-    void execute(World& world) override;
+    void execute(Gameloop& game) override;
 };

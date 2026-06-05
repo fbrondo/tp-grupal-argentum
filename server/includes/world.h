@@ -16,8 +16,8 @@
 #include "server/includes/core/instances.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
-#include "server/includes/npc/npc.h"
 #include "server/includes/npc/citynpc.h"
+#include "server/includes/npc/npc.h"
 #include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
 /*Representa mi mundo del juego:
@@ -92,6 +92,8 @@ public:
     /*Consultas para validar*/
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isSafeZONE(const Position& /*pos*/);
+    bool canDropItemAt(const Position& pos);
+
 
     /*void loadPlayer(const Id& player_id, Position&& position, Direction dir)*/
     void spawnPlayer(const Id& player_id);
@@ -105,6 +107,9 @@ public:
     Position positionPlayerInTheWorld(const Id& player_id);
     Position positionNPCInTheWorld(const Id& npc_id);
     NpcInstance* getNpcById(const Id& npc_id);
+    ItemInstance* getItemAt(const Position& pos);
+    std::unique_ptr<ItemInstance> pickUpItem(const Position& pos);
+    void dropItem(const Position& pos, std::unique_ptr<ItemInstance> item);
 
     int distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id);
 };

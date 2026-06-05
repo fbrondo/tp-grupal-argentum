@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <memory>
 
-#include "../world.h"
 #include "common/includes/types.h"
+#include "server/includes/gameloop.h"
 
 class Command {
 protected:
@@ -16,5 +16,5 @@ public:
 
     const Id& getIdPlayer() { return this->client_id; }
     // Cada comando va a definir su propio execute
-    virtual void execute(World& world) = 0;
+    virtual void execute(Gameloop& game) = 0;
 };

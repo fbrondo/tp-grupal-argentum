@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -7,15 +8,23 @@
 #include "commands/command_attack.h"
 #include "commands/command_buy_item.h"
 #include "commands/command_chat.h"
+#include "commands/command_deposit.h"
+#include "commands/command_deposit_gold.h"
 #include "commands/command_disconnect.h"
 #include "commands/command_drop_item.h"
+#include "commands/command_heal.h"
 #include "commands/command_interact.h"
+#include "commands/command_list_items.h"
 #include "commands/command_login.h"
+#include "commands/command_meditate.h"
 #include "commands/command_move.h"
+#include "commands/command_resurrect.h"
 #include "commands/command_sell_item.h"
 #include "commands/command_signup.h"
 #include "commands/command_take_item.h"
 #include "commands/command_use_item.h"
+#include "commands/command_withdraw.h"
+#include "commands/command_withdraw_gold.h"
 #include "common/includes/map/map.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
@@ -47,6 +56,8 @@ public:
     void sendChangeMap(uint16_t map_id) const;
     void sendActionError(const std::string& error_msg) const;
     void sendMap(const Map& map);
+    void sendTraderCatalog(const std::map<TypeItem, uint32_t>& catalog);
+    void sendBankContent(const std::vector<MsgItemInfo>& items, uint32_t gold);
 
     // Returns false when the client disconnects
     bool readCommand(Id player_id, QueueCmd& queue);

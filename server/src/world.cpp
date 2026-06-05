@@ -157,6 +157,15 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
     return true;
 }
 
+bool World::canDropItemAt(const Position& pos) {
+    for (auto& [id, item]: this->items_on_flor) {
+        if (item.pos == pos) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool World::isSafeZONE(const Position& /*pos*/) { return true; }
 
 /*El estado del mundo cambia*/
@@ -204,9 +213,10 @@ void World::spawnItemOnFloor(const Position& pos, TypeItem item_type) {
 }
 
 void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
-    if (amount == 0) return;
+    if (amount == 0)
+        return;
 
-    for (auto& pile : this->gold_on_floor) {
+    for (auto& pile: this->gold_on_floor) {
         if (pile.second.pos == pos) {
             pile.second.amount += amount;
             return;
@@ -217,7 +227,7 @@ void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
     new_pile.amount = amount;
     new_pile.pos = pos;
 
-    //Bueno aca faltaria asignar un id a la pila de oro
+    // Bueno aca faltaria asignar un id a la pila de oro
     this->gold_on_floor.emplace(new_instance_id, std::move(new_pile));
 }
 
@@ -232,4 +242,32 @@ void World::collectGoldAt(const Position& pos, Id& player_gold) {
             ++it;
         }
     }
+}
+
+ItemInstance* World::getItemAt(const Position& pos) {
+    for (auto& [id, item]: this->items_on_flor) {
+        if (item.pos == pos) {
+            return &item;
+        }
+    }
+    return nullptr;
+}
+
+std::unique_ptr<ItemInstance> World::pickUpItem(const Position& pos) {
+    auto it = this->items_on_flor.begin();
+    while (it != this->items_on_flor.end()) {
+        if (it->second.pos == pos) {
+            auto item_ptr = std::make_unique<ItemInstance>(std::move(it->second));
+            this->items_on_flor.erase(it);
+            return item_ptr;
+        } else {
+            ++it;
+        }
+    }
+    return nullptr;
+}
+
+void World::dropItem(const Position& pos, std::unique_ptr<ItemInstance> item) {
+    Id item_id = item->id;
+    this->items_on_flor.emplace(item_id, std::move(*item));
 }

@@ -12,7 +12,7 @@ private:
     uint8_t direction;
 
 public:
-    MoveCommand(uint32_t id, uint8_t dir);
-    void execute(World& world) override;
+    MoveCommand(Id id, uint8_t dir);
+    void execute(Gameloop& game) override;
     MoveInfo getMoveInfo();
 };

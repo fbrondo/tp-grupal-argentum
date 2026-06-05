@@ -7,6 +7,6 @@ MoveInfo MoveCommand::getMoveInfo() {
     return std::make_tuple(client_id, static_cast<Direction>(this->direction));
 }
 
-void MoveCommand::execute(World& world) {
-    world.movePlayer(this->client_id, static_cast<Direction>(this->direction));
+void MoveCommand::execute(Gameloop& game) {
+    game.processMovePlayer(this->client_id, static_cast<Direction>(this->direction));
 }

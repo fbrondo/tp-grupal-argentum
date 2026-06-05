@@ -14,13 +14,18 @@ enum ClientOpcode : uint8_t {
     USE_ITEM = 5,
     DROP_ITEM = 6,
     TAKE_ITEM = 7,
-    COMMAND = 8,
+    COMMAND = 8,  // Meditar, Curar, Resucitar
     INTERACT = 9,
     BUY_ITEM = 10,
     SELL_ITEM = 11,
     DISCONNECT = 12,
     SIGNUP = 13,
     CHARACTER_CREATE = 15,
+    DEPOSIT_ITEM = 16,
+    WITHDRAW_ITEM = 17,
+    DEPOSIT_GOLD = 18,
+    WITHDRAW_GOLD = 19,
+    LIST_ITEMS = 20
 };
 
 enum ServerOpcode : uint8_t {
@@ -34,6 +39,8 @@ enum ServerOpcode : uint8_t {
     SIGNUP_RESPONSE = 57,
     CHARACTER_CREATE_RESPONSE = 59,
     MAP_DATA = 61,
+    TRADER_CATALOG = 62,
+    BANK_CONTENT = 63
 };
 
 #pragma pack(push, 1)
@@ -57,7 +64,12 @@ struct MsgAttack {
 
 struct MsgSlotItem {
     uint8_t opcode;  // USE_ITEM or DROP_ITEM
-    uint8_t slot_index;
+    uint32_t instance_id;
+};
+
+struct MsgItemInfo {
+    uint32_t instance_id;
+    uint8_t item_type;
 };
 
 struct MsgInteract {

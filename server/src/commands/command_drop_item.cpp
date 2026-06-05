@@ -1,7 +1,7 @@
 #include "../../includes/commands/command_drop_item.h"
 
-DropItemCommand::DropItemCommand(uint32_t id, uint8_t slot): Command(id), slot(slot) {}
+DropItemCommand::DropItemCommand(Id id, Id instance_id): Command(id), instance_id(instance_id) {}
 
-void DropItemCommand::execute(World& /*world*/) {
-    // world.drop_item(client_id, slot);
+void DropItemCommand::execute(Gameloop& game) {
+    game.processPlayerDropItem(client_id, instance_id);
 }

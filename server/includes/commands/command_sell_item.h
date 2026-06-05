@@ -11,5 +11,5 @@ private:
 
 public:
     SellItemCommand(Id id, Id npc_id, Id instance_id);
-    void execute(World& world) override;
+    void execute(Gameloop& gameloop) override;
 };

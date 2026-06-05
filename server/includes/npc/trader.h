@@ -2,10 +2,13 @@
 
 #include <map>
 #include <memory>
-#include "citynpc.h"
+#include <string>
+
 #include "core/item.h"
 
-class TraderNPC : public CityNPC {
+#include "citynpc.h"
+
+class TraderNPC: public CityNPC {
 protected:
     std::map<TypeItem, std::unique_ptr<Item>> store;
 
@@ -15,7 +18,7 @@ public:
 
     virtual ~TraderNPC() = default;
 
-    // Colocás acá los métodos compartidos de comercio
     const std::map<TypeItem, std::unique_ptr<Item>>& getStore() const;
     bool hasItem(TypeItem type) const;
+    InteractionResult interact() override;
 };

@@ -15,11 +15,6 @@
 #include "server/includes/npc/citynpc.h"
 
 class Comand;
-class World;
-struct BanckAccount {
-    uint16_t golden;
-    std::vector<std::unique_ptr<ItemInstance>> safe_box;
-};
 
 /*Banquero - Interaccion:
     - comprar
@@ -27,15 +22,10 @@ struct BanckAccount {
     - listar
 */
 class Banker: public CityNPC {
-
-private:
-    /*Toda clase de Items menos items magicos*/
-    std::map<TypeItem, std::unique_ptr<Item>> store;
-
 public:
     Banker(TypeNPC type, std::string&& name, Pose&& pos);
     ~Banker() = default;
-    // void interact(const Id& id_player, World& word, Comand& cmd) override;
+    InteractionResult interact() override;
 };
 
 #endif
