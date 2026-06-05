@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QGraphicsDropShadowEffect>
 #include <QPainter>
 #include <QPushButton>
 
@@ -55,6 +56,12 @@ SignupWindow::SignupWindow(const QString& host, const QString& port, QWidget* lo
     loadRaceFiles();
     loadSprites();
     updatePreview();
+
+    auto* previewShadow = new QGraphicsDropShadowEffect(this);
+    previewShadow->setBlurRadius(18);
+    previewShadow->setColor(QColor(0, 0, 0, 100));
+    previewShadow->setOffset(0, 4);
+    ui_->previewLabel->setGraphicsEffect(previewShadow);
 }
 
 SignupWindow::~SignupWindow() { delete ui_; }

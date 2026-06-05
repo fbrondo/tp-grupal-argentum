@@ -1,6 +1,7 @@
 #include "login_window.h"
 
 #include <QCoreApplication>
+#include <QGraphicsDropShadowEffect>
 #include <QProcess>
 #include <QPushButton>
 
@@ -11,6 +12,12 @@ LoginWindow::LoginWindow(QWidget* parent): QMainWindow(parent), ui_(new Ui::Logi
     ui_->setupUi(this);
     connect(ui_->loginBtn, &QPushButton::clicked, this, &LoginWindow::onLogin);
     connect(ui_->signupBtn, &QPushButton::clicked, this, &LoginWindow::onSignup);
+
+    auto* cardShadow = new QGraphicsDropShadowEffect(this);
+    cardShadow->setBlurRadius(28);
+    cardShadow->setColor(QColor(0, 0, 0, 90));
+    cardShadow->setOffset(0, 6);
+    ui_->tabWidget->setGraphicsEffect(cardShadow);
 }
 
 LoginWindow::~LoginWindow() { delete ui_; }

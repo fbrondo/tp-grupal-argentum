@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>365</width>
-    <height>451</height>
+    <width>414</width>
+    <height>427</height>
    </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>440</width>
+    <height>440</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Argentum Online - Crear Personaje</string>
