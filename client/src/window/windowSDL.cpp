@@ -1,9 +1,10 @@
 #include "client/includes/window/windowSDL.h"
+
 #include <SDL2/SDL.h>
 
 WindowSDL::WindowSDL(const char* title):
         window(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-               WINDOW_W,   // Ancho inicial
+               WINDOW_W,  // Ancho inicial
                WINDOW_H,  // Alto inicial
                SDL_WINDOW_RESIZABLE),
         renderer(window, DRIVER_RENDERER, SDL_RENDERER_ACCELERATED) {}

@@ -54,6 +54,7 @@ private:
     void update_state_from_server();
     void handle_events();
     void clear_display();
+    void update_animation_frames(uint32_t it);
     void render_in_z_order();
     uint32_t sleep_and_calc_next_it(uint32_t frame_start) const;
     void close();

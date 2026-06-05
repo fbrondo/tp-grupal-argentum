@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
+
 #include "client/includes/window/window.h"
 
 #define DRIVER_RENDERER -1
