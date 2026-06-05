@@ -7,7 +7,6 @@ target_sources(taller_client
         src/client_sender.cpp
         src/client_receiver.cpp
         src/commands/command_move.cpp
-        src/commands/command_create_character.cpp
         src/menu_handler.cpp
         src/command_processor.cpp
     PUBLIC
@@ -20,5 +19,4 @@ target_sources(taller_client
         includes/client_receiver.h
         includes/commands/command_client.h
         includes/commands/command_move.h
-        includes/commands/command_create_character.h
     )

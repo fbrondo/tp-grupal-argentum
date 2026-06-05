@@ -1,4 +1,4 @@
-#include "../includes/monitor_queues.h"
+#include "server/includes/monitor_queues.h"
 
 #include <algorithm>
 #include <ranges>
@@ -13,15 +13,15 @@ QueueResp& MonitorQueues::addQueuePlayer(const Id& player_id) {
     return queues_players.at(player_id);
 }
 void MonitorQueues::queueTheServerResponse(const Id& player_id,
-                                           std::unique_ptr<Response>&& response_server) {
+                                           std::shared_ptr<Response>&& response_server) {
     this->queues_players[player_id].try_push(std::move(response_server));
 }
 
-void MonitorQueues::executeBroadcast(std::unique_ptr<ResponseSnapshot>&& response_snapshot) {
+void MonitorQueues::executeBroadcast(std::shared_ptr<ResponseSnapshot>&& response_snapshot) {
     std::lock_guard lock(this->mut);
     for (auto& queue: this->queues_players | std::views::values) {
         try {
-            queue.try_push(std::move(response_snapshot));
+            queue.try_push(response_snapshot);
         } catch (const ClosedQueue&) {}
     }
 }

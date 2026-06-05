@@ -18,8 +18,8 @@
 using QueueCmd = Queue<std::unique_ptr<Command>>;
 
 /*Mapa con las colas de respuestas - las colas de los senders*/
-using MapQueueResp = std::map<Id, Queue<std::unique_ptr<Response>>>;
-using QueueResp = Queue<std::unique_ptr<Response>>;
+using MapQueueResp = std::map<Id, Queue<std::shared_ptr<Response>>>;
+using QueueResp = Queue<std::shared_ptr<Response>>;
 
 /*Lo que retornan los distintos commands */
 using RegisterInfo = std::tuple<Id, std::string, std::string, TypeRace, TypeClase>;

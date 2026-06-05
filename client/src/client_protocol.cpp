@@ -167,27 +167,16 @@ void ClientProtocol::sendDisconnect() const {
     }
 }
 
-void ClientProtocol::sendSignup(const std::string& user, const std::string& password) const {
+void ClientProtocol::sendSignup(const std::string& user, const std::string& password,
+                                const CharacterTraits& traits) const {
     MsgSignup msg{};
     std::strncpy(msg.user, user.c_str(), sizeof(msg.user) - 1);
     std::strncpy(msg.password, password.c_str(), sizeof(msg.password) - 1);
+    msg.traits = traits;
     try {
         socket.sendall(&msg, sizeof(MsgSignup));
     } catch (const std::exception& e) {
         throw std::runtime_error(std::string("ERROR IN sendSignup -- ") + e.what());
-    }
-}
-
-void ClientProtocol::sendCharacterCreate(const std::string& name, uint8_t race,
-                                         uint8_t clase) const {
-    MsgCharacterCreate msg{};
-    std::strncpy(msg.name, name.c_str(), sizeof(msg.name) - 1);
-    msg.race = race;
-    msg.clase = clase;
-    try {
-        socket.sendall(&msg, sizeof(MsgCharacterCreate));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendCharacterCreate -- ") + e.what());
     }
 }
 

@@ -3,19 +3,23 @@
 #include <string>
 #include <tuple>
 
+#include "common/includes/core/character_traits.h"
 #include "common/includes/types.h"
 
 #include "command.h"
 
-using SignupInfo = std::tuple<Id, std::string, std::string>;
+using std::string;
+using SignupInfo = std::tuple<Id, string, string, CharacterTraits>;
 
 class SignupCommand: public Command {
 private:
-    std::string username;
-    std::string password;
+    string username;
+    string password;
+    CharacterTraits charact;
+
 
 public:
-    SignupCommand(Id id, const std::string& username, const std::string& password);
+    SignupCommand(Id id, const string& username, const string& pass, CharacterTraits&& charact);
     SignupInfo getSignupInfo();
     void execute(World& world) override;
 };

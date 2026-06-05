@@ -11,7 +11,6 @@
 #include "server/includes/commands/command_attack.h"
 #include "server/includes/commands/command_buy_item.h"
 #include "server/includes/commands/command_chat.h"
-#include "server/includes/commands/command_create_character.h"
 #include "server/includes/commands/command_drop_item.h"
 #include "server/includes/commands/command_interact.h"
 #include "server/includes/commands/command_login.h"
@@ -40,7 +39,7 @@ private:
 
     const FileData files_data;
     const GameConfig game_conf;
-    World world_game;
+    World world;
     PersistenceManager persistence;
     /*Esto tal vez deberia pasarse por referencia*/
     ResponseBuilder resp;
@@ -56,10 +55,8 @@ private:
     // level);
     void handleSignup(SignupCommand* cmd);
     void handleLogin(LoginCommand* cmd);
-    void initNewPlayer(Id player_id, const TypeRace& race, const TypeClase& clase);
-    // void initPlayer();
+
     void executeBroacastSnapshot();
-    void registerNewPlayer(CreateCharacterCommand* register_cmd);
     void executeMovePlayer(MoveCommand* move_cmd);
     void execuetRequest();
 

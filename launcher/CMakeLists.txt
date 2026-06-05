@@ -3,7 +3,10 @@ target_sources(taller_launcher
         main.cpp
         login_window.cpp
         character_window.cpp
+        signup_window.cpp
+        resources.qrc
     PUBLIC
         login_window.h
         character_window.h
+        signup_window.h
 )
