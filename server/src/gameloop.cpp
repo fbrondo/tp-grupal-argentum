@@ -30,6 +30,12 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
 
 void Gameloop::handleSignup(SignupCommand* cmd) {
     auto [id, username, pass, traits] = cmd->getSignupInfo();
+    // TOOD: Delete this debugs prints
+    std::cerr << "[server] signup user=" << username << " pass=" << pass
+              << " race=" << static_cast<int>(traits.race)
+              << " clase=" << static_cast<int>(traits.clase)
+              << " head=" << static_cast<int>(traits.head)
+              << " body=" << static_cast<int>(traits.body) << std::endl;
     Print::printNewPlayerArrived(id, username, pass, static_cast<TypeRace>(traits.race),
                                  static_cast<TypeClase>(traits.clase));
     if (this->persistence.exists(username)) {
@@ -55,6 +61,8 @@ void Gameloop::handleSignup(SignupCommand* cmd) {
 
 void Gameloop::handleLogin(LoginCommand* cmd) {
     auto [id, username, password] = cmd->getLoginInfo();
+    // TOOD: Delete this debugs prints
+    std::cerr << "[server] login user=" << username << " pass=" << password << std::endl;
     if (!this->persistence.exists(username)) {
         this->monitor.queueTheServerResponse(
                 id, std::make_unique<ResponseLogin>(false, "El usuario no existe"));

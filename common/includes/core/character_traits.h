@@ -5,8 +5,8 @@
 
 #pragma pack(push, 1)
 struct CharacterTraits {
-    uint8_t head;
-    uint8_t body;
+    uint16_t head;
+    uint16_t body;
     uint8_t race;
     uint8_t clase;
 };

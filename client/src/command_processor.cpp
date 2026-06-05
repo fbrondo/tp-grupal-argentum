@@ -50,10 +50,10 @@ bool CommandProcessor::processSignup() const {
         return false;
     }
     const CharacterTraits traits{
-            static_cast<uint8_t>(std::stoi(argv_[8])),  // head
-            static_cast<uint8_t>(std::stoi(argv_[9])),  // body
-            static_cast<uint8_t>(std::stoi(argv_[6])),  // race
-            static_cast<uint8_t>(std::stoi(argv_[7]))   // clase
+            static_cast<uint16_t>(std::stoi(argv_[8])),  // head
+            static_cast<uint16_t>(std::stoi(argv_[9])),  // body
+            static_cast<uint8_t>(std::stoi(argv_[6])),   // race
+            static_cast<uint8_t>(std::stoi(argv_[7]))    // clase
     };
     MenuHandler handler(argv_[1], argv_[2]);
     return handler.doSignup(argv_[4], argv_[5], traits);
