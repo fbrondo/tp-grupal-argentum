@@ -112,8 +112,8 @@ CombatEntity* Gameloop::inSearchOfTheVictimAttack(const Id& id_search) {
     if (this->players.count(id_search) > 0) {
         victim = dynamic_cast<CombatEntity*>(this->players.at(id_search).get());
     }
-    if (this->info_NPC.count(id_search) > 0) {
-        NPC* npc_generico = this->info_NPC.at(id_search).get();
+    if (this->npcs.count(id_search) > 0) {
+        NPC* npc_generico = this->npcs.at(id_search).get();
         victim = dynamic_cast<CombatEntity*>(npc_generico);
     }
     return victim;

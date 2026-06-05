@@ -49,10 +49,11 @@ private:
 
     std::unordered_map<TypeRace, Race> info_races;
     std::unordered_map<TypeClase, Clase> info_clases;
+    //std::unordered_map<TypeNPC, NPCConfig> npcs;
 
     std::map<Id, std::unique_ptr<Player>> players;
     std::map<TypeItem, std::unique_ptr<Item>> info_items;
-    std::map<Id, std::unique_ptr<NPC>> info_NPC;
+    std::map<Id, std::unique_ptr<NPC>> npcs;
 
     void handleSignup(SignupCommand* cmd);
     void handleLogin(LoginCommand* cmd);
