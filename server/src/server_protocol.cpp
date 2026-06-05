@@ -37,9 +37,6 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         p.pos_y = htonl(p.pos_y);
         p.max_hp = htons(p.max_hp);
         p.hp = htons(p.hp);
-        p.body_id = htons(p.body_id);
-        p.head_id = htons(p.head_id);
-        p.weapon_id = htons(p.weapon_id);
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));
         offset += sizeof(PlayerSnapshotData);
     }
@@ -83,7 +80,7 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
     temp.mana = htonl(stats.mana);
     temp.gold = htonl(stats.gold);
     temp.exp = htonl(stats.exp);
-    temp.level = stats.level;
+    // temp.level = stats.level;
     try {
         socket.sendall(&temp, sizeof(MsgPlayerStats));
     } catch (const std::exception& e) {

@@ -216,39 +216,44 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.world.items_on_floor.clear();
 
             uint16_t p_count;
-            socket.recvall(&p_count, 2);
+            socket.recvall(&p_count, sizeof(p_count));
             p_count = ntohs(p_count);
             for (uint16_t i = 0; i < p_count; ++i) {
                 PlayerSnapshotData p;
                 socket.recvall(&p, sizeof(PlayerSnapshotData));
                 p.id = ntohl(p.id);
+                p.pos_x = ntohl(p.pos_x);
+                p.pos_y = ntohl(p.pos_y);
                 p.max_hp = ntohs(p.max_hp);
                 p.hp = ntohs(p.hp);
-                p.body_id = ntohs(p.body_id);
-                p.head_id = ntohs(p.head_id);
-                p.weapon_id = ntohs(p.weapon_id);
+                p.mana = ntohs(p.mana);
+                p.max_mana = ntohs(p.max_mana);
                 out_event.world.players.push_back(p);
             }
 
             uint16_t n_count;
-            socket.recvall(&n_count, 2);
+            socket.recvall(&n_count, sizeof(n_count));
             n_count = ntohs(n_count);
             for (uint16_t i = 0; i < n_count; ++i) {
                 NpcSnapshotData n;
                 socket.recvall(&n, sizeof(NpcSnapshotData));
                 n.id = ntohl(n.id);
                 n.type_id = ntohs(n.type_id);
+                n.pos_x = ntohl(n.pos_x);
+                n.pos_y = ntohl(n.pos_y);
                 n.hp_actual = ntohs(n.hp_actual);
                 out_event.world.npcs.push_back(n);
             }
 
             uint16_t i_count;
-            socket.recvall(&i_count, 2);
+            socket.recvall(&i_count, sizeof(i_count));
             i_count = ntohs(i_count);
             for (uint16_t i = 0; i < i_count; ++i) {
                 ItemGroundSnapshotData it;
                 socket.recvall(&it, sizeof(ItemGroundSnapshotData));
                 it.item_id = ntohs(it.item_id);
+                it.pos_x = ntohl(it.pos_x);
+                it.pos_y = ntohl(it.pos_y);
                 out_event.world.items_on_floor.push_back(it);
             }
             break;
@@ -257,28 +262,28 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.type = TypeEventClient::OWN_STATS;
             out_event.stats.opcode = opcode;
 
-            socket.recvall(&out_event.stats.hp, 4);
+            socket.recvall(&out_event.stats.hp, sizeof(out_event.stats.hp));
             out_event.stats.hp = ntohl(out_event.stats.hp);
 
-            socket.recvall(&out_event.stats.mana, 4);
+            socket.recvall(&out_event.stats.mana, sizeof(out_event.stats.mana));
             out_event.stats.mana = ntohl(out_event.stats.mana);
 
-            socket.recvall(&out_event.stats.gold, 4);
+            socket.recvall(&out_event.stats.gold, sizeof(out_event.stats.gold));
             out_event.stats.gold = ntohl(out_event.stats.gold);
 
-            socket.recvall(&out_event.stats.exp, 4);
+            socket.recvall(&out_event.stats.exp, sizeof(out_event.stats.exp));
             out_event.stats.exp = ntohl(out_event.stats.exp);
 
-            socket.recvall(&out_event.stats.level, 1);
+            socket.recvall(&out_event.stats.level, sizeof(out_event.stats.level));
             break;
         }
         case LOGIN_RESPONSE: {
             out_event.type = TypeEventClient::LOGIN_RESPONSE;
             uint8_t success;
-            socket.recvall(&success, 1);
+            socket.recvall(&success, sizeof(success));
 
             uint16_t len;
-            socket.recvall(&len, 2);
+            socket.recvall(&len, sizeof(len));
             len = ntohs(len);
             out_event.text_payload.resize(len);
             socket.recvall(out_event.text_payload.data(), len);

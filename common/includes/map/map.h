@@ -11,6 +11,7 @@ constexpr int MAX_MAP_HEIGHT = 1000;
 
 class Map {
 public:
+    Map(): width_(0), height_(0) {}
     Map(std::string name, int width, int height);
 
     Tile& tile_at(int x, int y, Layer layer);
