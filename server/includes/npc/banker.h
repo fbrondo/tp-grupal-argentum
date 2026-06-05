@@ -33,7 +33,8 @@ private:
 
 public:
     Banker(TypeNPC type, std::string&& name, Pose&& pos);
-    ~Banker() = default;;
+    ~Banker() = default;
+    InteractionResult interact() override;
 };
 
 #endif

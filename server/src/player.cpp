@@ -46,6 +46,38 @@ void Player::updatePose(Position position, Direction direct) {
     Entity::updatePosition(Pose{position, direct});
 }
 
+bool Player::canBuy(const Item* item) const {
+    uint32_t final_price = item->purchase_price;
+    if (this->inv.golden < final_price) {
+        return false;
+    }
+
+    if (this->inv.inventory.size() >= this->inv.max_inventory) {
+        return false;
+    }
+
+    return true;
+}
+
+void Player::buyItem(const Item* item, Id new_instance_id) {
+    uint32_t final_price = item->purchase_price;
+    this->inv.golden -= final_price;
+
+    auto new_instance = std::make_unique<ItemInstance>(new_instance_id, item->type, item->classif,
+                                                       item->body_part_use, this->pose.position);
+
+    this->inv.inventory.emplace(new_instance_id, std::move(new_instance));
+}
+
+bool Player::canSell(const Id instance_id) const {
+    return this->inv.inventory.find(instance_id) != this->inv.inventory.end();
+}
+
+void Player::sellItem(Id instance_id, uint32_t sell_price) {
+    this->inv.golden += sell_price;
+    this->inv.inventory.erase(instance_id);
+}
+
 PlayerData Player::getPlayerData() {
     PlayerData data{};
     std::strncpy(data.username, user.username.c_str(), MAX_DATA);
@@ -112,6 +144,85 @@ std::vector<TypeItem> Player::getEquipment() {
     }
     return equipTypes;
 }
+
+Inventory& Player::getInventory() { return this->inv; }
+
+ItemInstance* Player::getItemInstance(Id instance_id) {
+    return this->inv.inventory.at(instance_id).get();
+}
+
+Pose Player::getPose() const { return this->pose; }
+
+uint32_t Player::getInventorySize() const { return this->inv.inventory.size(); }
+
+uint32_t Player::getMaxInventorySize() const { return this->inv.max_inventory; }
+
+uint32_t Player::getInventoryGold() const { return this->inv.golden; }
+
+uint32_t Player::getBankGold() const { return this->bank_account.gold; }
+
+void Player::increaseInventoryGold(uint32_t amount) { this->inv.golden += amount; }
+
+void Player::decreaseInventoryGold(uint32_t amount) { this->inv.golden -= amount; }
+
+void Player::increaseBankGold(uint32_t amount) { this->bank_account.gold += amount; }
+
+void Player::decreaseBankGold(uint32_t amount) { this->bank_account.gold -= amount; }
+
+void Player::addItemToInventory(std::unique_ptr<ItemInstance> item) {
+    this->inv.inventory.emplace(item->id, std::move(item));
+}
+
+std::unique_ptr<ItemInstance> Player::removeItemFromInventory(Id instance_id) {
+    auto node = this->inv.inventory.extract(instance_id);
+
+    return std::move(node.mapped());
+}
+
+size_t Player::getBankSize() const { return this->bank_account.safe_box.size(); }
+
+size_t Player::getMaxBankSize() const { return this->bank_account.max_size; }
+
+bool Player::hasItemInBank(Id instance_id) const {
+    return this->bank_account.safe_box.count(instance_id) > 0;
+}
+
+void Player::addItemToBank(std::unique_ptr<ItemInstance> item) {
+    Id instance_id = item->id;
+    this->bank_account.safe_box.emplace(instance_id, std::move(item));
+}
+
+std::unique_ptr<ItemInstance> Player::removeItemFromBank(Id instance_id) {
+    auto node = this->bank_account.safe_box.extract(instance_id);
+    return std::move(node.mapped());
+}
+
+bool Player::isMeditating() const { return this->is_meditating; }
+
+void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
+
+void Player::breakMeditation() { this->is_meditating = false; }
+
+void Player::restoreAllHp() { this->hp = this->hpMax(); }
+
+void Player::restoreAllMana() { this->mana = this->manaMax(); }
+
+std::vector<MsgItemInfo> Player::getBankItemsInfo() const {
+    std::vector<MsgItemInfo> info_vector;
+
+    info_vector.reserve(this->bank_account.safe_box.size());
+
+    for (auto& [id_clave, item_ptr]: this->bank_account.safe_box) {
+        MsgItemInfo msg;
+        msg.instance_id = id_clave;
+        msg.item_type = static_cast<uint8_t>(item_ptr->type);
+
+        info_vector.push_back(msg);
+    }
+
+    return info_vector;
+}
+
 
 void Player::onDeath() {
     // Convertirse en fantasma

@@ -2,7 +2,6 @@
 #include <utility>
 
 #include "common/includes/types.h"
-#include "server/includes//world.h"
 #include "server/includes/commands/command.h"
 
 class AttackCommand: public Command {
@@ -11,6 +10,6 @@ private:
 
 public:
     AttackCommand(Id player_id, Id target_id);
-    void execute(World& world) override;
+    void execute(Gameloop& gameloop) override;
     std::pair<Id, Id> getAttackInfo();
 };

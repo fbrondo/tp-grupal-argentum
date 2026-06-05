@@ -72,6 +72,22 @@ private:
 
 public:
     explicit Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue);
+    void sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response);
+    void processSpawnPlayer(Id player_id);
+    void executeAttackPlayer(AttackCommand* attack_cmd);
+    void processMovePlayer(Id player_id, Direction dir);
+    void process_buy_item(Id player_id, Id npc_id, Id item_id);
+    void process_sell_item(Id player_id, Id npc_id, Id item_id);
+    void processPlayerPickUp(Id player_id);
+    void processPlayerDropItem(Id player_id, Id instance_id);
+    void processPlayerWithdrawItem(Id player_id, Id instance_id);
+    void processPlayerDepositItem(Id player_id, Id instance_id);
+    void processPlayerDepositGold(Id player_id, uint32_t amount);
+    void processPlayerWithdrawGold(Id player_id, uint32_t amount);
+    void processPlayerMeditate(Id player_id);
+    void processPlayerHeal(Id player_id);
+    void processPlayerResurrect(Id player_id);
+    void processListItems(Id player_id, Id npc_id);
     void run() override;
 };
 

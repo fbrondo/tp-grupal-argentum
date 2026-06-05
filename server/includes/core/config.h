@@ -54,9 +54,6 @@ struct GameConfig {
     PlayerStateInitConfig player_init;
     ClanConfig clan;
     TimesConfig times;
-    std::unordered_map<TypeRace, Race> races;
-    std::unordered_map<TypeClase, Clase> clases;
-    std::unordered_map<TypeNPC, NPCConfig> npcs;
     GameConfig() = default;
 };
 

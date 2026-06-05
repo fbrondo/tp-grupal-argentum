@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <memory>
 
-#include "../world.h"
 #include "common/includes/types.h"
+#include "server/includes/gameloop.h"
 
 class Command {
 protected:

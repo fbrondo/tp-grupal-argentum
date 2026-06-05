@@ -7,4 +7,4 @@ LoginCommand::LoginCommand(Id id, const std::string& name, const std::string& pa
 
 LoginInfo LoginCommand::getLoginInfo() { return std::make_tuple(client_id, username, password); }
 
-void LoginCommand::execute(World& /*world*/) {}
+void LoginCommand::execute(Gameloop& game) {}

@@ -8,9 +8,11 @@
 
 #include "server/includes/core/data.h"
 #include "server/includes/core/snapshot.h"
+#include "server/includes/responses/response_bank_content.h"
 #include "server/includes/responses/response_login.h"
 #include "server/includes/responses/response_signup.h"
 #include "server/includes/responses/response_snapshot.h"
+#include "server/includes/responses/response_trader_catalog.h"
 #include "server/print.h"
 
 #define INVALID_REGISTER "Username already taken."
@@ -28,6 +30,8 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
     loader_conf.loadItems(this->info_items);
 }
 
+void Gameloop::processSpawnPlayer(Id player_id) { this->world.spawnPlayer(player_id); }
+
 void Gameloop::handleSignup(SignupCommand* cmd) {
     auto [id, username, pass, traits] = cmd->getSignupInfo();
     Print::printNewPlayerArrived(id, username, pass, static_cast<TypeRace>(traits.race),
@@ -38,7 +42,7 @@ void Gameloop::handleSignup(SignupCommand* cmd) {
         return;
     }
     /*Creacion del jugador*/
-    cmd->execute(this->world); /*Ubico al jugador en el mundo*/
+    cmd->execute(this); /*Ubico al jugador en el mundo*/
     User user(std::move(username), std::move(pass));
     Character character(this->info_races.at(static_cast<TypeRace>(traits.race)),
                         this->info_clases.at(static_cast<TypeClase>(traits.clase)), traits.head,
@@ -79,19 +83,15 @@ void Gameloop::handleLogin(LoginCommand* cmd) {
     // payload.str()));
 }
 
+void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
+    this->monitor.queueTheServerResponse(player_id, std::move(response));
+}
+
 void Gameloop::executeBroacastSnapshot() {
     Snapshot snap = this->resp.buildSnapshot(this->players, this->world);
     std::shared_ptr<ResponseSnapshot> resp_snap =
             std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
-}
-
-void Gameloop::executeMovePlayer(MoveCommand* cmd) {
-    auto [player_id, direction] = cmd->getMoveInfo();
-    if (this->world.isWalkable(player_id, direction)) {
-        cmd->execute(this->world);
-        this->executeBroacastSnapshot();
-    }
 }
 
 bool Gameloop::isItPossibleToAttack(const Id& player_id, const Id& victim_id, Weapon& weapon) {
@@ -165,25 +165,234 @@ void Gameloop::executeAttackPlayer(AttackCommand* cmd) {
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
     }
     victim->receiveDamage(damage_by_attacker);
-    this->executeBroacastSnapshot();
+    this->players[attacker_id]->breakMeditation();
+}
+
+void Gameloop::processMovePlayer(Id player_id, Direction dir) {
+    this->players[player_id]->breakMeditation();
+    this->world.movePlayer(player_id, dir);
+}
+
+void Gameloop::process_buy_item(Id player_id, Id npc_id, Id item_id) {
+    NPC* npc_generico = this->info_NPC.at(npc_id).get();
+    TraderNPC* trader = dynamic_cast<TraderNPC*>(npc_generico);
+    if (!trader) {
+        return;  // Enviar error como "Este NPC no vende ni compra nada."
+    }
+
+    auto& tienda = trader->getStore();
+    TypeItem tipo_buscado = static_cast<TypeItem>(item_id);
+    if (tienda.count(tipo_buscado) == 0) {
+        return;  // Enviar error como "El NPC no vende ese ítem."
+    }
+
+    Item* item_template = tienda.at(tipo_buscado).get();
+    Player* player = this->players[player_id].get();
+
+    if (!player->canBuy(item_template)) {
+        return;  // Enviar error como "Oro insuficiente o inventario lleno."
+    }
+
+    Id id_instance = this->next_item_instance_id++;
+    player->buyItem(item_template, id_instance);
+    player->breakMeditation();
+}
+
+void Gameloop::process_sell_item(Id player_id, Id npc_id, Id instance_id) {
+    NpcInstance* npc = this->world.getNpcById(npc_id);
+    if (!npc)
+        return;
+
+    NPC* npc_generico = this->info_NPC.at(npc->type_npc).get();
+    if (!npc_generico)
+        return;
+
+    TraderNPC* trader = dynamic_cast<TraderNPC*>(npc_generico);
+    if (!trader) {
+        return;  // Enviar error como "Este NPC no vende ni compra nada."
+    }
+
+    Player* player = this->players[player_id].get();
+    if (!player->canSell(instance_id)) {
+        return;  // Error: "No tenés ese ítem en el inventario"
+    }
+
+    auto& tienda = trader->getStore();
+
+    ItemInstance* itemInstance = player->getItemInstance(instance_id);
+    TypeItem tipo_buscado = itemInstance->type;
+    if (tienda.count(tipo_buscado) == 0) {
+        return;  // Enviar error como "El NPC no compra ese ítem."
+    }
+
+    Item* item_template = tienda.at(tipo_buscado).get();
+    uint32_t sell_price = item_template->selling_price;
+
+    player->sellItem(instance_id, sell_price);
+    player->breakMeditation();
+}
+
+void Gameloop::processPlayerPickUp(Id player_id) {
+    Player* player = this->players.at(player_id).get();
+
+    Pose player_pose = player->getPose();
+
+    ItemInstance* ground_item = this->world.getItemAt(player_pose.position);
+
+    if (!ground_item) {
+        // Enviar error al cliente: "No hay nada tirado acá."
+        return;
+    }
+
+    if (player->getInventorySize() >= player->getMaxInventorySize()) {
+        // Enviar error al cliente: "Inventario lleno."
+        return;
+    }
+
+    std::unique_ptr<ItemInstance> picked_item = this->world.pickUpItem(player_pose.position);
+
+    player->addItemToInventory(std::move(picked_item));
+
+    player->breakMeditation();
+}
+
+void Gameloop::processPlayerDropItem(Id player_id, Id instance_id) {
+    Player* player = this->players.at(player_id).get();
+
+    if (!player->canSell(instance_id)) {
+        // Enviar error al cliente: "No tenes ese item en el inventario."
+        return;
+    }
+
+    Pose player_pose = player->getPose();
+
+    if (!this->world.canDropItemAt(player_pose.position)) {
+        // Enviar error: "No podes tirar objetos acá."
+        return;
+    }
+
+    std::unique_ptr<ItemInstance> item_to_drop = player->removeItemFromInventory(instance_id);
+
+    this->world.dropItem(player_pose.position, std::move(item_to_drop));
+
+    player->breakMeditation();
+}
+
+void Gameloop::processPlayerWithdrawItem(Id player_id, Id instance_id) {
+    Player* player = this->players.at(player_id).get();
+
+    if (!player->hasItemInBank(instance_id)) {
+        // Error: "Ese objeto no está en tu cuenta bancaria."
+        return;
+    }
+
+    if (player->getInventorySize() >= player->getMaxInventorySize()) {
+        // Error: "No tenes espacio en el inventario para retirar esto."
+        return;
+    }
+    std::unique_ptr<ItemInstance> item_to_withdraw = player->removeItemFromBank(instance_id);
+
+    player->addItemToInventory(std::move(item_to_withdraw));
+    player->breakMeditation();
+}
+
+void Gameloop::processPlayerDepositItem(Id player_id, Id instance_id) {
+    Player* player = this->players.at(player_id).get();
+
+    if (!player->canSell(instance_id)) {
+        // Error: "No tenes ese item en el inventario."
+        return;
+    }
+
+    if (player->getBankSize() >= player->getMaxBankSize()) {
+        // Error: "No tenes espacio en el banco para depositar esto."
+        return;
+    }
+    std::unique_ptr<ItemInstance> item_to_deposit = player->removeItemFromInventory(instance_id);
+
+    player->addItemToBank(std::move(item_to_deposit));
+    player->breakMeditation();
+}
+
+void Gameloop::processPlayerDepositGold(Id player_id, uint32_t amount) {
+    Player* player = this->players.at(player_id).get();
+    if (amount > player->getInventoryGold()) {
+        // Error: "No tenes esa cantidad de oro en el inventario."
+        return;
+    }
+    player->decreaseInventoryGold(amount);
+    player->increaseBankGold(amount);
+    player->breakMeditation();
+}
+
+void Gameloop::processPlayerWithdrawGold(Id player_id, uint32_t amount) {
+    Player* player = this->players.at(player_id).get();
+    if (amount > player->getBankGold()) {
+        // Error: "No tenes esa cantidad de oro en el banco."
+        return;
+    }
+    player->decreaseBankGold(amount);
+    player->increaseInventoryGold(amount);
+    player->breakMeditation();
+}
+
+void Gameloop::processPlayerMeditate(Id player_id) {
+    // En el update del gameloop donde se manejan los ticks se debe manejar la regeneracion de mana
+    // cuando medita
+    Player* player = this->players.at(player_id).get();
+
+    if (!player->isAlive()) {
+        return;
+    }
+
+    player->toggleMeditation();
+}
+
+void Gameloop::processPlayerHeal(Id player_id) {
+    Player* player = this->players.at(player_id).get();
+    if (!player->isAlive()) {
+        return;
+    }
+    player->restoreAllHp();
+    player->restoreAllMana();
+}
+
+
+void Gameloop::processListItems(Id player_id, Id npc_id) {
+    Player* player = this->players.at(player_id).get();
+    NpcInstance* npc = this->world.getNpcById(npc_id);
+    if (!npc)
+        return;
+
+    TypeNPC npc_type = npc->type_npc;
+    NPC* npc_generico = this->info_NPC.at(npc_type).get();
+
+    if (!npc_generico)
+        return;
+
+    InteractionResult result = npc_generico->interact();
+
+    if (result.type == InteractionType::TRADER_SHOP) {
+        auto response = std::make_unique<ResponseTraderCatalog>(*(result.trader_store));
+
+        this->sendResponseToPlayer(player_id, std::move(response));
+    } else if (result.type == InteractionType::BANK_BOX) {
+        std::vector<MsgItemInfo> items_info = player->getBankItemsInfo();
+        uint32_t bank_gold = player->getBankGold();
+
+        auto response = std::make_unique<ResponseBankContent>(items_info, bank_gold);
+
+        this->sendResponseToPlayer(player_id, std::move(response));
+    }
 }
 
 void Gameloop::execuetRequest() {
     std::unique_ptr<Command> cmd;
     while (this->commands_queue.try_pop(cmd)) {
-        std::cerr << "[Gameloop] Processing command for player " << cmd->getIdPlayer() << std::endl;
-        if (SignupCommand* signup_cmd = dynamic_cast<SignupCommand*>(cmd.get())) {
-            std::cerr << "[Gameloop] -> SignupCommand" << std::endl;
-            this->handleSignup(signup_cmd);
-        } else if (LoginCommand* login_cmd = dynamic_cast<LoginCommand*>(cmd.get())) {
-            std::cerr << "[Gameloop] -> LoginCommand" << std::endl;
-            this->handleLogin(login_cmd);
-        } else if (MoveCommand* move_cmd = dynamic_cast<MoveCommand*>(cmd.get())) {
-            this->executeMovePlayer(move_cmd);
-        } else if (AttackCommand* attack_cmd = dynamic_cast<AttackCommand*>(cmd.get())) {
-            this->executeAttackPlayer(attack_cmd);
-        } else {
-            std::cerr << "[Gameloop] -> UnknownCommand (discarded)" << std::endl;
+        try {
+            cmd->execute(*this);
+        } catch (const std::exception& e) {
+            std::cerr << "[Gameloop] execuetRequest() exited: " << e.what() << std::endl;
         }
     }
 }
@@ -193,6 +402,8 @@ void Gameloop::run() {
     try {
         while (should_keep_running()) {
             this->execuetRequest();
+            // world.update();
+            this->executeBroacastSnapshot();
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     } catch (const ClosedQueue&) {

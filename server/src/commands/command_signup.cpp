@@ -8,4 +8,4 @@ SignupInfo SignupCommand::getSignupInfo() {
     return std::make_tuple(client_id, this->username, this->password, this->charact);
 }
 
-void SignupCommand::execute(World& world) { world.spawnPlayer(client_id); }
+void SignupCommand::execute(Gameloop& game) { game.processSpawnPlayer(client_id); }

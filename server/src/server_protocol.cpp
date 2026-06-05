@@ -248,6 +248,66 @@ void ServerProtocol::sendMap(const Map& map) {
     }
 }
 
+void ServerProtocol::sendTraderCatalog(const std::map<TypeItem, uint32_t>& catalog) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t) + (catalog.size() * 5);
+
+    std::vector<char> buffer(size_total);
+    size_t offset = 0;
+
+    constexpr uint8_t opcode = TRADER_CATALOG;
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
+
+    uint16_t net_total_items = htons(static_cast<uint16_t>(catalog.size()));
+    std::memcpy(buffer.data() + offset, &net_total_items, sizeof(net_total_items));
+    offset += sizeof(net_total_items);
+
+    for (auto& [item_type, price]: catalog) {
+        uint8_t type_byte = static_cast<uint8_t>(item_type);
+        std::memcpy(buffer.data() + offset, &type_byte, sizeof(type_byte));
+        offset += sizeof(type_byte);
+
+        uint32_t net_price = htonl(price);
+        std::memcpy(buffer.data() + offset, &net_price, sizeof(net_price));
+        offset += sizeof(net_price);
+    }
+    try {
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendTraderCatalog -- ") + e.what());
+    }
+}
+
+void ServerProtocol::sendBankContent(const std::vector<MsgItemInfo>& items, uint32_t gold) {
+    const size_t size_items = items.size() * sizeof(MsgItemInfo);
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + size_items;
+
+    std::vector<char> buffer(size_total);
+    size_t offset = 0;
+
+    constexpr uint8_t opcode = BANK_CONTENT;
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
+
+    uint32_t net_gold = htonl(gold);
+    std::memcpy(buffer.data() + offset, &net_gold, sizeof(net_gold));
+    offset += sizeof(net_gold);
+
+    uint16_t net_total_items = htons(static_cast<uint16_t>(items.size()));
+    std::memcpy(buffer.data() + offset, &net_total_items, sizeof(net_total_items));
+    offset += sizeof(net_total_items);
+
+    if (!items.empty()) {
+        std::memcpy(buffer.data() + offset, items.data(), size_items);
+        offset += size_items;
+    }
+    try {
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendBankContent -- ") + e.what());
+    }
+}
+
 bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0)

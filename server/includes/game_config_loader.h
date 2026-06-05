@@ -8,7 +8,6 @@
 #include <unordered_map>
 
 #include <toml++/toml.hpp>
-
 #include "server/includes/core/config.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/race.h"

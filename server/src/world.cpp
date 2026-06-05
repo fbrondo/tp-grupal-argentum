@@ -157,6 +157,15 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
     return true;
 }
 
+bool World::canDropItemAt(const Position& pos) {
+    for (auto& [id, item]: this->items_on_flor) {
+        if (item.pos == pos) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool World::isSafeZONE(const Position& /*pos*/) { return true; }
 
 /*El estado del mundo cambia*/
@@ -180,6 +189,8 @@ Position World::positionNPCInTheWorld(const Id& npc_id) {
     return this->npcs_positions[npc_id].pose.position;
 }
 
+NpcInstance* World::getNpcById(const Id& npc_id) { return &this->npcs_positions[npc_id]; }
+
 
 int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {
     const Position& pos_attacker =
@@ -202,33 +213,62 @@ int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const I
 //     return instance_id;
 // }
 
-// void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
-//     if (amount == 0) return;
-//
-//     for (auto& pile : this->gold_on_floor) {
-//         if (pile.second.pos == pos) {
-//             pile.second.amount += amount;
-//             return;
-//         }
-//     }
-//
-//     GoldPile new_pile;
-//     new_pile.amount = amount;
-//     new_pile.pos = pos;
-//
-//     //Bueno aca faltaria asignar un id a la pila de oro
-//     this->gold_on_floor.emplace(new_instance_id, std::move(new_pile));
-// }
-//
-// void World::collectGoldAt(const Position& pos, Id& player_gold) {
-//     auto it = this->gold_on_floor.begin();
-//     while (it != this->gold_on_floor.end()) {
-//         if (it->second.pos == pos) {
-//             player_gold += it->second.amount;
-//             it = this->gold_on_floor.erase(it);
-//             return;
-//         } else {
-//             ++it;
-//         }
-//     }
-// }
+void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
+    if (amount == 0)
+        return;
+
+    for (auto& pile: this->gold_on_floor) {
+        if (pile.second.pos == pos) {
+            pile.second.amount += amount;
+            return;
+        }
+    }
+
+    GoldPile new_pile;
+    new_pile.amount = amount;
+    new_pile.pos = pos;
+
+    // Bueno aca faltaria asignar un id a la pila de oro
+    this->gold_on_floor.emplace(new_instance_id, std::move(new_pile));
+}
+
+void World::collectGoldAt(const Position& pos, Id& player_gold) {
+    auto it = this->gold_on_floor.begin();
+    while (it != this->gold_on_floor.end()) {
+        if (it->second.pos == pos) {
+            player_gold += it->second.amount;
+            it = this->gold_on_floor.erase(it);
+            return;
+        } else {
+            ++it;
+        }
+    }
+}
+
+ItemInstance* World::getItemAt(const Position& pos) {
+    for (auto& [id, item]: this->items_on_flor) {
+        if (item.pos == pos) {
+            return &item;
+        }
+    }
+    return nullptr;
+}
+
+std::unique_ptr<ItemInstance> World::pickUpItem(const Position& pos) {
+    auto it = this->items_on_flor.begin();
+    while (it != this->items_on_flor.end()) {
+        if (it->second.pos == pos) {
+            auto item_ptr = std::make_unique<ItemInstance>(std::move(it->second));
+            this->items_on_flor.erase(it);
+            return item_ptr;
+        } else {
+            ++it;
+        }
+    }
+    return nullptr;
+}
+
+void World::dropItem(const Position& pos, std::unique_ptr<ItemInstance> item) {
+    Id item_id = item->id;
+    this->items_on_flor.emplace(item_id, std::move(*item));
+}

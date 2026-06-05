@@ -8,7 +8,7 @@
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
-#include "server/includes/npc/citynpc.h"
+#include "server/includes/npc/trader.h"
 // #include "command.h"
 #include "server/includes/player.h"
 

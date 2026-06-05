@@ -6,11 +6,10 @@
 
 class BuyItemCommand: public Command {
 private:
-    uint32_t npc_id;
-    uint16_t item_id;
-    uint16_t quantity;
+    Id npc_id;
+    Id item_id;
 
 public:
-    BuyItemCommand(uint32_t id, uint32_t npc_id, uint16_t item_id, uint16_t quantity);
-    void execute(World& world) override;
+    BuyItemCommand(Id id, Id npc_id, Id item_id);
+    void execute(Gameloop& game) override;
 };

@@ -3,4 +3,9 @@
 Banker::Banker(TypeNPC type, std::string&& name, Pose&& pose_):
         CityNPC(type, std::move(name), std::move(pose_)) {}
 
-// void Banker::interact(const Id& id_player, World& word, Comand& cmd) {}
+InteractionResult Banker::interact() {
+    InteractionResult result;
+    result.type = InteractionType::BANK_BOX;
+    result.open_bank = true;
+    return result;
+}

@@ -6,6 +6,6 @@
 
 class DisconnectCommand: public Command {
 public:
-    explicit DisconnectCommand(uint32_t id);
-    void execute(World& world) override;
+    explicit DisconnectCommand(Id id);
+    void execute(Gameloop& game) override;
 };

@@ -2,6 +2,6 @@
 
 Merchant::Merchant(TypeNPC type, std::string&& name, Pose&& pose,
                    std::map<TypeItem, std::unique_ptr<Item>>&& store):
-        CityNPC(type, std::move(name), std::move(pose)), store(std::move(store)) {}
+        TraderNPC(type, std::move(name), std::move(pose), std::move(store)) {}
 
 // void Merchant::interact(const Id& id_player, World& word, Comand& cmd) {}

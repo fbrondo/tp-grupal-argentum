@@ -1,6 +1,7 @@
 #ifndef RESPONSE_BUILDER_H
 #define RESPONSE_BUILDER_H
 #include <map>
+#include <memory>
 
 #include "server/includes/core/snapshot.h"
 #include "server/includes/player.h"

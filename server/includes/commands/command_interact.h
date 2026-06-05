@@ -10,5 +10,5 @@ class InteractCommand: public Command {
 
 public:
     InteractCommand(uint32_t id, uint32_t npc_id);
-    void execute(World& world) override;
+    void execute(Gameloop& game) override;
 };

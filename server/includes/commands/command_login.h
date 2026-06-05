@@ -17,5 +17,5 @@ private:
 public:
     LoginCommand(Id id, const std::string& name, const std::string& pass);
     LoginInfo getLoginInfo();
-    void execute(World& world) override;
+    void execute(Gameloop& game) override;
 };
