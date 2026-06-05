@@ -82,7 +82,7 @@ description = "MAGICAL"
 body_part = 3 #HAND
 classif = 3 #HEALING
 mana_cost = 100
-#range = 3
+range = 3
 selling_price = 15
 purchase_price = 20
 

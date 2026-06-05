@@ -2,91 +2,84 @@
 #-----------------------------------------------------------------------------------------------------------------------
 [[npcs]]
 id_type = 1 #GOBLIN DE CAMPO
-name = "Goblin"
+name = "Goblin de campo"
 attack_range = 4
 hp_max_initial = 40
-id_region = 5 #CAMPO
-minimalLevel = 1
-maximunLevel = 8
+minimal_level = 1
+maximun_level = 8
+#CAMPO: 5
 #--------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 2 #GOBLIN DE CAMPO
-name = "Goblin"
+id_type = 2 #GOBLIN DE BOSQUE
+name = "Goblin de bosque"
 attack_range = 4
 hp_max_initial = 40
-id_region = 3 #FOREST
-minimalLevel = 9
-maximunLevel = 14
+minimal_level = 9
+maximun_level = 14
+#FOREST:3
 #------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
 id_type = 3 #ESQUELETO
 name = "Esqueleto"
 attack_range = 3
 hp_max_initial = 80
-id_region = 4 #DESERT
-minimalLevel = 17
-maximunLevel = 23
+minimal_level = 17
+maximun_level = 23
+#DESERT:4
 #--------------------------------------------------------------------------------------------------
 [[npcs]]
 id_type = 4 #ESQUELETO GUERRERO
-name = "Esqueleto"
+name = "Esqueleto guerrero"
 attack_range = 3
 hp_max_initial = 100
-id_region = 2 #MAZMORRA
-minimalLevel = 30
-maximunLevel = 40
+minimal_level = 30
+maximun_level = 40
+#MAZMORRA:2
 #-------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
 id_type = 5
 name = "Zombie"
 attack_range = 4
 hp_max_initial = 150
-id_region = 2 #MAZMORRA
-minimalLevel = 30
-maximunLevel = 40
+minimal_level = 30
+maximun_level = 40
+#MAZMORRA:3
 # -------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 2
-name = "Araña"
+id_type = 6 #ARANA DE MAZMORA
+name = "Araña de mazmorra"
 attack_range = 4
 hp_max_initial = 60
-
-[[npcs.regions]] #En las mazmorras solo van a aparecer estas arañas que tiene en estos niveles "dificiles"
-id_region =  2 #MAZMORRA
-minimalLevel = 32
-maximunLevel = 38
-
-[[npcs.regions]] #En las cavernas solo van a aparecer estas arañas que tiene en estos niveles "dificiles"
+minimal_level = 32
+maximun_level = 38
+#MAZMORRA:2
+#-----------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 7 #ARANA DE CAVERNA
+name = "Araña de carvena"
+attack_range = 4
+hp_max_initial = 60
 id_region = 1 #CAVERNA
-minimalLevel = 24
-maximunLevel = 30
-
-[[npcs.regions]] #En los bosques solo van a aparecer estas arañas que tiene en estos niveles "medios"
-id_region = 3 #FOREST
-minimalLevel = 10
-maximunLevel = 15
-
+minimal_level = 24
+maximun_level = 30
+#--------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 8 #ARANA DE BOSQUE
+name = "Araña de bosque"
+attack_range = 4
+hp_max_initial = 30
+minimal_level = 10
+maximun_level = 15
+#FOREST:3
 #------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 4
+id_type = 9 #ORCO
 name = "Orco"
 attack_range = 6
 hp_max_initial = 100
-
-[[npcs.regions]] #En las mazmorras solo van a aparecer orcos que esten en estos niveles "dificiles"
-id_region =  2 #MAZMORRA
-minimalLevel = 31
-maximunLevel = 40
-
-[[npcs.regions]] #En las cavernas solo van a aparecer orcos que esten en estos niveles "dificiles"
-id_region = 1 #CAVERNA
-minimalLevel = 25
-maximunLevel = 30
-
-[[npcs.regions]] #En el Desierto solo van a aparecer orcos que esten en estos niveles "medio/dificiles"
-id_region = 4 #DESERT
-minimalLevel = 17
-maximunLevel = 20
+minimal_level = 10
+maximun_level = 20
+#CAVERN:1
 #------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
 id_type = 5

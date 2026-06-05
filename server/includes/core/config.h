@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <filesystem>
+#include <unordered_map>
 
 using Path = std::filesystem::path;
 struct PathsConfig {
@@ -29,6 +30,17 @@ struct ClanConfig {
     uint32_t max_members;
 };
 
+struct NPCConfig {
+    TypeNPC type;
+    std::string name;
+    /*Solo las criaturas tienen las siguientes campos*/
+    uint16_t attack_range;
+    uint16_t hp_max_initial;
+    uint16_t minimal_level;
+    uint16_t maximun_level;
+};
+
+
 struct TimesConfig {
     uint32_t server_update_frecuency;
     uint32_t update_player_atributes;
@@ -42,9 +54,10 @@ struct GameConfig {
     PlayerStateInitConfig player_init;
     ClanConfig clan;
     TimesConfig times;
-
-    GameConfig(PlayerStateInitConfig p_init, ClanConfig clan, const TimesConfig& times):
-            player_init(p_init), clan(clan), times(times) {}
+    std::unordered_map<TypeRace, Race> races;
+    std::unordered_map<TypeClase, Clase> clases;
+    std::unordered_map<TypeNPC, NPCConfig> npcs;
+    GameConfig() = default;
 };
 
 #endif

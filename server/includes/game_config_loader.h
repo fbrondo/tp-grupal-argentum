@@ -13,6 +13,7 @@
 #include "server/includes/core/item.h"
 #include "server/includes/core/race.h"
 #include "server/includes/definitions.h"
+#include "server/includes/core/region.h"
 
 using Table = toml::table;
 using Table_array = toml::array;
@@ -25,11 +26,9 @@ private:
     FileData data;
 
     void loadPaths();
-    // void loadFilesData();
+    void loadNpcs(std::unordered_map<TypeNPC, NPCConfig>& npcs);
+    Path loadPath(const Table& config, const std::string& section_key, const std::string& fiel_key) const;
     Statistics loadTableStatistics(Table_array* stats_array);
-    Path loadPath(const Table& config, const std::string& section_key,
-                  const std::string& fiel_key) const;
-
 
 public:
     GameConfigLoader(const GameConfigLoader& other) = delete;
@@ -41,6 +40,8 @@ public:
     void loadRaces(std::unordered_map<TypeRace, Race>& info_races);
     void loadClases(std::unordered_map<TypeClase, Clase>& info_clases);
     void loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items);
+
+    void loadRegions(std::map<Region, std::unique_ptr<RegionWorld>>& info_regions);
     GameConfig getdGameConfiguration();
 };
 

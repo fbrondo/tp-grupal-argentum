@@ -35,12 +35,13 @@
 class Gameloop: public Thread {
 
 private:
+    Id nex_npc_instance{0};
     Id next_item_instance_id{1};
     MonitorQueues& monitor;
     QueueCmd& commands_queue;
 
     const FileData files_data;
-    const GameConfig game_conf;
+    const GameConfig conf;
     World world;
     PersistenceManager persistence;
     /*Esto tal vez deberia pasarse por referencia*/

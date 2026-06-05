@@ -21,11 +21,13 @@
 */
 class Creature: public CombatEntity {
 private:
-    World& world;
+    uint16_t range_attack;
+    uint16_t level;
+    uint32_t attack_cooldown_current;
     TypeNPC type_creature;
+    World& world;
     std::vector<TypeItem> drop_items_pool;
-    const uint16_t range_attack;
-    const uint16_t level;
+
     // uint16_t drop_gold;
 
 public:

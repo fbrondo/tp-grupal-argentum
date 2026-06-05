@@ -6,6 +6,7 @@ is_safe_zone = false
 max_criatures = 20
 min_treasure = 4
 max_treasure = 6
+id_types_npcs = ["Araña de carvena", "Orco", "Golem"] #ARANA DE CAVERNA=1,
 #--------------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 2 #MAZMORRA
@@ -13,11 +14,13 @@ is_safe_zone = false
 max_criatures = 40
 min_treasure = 1
 max_treasure = 4
+id_types_npcs = ["Araña de mazmorra", "Esqueleto guerrero", "Zombie"]
 #----------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 3 #FOREST
 is_safe_zone = false
 max_criatures = 20
+id_types_npcs = ["Goblin de bosque", "Araña de bosque"]
 #----------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 4 #DESERT
@@ -25,30 +28,28 @@ is_safe_zone = false
 max_criatures = 20
 min_treasure = 2
 max_treasure = 4
+id_types_npcs = ["Esqueleto", "Golem infernal"]
 #----------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 5 #CAMPO
 is_safe_zone = false
 max_criatures = 20
+id_types_npcs = ["Goblin de campo"]
 #--------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 6 # CITY
 is_safe_zone = true #No se permiten player vs player ni NPCs
-minimal_merchants = 2
-maximun_merchants = 5
-minimal_priest = 2
-maximun_priest = 6
-minimal_bankers = 2
-maximun_bankers = 6
+merchants = 5
+priest = 6
+bankers = 6
+id_types_npcs = ["Comerciante", "Sacerdote", "Banquero"]
 #---------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 7 #PUEBLO
 is_safe_zone = true #No se permiten player vs player ni NPCs
-minimal_merchants = 1
-maximun_merchants = 4
-minimal_priest = 1
-maximun_priest = 3
-minimal_bankers = 1
-maximun_bankers = 2
+merchants = 4
+priest = 3
+bankers = 2
+id_types_npcs = ["Comerciante", "Sacerdote", "Banquero"]
 #------------------------------------------------------------------------------------------------------
 

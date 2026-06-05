@@ -30,6 +30,8 @@ struct Position {
 struct Pose {
     Position position;
     Direction direct;
+
+    Pose() = default;
     Pose(Position pos_, Direction direct_): position(pos_), direct(direct_) {}
 
     Pose(Pose&&) = default;

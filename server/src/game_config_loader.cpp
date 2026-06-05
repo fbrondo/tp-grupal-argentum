@@ -30,6 +30,22 @@ Path GameConfigLoader::loadPath(const Table& config, const std::string& section_
     }
 }
 
+void GameConfigLoader::loadNpcs(std::unordered_map<TypeNPC, NPCConfig>& npcs) {
+    Table config = toml::parse_file(paths.npcs.string());
+    Table_array* npcs_array = config["npcs"].as_array();
+    for (const auto& npc_node: *npcs_array) {
+        const Table& npc = *npc_node.as_table();
+        NPCConfig npc_config;
+        npc_config.type =  static_cast<TypeNPC>(npc["id_type"].value_or(0));
+        npc_config.name = npc["name"].value_or<std::string>("");
+        npc_config.attack_range  = static_cast<uint16_t>(npc["attack_range"].value_or(0));
+        npc_config.hp_max_initial= static_cast<uint16_t>(npc["hp_max_initial"].value_or(0));
+        npc_config.minimal_level = static_cast<uint16_t>(npc["minimal_level"].value_or(0));
+        npc_config.maximun_level = static_cast<uint16_t>(npc["maximun_level"].value_or(0));
+        npcs.emplace(npc_config.type, npc_config);
+    }
+}
+
 void GameConfigLoader::loadPaths() {
     try {
         Path path = this->config_dir / FILE_PATHS;

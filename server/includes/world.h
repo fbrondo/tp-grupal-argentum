@@ -35,7 +35,6 @@
 
 
 struct StateWorld {
-
     /*Lista de npc*/
     /*Lista de items en el piso*/
 };
@@ -60,6 +59,7 @@ private:
 
     std::vector<Zone> zones;                // todas las zonas identificadas
     std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
+    std::map<Id, Zone> zones;                // todas las zonas identificadas
 
     MatrizMap map_tiles;  // matriz
     std::map<Id, Position> players_positions;
@@ -68,7 +68,6 @@ private:
     std::map<Id, GoldPile> gold_on_floor;
     std::map<Region, uint32_t> region_count;
     // Id next_item_instance_id{1};
-    // const std::map<TypeItem, std::unique_ptr<Item>>& info_items;
 
     void buildTilesWorld();
     void identifyZones();
@@ -96,9 +95,9 @@ public:
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
 
-    void spawnItemOnFloor(const Position& pos, TypeItem item_type);
-    void spawnGoldOnFloor(const Position& pos, uint16_t amount);
-    void collectGoldAt(const Position& pos, Id& player_gold);
+    // void spawnItemOnFloor(const Position& pos, TypeItem item_type);
+    // void spawnGoldOnFloor(const Position& pos, uint16_t amount);
+    // void collectGoldAt(const Position& pos, Id& player_gold);
 
     Position positionPlayerInTheWorld(const Id& player_id);
     Position positionNPCInTheWorld(const Id& npc_id);

@@ -29,13 +29,11 @@ struct BanckAccount {
 class Banker: public CityNPC {
 
 private:
-    /*Toda clase de Items menos items magicos*/
-    std::map<TypeItem, std::unique_ptr<Item>> store;
+    std::map<Id, BanckAccount> bank ;
 
 public:
     Banker(TypeNPC type, std::string&& name, Pose&& pos);
-    ~Banker() = default;
-    // void interact(const Id& id_player, World& word, Comand& cmd) override;
+    ~Banker() = default;;
 };
 
 #endif

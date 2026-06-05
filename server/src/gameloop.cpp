@@ -45,7 +45,7 @@ void Gameloop::handleSignup(SignupCommand* cmd) {
                         traits.body);
     Pose pose(this->world.positionPlayerInTheWorld(id), UP);
     std::unique_ptr<Player> new_player = std::make_unique<Player>(
-            std::move(user), std::move(pose), std::move(character), this->game_conf.player_init);
+            std::move(user), std::move(pose), std::move(character), this->conf.player_init);
     PlayerData player_data = new_player->getPlayerData();
     this->persistence.savePlayer(player_data);
     this->players.emplace(id, std::move(new_player));
