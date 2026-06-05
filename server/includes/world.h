@@ -17,6 +17,8 @@
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
 #include "server/includes/npc/npc.h"
+#include "server/includes/npc/citynpc.h"
+#include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
 /*Representa mi mundo del juego:
     - Se sopne que recibo algo del editor para crear mi matriz
@@ -102,6 +104,7 @@ public:
 
     Position positionPlayerInTheWorld(const Id& player_id);
     Position positionNPCInTheWorld(const Id& npc_id);
+    NpcInstance* getNpcById(const Id& npc_id);
 
     int distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id);
 };

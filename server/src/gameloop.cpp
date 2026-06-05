@@ -90,7 +90,6 @@ void Gameloop::executeMovePlayer(MoveCommand* cmd) {
     auto [player_id, direction] = cmd->getMoveInfo();
     if (this->world.isWalkable(player_id, direction)) {
         cmd->execute(this->world);
-        this->executeBroacastSnapshot();
     }
 }
 
@@ -165,25 +164,67 @@ void Gameloop::executeAttackPlayer(AttackCommand* cmd) {
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
     }
     victim->receiveDamage(damage_by_attacker);
-    this->executeBroacastSnapshot();
 }
+
+void Gameloop::process_buy_item(Id player_id, Id npc_id, Id item_id) {
+    NpcInstance* npc = this->world.getNpcById(npc_id);
+    NPC* npc_generico = this->info_NPC.at(npc_id).get();
+    TraderNPC* trader = dynamic_cast<TraderNPC*>(npc_generico);
+    if (!trader) {
+        return; // Enviar error como "Este NPC no vende ni compra nada."
+    }
+
+    auto& tienda = trader->getStore();
+    TypeItem tipo_buscado = static_cast<TypeItem>(item_id);
+    if (tienda.count(tipo_buscado) == 0) {
+        return;  // Enviar error como "El NPC no vende ese ítem."
+    }
+
+    Item* item_template = tienda.at(tipo_buscado).get();
+
+    if (!this->players[player_id]->canBuy(item_template)) {
+        return; // Enviar error como "Oro insuficiente o inventario lleno."
+    }
+
+    Id id_instance = this->next_item_instance_id++;
+    this->players[player_id]->buyItem(item_template, id_instance);
+}
+
+void Gameloop::process_sell_item(Id player_id, Id npc_id, Id instance_id) {
+    NpcInstance* npc = this->world.getNpcById(npc_id);
+    NPC* npc_generico = this->info_NPC.at(npc_id).get();
+    TraderNPC* trader = dynamic_cast<TraderNPC*>(npc_generico);
+    if (!trader) {
+        return; // Enviar error como "Este NPC no vende ni compra nada."
+    }
+
+    Player *player = this->players[player_id].get();
+    if (!player->canSell(instance_id)) {
+        return; // Error: "No tenés ese ítem en el inventario"
+    }
+
+    auto& tienda = trader->getStore();
+    
+    ItemInstance *itemInstance = player->getItemInstance(instance_id);
+    TypeItem tipo_buscado = itemInstance->type;
+    if (tienda.count(tipo_buscado) == 0) {
+        return;  // Enviar error como "El NPC no compra ese ítem."
+    }
+
+    Item* item_template = tienda.at(tipo_buscado).get();
+    uint32_t sell_price = item_template->selling_price;
+
+    player->sellItem(instance_id, sell_price);
+}
+
 
 void Gameloop::execuetRequest() {
     std::unique_ptr<Command> cmd;
     while (this->commands_queue.try_pop(cmd)) {
-        std::cerr << "[Gameloop] Processing command for player " << cmd->getIdPlayer() << std::endl;
-        if (SignupCommand* signup_cmd = dynamic_cast<SignupCommand*>(cmd.get())) {
-            std::cerr << "[Gameloop] -> SignupCommand" << std::endl;
-            this->handleSignup(signup_cmd);
-        } else if (LoginCommand* login_cmd = dynamic_cast<LoginCommand*>(cmd.get())) {
-            std::cerr << "[Gameloop] -> LoginCommand" << std::endl;
-            this->handleLogin(login_cmd);
-        } else if (MoveCommand* move_cmd = dynamic_cast<MoveCommand*>(cmd.get())) {
-            this->executeMovePlayer(move_cmd);
-        } else if (AttackCommand* attack_cmd = dynamic_cast<AttackCommand*>(cmd.get())) {
-            this->executeAttackPlayer(attack_cmd);
-        } else {
-            std::cerr << "[Gameloop] -> UnknownCommand (discarded)" << std::endl;
+        try {
+            cmd->execute(*this); //Cambiar world en command a gameloop (cuando termine los comandos cambio todos)
+        } catch (const std::exception& e) {
+            std::cerr << "[Gameloop] execuetRequest() exited: " << e.what() << std::endl;
         }
     }
 }
@@ -193,6 +234,8 @@ void Gameloop::run() {
     try {
         while (should_keep_running()) {
             this->execuetRequest();
+            //world.update();
+            this->executeBroacastSnapshot();
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     } catch (const ClosedQueue&) {

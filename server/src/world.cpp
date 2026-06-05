@@ -169,7 +169,6 @@ void World::removePlayer(const Id& player_id) { this->players_positions.erase(pl
 
 void World::movePlayer(const Id& player_id, Direction dir) {
     this->players_positions[player_id] = this->calculatePosition(player_id, dir);
-    Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
 }
 
 Position World::positionPlayerInTheWorld(const Id& player_id) {
@@ -179,6 +178,8 @@ Position World::positionPlayerInTheWorld(const Id& player_id) {
 Position World::positionNPCInTheWorld(const Id& npc_id) {
     return this->npcs_positions[npc_id].pose.position;
 }
+
+NpcInstance* World::getNpcById(const Id& npc_id) { return &this->npcs_positions[npc_id]; }
 
 
 int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {

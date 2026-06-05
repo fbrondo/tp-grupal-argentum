@@ -9,7 +9,7 @@
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
-#include "server/includes/npc/citynpc.h"
+#include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
 
 class Comand;
@@ -19,12 +19,7 @@ class World;
     - comprar
     - vender
 */
-class Merchant: public CityNPC {
-
-private:
-    /*Toda clase de Items menos items magicos*/
-    std::map<TypeItem, std::unique_ptr<Item>> store;
-
+class Merchant: public TraderNPC {
 public:
     Merchant(TypeNPC type, std::string&& name, Pose&& pos,
              std::map<TypeItem, std::unique_ptr<Item>>&& store);

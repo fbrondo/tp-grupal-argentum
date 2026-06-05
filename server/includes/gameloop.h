@@ -64,12 +64,13 @@ private:
     bool isItPossibleToAttack(const Id& player_id, const Id& victim, Weapon& weapon);
     CombatEntity* inSearchOfTheVictimAttack(const Id& id_search);
     std::vector<Defense*> getInfoAboutThePlayerDefensiveEquipment(const Id& player_id);
-    void executeAttackPlayer(AttackCommand* attack_cmd);
-
     void execuetRequest();
 
 public:
     explicit Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue);
+    void executeAttackPlayer(AttackCommand* attack_cmd);
+    void process_buy_item(Id player_id, Id npc_id, Id item_id);
+    void process_sell_item(Id player_id, Id npc_id, Id item_id);
     void run() override;
 };
 

@@ -46,6 +46,43 @@ void Player::updatePose(Position position, Direction direct) {
     Entity::updatePosition(Pose{position, direct});
 }
 
+bool Player::canBuy(const Item* item) const {
+    uint32_t final_price = item->purchase_price;
+    if (this->inv.golden < final_price) {
+        return false;
+    }
+
+    if (this->inv.inventory.size() >= this->inv.max_inventory) {
+        return false;
+    }
+
+    return true;
+}
+
+void Player::buyItem(const Item* item, Id new_instance_id) {
+    uint32_t final_price = item->purchase_price;
+    this->inv.golden -= final_price;
+
+    auto new_instance = std::make_unique<ItemInstance>(
+        new_instance_id,
+        item->type,
+        item->classif,
+        item->body_part_use,
+        this->pose.position
+    );
+
+    this->inv.inventory.emplace(new_instance_id, std::move(new_instance));
+}
+
+bool Player::canSell(const Id instance_id) const {
+    return this->inv.inventory.find(instance_id) != this->inv.inventory.end();
+}
+
+void Player::sellItem(Id instance_id, uint32_t sell_price) {
+    this->inv.golden += sell_price;
+    this->inv.inventory.erase(instance_id);
+}
+
 PlayerData Player::getPlayerData() {
     PlayerData data{};
     std::strncpy(data.username, user.username.c_str(), MAX_DATA);
@@ -111,6 +148,14 @@ std::vector<TypeItem> Player::getEquipment() {
         equipTypes.push_back(type);
     }
     return equipTypes;
+}
+
+Inventory& Player::getInventory() {
+    return this->inv;
+}
+
+ItemInstance* Player::getItemInstance(Id instance_id) {
+    return this->inv.inventory.at(instance_id).get();
 }
 
 void Player::onDeath() {

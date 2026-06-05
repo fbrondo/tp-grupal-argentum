@@ -52,10 +52,16 @@ public:
 
     TypeItem getHandItem();
     std::vector<TypeItem> getEquipment();
+    Inventory& getInventory();
+    ItemInstance *getItemInstance(Id instance_id);
 
     bool hasEnoughMana(uint16_t mana_cost) const;
     void updatePose(Position pos, Direction direct);
 
+    bool canBuy(const Item* item) const;
+    void buyItem(const Item* item, Id id_instance);
+    bool canSell(Id instance_id) const;
+    void sellItem(Id instance_id, uint32_t sell_price);
 
     uint16_t calculateDamage(bool& is_critical, Weapon& weapon);
     uint16_t calculateDefense(std::vector<Defense*> info_defense);
