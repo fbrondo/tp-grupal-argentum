@@ -1,0 +1,201 @@
+/* ===================================================
+   Argentum Online Launcher — Earth Tone Theme
+   Palette: parchment #F0E6D3, rust #9B3A2A,
+            brown #7A5236, tan #C4A882, dark #2C1810
+   =================================================== */
+
+* {
+    font-family: "Segoe UI", "Noto Sans", "Ubuntu", Arial, sans-serif;
+    font-size: 10pt;
+}
+
+QMainWindow, QWidget {
+    background-color: #EDE3D5;
+    color: #2C1810;
+}
+
+
+/* --- Input fields --- */
+
+QLineEdit {
+    background-color: #FFFAF4;
+    border: 1.5px solid #C4A882;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #2C1810;
+    selection-background-color: #9B3A2A;
+    selection-color: #FFFFFF;
+}
+
+QLineEdit:focus {
+    border-color: #9B3A2A;
+}
+
+QLineEdit:disabled {
+    background-color: #E0D8CC;
+    color: #9A8A7A;
+    border-color: #C4B8A8;
+}
+
+/* --- Buttons (default: brown) --- */
+
+QPushButton {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #8C6244, stop:1 #6A4830);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 7px;
+    padding: 7px 18px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+QPushButton:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #A87050, stop:1 #7A5438);
+}
+
+QPushButton:pressed {
+    background-color: #5A3C26;
+    padding-top: 8px;
+    padding-bottom: 6px;
+}
+
+QPushButton:disabled {
+    background-color: #C8BEB4;
+    color: #9A9088;
+}
+
+/* --- Primary action buttons (rust red) --- */
+
+QPushButton#loginBtn,
+QPushButton#crearBtn,
+QPushButton#signupBtn {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #B8442E, stop:1 #882A1A);
+    padding: 8px 24px;
+    font-size: 10.5pt;
+}
+
+QPushButton#loginBtn:hover,
+QPushButton#crearBtn:hover,
+QPushButton#signupBtn:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #CC5238, stop:1 #9B3422);
+}
+
+QPushButton#loginBtn:pressed,
+QPushButton#crearBtn:pressed,
+QPushButton#signupBtn:pressed {
+    background-color: #742A1C;
+}
+
+/* --- Arrow selector buttons (tan, compact) --- */
+
+QPushButton#prevRaceBtn,  QPushButton#nextRaceBtn,
+QPushButton#prevClaseBtn, QPushButton#nextClaseBtn,
+QPushButton#prevHeadBtn,  QPushButton#nextHeadBtn,
+QPushButton#prevBodyBtn,  QPushButton#nextBodyBtn {
+    background-color: #D4BC9A;
+    color: #3C2010;
+    font-weight: normal;
+    border-radius: 5px;
+    padding: 4px 10px;
+    min-width: 26px;
+}
+
+QPushButton#prevRaceBtn:hover,  QPushButton#nextRaceBtn:hover,
+QPushButton#prevClaseBtn:hover, QPushButton#nextClaseBtn:hover,
+QPushButton#prevHeadBtn:hover,  QPushButton#nextHeadBtn:hover,
+QPushButton#prevBodyBtn:hover,  QPushButton#nextBodyBtn:hover {
+    background-color: #B89E7A;
+}
+
+QPushButton#prevRaceBtn:pressed,  QPushButton#nextRaceBtn:pressed,
+QPushButton#prevClaseBtn:pressed, QPushButton#nextClaseBtn:pressed,
+QPushButton#prevHeadBtn:pressed,  QPushButton#nextHeadBtn:pressed,
+QPushButton#prevBodyBtn:pressed,  QPushButton#nextBodyBtn:pressed {
+    background-color: #9A8460;
+}
+
+/* --- Back button --- */
+
+QPushButton#volverBtn {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #9A8A7A, stop:1 #7A6A5A);
+}
+
+QPushButton#volverBtn:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 #AE9E8E, stop:1 #8E7E6E);
+}
+
+QPushButton#volverBtn:pressed {
+    background-color: #6A5A4A;
+}
+
+/* --- Tab widget — modern underline style --- */
+
+QTabWidget::pane {
+    border: none;
+    border-top: 2px solid #C4A882;
+    background-color: #EDE3D5;
+    top: -2px;
+}
+
+QTabBar {
+    background: transparent;
+}
+
+QTabBar::tab {
+    background: transparent;
+    color: #7A6050;
+    padding: 8px 20px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 500;
+}
+
+QTabBar::tab:selected {
+    color: #9B3A2A;
+    border-bottom: 3px solid #9B3A2A;
+    font-weight: 700;
+}
+
+QTabBar::tab:hover:!selected {
+    color: #5A3C26;
+    border-bottom: 3px solid #C4A882;
+}
+
+/* --- Labels --- */
+
+QLabel#statusLabel {
+    color: #9B3A2A;
+    font-style: italic;
+    font-size: 9.5pt;
+}
+
+QLabel#titleLabel,
+QLabel#customLabel {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #5A2C18;
+    padding: 4px 0px;
+}
+
+/* --- Preview box --- */
+
+QLabel#previewLabel {
+    border: 2px solid #8C6040;
+    background-color: #1A1008;
+    border-radius: 6px;
+}
+
+/* --- Status bar --- */
+
+QStatusBar {
+    background-color: #D8CEBC;
+    color: #5A3C26;
+    border-top: 1px solid #C0B09A;
+    font-size: 9pt;
+}
