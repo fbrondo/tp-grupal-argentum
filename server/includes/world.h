@@ -57,7 +57,6 @@ private:
     const uint32_t limit_height;
     const uint32_t limit_width;
 
-    std::vector<Zone> zones;                // todas las zonas identificadas
     std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
     std::map<Id, Zone> zones;                // todas las zonas identificadas
 

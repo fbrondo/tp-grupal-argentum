@@ -20,7 +20,7 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
         monitor(monitor),
         commands_queue(cmmds_queue),
         files_data(loader_conf.getFilesData()),
-        game_conf(loader_conf.getdGameConfiguration()),
+        conf(loader_conf.getdGameConfiguration()),
         world(this->files_data.map),
         persistence(this->files_data) {
     loader_conf.loadRaces(this->info_races);

@@ -72,9 +72,10 @@ void World::identifyZones() {
             zone.region = region;
             zone.zone_id = static_cast<uint32_t>(this->zones.size());
 
-            this->floodFill(Position{x, y}, region, visited, zone);
-            this->zones.push_back(std::move(zone));
             this->zone_count[region]++;
+            this->floodFill(Position{x, y}, region, visited, zone);
+            this->zones.emplace(this->zone_count[region], std::move(zone));
+
         }
     }
 }
@@ -168,7 +169,7 @@ void World::removePlayer(const Id& player_id) { this->players_positions.erase(pl
 
 void World::movePlayer(const Id& player_id, Direction dir) {
     this->players_positions[player_id] = this->calculatePosition(player_id, dir);
-    Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
+    //Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
 }
 
 Position World::positionPlayerInTheWorld(const Id& player_id) {
@@ -189,45 +190,45 @@ int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const I
     return distance;
 }
 
-void World::spawnItemOnFloor(const Position& pos, TypeItem item_type) {
-    Id instance_id = this->next_item_instance_id++;
+// void World::spawnItemOnFloor(const Position& pos, TypeItem item_type) {
+//     Id instance_id = this->next_item_instance_id++;
+//
+//     const Item& template_item = *(this->info_items.at(item_type));
+//
+//     ItemInstance new_item_instance(instance_id, item_type, template_item.getClassif(),
+//                                    template_item.getBodyPart(), pos, 1);
+//
+//     this->items_on_flor.emplace(instance_id, std::move(new_item_instance));
+//     return instance_id;
+// }
 
-    const Item& template_item = *(this->info_items.at(item_type));
-
-    ItemInstance new_item_instance(instance_id, item_type, template_item.getClassif(),
-                                   template_item.getBodyPart(), pos, 1);
-
-    this->items_on_flor.emplace(instance_id, std::move(new_item_instance));
-    return instance_id;
-}
-
-void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
-    if (amount == 0) return;
-
-    for (auto& pile : this->gold_on_floor) {
-        if (pile.second.pos == pos) {
-            pile.second.amount += amount;
-            return;
-        }
-    }
-
-    GoldPile new_pile;
-    new_pile.amount = amount;
-    new_pile.pos = pos;
-
-    //Bueno aca faltaria asignar un id a la pila de oro
-    this->gold_on_floor.emplace(new_instance_id, std::move(new_pile));
-}
-
-void World::collectGoldAt(const Position& pos, Id& player_gold) {
-    auto it = this->gold_on_floor.begin();
-    while (it != this->gold_on_floor.end()) {
-        if (it->second.pos == pos) {
-            player_gold += it->second.amount;
-            it = this->gold_on_floor.erase(it);
-            return;
-        } else {
-            ++it;
-        }
-    }
-}
+// void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
+//     if (amount == 0) return;
+//
+//     for (auto& pile : this->gold_on_floor) {
+//         if (pile.second.pos == pos) {
+//             pile.second.amount += amount;
+//             return;
+//         }
+//     }
+//
+//     GoldPile new_pile;
+//     new_pile.amount = amount;
+//     new_pile.pos = pos;
+//
+//     //Bueno aca faltaria asignar un id a la pila de oro
+//     this->gold_on_floor.emplace(new_instance_id, std::move(new_pile));
+// }
+//
+// void World::collectGoldAt(const Position& pos, Id& player_gold) {
+//     auto it = this->gold_on_floor.begin();
+//     while (it != this->gold_on_floor.end()) {
+//         if (it->second.pos == pos) {
+//             player_gold += it->second.amount;
+//             it = this->gold_on_floor.erase(it);
+//             return;
+//         } else {
+//             ++it;
+//         }
+//     }
+// }

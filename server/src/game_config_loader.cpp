@@ -16,7 +16,6 @@ GameConfigLoader::GameConfigLoader(Path config_dir_): config_dir(std::move(confi
     this->loadPaths();
 }
 
-
 Path GameConfigLoader::loadPath(const Table& config, const std::string& section_key,
                                 const std::string& field_key) const {
     try {
@@ -145,9 +144,8 @@ void GameConfigLoader::loadClases(std::unordered_map<TypeClase, Clase>& info_cla
 const FileData GameConfigLoader::getFilesData() { return this->data; }
 
 void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items) {
-
     Table config = toml::parse_file(paths.items.string());
-    auto* items_array = config.get_as<toml::array>("items");
+    Table_array* items_array = config.get_as<toml::array>("items");
     if (!items_array) {
         throw std::runtime_error("Error: falta array [[items]] en el archivo TOML.");
     }
@@ -182,23 +180,55 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info
                 info_items[type] = std::make_unique<MagicWeapon>(
                         type, body, classif, std::move(name), sell_price, purch_price, min_dam,
                         max_dam, mana_cost, range);
-            } else if (descp == "RANGED_WEAPON") {
-                info_items[type] = std::make_unique<RangedWeapon>(
-                        type, body, classif, std::move(name), sell_price, purch_price, min_dam,
-                        max_dam, range);
             }
         } else if (classif == ITEM_DEFENSIVE) {
             info_items[type] = std::make_unique<Defense>(type, body, classif, std::move(name),
                                                          sell_price, purch_price, min_def, max_def);
         } else if (classif == ITEM_HEALING) {
             if (descp == "POTION") {
-                info_items[type] = std::make_unique<Item>(type, body, classif, std::move(name),
-                                                          sell_price, purch_price);
+                info_items[type] = std::make_unique<ShopItem>(type, body, classif, std::move(name), sell_price, purch_price);
             } else if (descp == "MAGICAL") {
                 info_items[type] =
                         std::make_unique<ObjectMagic>(type, body, classif, std::move(name),
                                                       sell_price, purch_price, mana_cost, range);
             }
+        }
+    }
+}
+
+
+void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>> &info_regions) {
+    Table config = toml::parse_file(paths.regions.string());
+    Table_array* regions_array = config["regions"].as_array();
+    for (const auto& region_node: *regions_array) {
+        const Table& region = *region_node.as_table();
+
+        bool is_safe = region["is_safe_zone"].value_or(false);
+        Region type = static_cast<Region>(region["id_type"].value_or(0));
+        if (is_safe) {
+            auto r = std::make_unique<SafeRegion>();
+            r->type = type;
+            r->merchants = region["merchants"].value_or(0);
+            r->priests   = region["priest"].value_or(0);
+            r->bankers   = region["bankers"].value_or(0);
+            info_regions.emplace(type, std::move(r));
+        } else {
+            auto r = std::make_unique<WildRegion>();
+            r->type = type;
+            r->max_creatures = region["max_criatures"].value_or(0);
+            if (region["min_treasure"].value<int>())
+                r->min_treasure = region["min_treasure"].value_or(0);
+            if (region["max_treasure"].value<int>())
+                r->max_treasure = region["max_treasure"].value_or(0);
+            info_regions.emplace(type, std::move(r));
+        }
+        auto& r = info_regions.at(type);
+        if (auto* npcs = region["id_types_npcs"].as_array()) {
+            npcs->for_each([&r](auto& npc) {
+                if (npc.is_string()) {
+                    r->npc_types.push_back(npc.as_string()->get());
+                }
+            });
         }
     }
 }
@@ -222,18 +252,24 @@ GameConfig GameConfigLoader::getdGameConfiguration() {
         /*Tiempos del juego*/
         auto times_info = config["times"];
         TimesConfig times;
-        times.server_update_frecuency =
-                static_cast<uint32_t>(times_info["server_update_frecuency"].value_or(30));
-        times.update_player_atributes =
-                static_cast<uint32_t>(times_info["update_player_atributes"].value_or(500));
+        times.server_update_frecuency = static_cast<uint32_t>(times_info["server_update_frecuency"].value_or(30));
+        times.update_player_atributes = static_cast<uint32_t>(times_info["update_player_atributes"].value_or(500));
         times.spawn_npcs = static_cast<uint32_t>(times_info["spawn_npcs"].value_or(3000));
-        times.disappear_dropped_item =
-                static_cast<uint32_t>(times_info["disappear_dropped_item"].value_or(60000));
+        times.disappear_dropped_item = static_cast<uint32_t>(times_info["disappear_dropped_item"].value_or(60000));
         times.pesistence_data = static_cast<uint32_t>(times_info["pesist_data"].value_or(60000));
-        times.npc_attack_cooldown =
-                static_cast<uint32_t>(times_info["npc_attack_cooldown"].value_or(1000));
+        times.npc_attack_cooldown = static_cast<uint32_t>(times_info["npc_attack_cooldown"].value_or(1000));
 
-        return GameConfig(state_init, clan_conf, times);
+        /*Informacion de los npcs*/
+        std::unordered_map<TypeNPC, NPCConfig> npcs;
+        this->loadNpcs(npcs);
+
+        GameConfig game_config;
+        game_config.player_init = state_init;
+        game_config.clan = clan_conf;
+        game_config.times = times;
+        game_config.npcs = std::move(npcs);
+        return game_config;
+
     } catch (const toml::parse_error& err) {
         std::string mssgErr =
                 "Error en loadGameConfiguration -- No se pudo parsear el archivo TOML";

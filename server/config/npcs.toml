@@ -82,49 +82,35 @@ maximun_level = 20
 #CAVERN:1
 #------------------------------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 5
+id_type = 10 #GOLEM
 name = "Golem"
 attack_range = 3
 hp_max_initial = 120
-
-[[npcs.regions]] #En el desierto solo van a aparecer golem que esten en estos niveles "medio/dificiles"
-id_region = 4 #DESERT
-minimalLevel = 17
-maximunLevel = 22
-
-[[npcs.regions]] #En las cavernas solo van a aparecer golem que esten en estos niveles "dificiles"
-id_region = 1 #CAVERNA
-minimalLevel = 24
-maximunLevel = 30
-
+minimal_level = 17
+maximun_level = 22
+#DESERT:4
+#------------------------------------------------------------------------------------------------------------------------
+[[npcs]]
+id_type = 11 #GOLEM INFERNAL
+name = "Golem infernal"
+attack_range = 3
+hp_max_initial = 120
+minimal_level = 17
+maximun_level = 22
+#DESERT:4  #CAVERNA:1
 #------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 7
+id_type = 12
 name = "Comerciante"
-
-[[npcs.regions]]
-id_region = 7 #PUEBLO
-
-[[npcs.regions]] 
-id_region = 6 # CITY
+#PUEBLO: 7, CITY:6
 #------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 8
+id_type = 13
 name = "Sacerdote"
-
-[[npcs.regions]]
-id_region = 7 #PUEBLO
-
-[[npcs.regions]] 
-id_region = 6 # CITY
+#PUEBLO:7, CITY:6
 #----------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 9
+id_type = 14
 name = "Banquero"
-
-[[npcs.regions]]
-id_region = 7 #PUEBLO
-
-[[npcs.regions]] 
-id_region = 6 #CITY
+#PUEBLO:7, CITY:6
 #------------------------------------------------------------------------------------------------
