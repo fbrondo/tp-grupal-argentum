@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
-    <height>580</height>
+    <width>365</width>
+    <height>451</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -107,9 +107,6 @@
             <property name="text">
              <string>◄</string>
             </property>
-            <property name="maximumWidth">
-             <number>30</number>
-            </property>
            </widget>
           </item>
           <item>
@@ -120,18 +117,12 @@
             <property name="alignment">
              <set>Qt::AlignCenter</set>
             </property>
-            <property name="minimumWidth">
-             <number>80</number>
-            </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="nextRaceBtn">
             <property name="text">
              <string>►</string>
-            </property>
-            <property name="maximumWidth">
-             <number>30</number>
             </property>
            </widget>
           </item>
@@ -151,9 +142,6 @@
             <property name="text">
              <string>◄</string>
             </property>
-            <property name="maximumWidth">
-             <number>30</number>
-            </property>
            </widget>
           </item>
           <item>
@@ -164,18 +152,12 @@
             <property name="alignment">
              <set>Qt::AlignCenter</set>
             </property>
-            <property name="minimumWidth">
-             <number>80</number>
-            </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="nextClaseBtn">
             <property name="text">
              <string>►</string>
-            </property>
-            <property name="maximumWidth">
-             <number>30</number>
             </property>
            </widget>
           </item>
@@ -199,9 +181,6 @@
                 <property name="text">
                  <string>◄</string>
                 </property>
-                <property name="maximumWidth">
-                 <number>30</number>
-                </property>
                </widget>
               </item>
               <item>
@@ -212,18 +191,12 @@
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
                 </property>
-                <property name="minimumWidth">
-                 <number>30</number>
-                </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="nextHeadBtn">
                 <property name="text">
                  <string>►</string>
-                </property>
-                <property name="maximumWidth">
-                 <number>30</number>
                 </property>
                </widget>
               </item>
@@ -243,9 +216,6 @@
                 <property name="text">
                  <string>◄</string>
                 </property>
-                <property name="maximumWidth">
-                 <number>30</number>
-                </property>
                </widget>
               </item>
               <item>
@@ -256,18 +226,12 @@
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
                 </property>
-                <property name="minimumWidth">
-                 <number>30</number>
-                </property>
                </widget>
               </item>
               <item>
                <widget class="QPushButton" name="nextBodyBtn">
                 <property name="text">
                  <string>►</string>
-                </property>
-                <property name="maximumWidth">
-                 <number>30</number>
                 </property>
                </widget>
               </item>
@@ -289,14 +253,14 @@
               <height>128</height>
              </size>
             </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
             <property name="text">
              <string/>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
             </property>
            </widget>
           </item>
