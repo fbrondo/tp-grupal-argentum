@@ -302,17 +302,34 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             break;
         }
         case MAP_DATA: {
+            out_event.type = TypeEventClient::MAP_DATA;
+
             uint32_t w_net, h_net;
-            socket.recvall(&w_net, 4);
-            socket.recvall(&h_net, 4);
-            const size_t total_tiles =
-                    ntohl(w_net) * ntohl(h_net) * static_cast<size_t>(layer_count);
-            for (size_t i = 0; i < total_tiles; ++i) {
-                int32_t sprite_id_net;
-                uint8_t walkable_byte;
-                socket.recvall(&sprite_id_net, 4);
-                socket.recvall(&walkable_byte, 1);
+            socket.recvall(&w_net, sizeof(w_net));
+            socket.recvall(&h_net, sizeof(h_net));
+
+            Map map("Map", w_net, h_net);
+            std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details,
+                                                     Layer::Object, Layer::Roof};
+
+            for (const Layer layer: layers) {
+                for (int y = 0; y < map.height(); ++y) {
+                    for (int x = 0; x < map.width(); ++x) {
+                        int32_t sprite_id_net;
+                        uint8_t region_byte, walkable_byte;
+
+                        socket.recvall(&sprite_id_net, sizeof(sprite_id_net));
+                        socket.recvall(&walkable_byte, sizeof(walkable_byte));
+                        socket.recvall(&region_byte, sizeof(region_byte));
+
+                        auto& [sprite_id, walkable, region] = map.tile_at(x, y, layer);
+                        sprite_id = ntohl(sprite_id_net);
+                        walkable = (walkable_byte == 1);
+                        region = static_cast<Region>(region_byte);
+                    }
+                }
             }
+            out_event.map_data = std::move(map);
             break;
         }
         default:
