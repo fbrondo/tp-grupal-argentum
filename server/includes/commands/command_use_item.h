@@ -1,14 +1,12 @@
 #pragma once
 
-#include "../world.h"
-
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 class UseItemCommand: public Command {
 private:
-    Id instance_id;
+    Id slot_id;
 
 public:
-    UseItemCommand(Id id, Id instance_id);
+    UseItemCommand(Id id, Id slot_id);
     void execute(Gameloop& game) override;
 };

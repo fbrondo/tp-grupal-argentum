@@ -20,9 +20,7 @@ struct WildRegion : RegionWorld {
 };
 
 struct SafeRegion : RegionWorld {
-    uint16_t merchants;
-    uint16_t priests;
-    uint16_t bankers;
+    std::vector<uint16_t> numbers_npc;
 };
 
 #endif //REGION_H

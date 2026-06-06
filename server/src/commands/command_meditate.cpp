@@ -1,4 +1,5 @@
 #include "server/includes/commands/command_meditate.h"
+#include "server/includes/gameloop.h"
 
 MeditateCommand::MeditateCommand(Id id) : Command(id) {}
 

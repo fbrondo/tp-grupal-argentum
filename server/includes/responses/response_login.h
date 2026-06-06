@@ -2,10 +2,7 @@
 #define RESPONSE_REGISTER_H
 
 #include <string>
-
-#include "../server_protocol.h"
-
-#include "response.h"
+#include "server/includes/responses/response.h"
 
 class ResponseLogin: public Response {
 private:

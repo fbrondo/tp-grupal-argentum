@@ -20,8 +20,9 @@ class Comand;
 */
 class Merchant: public TraderNPC {
 public:
-    Merchant(TypeNPC type, std::string&& name, Pose&& pos,
-             std::map<TypeItem, std::unique_ptr<Item>>&& store);
+    // Merchant(TypeNPC type, const std::string& name, Pose&& pos,
+    //          std::map<TypeItem, std::unique_ptr<Item>>&& store);
+    Merchant(TypeNPC type, const std::string& name, Pose&& pos, std::vector<TypeItem> items_);
     ~Merchant() = default;
 };
 

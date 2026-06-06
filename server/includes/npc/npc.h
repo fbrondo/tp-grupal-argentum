@@ -4,11 +4,10 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <utility>
-
 #include "common/includes/types.h"
 #include "server/includes/core/map.h"
 #include "server/includes/entity.h"
+#include "server/includes/core/item.h"
 
 enum class InteractionType : uint8_t { TRADER_SHOP, BANK_BOX };
 
@@ -19,12 +18,13 @@ struct InteractionResult {
 };
 
 class NPC: public Entity {
-private:
+protected:
     TypeNPC type_npc;
     std::string name;
 
 public:
-    NPC(TypeNPC type, std::string&& name, Pose&& pos);
+    NPC(TypeNPC type, const std::string& name, Pose&& pos);
+    TypeNPC getTypeNPC();
     virtual InteractionResult interact() = 0;  // Asi los npcs muestran su tienda/banco
     virtual ~NPC() = default;
 };

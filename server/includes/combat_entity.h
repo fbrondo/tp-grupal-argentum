@@ -2,10 +2,11 @@
 
 #include <utility>
 
-#include "common/includes/types.h"
 #include "server/includes/core/map.h"
 #include "server/includes/entity.h"
 #include "server/includes/game_formulas.h"
+#include "server/includes/world.h"
+class World;
 
 class CombatEntity: public Entity {
 protected:

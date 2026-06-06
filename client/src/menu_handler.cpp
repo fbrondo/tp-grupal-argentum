@@ -3,13 +3,15 @@
 #include <iostream>
 
 #include "common/includes/protocol.h"
+#include "common/includes/core/character_traits.h"
 
 MenuHandler::MenuHandler(const char* host, const char* port):
         socket(host, port), protocol(socket) {}
 
 bool MenuHandler::doSignup(const std::string& user, const std::string& password) {
     try {
-        protocol.sendSignup(user, password);
+        CharacterTraits ch;
+        protocol.sendSignup(user, password, ch );
         std::string msg;
         if (!protocol.recvResponse(SIGNUP_RESPONSE, msg)) {
             std::cerr << msg << std::endl;
@@ -40,7 +42,7 @@ bool MenuHandler::doLogin(const std::string& user, const std::string& password) 
 }
 
 bool MenuHandler::doCreateCharacter(const std::string& user, const std::string& password,
-                                    const std::string& name, uint8_t race, uint8_t clase) {
+                                    const std::string& /*name*/, uint8_t /*race*/, uint8_t /*clase*/) {
     try {
         protocol.sendLogin(user, password);
         std::string msg;
@@ -49,7 +51,7 @@ bool MenuHandler::doCreateCharacter(const std::string& user, const std::string& 
             return false;
         }
 
-        protocol.sendCharacterCreate(name, race, clase);
+        //protocol.sendCharacterCreate(name, race, clase);
         if (!protocol.recvResponse(CHARACTER_CREATE_RESPONSE, msg)) {
             std::cerr << msg << std::endl;
             return false;

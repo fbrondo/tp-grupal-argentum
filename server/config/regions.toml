@@ -39,17 +39,13 @@ id_types_npcs = ["Goblin de campo"]
 [[regions]]
 id_type = 6 # CITY
 is_safe_zone = true #No se permiten player vs player ni NPCs
-merchants = 5
-priest = 6
-bankers = 6
 id_types_npcs = ["Comerciante", "Sacerdote", "Banquero"]
+numbers_npcs = [3, 3, 3] #merchants = 3 priest = 3 bankers = 3
 #---------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 7 #PUEBLO
 is_safe_zone = true #No se permiten player vs player ni NPCs
-merchants = 4
-priest = 3
-bankers = 2
 id_types_npcs = ["Comerciante", "Sacerdote", "Banquero"]
+numbers_npcs = [1, 2, 2] #merchants = 1 priest = 2 bankers = 2
 #------------------------------------------------------------------------------------------------------
 

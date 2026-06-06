@@ -21,9 +21,5 @@ using QueueCmd = Queue<std::unique_ptr<Command>>;
 using MapQueueResp = std::map<Id, Queue<std::shared_ptr<Response>>>;
 using QueueResp = Queue<std::shared_ptr<Response>>;
 
-/*Lo que retornan los distintos commands */
-using RegisterInfo = std::tuple<Id, std::string, std::string, TypeRace, TypeClase>;
-using MoveInfo = std::tuple<Id, Direction>;
-// using MapMatriz =  std::vector<std::vector<Tile>>;
 
 #endif

@@ -1,10 +1,8 @@
 #include "server/includes/commands/command_login.h"
+#include "server/includes/gameloop.h"
 
-LoginCommand::LoginCommand(Id id, const std::string& name, const std::string& pass): Command(id) {
-    this->username = name;
-    this->password = pass;
+LoginCommand::LoginCommand(Id id, const std::string& name, const std::string& pass): Command(id), user(name,pass) {
+
 }
 
-LoginInfo LoginCommand::getLoginInfo() { return std::make_tuple(client_id, username, password); }
-
-void LoginCommand::execute(Gameloop& game) {}
+void LoginCommand::execute(Gameloop& /*game*/) {}

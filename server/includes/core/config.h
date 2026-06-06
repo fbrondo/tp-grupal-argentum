@@ -44,6 +44,7 @@ struct NpcConfig {
     uint16_t hp_max_initial;
     uint16_t minimal_level;
     uint16_t maximun_level;
+    std::vector<TypeItem> ids_items_store;
 };
 
 
@@ -68,10 +69,8 @@ struct GameConfig {
 
     GameConfig(GameConfig&&) = default;
     GameConfig& operator=(GameConfig&&) = default;
-
     GameConfig(const GameConfig&) = delete;
     GameConfig& operator=(const GameConfig&) = delete;
-
     GameConfig() = default;
 
     // GameConfig(PlayerStateInit player_init_, ClanConfig clan_, TimesConfig times_):

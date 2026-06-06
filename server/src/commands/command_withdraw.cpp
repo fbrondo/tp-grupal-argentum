@@ -1,4 +1,5 @@
 #include "server/includes/commands/command_withdraw.h"
+#include "server/includes/gameloop.h"
 
 WithdrawItemCommand::WithdrawItemCommand(Id id, Id instance_id) : Command(id), instance_id(instance_id) {}
 

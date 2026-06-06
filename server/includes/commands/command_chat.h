@@ -1,10 +1,7 @@
 #pragma once
 
 #include <string>
-
-#include "../world.h"
-
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 class ChatCommand: public Command {
 private:

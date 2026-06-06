@@ -32,7 +32,7 @@ private:
     std::map<Id, BanckAccount> bank ;
 
 public:
-    Banker(TypeNPC type, std::string&& name, Pose&& pos);
+    Banker(TypeNPC type, const std::string& name, Pose&& pos);
     ~Banker() = default;
     InteractionResult interact() override;
 };

@@ -58,7 +58,12 @@ void Equipment::removeItem(Id id_inst_item) {
     }
 }
 
-TypeItem Equipment::getHandItem() const { return this->equipment_container[INDEX_HAND]->type; }
+TypeItem Equipment::getHandItem() const {
+    if ( this->equipment_container[INDEX_HAND]) {
+        return this->equipment_container[INDEX_HAND]->type;
+    }
+    return NONE;
+}
 
 std::vector<std::tuple<Id, TypeItem>> Equipment::getEquipmentDefensive() {
     std::vector<std::tuple<Id, TypeItem>> equipment;

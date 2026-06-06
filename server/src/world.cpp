@@ -11,6 +11,7 @@ World::World(const std::filesystem::path& path):
         gen(std::random_device{}()) {
     this->buildTilesWorld();
     this->identifyZones();
+    this->saveIdsOfTheSafeZones();
     // Print::printinitMatrizMap(this->map_tiles, this->limit_height, this->limit_width);
 }
 
@@ -61,6 +62,14 @@ void World::floodFill(const Position pos_start, Region region, MatrizBool& visit
     }
 }
 
+void World::saveIdsOfTheSafeZones() {
+    for (auto& [id, zone] : this->zones) {
+        if (zone.region == Town || zone.region == City) {
+            this->safe_zones.push_back(id);
+        }
+    }
+}
+
 void World::identifyZones() {
     MatrizBool visited(this->limit_width, std::vector<bool>(this->limit_height, false));
     for (uint32_t y = 0; y < this->limit_height; y++) {
@@ -82,7 +91,7 @@ void World::identifyZones() {
 }
 
 Position World::calculatePosition(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id];
+    const Position& pos = this->players_positions[player_id].position;
     Position new_pos;
     switch (dir) {
         case DOWN:
@@ -118,10 +127,15 @@ Position World::calculatePositionRandom(const Id &zone_id) {
     return random_postion;
 }
 
+Id World::calculateZoneSafeRandom() {
+    std::uniform_int_distribution<size_t> dist(0, this->safe_zones.size() - 1);
+    return this->safe_zones[dist(this->gen)];
+}
+
 bool World::isOccupied(const Position& pos) {
     /*Verificamos que no haya otro jugador*/
-    for (auto& [id, position]: this->players_positions) {
-        if (position == pos) {
+    for (auto& [id, pose]: this->players_positions) {
+        if (pose.position == pos) {
             return true;
         }
     }
@@ -137,9 +151,9 @@ bool World::isOccupied(const Position& pos) {
     }
     return false;
 }
-/*Consultas para validar*/
+
 bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id];
+    const Position& pos = this->players_positions[player_id].position;
     switch (dir) {
         case DOWN:
             return (pos.y + 1 < this->limit_height);
@@ -183,12 +197,21 @@ bool World::canDropItemAt(const Position& pos) {
     return true;
 }
 
-void World::spawnNpc(TypeNPC type, const Id &npc_id, const Id &zone_id) {
+Pose World::spawnNpc(TypeNPC type, const Id &npc_id, const Id &zone_id) {
     Position random_position = this->calculatePositionRandom(zone_id);
-    NpcInstance new_npc(type, Pose{random_position, this->direction_spaw_default});
+    Pose pose_spawn(random_position, this->direction_spaw_default);
+    NpcInstance new_npc(type, pose_spawn);
     this->npcs_positions.emplace(npc_id, std::move(new_npc));
+    return pose_spawn;
 }
-
+Pose World::spawnPlayer(const Id& player_id) {
+    //Position position(Position{4, 4}); /*La posicion esta harcodeada para probar*/
+    Id spawned_zone = this->calculateZoneSafeRandom();
+    Position random_position = this->calculatePositionRandom(spawned_zone);
+    Pose pose_spawn(random_position, this->direction_spaw_default);
+    this->players_positions.emplace(player_id, pose_spawn);
+    return pose_spawn;
+}
 void World::spawnTreasure(const Id &treasure_id, const Id &zone_id) {
     Position random_position = this->calculatePositionRandom(zone_id);
     this->treausures_positions.emplace(treasure_id, std::move(random_position));
@@ -196,22 +219,19 @@ void World::spawnTreasure(const Id &treasure_id, const Id &zone_id) {
 
 bool World::isSafeZONE(const Position& /*pos*/) { return true; }
 
-/*El estado del mundo cambia*/
-Position World::spawnPlayer(const Id& player_id) {
-    Position position(Position{4, 4}); /*La posicion esta harcodeada para probar*/
-    this->players_positions.emplace(player_id, position);
-    return position;
-}
+
 
 void World::removePlayer(const Id& player_id) { this->players_positions.erase(player_id); }
 
-void World::movePlayer(const Id& player_id, Direction dir) {
-    this->players_positions[player_id] = this->calculatePosition(player_id, dir);
-    //Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
+Pose World::movePlayer(const Id& player_id, Direction dir) {
+    Position new_position = this->calculatePosition(player_id, dir);
+    Pose pose_move(new_position, dir);
+    this->players_positions[player_id] = pose_move;
+    return pose_move;
 }
 
 Position World::positionPlayerInTheWorld(const Id& player_id) {
-    return this->players_positions[player_id];
+    return this->players_positions[player_id].position;
 }
 
 Position World::positionNPCInTheWorld(const Id& npc_id) {
@@ -222,9 +242,8 @@ NpcInstance* World::getNpcById(const Id& npc_id) { return &this->npcs_positions[
 
 
 int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {
-    const Position& pos_attacker =
-            this->players_positions.at(attacker_id);                    // attacker->getPosition();
-    const Position pos_target = this->players_positions.at(victim_id);  // victim->getPosition();
+    const Position& pos_attacker = this->players_positions.at(attacker_id).position;                    // attacker->getPosition();
+    const Position pos_target = this->players_positions.at(victim_id).position;  // victim->getPosition();
     int distance = std::abs(static_cast<int>(pos_attacker.x) - static_cast<int>(pos_target.x)) +
                    std::abs(static_cast<int>(pos_attacker.y) - static_cast<int>(pos_target.y));
     return distance;
@@ -242,37 +261,37 @@ int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const I
 //     return instance_id;
 // }
 
-void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
-    if (amount == 0)
-        return;
-
-    for (auto& pile: this->gold_on_floor) {
-        if (pile.second.pos == pos) {
-            pile.second.amount += amount;
-            return;
-        }
-    }
-
-    GoldPile new_pile;
-    new_pile.amount = amount;
-    new_pile.pos = pos;
-
-    // Bueno aca faltaria asignar un id a la pila de oro
-    this->gold_on_floor.emplace(new_instance_id, std::move(new_pile));
-}
-
-void World::collectGoldAt(const Position& pos, Id& player_gold) {
-    auto it = this->gold_on_floor.begin();
-    while (it != this->gold_on_floor.end()) {
-        if (it->second.pos == pos) {
-            player_gold += it->second.amount;
-            it = this->gold_on_floor.erase(it);
-            return;
-        } else {
-            ++it;
-        }
-    }
-}
+// void World::spawnGoldOnFloor(const Position& pos, uint16_t amount) {
+//     if (amount == 0)
+//         return;
+//
+//     for (auto& pile: this->gold_on_floor) {
+//         if (pile.second.pos == pos) {
+//             pile.second.amount += amount;
+//             return;
+//         }
+//     }
+//
+//     GoldPile new_pile;
+//     new_pile.amount = amount;
+//     new_pile.pos = pos;
+//
+//     // Bueno aca faltaria asignar un id a la pila de oro
+//     this->gold_on_floor.emplace(new_instance_id, std::move(new_pile));
+// }
+//
+// void World::collectGoldAt(const Position& pos, Id& player_gold) {
+//     auto it = this->gold_on_floor.begin();
+//     while (it != this->gold_on_floor.end()) {
+//         if (it->second.pos == pos) {
+//             player_gold += it->second.amount;
+//             it = this->gold_on_floor.erase(it);
+//             return;
+//         } else {
+//             ++it;
+//         }
+//     }
+// }
 
 ItemInstance* World::getItemAt(const Position& pos) {
     for (auto& [id, item]: this->items_on_flor) {
@@ -297,7 +316,7 @@ std::unique_ptr<ItemInstance> World::pickUpItem(const Position& pos) {
     return nullptr;
 }
 
-void World::dropItem(const Position& pos, std::unique_ptr<ItemInstance> item) {
-    Id item_id = item->id;
-    this->items_on_flor.emplace(item_id, std::move(*item));
-}
+// void World::dropItem(const Position& pos, std::unique_ptr<ItemInstance> item) {
+//     Id item_id = item->id;
+//     this->items_on_flor.emplace(item_id, std::move(*item));
+// }

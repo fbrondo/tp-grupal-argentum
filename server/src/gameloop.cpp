@@ -3,24 +3,26 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <tuple>
 #include  "common/includes/map/tile.h"
 #include "server/print.h"
 #include "server/includes/core/data.h"
+
+#include "server/includes/npc/priest.h"
+#include "server/includes/npc/merchant.h"
+#include "server/includes/npc/banker.h"
+#include "server/includes/npc/criature.h"
+
 #include "server/includes/responses/response_bank_content.h"
 #include "server/includes/responses/response_login.h"
 #include "server/includes/responses/response_signup.h"
 #include "server/includes/responses/response_snapshot.h"
 #include "server/includes/responses/response_trader_catalog.h"
-#include "server/print.h"
 
 #define INVALID_REGISTER "Username already taken."
 #define INVALID_LOGIN "El usuario o la contraseña son incorrectos."
 
-using namespace std;
-
-using RespSnapshot = shared_ptr<ResponseSnapshot>;
-
-using PlayerPtr = unique_ptr<Player>;
+using RespSnapshot = std::shared_ptr<ResponseSnapshot>;
 
 Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueCmd& cmmds_queue):
         monitor(monitor),
@@ -29,13 +31,6 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
         conf(loader_conf.getdGameConfiguration()),
         world(this->files_data.map),
         persistence(this->files_data) {
-    // loader_conf.loadNpcs(this->info_npcs);
-    // loader_conf.loadRaces(this->info_races);
-    // loader_conf.loadClases(this->info_clases);
-    // loader_conf.loadItems(this->info_items);
-    // Print::printNPCsLoads(this->info_npcs);
-    // Print::printRacesLoad(this->info_races);
-    // Print::printClasesLoad(this->info_clases);
     Print::printNPCsLoads(this->conf.npcs);
     Print::printRacesLoad(this->conf.races);
     Print::printClasesLoad(this->conf.clases);
@@ -49,40 +44,73 @@ void Gameloop::initTreasures(const uint16_t &numbers_treasure, const Id &zona_id
 }
 
 void Gameloop::initCriatures(Region type_region, const Id& zone_id) {
-    static random_device rd; /*Usamos aca static para inicializar solo una vez)*/
-    static mt19937 gen(rd());
+    static std::random_device rd; /*Usamos aca static para inicializar solo una vez)*/
+    static std::mt19937 gen(rd());
     WildRegion* region = dynamic_cast<WildRegion*>(this->conf.regions[type_region].get());
     for (uint16_t i = 0; i < region->max_creatures; i++) {
-        uniform_int_distribution<size_t> distrib_npc(0, region->npc_types.size() - 1);
-        string name_npc = region->npc_types[distrib_npc(gen)];
-        NpcConfig npc = conf.npcs[name_npc];
+        std::uniform_int_distribution<size_t> distrib_npc(0, region->npc_types.size() - 1);
+        std::string name_npc = region->npc_types[distrib_npc(gen)];
+        //consNpcConfig npc = conf.npcs[name_npc];
         Id new_id_npc = this->nex_npc_id++;
-        this->world.spawnNpc(npc.type, new_id_npc, zone_id);
+        Pose pose = this->world.spawnNpc(npcs[name_npc].type, new_id_npc, zone_id);
+
     }
     if (region->min_treasure.has_value() && region->max_creatures) {
         uint16_t minimo = region->min_treasure.value();
         uint16_t maximun = region->max_treasure.value();
-        uniform_int_distribution<uint16_t> distrib_treasure(minimo,maximun);
+        std::uniform_int_distribution<uint16_t> distrib_treasure(minimo,maximun);
         uint16_t number_treasure = distrib_treasure(gen);
+        this->initTreasures(number_treasure, zone_id);
+    }
+}
+
+void Gameloop::initNpcSafeZone(Region type_region, const Id& zona_id) {
+    SafeRegion* region = dynamic_cast<SafeRegion*>(conf.regions[type_region].get());
+    for (size_t index_numbers_npcs = 0; const auto& name_npc: region->npc_types) {
+        TypeNPC type_npc = this->conf.npcs[name_npc].type;
+        uint16_t numbers_npcs_region = region->numbers_npc[index_numbers_npcs];
+        for (uint16_t i = 0; i < numbers_npcs_region; i++) {
+            Id npc_id = this->nex_npc_id++;
+            Pose pose_spawn_npc = this->world.spawnNpc(type_npc, npc_id, zona_id);
+            this->createNpcCity(npc_id, std::move(pose_spawn_npc), name_npc);
+        }
+        index_numbers_npcs++;
     }
 }
 
 void Gameloop::initNPCS() {
-    const vector<tuple<Id, Region>> info_zones = world.getZones();
+    const std::vector<std::tuple<Id, Region>> info_zones = world.getZones();
     for (auto [id, type_region] : info_zones) {
         switch (type_region) {
             case City:
             case Town:
-                break;
+                this->initNpcSafeZone(type_region, id); break;
             case Dungeon:
             case Cavern:
             case Desert:
-                this->initCriatures(type_region, id);
-                break;
+            case Forest:
+            case Field:
+                this->initCriatures(type_region, id); break;
             default:
-                break;
+                break; /*Lanzar excepcion*/
         }
     }
+}
+
+void Gameloop::createCriature(const Id &npc_id, Pose &&pose, const std::string &name_npc) {
+}
+
+void Gameloop::createNpcCity(const Id &npc_id, Pose &&pose, const std::string& name_npc) {
+    const NpcConfig& npc = this->conf.npcs[name_npc];
+    std::unique_ptr<NPC> new_npc;
+    if (npc.type == PRIEST) {
+        new_npc = std::make_unique<Priest>(npc.type, name_npc, std::move(pose), npc.ids_items_store);
+    } else if (npc.type == MERCHANT) {
+        new_npc = std::make_unique<Merchant>(npc.type, name_npc, std::move(pose), npc.ids_items_store);
+    } else {
+        new_npc = std::make_unique<Banker>(npc.type, name_npc, std::move(pose));
+    }
+    this->npcs.emplace(npc_id, std::move(new_npc));
 }
 
 Character Gameloop::createCharacter(CharacterTraits traits) {
@@ -93,49 +121,48 @@ Character Gameloop::createCharacter(CharacterTraits traits) {
     return Character(race, clase, traits.head, traits.body);
 }
 
-void Gameloop::processHandleSignup(const Id& player_id, const User& user, const CharacterTraits& traits) {
-    Print::printNewPlayerArrived(player_id, user, static_cast<TypeRace>(traits.race), static_cast<TypeClase>(traits.clase));
-    if (this->persistence.exists(user.username)) {
-        this->monitor.queueTheServerResponse(player_id, make_unique<ResponseSignup>(false, INVALID_REGISTER));
-        return;
-    }
-    /*Creando jugador*/
+void Gameloop::createNewPlayer(const Id &player_id, const User &user, const CharacterTraits &traits) {
     Character ch = this->createCharacter(traits);
-    Position pos_spawn = this->world.spawnPlayer(player_id);
-    Pose pose_spawn(std::move(pos_spawn), UP);
-    PlayerPtr new_player = make_unique<Player>( User(user), std::move(pose_spawn), std::move(ch), this->conf.player_init);
-    /*Guardando datos del jugador*/
+    Pose pose_spawn = this->world.spawnPlayer(player_id);
+    std::unique_ptr<Player> new_player = std::make_unique<Player>( User(user), std::move(pose_spawn), std::move(ch), this->conf.player_init);
     PlayerData player_data = new_player->getPlayerData();
     this->persistence.savePlayer(player_data);
     this->players.emplace(player_id, std::move(new_player));
-    /*Enviamos las respuesta correspondiente al client*/
-    this->monitor.queueTheServerResponse(player_id, make_unique<ResponseLogin>(true));
+}
+
+void Gameloop::processHandleSignup(const Id& player_id, const User& user, const CharacterTraits& traits) {
+    Print::printNewPlayerArrived(player_id, user, static_cast<TypeRace>(traits.race), static_cast<TypeClase>(traits.clase));
+    if (this->persistence.exists(user.username)) {
+        this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseSignup>(false, INVALID_REGISTER));
+        return;
+    }
+    /*Creando jugador*/
+    this->createNewPlayer(player_id, user, traits);
+    this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(true));
     this->executeBroacastSnapshot();
 }
 
-void Gameloop::handleLogin(LoginCommand* cmd) {
-    auto [id, username, password] = cmd->getLoginInfo();
-    if (!this->persistence.exists(username)) {
-        this->monitor.queueTheServerResponse(
-                id, make_unique<ResponseLogin>(false, "User not found."));
-        return;
-    }
-    PlayerData data = this->persistence.loadPlayer(username);
-    if (std::string(data.password) != password) {
-        this->monitor.queueTheServerResponse(
-                id, std::make_unique<ResponseLogin>(false, "Wrong password."));
-        return;
-    }
-    if (data.level == 0) {
-        this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, "none"));
-        return;
-    }
-    // std::ostringstream payload;
-    // payload << data.username << " " << static_cast<int>(data.race) << " "
-    //         << static_cast<int>(data.clase) << " " << static_cast<int>(data.level);
-    // this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true,
-    // payload.str()));
-}
+// void Gameloop::handleLogin(LoginCommand* cmd) {
+//     //auto [id, username, password] = cmd->getLoginInfo();
+//     if (!this->persistence.exists(username)) {
+//         this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(false, "User not found."));
+//         return;
+//     }
+//     PlayerData data = this->persistence.loadPlayer(username);
+//     if (std::string(data.password) != password) {
+//         this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(false, "Wrong password."));
+//         return;
+//     }
+//     if (data.level == 0) {
+//         this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, "none"));
+//         return;
+//     }
+//     // std::ostringstream payload;
+//     // payload << data.username << " " << static_cast<int>(data.race) << " "
+//     //         << static_cast<int>(data.clase) << " " << static_cast<int>(data.level);
+//     // this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true,
+//     // payload.str()));
+// }
 
 void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
     this->monitor.queueTheServerResponse(player_id, std::move(response));
@@ -143,7 +170,7 @@ void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> resp
 
 void Gameloop::executeBroacastSnapshot() {
     Snapshot snap = this->resp.buildSnapshot(this->players, this->world);
-    RespSnapshot resp_snap = make_unique<ResponseSnapshot>(std::move(snap));
+    RespSnapshot resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
 }
 
@@ -182,11 +209,9 @@ std::vector<Defense*> Gameloop::getInfoAboutThePlayerDefensiveEquipment(const Id
     return info_equipment_defensive;
 }
 
-void Gameloop::executeAttackPlayer(AttackCommand* cmd) {
-    auto [attacker_id, victim_id] = cmd->getAttackInfo();
-    /*Como ahora player desciende de otra clase es necesario usar unique_ptr*/
+void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     Player* attacker = this->players.at(attacker_id).get();
-    if (!attacker->isAlive())
+    if (!attacker->isAlive() || attacker->isNewbie())
         return;
     /*Vemos si tenemos un arma euipada*/
     TypeItem weapon_type = attacker->getHandItem();
@@ -209,11 +234,9 @@ void Gameloop::executeAttackPlayer(AttackCommand* cmd) {
         return;  // Registrar sonido de esquivado
     }
     if (Player* player = dynamic_cast<Player*>(victim)) { /*Si la victima es un jugador*/
-        std::vector<Defense*> info_equip_defensive =
-                this->getInfoAboutThePlayerDefensiveEquipment(victim_id);
+        std::vector<Defense*> info_equip_defensive = this->getInfoAboutThePlayerDefensiveEquipment(victim_id);
         uint16_t defense_victim = player->calculateDefense(info_equip_defensive);
-        damage_by_attacker =
-                (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
+        damage_by_attacker = (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
     }
     victim->receiveDamage(damage_by_attacker);
     this->players[attacker_id]->breakMeditation();
@@ -221,7 +244,8 @@ void Gameloop::executeAttackPlayer(AttackCommand* cmd) {
 
 void Gameloop::processMovePlayer(Id player_id, Direction dir) {
     this->players[player_id]->breakMeditation();
-    this->world.movePlayer(player_id, dir);
+    Pose new_pose = this->world.movePlayer(player_id, dir);
+    this->players[player_id]->updatePose(std::move(new_pose));
 }
 
 void Gameloop::process_buy_item(Id player_id, Id npc_id, Id item_id) {
@@ -237,7 +261,7 @@ void Gameloop::process_buy_item(Id player_id, Id npc_id, Id item_id) {
         return;  // Enviar error como "El NPC no vende ese ítem."
     }
 
-    Item* item_template = tienda.at(tipo_buscado).get();
+    ShopItem* item_template = dynamic_cast<ShopItem*>(tienda.at(tipo_buscado).get());
     Player* player = this->players[player_id].get();
 
     if (!player->canBuy(item_template)) {
@@ -276,16 +300,14 @@ void Gameloop::process_sell_item(Id player_id, Id npc_id, Id instance_id) {
         return;  // Enviar error como "El NPC no compra ese ítem."
     }
 
-    Item* item_template = tienda.at(tipo_buscado).get();
+    ShopItem* item_template = dynamic_cast<ShopItem*>(tienda.at(tipo_buscado).get());
     uint32_t sell_price = item_template->selling_price;
-
     player->sellItem(instance_id, sell_price);
     player->breakMeditation();
 }
 
 void Gameloop::processPlayerPickUp(Id player_id) {
     Player* player = this->players.at(player_id).get();
-
     Pose player_pose = player->getPose();
 
     ItemInstance* ground_item = this->world.getItemAt(player_pose.position);
@@ -410,12 +432,12 @@ void Gameloop::processPlayerHeal(Id player_id) {
 
 void Gameloop::processListItems(Id player_id, Id npc_id) {
     Player* player = this->players.at(player_id).get();
-    NpcInstance* npc = this->world.getNpcById(npc_id);
-    if (!npc)
-        return;
+    // NpcInstance* npc = this->world.getNpcById(npc_id);
+    // if (!npc)
+    //     return;
 
-    TypeNPC npc_type = npc->type_npc;
-    NPC* npc_generico = this->info_NPC.at(npc_type).get();
+    TypeNPC npc_type = npc->type;
+    NPC* npc_generico = this->npcs.at(npc_type).get();
 
     if (!npc_generico)
         return;
@@ -427,11 +449,9 @@ void Gameloop::processListItems(Id player_id, Id npc_id) {
 
         this->sendResponseToPlayer(player_id, std::move(response));
     } else if (result.type == InteractionType::BANK_BOX) {
-        std::vector<MsgItemInfo> items_info = player->getBankItemsInfo();
+        vector<MsgItemInfo> items_info = player->getBankItemsInfo();
         uint32_t bank_gold = player->getBankGold();
-
         auto response = std::make_unique<ResponseBankContent>(items_info, bank_gold);
-
         this->sendResponseToPlayer(player_id, std::move(response));
     }
 }

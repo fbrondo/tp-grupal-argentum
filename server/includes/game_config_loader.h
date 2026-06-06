@@ -43,7 +43,7 @@ public:
     explicit GameConfigLoader(Path config_dir_);
 
     const FileData getFilesData();
-    GameConfig&& getdGameConfiguration();
+    GameConfig getdGameConfiguration();
 };
 
 

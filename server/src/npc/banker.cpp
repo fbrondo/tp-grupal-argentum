@@ -1,7 +1,7 @@
 #include "server/includes/npc/banker.h"
 
-Banker::Banker(TypeNPC type, std::string&& name, Pose&& pose_):
-        CityNPC(type, std::move(name), std::move(pose_)) {}
+Banker::Banker(TypeNPC type, const std::string& name, Pose&& pose_):
+        CityNPC(type, name, std::move(pose_)) {}
 
 InteractionResult Banker::interact() {
     InteractionResult result;

@@ -1,4 +1,5 @@
-#include "command.h"    
+#pragma once
+#include "server/includes/commands/command.h"
 
 class ListItemsCommand : public Command {
 private:

@@ -1,8 +1,6 @@
 #pragma once
-#include "response.h"
-#include "../server_protocol.h"
+#include "server/includes/responses/response.h"
 #include "common/includes/protocol.h"
-
 
 class ResponseBankContent : public Response {
 private:

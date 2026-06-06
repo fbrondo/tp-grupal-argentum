@@ -1,11 +1,6 @@
 #pragma once
 
-#include "../definitions.h"
-#include "../world.h"
-#include "common/includes/direction.h"
-
-#include "command.h"
-
+#include "server/includes/commands/command.h"
 
 class MoveCommand: public Command {
 private:
@@ -14,5 +9,4 @@ private:
 public:
     MoveCommand(Id id, uint8_t dir);
     void execute(Gameloop& game) override;
-    MoveInfo getMoveInfo();
 };

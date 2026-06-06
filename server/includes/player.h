@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <map>
 #include <memory>
-#include <string>
 #include <utility>
 #include <vector>
 #include "common/includes/core/user.h"
@@ -18,10 +17,7 @@
 #include "server/includes/core/map.h"
 #include "server/includes/equipment.h"
 #include "server/includes/game_formulas.h"
-
-#include "combat_entity.h"
-
-
+#include "server/includes/combat_entity.h"
 
 struct BankAccount {
     uint32_t gold;
@@ -75,16 +71,17 @@ public:
     bool hasItemInBank(Id instance_id) const;
     std::vector<MsgItemInfo> getBankItemsInfo() const;
 
+    bool isNewbie() const;
     bool isMeditating() const;
     void toggleMeditation();
     void breakMeditation();
     bool hasEnoughMana(uint16_t mana_cost) const;
     void restoreAllMana();
     void restoreAllHp();
-    void updatePose(Position pos, Direction direct);
+    void updatePose(Pose&& new_pos);
 
-    bool canBuy(const Item* item) const;
-    void buyItem(const Item* item, Id id_instance);
+    bool canBuy(const ShopItem* item) const;
+    void buyItem(const ShopItem* item, Id id_instance);
     bool canSell(Id instance_id) const;
     void sellItem(Id instance_id, uint32_t sell_price);
     void addItemToInventory(std::unique_ptr<ItemInstance> item);
@@ -100,7 +97,7 @@ public:
 
     void onDeath() override;  // El jugador se convierte en fantasma
 
-    ~Player() override = default;
+    ~Player() = default;
 };
 
 

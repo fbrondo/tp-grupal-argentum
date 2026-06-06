@@ -1,6 +1,6 @@
 #pragma once
 
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 class WithdrawItemCommand : public Command {
 private:

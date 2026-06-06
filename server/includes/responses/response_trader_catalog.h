@@ -1,13 +1,12 @@
 #pragma once
-#include "response.h"
-#include "server_protocol.h"
-#include <string>
-#include <vector>
+#include <map>
+#include "common/includes/types.h"
+#include "server/includes/responses/response.h"
 
 class ResponseTraderCatalog : public Response {
 private:
     std::map<TypeItem, uint32_t> catalog;
 public:
-    explicit ResponseTraderCatalog(const std::map<TypeItem, std::unique_ptr<Item>>& store);
+    explicit ResponseTraderCatalog(const std::map<TypeItem, uint32_t>& catalog);
     void execute(ServerProtocol& protocol) override;
 };

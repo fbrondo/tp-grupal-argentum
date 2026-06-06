@@ -23,7 +23,7 @@ struct NpcInstance {
     TypeNPC type;
     Pose pose;
     NpcInstance() = default;
-    NpcInstance(TypeNPC type_npc, Pose pose): type(type_npc), pose(pose) {}
+    NpcInstance(TypeNPC type_npc, const Pose& pose): type(type_npc), pose(pose) {}
 
 };
 

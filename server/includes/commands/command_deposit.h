@@ -1,5 +1,5 @@
 #pragma once
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 class DepositItemCommand : public Command {
 private:

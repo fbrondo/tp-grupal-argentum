@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-
+#include "common/includes/core/user.h"
 #include "common/includes/map/tile.h"
 #include "common/includes/types.h"
 #include "server/includes/core/config.h"

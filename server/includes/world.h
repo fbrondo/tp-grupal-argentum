@@ -66,8 +66,9 @@ private:
 
     std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
     std::map<Id, Zone> zones;                // todas las zonas identificadas
+    std::vector<Id> safe_zones; /*Para spaw de nuevo jugador haga spaw o ubicar jugador ./resucitar*/
 
-    std::map<Id, Position> players_positions;
+    std::map<Id, Pose> players_positions;
     std::map<Id, NpcInstance> npcs_positions;
     std::map<Id, Position> treausures_positions;
     std::map<Id, ItemInstance> items_on_flor;
@@ -78,11 +79,15 @@ private:
     void buildTilesWorld();
     void identifyZones();
     void floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone);
-    Position calculatePosition(const Id& player_id, const Direction dir);
+    void saveIdsOfTheSafeZones();
+
 
     bool isOccupied(const Position& pos);
     bool isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir);
+
+    Position calculatePosition(const Id& player_id, const Direction dir);
     Position calculatePositionRandom(const Id &zone_id);
+    Id calculateZoneSafeRandom();
 
 public:
     World(const World& other) = delete;
@@ -98,12 +103,13 @@ public:
     bool isSafeZONE(const Position& /*pos*/);
     bool canDropItemAt(const Position& pos);
 
-    void spawnNpc(TypeNPC type, const Id& npc_id, const Id& zone_id);
     void spawnTreasure(const Id& treasure_id, const Id& zone_id);
-    Position spawnPlayer(const Id& player_id);
+
+    Pose spawnNpc(TypeNPC type, const Id& npc_id, const Id& zone_id);
+    Pose spawnPlayer(const Id& player_id);
 
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
-    void movePlayer(const Id& player_id, Direction dir);
+    Pose movePlayer(const Id& player_id, Direction dir);
 
     // void spawnItemOnFloor(const Position& pos, TypeItem item_type);
     // void spawnGoldOnFloor(const Position& pos, uint16_t amount);
@@ -111,6 +117,7 @@ public:
 
     Position positionPlayerInTheWorld(const Id& player_id);
     Position positionNPCInTheWorld(const Id& npc_id);
+
     NpcInstance* getNpcById(const Id& npc_id);
     ItemInstance* getItemAt(const Position& pos);
     std::unique_ptr<ItemInstance> pickUpItem(const Position& pos);

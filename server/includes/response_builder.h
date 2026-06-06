@@ -13,7 +13,7 @@ private:
     /* data */
 public:
     ResponseBuilder(/* args */) = default;
-    Snapshot buildSnapshot(const std::map<Id, unique_ptr<Player>>& players, World& world);
+    Snapshot buildSnapshot(const std::map<Id, std::unique_ptr<Player>>& players, World& world);
     ~ResponseBuilder();
 };
 

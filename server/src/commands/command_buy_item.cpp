@@ -1,4 +1,5 @@
-#include "../../includes/commands/command_buy_item.h"
+#include "server/includes/commands/command_buy_item.h"
+#include "server/includes/gameloop.h"
 
 BuyItemCommand::BuyItemCommand(Id id, Id npc_id, Id item_id): Command(id) {
     this->npc_id = npc_id;

@@ -2,9 +2,7 @@
 #define RESPONSE_SNAPSHOT_H
 
 #include "server/includes/core/snapshot.h"
-#include "server/includes/server_protocol.h"
-
-#include "response.h"
+#include "server/includes/responses/response.h"
 
 class ResponseSnapshot: public Response {
 private:

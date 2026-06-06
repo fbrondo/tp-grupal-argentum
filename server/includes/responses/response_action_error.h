@@ -2,7 +2,6 @@
 #include <string>
 
 #include "server/includes/responses/response.h"
-#include "server/includes/server_protocol.h"
 
 class ResponseActionError: public Response {
 private:

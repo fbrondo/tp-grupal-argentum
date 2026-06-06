@@ -7,10 +7,8 @@
 #include <vector>
 
 #pragma pack(push, 1)
-
 struct PlayerSnapshotData {
     uint32_t id;
-
     // Posicion en el mapa
     uint32_t pos_x;
     uint32_t pos_y;
@@ -23,8 +21,11 @@ struct PlayerSnapshotData {
 
     uint8_t body_id;
     uint8_t head_id;
+    /*equipo*/
     uint8_t weapon_id;
-    uint8_t shield_id;
+    uint8_t shield_id; /*Debe ser none si no esta equipado*/
+    uint8_t armor_id;
+    uint8_t head;
 
     uint8_t raza;
     uint8_t clase;

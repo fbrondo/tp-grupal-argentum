@@ -83,6 +83,13 @@ void GameConfigLoader::loadNpcs( std::map<std::string, NpcConfig>& npcs) {
             npc_config.hp_max_initial= static_cast<uint16_t>(npc["hp_max_initial"].value_or(0));
             npc_config.minimal_level = static_cast<uint16_t>(npc["minimal_level"].value_or(0));
             npc_config.maximun_level = static_cast<uint16_t>(npc["maximun_level"].value_or(0));
+            if (auto table_ids_items = npc["id_items_store"].as_array()) {
+                for (auto&& node : *table_ids_items) {
+                    if (auto id_item = node.value<int>()) {
+                        npc_config.ids_items_store.push_back(static_cast<TypeItem>(*id_item));
+                    }
+                }
+            }
             npcs.emplace(npc_config.name, npc_config);
         }
     } catch (const toml::parse_error& err) {
@@ -214,16 +221,19 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
         Table_array* regions_array = config["regions"].as_array();
         for (const auto& region_node: *regions_array) {
             const Table& region = *region_node.as_table();
-
             bool is_safe = region["is_safe_zone"].value_or(false);
+
             Region type = static_cast<Region>(region["id_type"].value_or(0));
             if (is_safe) {
                 auto r = std::make_unique<SafeRegion>();
                 r->type = type;
-                r->merchants = region["merchants"].value_or(0);
-                r->priests   = region["priest"].value_or(0);
-                r->bankers   = region["bankers"].value_or(0);
-                info_regions.emplace(type, std::move(r));
+                if (auto numbers_array = region["numbers_npcs"].as_array()) {
+                    for (auto&& node : *numbers_array) {
+                        uint16_t valor = static_cast<uint16_t>(node.value_or<int64_t>(1));
+                        r->numbers_npc.push_back(valor);
+                    }
+                    info_regions.emplace(type, std::move(r));
+                }
             } else {
                 auto r = std::make_unique<WildRegion>();
                 r->type = type;
@@ -255,7 +265,6 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
         Table config = toml::parse_file(paths.game.string());
         /*Estado inicial del jugador*/
         auto player_init = config["player_state_init"];
-        PlayerStateInit state_init;
         player_state_init.level = static_cast<uint8_t>(player_init["level"].value_or(0));
         player_state_init.golden_init = static_cast<uint32_t>(player_init["golden_init"].value_or(0));
         player_state_init.max_inventory = static_cast<uint32_t>(player_init["max_inventory"].value_or(0));
@@ -279,7 +288,7 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
 
 const FileData GameConfigLoader::getFilesData() { return this->data; }
 
-GameConfig&& GameConfigLoader::getdGameConfiguration() {
+GameConfig GameConfigLoader::getdGameConfiguration() {
     try {
         // Table config = toml::parse_file(paths.game.string());
         //
@@ -312,7 +321,7 @@ GameConfig&& GameConfigLoader::getdGameConfiguration() {
         this->loadNpcs(config.npcs);
         this->loadItems(config.items);
         this->loadRegions(config.regions);
-        return std::move(config);
+        return config;
     } catch (const std::exception& e) {
         std::string mssgErr(ERROR_LOAD_GAME_CONFIGURATION);
         mssgErr += e.what();

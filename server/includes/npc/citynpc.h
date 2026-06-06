@@ -1,18 +1,13 @@
 #ifndef CITYNPC_H
 #define CITYNPC_H
 
-#include "common/includes/types.h"
-// #include "../commands/command.h"
-
 #include <string>
 #include <utility>
 
-#include "../core/map.h"
+#include "common/includes/types.h"
+#include "server/includes/core/map.h"
+#include "server/includes/npc/npc.h"
 
-#include "npc.h"
-
-// class Comand;
-// class World;
 
 /*Representa un npc de ciudad/pueblo
     - Banquero
@@ -21,7 +16,7 @@
 */
 class CityNPC: public NPC {
 public:
-    CityNPC(TypeNPC type, std::string&& name, Pose&& pos): NPC(type, std::move(name), std::move(pos)) {}
+    CityNPC(TypeNPC type, const std::string& name, Pose&& pos): NPC(type, name, std::move(pos)) {}
     virtual ~CityNPC() = default;
 };
 
