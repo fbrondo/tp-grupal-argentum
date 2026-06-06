@@ -95,44 +95,41 @@ void RenderableEntity::update(float dt) {
 void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                                           TextureManager& texture_manager, int cam_x, int cam_y,
                                           int offset_x, int offset_y) {
-    if (anim_state.current_anim_id.empty())
-        return;
 
+    // 1. Determinar el ID de la animación según el estado
+    std::string action = is_moving ? "_walk_" : "_idle_";
+    std::string anim_id = "body_" + std::to_string(body_id) + action + std::to_string(current_dir);
+
+    // 2. Obtener el clip y el frame actual desde el TextureManager
     try {
-        const AnimationClip& body_clip = texture_manager.get_animation(anim_state.current_anim_id);
-        uint32_t frame_index = texture_manager.get_current_animation_frame(anim_state, body_clip);
-        SDL_Rect src_rect = body_clip.frames[frame_index];
+        const AnimationClip& clip = texture_manager.get_animation(anim_id);
+        uint32_t frame_index = texture_manager.get_current_animation_frame(anim_state, clip);
+        SDL_Rect src_rect = clip.frames[frame_index];
 
+        // 3. Calcular posición final (World -> Camera -> Screen)
         SDL_Rect dst_rect;
-        // Aplicamos la misma traslación: Posición Píxel - Posición Cámara + Offset de Pantalla
         dst_rect.x = static_cast<int>(current_pixel_x) - cam_x + offset_x;
         dst_rect.y = static_cast<int>(current_pixel_y) - cam_y + offset_y;
         dst_rect.w = src_rect.w;
         dst_rect.h = src_rect.h;
 
+        // 4. Dibujar cuerpo
         std::string body_tex_key = "body_" + std::to_string(body_id);
-        SDL2pp::Texture& body_texture =
-                const_cast<SDL2pp::Texture&>(texture_manager.get_texture(body_tex_key));
+        SDL2pp::Texture& body_texture = texture_manager.get_texture(body_tex_key);
         renderer.Copy(body_texture, SDL2pp::Rect(src_rect), SDL2pp::Rect(dst_rect));
 
-        // Dibujado de la cabeza (respetando la nueva dst_rect relativa a la cámara)
+        // 5. Dibujar cabeza (si tiene una asignada)
         if (head_id != 0) {
             std::string head_tex_key = "head_" + std::to_string(head_id);
-            SDL2pp::Texture& head_texture =
-                    const_cast<SDL2pp::Texture&>(texture_manager.get_texture(head_tex_key));
+            SDL2pp::Texture& head_texture = texture_manager.get_texture(head_tex_key);
 
-            SDL_Rect dst_head;
-            dst_head.x = dst_rect.x + (dst_rect.w - 16) / 2;
-            dst_head.y = dst_rect.y - 12;
-            dst_head.w = 16;
-            dst_head.h = 16;
-
-            renderer.Copy(head_texture, SDL2pp::Optional<SDL2pp::Rect>(),
-                          SDL2pp::Optional<SDL2pp::Rect>(SDL2pp::Rect(dst_head)));
+            // La cabeza suele ir centrada sobre el cuerpo y un poquito más arriba
+            SDL_Rect dst_head = dst_rect;
+            dst_head.y -= 10;  // Offset vertical para la cabeza
+            renderer.Copy(head_texture, SDL2pp::NullOpt, SDL2pp::Rect(dst_head));
         }
+
     } catch (const std::exception& e) {
-        // Capturamos cualquier error por si el TextureManager no encuentra un ID (buena práctica
-        // para evitar crashes)
-        std::cerr << "Error al renderizar entidad [" << id << "]: " << e.what() << std::endl;
+        // Manejo de error silencioso: si falta una textura, la entidad no se dibuja (evita crasheo)
     }
 }

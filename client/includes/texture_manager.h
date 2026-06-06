@@ -46,7 +46,7 @@ public:
                               int frames_per_row, uint32_t speed_ms);
     void load_all_game_assets();
 
-    const SDL2pp::Texture& get_texture(const std::string& id) const;
+    SDL2pp::Texture& get_texture(const std::string& id) const;
     const AnimationClip& get_animation(const std::string& anim_id) const;
     uint32_t get_current_animation_frame(const AnimationState& state, const AnimationClip& clip);
 };

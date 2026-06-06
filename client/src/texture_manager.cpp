@@ -51,15 +51,15 @@ void TextureManager::load_all_game_assets() {
 
     // --- EJEMPLO DE CARGA DE CUERPO HUMANO (ID 1036) ---
     // Dimensiones de ejemplo (ajustar según tus PNGs)
-    load_texture("citizen_leather", "common/assets/units/bodies/humanos/1036.png");
+    load_texture("body_1036", "common/assets/units/bodies/humanos/1036.png");
     register_spritesheet("1036", 32, 45, 4, 150);
 
     // --- EJEMPLO DE CARGA DE CRIATURA (ID 300) ---
-    load_texture("field_goblin", "client/assets/Sprites/Units/criatures/300.png");
+    load_texture("body_300", "client/assets/Sprites/Units/criatures/300.png");
     register_spritesheet("body_300", 32, 32, 4, 200);
 
     // --- EJEMPLO DE CABEZA (HUMANO 3060) ---
-    load_texture("brown_spiky_beard", "common/assets/units/heads/humanos/3060.png");
+    load_texture("head_3060", "common/assets/units/heads/humanos/3060.png");
 
     std::cout << "[TextureManager] Carga finalizada." << std::endl;
 }
@@ -102,7 +102,7 @@ void TextureManager::register_grid_animation(const std::string& anim_id,
     animations[anim_id] = clip;
 }
 
-const SDL2pp::Texture& TextureManager::get_texture(const std::string& id) const {
+SDL2pp::Texture& TextureManager::get_texture(const std::string& id) const {
     const auto it = textures.find(id);
     if (it == textures.end()) {
         throw std::runtime_error("Textura no encontrada: " + id);
