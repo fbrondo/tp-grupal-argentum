@@ -26,15 +26,22 @@ void initServer();
 
 
 void printPlayerData(std::string func, const PlayerData& player);
-/*Carga de archivos*/
-void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config,
-                            const FileData& file_data);
+
+/*GAMELOADCONFIG*/
+void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config, const FileData& file_data);
 
 
-void printNewPlayerArrived(const Id& id, const std::string& username, const std::string& password,
-                           TypeRace rac, TypeClase cl);
+void printNewPlayerArrived(const Id& id,  const User& user, TypeRace rac, TypeClase cl);
+void printInitProcessRegister();
 // void printPositionNewPlayer(const Id& id, const PlayerInstance& inst);
 // void printPositionPlayerUpdate(const Id& id, const PlayerInstance& inst);
+
+void printNPCsLoads(const std::map<std::string, NpcConfig>& info_npcs);
+void printRacesLoad(const std::map<TypeRace, Race>& info_races);
+void printClasesLoad(const std::map<TypeClase, Clase> &info_clases);
+
+
+    void printPositionRandom(const Position& pos);
 
 };  // namespace Print
 

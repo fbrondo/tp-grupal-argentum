@@ -3,10 +3,12 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <tuple>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+#include <random>
 
 #include "common/includes/direction.h"
 #include "common/includes/map/map.h"
@@ -58,17 +60,20 @@ private:
     Map map;
     const uint32_t limit_height;
     const uint32_t limit_width;
+    MatrizMap map_tiles;
+    std::mt19937 gen;
+    Direction direction_spaw_default = UP; /*Tanto para jugadores como npcs*/
 
     std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
     std::map<Id, Zone> zones;                // todas las zonas identificadas
 
-    MatrizMap map_tiles;  // matriz
     std::map<Id, Position> players_positions;
     std::map<Id, NpcInstance> npcs_positions;
+    std::map<Id, Position> treausures_positions;
     std::map<Id, ItemInstance> items_on_flor;
     std::map<Id, GoldPile> gold_on_floor;
     std::map<Region, uint32_t> region_count;
-    // Id next_item_instance_id{1};
+
 
     void buildTilesWorld();
     void identifyZones();
@@ -77,6 +82,7 @@ private:
 
     bool isOccupied(const Position& pos);
     bool isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir);
+    Position calculatePositionRandom(const Id &zone_id);
 
 public:
     World(const World& other) = delete;
@@ -86,15 +92,16 @@ public:
     explicit World(const Path& path /*, const MapItems& info_items*/);
 
     ~World() = default;
-
+    const std::vector<std::tuple<Id, Region>> getZones();
     /*Consultas para validar*/
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isSafeZONE(const Position& /*pos*/);
     bool canDropItemAt(const Position& pos);
 
+    void spawnNpc(TypeNPC type, const Id& npc_id, const Id& zone_id);
+    void spawnTreasure(const Id& treasure_id, const Id& zone_id);
+    Position spawnPlayer(const Id& player_id);
 
-    /*void loadPlayer(const Id& player_id, Position&& position, Direction dir)*/
-    void spawnPlayer(const Id& player_id);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
 

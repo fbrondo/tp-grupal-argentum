@@ -2,9 +2,15 @@
 #define CONFIG_H
 
 #include <filesystem>
-#include <unordered_map>
+#include <map>
+#include "common/includes/types.h"
+#include "server/includes/core/clase.h"
+#include "server/includes/core/item.h"
+#include "server/includes/core/race.h"
+#include "server/includes/core/region.h"
 
 using Path = std::filesystem::path;
+
 struct PathsConfig {
     Path game;
     Path clases;
@@ -20,7 +26,7 @@ struct FileData {
     Path world; /*Donde guardo el estado del mundo*/
     Path map;   /*Donde esta guardado el map que me envia el editor*/
 };
-struct PlayerStateInitConfig {
+struct PlayerStateInit {
     uint8_t level;
     uint32_t golden_init;
     uint32_t max_inventory;
@@ -30,7 +36,7 @@ struct ClanConfig {
     uint32_t max_members;
 };
 
-struct NPCConfig {
+struct NpcConfig {
     TypeNPC type;
     std::string name;
     /*Solo las criaturas tienen las siguientes campos*/
@@ -51,10 +57,27 @@ struct TimesConfig {
 };
 
 struct GameConfig {
-    PlayerStateInitConfig player_init;
+    PlayerStateInit player_init;
     ClanConfig clan;
     TimesConfig times;
+    std::map<TypeRace, Race> races;
+    std::map<TypeClase, Clase> clases;
+    std::map<std::string, NpcConfig> npcs;
+    std::map<Region, std::unique_ptr<RegionWorld>> regions;
+    std::map<TypeItem, std::unique_ptr<Item>> items;
+
+    GameConfig(GameConfig&&) = default;
+    GameConfig& operator=(GameConfig&&) = default;
+
+    GameConfig(const GameConfig&) = delete;
+    GameConfig& operator=(const GameConfig&) = delete;
+
     GameConfig() = default;
+
+    // GameConfig(PlayerStateInit player_init_, ClanConfig clan_, TimesConfig times_):
+    // player_init(player_init_),
+    // clan(clan_),
+    // times(times_) {}
 };
 
 #endif

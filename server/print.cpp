@@ -212,19 +212,18 @@ void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config,
     }
 }
 
-void printNewPlayerArrived(const Id& id, const std::string& name, const std::string& pass,
-                           TypeRace rac, TypeClase clase) {
+void printNewPlayerArrived(const Id& id, const User& user, TypeRace rac, TypeClase clase) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
         std::ostringstream oss;
-        oss << " ========== Client Arrived =========" << "\n";
-        oss << "- id: " << id << "\n";
-        oss << "- username: " << name << "\n";
-        oss << "- pass: " << pass << "\n";
-        oss << "- race: " << RaceToString(rac) << "\n";
+        oss << " ========== Client Arrived =========" << SALTO;
+        oss << "- id: " << id << SALTO;
+        oss << "- username: " << user.username << SALTO;
+        oss << "- pass: " << user.password << SALTO;
+        oss << "- race: " << RaceToString(rac) << SALTO;
         oss << "- clase: " << claseToString(clase) << SALTO;
-        oss << " ===================================" << "\n";
+        oss << " ===================================" << SALTO;
         std::string message = oss.str();
         print_message_console(message);
     }
@@ -256,4 +255,173 @@ void printNewPlayerArrived(const Id& id, const std::string& name, const std::str
 //         print_message_console(message);
 //     }
 // }
+
+void printNPCsLoads(const std::map<std::string, NpcConfig> info_npcs) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::string descp =  "CARGANDO NPC: ";
+        for (const auto& [name, npc] : info_npcs) {
+            TypeNPC type = npc.type;
+            std::vector<std::string> renglones;
+            if (type != PRIEST && type != MERCHANT && type != BANKER) {
+                renglones = std::vector<std::string>{
+                    "",  // Línea
+                    " - NPC:    " + npc.name,
+                    " - hp_max_initial:  " + std::to_string(npc.hp_max_initial),
+                    " - attack_range:   " + std::to_string(npc.attack_range),
+                    " - minimal_level:    " + std::to_string(npc.minimal_level),
+                    " - maximun_level:   " + std::to_string(npc.maximun_level),
+                    ""
+               };
+            } else {
+                renglones = std::vector<std::string>{
+                    "",  // Línea
+                    " - NPC:    " + npc.name,
+                    ""
+               };
+            }
+            size_t max_largo = 0;
+            auto it = std::max_element(
+                    renglones.begin(), renglones.end(),
+                    [](const auto& a, const auto& b) { return a.length() < b.length(); });
+            if (it != renglones.end())
+                max_largo = it->length();
+            // El ancho interior de la caja será el largo máximo más los espacios de cortesía a los
+            // costados
+            int ancho_caja = static_cast<int>(max_largo) + 4;
+            std::string borde_horizontal(ancho_caja, '-');
+            // Empezamos a armar el ostringstream
+            std::ostringstream oss;
+            // Techo de la caja
+            oss << borde_horizontal << SALTO;
+            // Recorremos los renglones guardados y los rellenamos dinámicamente
+            for (const auto& renglon: renglones) {
+                oss << "| " << renglon;
+                // Calculamos cuántos espacios le faltan a ESTE renglón específico para alcanzar al más
+                // largo
+                int espacios_necesarios = static_cast<int>(max_largo - renglon.length());
+                if (espacios_necesarios > 0) {
+                    oss << std::string(espacios_necesarios, ' ');
+                }
+                oss << " |" << SALTO;
+            }
+            oss << borde_horizontal;  // Piso de la caja
+            print_message_console(oss.str());
+        }
+    }
+}
+
+
+void printRacesLoad(const std::map<TypeRace, Race> &info_races) {
+     const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::string descp =  "CARGANDO NPC: ";
+        for (const auto& [type, race] : info_races) {
+            std::vector<std::string> renglones = {
+                "",  // Línea
+                " - Raza:    " + race.name,
+                " - type:  " + std::to_string(race.type),
+                " - hp_factor:   " + std::to_string(race.hp_factor),
+                " - recovery_factor:    " + std::to_string(race.recovery_factor),
+                " - mana_factor:   " + std::to_string(race.mana_factor),
+             "- Estadisticas: ",
+             "",
+            "  > Intelligence  " + std::to_string(race.statistics.intelligence),
+            "  > Constitution: " + std::to_string(race.statistics.constitution),
+            "  > Strength: " + std::to_string(race.statistics.strength),
+            "  > Agility: " + std::to_string(race.statistics.agility)
+        };
+            size_t max_largo = 0;
+            auto it = std::max_element(
+                    renglones.begin(), renglones.end(),
+                    [](const auto& a, const auto& b) { return a.length() < b.length(); });
+            if (it != renglones.end())
+                max_largo = it->length();
+            // El ancho interior de la caja será el largo máximo más los espacios de cortesía a los
+            // costados
+            int ancho_caja = static_cast<int>(max_largo) + 4;
+            std::string borde_horizontal(ancho_caja, '-');
+            // Empezamos a armar el ostringstream
+            std::ostringstream oss;
+            // Techo de la caja
+            oss << borde_horizontal << SALTO;
+            // Recorremos los renglones guardados y los rellenamos dinámicamente
+            for (const auto& renglon: renglones) {
+                oss << "| " << renglon;
+                // Calculamos cuántos espacios le faltan a ESTE renglón específico para alcanzar al más
+                // largo
+                int espacios_necesarios = static_cast<int>(max_largo - renglon.length());
+                if (espacios_necesarios > 0) {
+                    oss << std::string(espacios_necesarios, ' ');
+                }
+                oss << " |" << SALTO;
+            }
+            oss << borde_horizontal;  // Piso de la caja
+            print_message_console(oss.str());
+        }
+    }
+}
+
+void printClasesLoad(const std::map<TypeClase, Clase> &info_clases) {
+     const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::string descp =  "CARGANDO NPC: ";
+        for (const auto& [type, clase] : info_clases) {
+            std::vector<std::string> renglones = {
+                "",  // Línea
+                " - Raza:    " + clase.name,
+                " - type:  " + std::to_string(clase.type),
+                " - meditation_factor:   " + std::to_string(clase.meditation_factor),
+                " - mana_factor:   " + std::to_string(clase.mana_factor),
+             "- Estadisticas: ",
+             "",
+            "  > Intelligence  " + std::to_string(clase.statistics.intelligence),
+            "  > Constitution: " + std::to_string(clase.statistics.constitution),
+            "  > Strength: " + std::to_string(clase.statistics.strength),
+            "  > Agility: " + std::to_string(clase.statistics.agility)
+        };
+            size_t max_largo = 0;
+            auto it = std::max_element(
+                    renglones.begin(), renglones.end(),
+                    [](const auto& a, const auto& b) { return a.length() < b.length(); });
+            if (it != renglones.end())
+                max_largo = it->length();
+            // El ancho interior de la caja será el largo máximo más los espacios de cortesía a los
+            // costados
+            int ancho_caja = static_cast<int>(max_largo) + 4;
+            std::string borde_horizontal(ancho_caja, '-');
+            // Empezamos a armar el ostringstream
+            std::ostringstream oss;
+            // Techo de la caja
+            oss << borde_horizontal << SALTO;
+            // Recorremos los renglones guardados y los rellenamos dinámicamente
+            for (const auto& renglon: renglones) {
+                oss << "| " << renglon;
+                // Calculamos cuántos espacios le faltan a ESTE renglón específico para alcanzar al más
+                // largo
+                int espacios_necesarios = static_cast<int>(max_largo - renglon.length());
+                if (espacios_necesarios > 0) {
+                    oss << std::string(espacios_necesarios, ' ');
+                }
+                oss << " |" << SALTO;
+            }
+            oss << borde_horizontal;  // Piso de la caja
+            print_message_console(oss.str());
+        }
+    }
+}
+
+void printNpcPositionSpaw(const Position& pos) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - World] - | Pos: (" << pos.x << ", " << pos.y << ")" << " |" ;
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+}
 }  // namespace Print

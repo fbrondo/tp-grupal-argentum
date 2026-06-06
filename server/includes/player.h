@@ -7,7 +7,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+#include "common/includes/core/user.h"
 #include "common/includes/direction.h"
 #include "common/includes/protocol.h"
 #include "common/includes/types.h"
@@ -21,12 +21,7 @@
 
 #include "combat_entity.h"
 
-struct User {
-    std::string username;
-    std::string password;
-    User(std::string&& user, std::string&& pass):
-            username(std::move(user)), password(std::move(pass)) {}
-};
+
 
 struct BankAccount {
     uint32_t gold;
@@ -60,7 +55,7 @@ public:
 
     Player(Pose&& pos, Inventory&& inv_, const Race& race, const Clase& clase, uint8_t level);
     /*Constructor para un jugador registrado desde cero - nuevo */
-    Player(User&& user, Pose&& pose, Character&& ch, const PlayerStateInitConfig& state_init);
+    Player(const User& user, Pose&& pose, Character&& ch, const PlayerStateInit& state_init);
 
     TypeItem getHandItem();
     std::vector<TypeItem> getEquipment();

@@ -25,9 +25,16 @@ private:
     FileData data;
 
     void loadPaths();
-    void loadNpcs(std::unordered_map<TypeNPC, NPCConfig>& npcs);
     Path loadPath(const Table& config, const std::string& section_key, const std::string& fiel_key) const;
+
     Statistics loadTableStatistics(Table_array* stats_array);
+
+    void loadNpcs( std::map<std::string, NpcConfig>& npcs);
+    void loadRaces(std::map<TypeRace, Race>& info_races);
+    void loadClases(std::map<TypeClase, Clase>& info_clases);
+    void loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items);
+    void loadRegions(std::map<Region, std::unique_ptr<RegionWorld>>& info_regions);
+    void loadGame( PlayerStateInit& player_init, ClanConfig& clan, TimesConfig& times);
 
 public:
     GameConfigLoader(const GameConfigLoader& other) = delete;
@@ -36,12 +43,7 @@ public:
     explicit GameConfigLoader(Path config_dir_);
 
     const FileData getFilesData();
-    void loadRaces(std::unordered_map<TypeRace, Race>& info_races);
-    void loadClases(std::unordered_map<TypeClase, Clase>& info_clases);
-    void loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items);
-
-    void loadRegions(std::map<Region, std::unique_ptr<RegionWorld>>& info_regions);
-    GameConfig getdGameConfiguration();
+    GameConfig&& getdGameConfiguration();
 };
 
 

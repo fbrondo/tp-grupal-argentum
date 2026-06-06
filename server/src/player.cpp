@@ -22,9 +22,10 @@
 // }
 
 /**/
-Player::Player(User&& user_, Pose&& pose_, Character&& ch_,
-               const PlayerStateInitConfig& state_init):
-        CombatEntity(std::move(pose_), 0), user(std::move(user_)), ch(std::move(ch_)) {
+Player::Player(const User& user_, Pose&& pose_, Character&& ch_, const PlayerStateInit& state_init):
+        CombatEntity(std::move(pose_), 0),
+        user(user_),
+        ch(std::move(ch_)) {
     this->level = state_init.level;
     this->inv = Inventory(state_init.golden_init, state_init.max_inventory);
     this->statics = ch.getStatistics();

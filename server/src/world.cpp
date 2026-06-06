@@ -7,7 +7,8 @@
 World::World(const std::filesystem::path& path):
         map(MapSerializer::load(path)),
         limit_height(this->map.height()),
-        limit_width(this->map.width()){
+        limit_width(this->map.width()),
+        gen(std::random_device{}()) {
     this->buildTilesWorld();
     this->identifyZones();
     // Print::printinitMatrizMap(this->map_tiles, this->limit_height, this->limit_width);
@@ -106,6 +107,16 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
     return new_pos;
 }
 
+Position World::calculatePositionRandom(const Id &zone_id) {
+    const std::vector<Position>& tiles = this->zones[zone_id].tiles;
+    std::uniform_int_distribution<size_t> distrib(0, tiles.size() - 1);
+    Position random_postion = tiles[distrib(this->gen)];
+    while (this->isOccupied(random_postion)) {
+        random_postion = tiles[distrib(this->gen)];
+        Print::printPositionRandom(random_postion);
+    }
+    return random_postion;
+}
 
 bool World::isOccupied(const Position& pos) {
     /*Verificamos que no haya otro jugador*/
@@ -114,7 +125,6 @@ bool World::isOccupied(const Position& pos) {
             return true;
         }
     }
-
     /*verificamos que no hay un NPC*/
     for (auto& [id, instance_npc]: this->npcs_positions) {
         if (instance_npc.pose.position == pos) {
@@ -145,8 +155,15 @@ bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir
     return false;
 }
 
-bool World::isWalkable(const Id& player_id, const Direction dir) {
+const std::vector<std::tuple<Id, Region>> World::getZones() {
+    std::vector<std::tuple<Id, Region>> info_zones;
+    for (auto [id, zone]: this->zones) {
+        info_zones.push_back( std::make_tuple(id, zone.region));
+    }
+    return info_zones;
+}
 
+bool World::isWalkable(const Id& player_id, const Direction dir) {
     if (!this->isThisPlayerWithinTheLimits(player_id, dir)) {
         return false;
     }
@@ -166,12 +183,24 @@ bool World::canDropItemAt(const Position& pos) {
     return true;
 }
 
+void World::spawnNpc(TypeNPC type, const Id &npc_id, const Id &zone_id) {
+    Position random_position = this->calculatePositionRandom(zone_id);
+    NpcInstance new_npc(type, Pose{random_position, this->direction_spaw_default});
+    this->npcs_positions.emplace(npc_id, std::move(new_npc));
+}
+
+void World::spawnTreasure(const Id &treasure_id, const Id &zone_id) {
+    Position random_position = this->calculatePositionRandom(zone_id);
+    this->treausures_positions.emplace(treasure_id, std::move(random_position));
+}
+
 bool World::isSafeZONE(const Position& /*pos*/) { return true; }
 
 /*El estado del mundo cambia*/
-void World::spawnPlayer(const Id& player_id) {
+Position World::spawnPlayer(const Id& player_id) {
     Position position(Position{4, 4}); /*La posicion esta harcodeada para probar*/
     this->players_positions.emplace(player_id, position);
+    return position;
 }
 
 void World::removePlayer(const Id& player_id) { this->players_positions.erase(player_id); }

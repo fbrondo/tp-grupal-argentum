@@ -1,6 +1,5 @@
 #include "../../includes/commands/command_chat.h"
 
-ChatCommand::ChatCommand(uint32_t id, std::string msg): Command(id), text(std::move(msg)) {}
 ChatCommand::ChatCommand(Id id, std::string msg): Command(id), text(std::move(msg)) {}
 
 void ChatCommand::execute(Gameloop& game) {

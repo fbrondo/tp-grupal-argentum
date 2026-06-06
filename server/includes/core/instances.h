@@ -20,9 +20,11 @@ struct ItemInstance {
 
 struct NpcInstance {
     // const Id id_instance; //unico, se genera en runtime
-    TypeNPC type_npc;
+    TypeNPC type;
     Pose pose;
     NpcInstance() = default;
+    NpcInstance(TypeNPC type_npc, Pose pose): type(type_npc), pose(pose) {}
+
 };
 
 // struct PlayerInstance {

@@ -13,6 +13,7 @@ target_sources(taller_common
     # .h files
         includes/core/Statistics.h
         includes/core/character_traits.h
+        includes/core/user.h
 
         includes/map/tile.h
         includes/map/layer.h
