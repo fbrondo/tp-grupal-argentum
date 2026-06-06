@@ -1,12 +1,13 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
-#include "common/includes/direction.h"
 #include "client/includes/texture_manager.h"
+#include "common/includes/direction.h"
 
 class RenderableEntity {
 private:
@@ -30,8 +31,8 @@ private:
     AnimationState anim_state;
 
 public:
-    RenderableEntity(uint32_t id, int start_tile_x, int start_tile_y,
-                     uint8_t body_id_, uint8_t head_id_, uint8_t weapon_id_, uint8_t shield_id_);
+    RenderableEntity(uint32_t id, int start_tile_x, int start_tile_y, uint8_t body_id_,
+                     uint8_t head_id_, uint8_t weapon_id_, uint8_t shield_id_);
 
     virtual ~RenderableEntity() = default;
 
@@ -42,7 +43,8 @@ public:
     void update(float dt);
 
     // Dibuja el esqueleto completo superponiendo las texturas correspondientes
-    void render_with_camera(SDL2pp::Renderer& renderer, TextureManager& texture_manager, int cam_x, int cam_y, int offset_x, int offset_y);
+    void render_with_camera(SDL2pp::Renderer& renderer, TextureManager& texture_manager, int cam_x,
+                            int cam_y, int offset_x, int offset_y);
 
     // Método para cuando el servidor nos notifica una actualización de posición/dirección
     void move_to(int target_tile_x, int target_tile_y, Direction dir);

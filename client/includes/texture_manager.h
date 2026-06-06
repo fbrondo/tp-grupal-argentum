@@ -42,8 +42,8 @@ public:
                                  int frame_width, int frame_height, int frame_count,
                                  uint32_t speed_ms);
 
-    void register_spritesheet(const std::string& base_id, int frame_width,
-                                       int frame_height, int frames_per_row, uint32_t speed_ms);
+    void register_spritesheet(const std::string& base_id, int frame_width, int frame_height,
+                              int frames_per_row, uint32_t speed_ms);
     void load_all_game_assets();
 
     const SDL2pp::Texture& get_texture(const std::string& id) const;

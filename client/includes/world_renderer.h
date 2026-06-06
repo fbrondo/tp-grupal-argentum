@@ -1,13 +1,14 @@
 #pragma once
 
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 #include <vector>
+
 #include <SDL2pp/SDL2pp.hh>
 
+#include "client/includes/client_protocol.h"
 #include "client/includes/renderable_entity.h"
 #include "client/includes/texture_manager.h"
-#include "client/includes/client_protocol.h"
 
 static constexpr int TILE_SIZE = 32;
 

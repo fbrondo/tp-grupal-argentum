@@ -19,8 +19,7 @@ TextureManager::TextureManager(SDL2pp::Renderer& renderer_, WindowSDL& window_):
 }
 
 void TextureManager::register_spritesheet(const std::string& base_id, int frame_width,
-                                                   int frame_height, int frames_per_row,
-                                                   uint32_t speed_ms) {
+                                          int frame_height, int frames_per_row, uint32_t speed_ms) {
     // Fila 0 (y = 0 * h) -> Sur (DOWN)
     // Fila 1 (y = 1 * h) -> Norte (UP)
     // Fila 2 (y = 2 * h) -> Oeste (LEFT)
