@@ -6,6 +6,8 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2pp/SDL2pp.hh>
 
+#include "common/includes/direction.h"
+
 TextureManager::TextureManager(SDL2pp::Renderer& renderer_, WindowSDL& window_):
         renderer(renderer_), window(window_) {
     try {
@@ -14,6 +16,53 @@ TextureManager::TextureManager(SDL2pp::Renderer& renderer_, WindowSDL& window_):
     } catch (const std::exception& e) {
         std::cerr << "No se pudo cargar el icono: " << e.what() << std::endl;
     }
+}
+
+void TextureManager::register_spritesheet(const std::string& base_id, int frame_width,
+                                                   int frame_height, int frames_per_row,
+                                                   uint32_t speed_ms) {
+    // Fila 0 (y = 0 * h) -> Sur (DOWN)
+    // Fila 1 (y = 1 * h) -> Norte (UP)
+    // Fila 2 (y = 2 * h) -> Oeste (LEFT)
+    // Fila 3 (y = 3 * h) -> Este (RIGHT)
+
+    // Registro las animaciones de caminata
+    register_grid_animation(base_id + "_walk_" + std::to_string(DOWN), 0, 0 * frame_height,
+                            frame_width, frame_height, frames_per_row, speed_ms);
+    register_grid_animation(base_id + "_walk_" + std::to_string(UP), 0, 1 * frame_height,
+                            frame_width, frame_height, frames_per_row, speed_ms);
+    register_grid_animation(base_id + "_walk_" + std::to_string(LEFT), 0, 2 * frame_height,
+                            frame_width, frame_height, frames_per_row, speed_ms);
+    register_grid_animation(base_id + "_walk_" + std::to_string(RIGHT), 0, 3 * frame_height,
+                            frame_width, frame_height, frames_per_row, speed_ms);
+
+    // Registro las animaciones "idle" (usando el primer cuadro de cada fila)
+    register_grid_animation(base_id + "_idle_" + std::to_string(DOWN), 0, 0 * frame_height,
+                            frame_width, frame_height, 1, speed_ms);
+    register_grid_animation(base_id + "_idle_" + std::to_string(UP), 0, 1 * frame_height,
+                            frame_width, frame_height, 1, speed_ms);
+    register_grid_animation(base_id + "_idle_" + std::to_string(LEFT), 0, 2 * frame_height,
+                            frame_width, frame_height, 1, speed_ms);
+    register_grid_animation(base_id + "_idle_" + std::to_string(RIGHT), 0, 3 * frame_height,
+                            frame_width, frame_height, 1, speed_ms);
+}
+
+void TextureManager::load_all_game_assets() {
+    std::cout << "[TextureManager] Cargando assets..." << std::endl;
+
+    // --- EJEMPLO DE CARGA DE CUERPO HUMANO (ID 1036) ---
+    // Dimensiones de ejemplo (ajustar según tus PNGs)
+    load_texture("citizen_leather", "common/assets/units/bodies/humanos/1036.png");
+    register_spritesheet("1036", 32, 45, 4, 150);
+
+    // --- EJEMPLO DE CARGA DE CRIATURA (ID 300) ---
+    load_texture("field_goblin", "client/assets/Sprites/Units/criatures/300.png");
+    register_spritesheet("body_300", 32, 32, 4, 200);
+
+    // --- EJEMPLO DE CABEZA (HUMANO 3060) ---
+    load_texture("brown_spiky_beard", "common/assets/units/heads/humanos/3060.png");
+
+    std::cout << "[TextureManager] Carga finalizada." << std::endl;
 }
 
 bool TextureManager::load_texture(const std::string& id, const std::string& filename) {
@@ -88,5 +137,3 @@ uint32_t TextureManager::get_current_animation_frame(const AnimationState& state
     }
     return total_frames_elapsed;
 }
-
-TextureManager::~TextureManager() {}

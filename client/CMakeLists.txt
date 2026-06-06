@@ -11,6 +11,8 @@ target_sources(taller_client
         src/command_processor.cpp
         src/texture_manager.cpp
         src/window/windowSDL.cpp
+        src/renderable_entity.cpp
+        src/world_renderer.cpp
     PUBLIC
     # .h files
         includes/client_protocol.h
@@ -25,4 +27,6 @@ target_sources(taller_client
         includes/texture_manager.h
         includes/window/window.h
         includes/window/windowSDL.h
+        includes/renderable_entity.h
+        includes/world_renderer.h
     )

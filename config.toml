@@ -15,3 +15,12 @@ gold_excess_factor = 0.5    # player can hold up to +50% above GoldMax
 [npc]
 spawn_interval_s = 30      # seconds between NPC spawn cycles
 max_population = 200       # max NPC population on the map
+
+[gameplay]
+# El tiempo real que tarda un personaje lógicamente en moverse de un tile a otro (en milisegundos)
+ms_per_step = 264
+
+[animations]
+# El tiempo que dura cada cuadro individual de la animación de caminata (en milisegundos)
+# Como la animación de caminata base tiene 4 cuadros: 4 * 66ms = 264ms (perfectamente sincronizado)
+frame_rate_walk_ms = 66

@@ -7,6 +7,7 @@
 
 #include "client/includes/texture_manager.h"
 #include "client/includes/window/windowSDL.h"
+#include "client/includes/world_renderer.h"
 #include "commands/command_client.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
@@ -24,13 +25,6 @@ using SDL2pp::Texture;
 
 static constexpr int TARGET_FPS = 60;
 static constexpr int FRAME_MS = 1000 / TARGET_FPS;
-static constexpr int TILE_SIZE = 32;
-
-struct PlayerPosition {
-    uint32_t pos_x;
-    uint32_t pos_y;
-    uint8_t dir;
-};
 
 class Client {
 private:
@@ -45,16 +39,16 @@ private:
     SDLImage img;
     WindowSDL window;
     TextureManager texture_manager;
-    PlayerPosition player_state;
+    WorldRenderer world_renderer;
 
-    bool is_running = true;
+    uint32_t last_frame_ticks = 0;
     uint32_t it = 0;
+    bool is_running = true;
 
-    // void init_SDL();
     void update_state_from_server();
     void handle_events();
     void clear_display();
-    void update_animation_frames(uint32_t it);
+    float calculate_delta_time();
     void render_in_z_order();
     uint32_t sleep_and_calc_next_it(uint32_t frame_start) const;
     void close();

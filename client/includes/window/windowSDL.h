@@ -6,8 +6,8 @@
 #include "client/includes/window/window.h"
 
 #define DRIVER_RENDERER -1
-static constexpr int WINDOW_W = 800;
-static constexpr int WINDOW_H = 600;
+static constexpr int WINDOW_W = 960;
+static constexpr int WINDOW_H = 540;
 
 class WindowSDL: public Window {
 private:
