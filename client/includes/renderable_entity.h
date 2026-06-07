@@ -9,9 +9,13 @@
 #include "client/includes/texture_manager.h"
 #include "common/includes/direction.h"
 
+enum class EntityType { PLAYER, NPC, ITEM };
+
 class RenderableEntity {
 private:
     uint32_t id;
+    EntityType type;
+    bool is_short_race;
 
     int tile_x;
     int tile_y;
@@ -31,8 +35,9 @@ private:
     AnimationState anim_state;
 
 public:
-    RenderableEntity(uint32_t id, int start_tile_x, int start_tile_y, uint8_t body_id_,
-                     uint8_t head_id_, uint8_t weapon_id_, uint8_t shield_id_);
+    RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_, int start_tile_y_,
+                     uint8_t body_id_, uint8_t head_id_, uint8_t weapon_id_, uint8_t shield_id_,
+                     bool is_short_race_ = false);
 
     virtual ~RenderableEntity() = default;
 

@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include "common/includes/types.h"
+
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_):
         renderer(renderer_),
         texture_manager(texture_manager_),
@@ -64,71 +66,54 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
     // Registro para saber qué entidades siguen activas en el rango de visión
     std::vector<uint32_t> ids_en_snapshot;
 
-    // -------------------------------------------------------------------------
     // A. PROCESAR JUGADORES
-    // -------------------------------------------------------------------------
     for (const auto& p_data: snapshot.players) {
         ids_en_snapshot.push_back(p_data.id);
-
         auto it = entities.find(p_data.id);
         if (it != entities.end()) {
             it->second->move_to(p_data.pos_x, p_data.pos_y,
                                 static_cast<Direction>(p_data.direction));
         } else {
+            bool is_short = (p_data.raza == GNOME || p_data.raza == DWARF);
             entities[p_data.id] = std::make_unique<RenderableEntity>(
-                    p_data.id, p_data.pos_x, p_data.pos_y, p_data.body_id, p_data.head_id,
-                    p_data.weapon_id, p_data.shield_id);
+                    p_data.id, EntityType::PLAYER, p_data.pos_x, p_data.pos_y, p_data.body_id,
+                    p_data.head_id, p_data.weapon_id, p_data.shield_id, is_short);
             entities[p_data.id]->move_to(p_data.pos_x, p_data.pos_y,
                                          static_cast<Direction>(p_data.direction));
         }
     }
 
-    // -------------------------------------------------------------------------
     // B. PROCESAR NPCs (Criaturas / Ciudadanos)
-    // -------------------------------------------------------------------------
     for (const auto& n_data: snapshot.npcs) {
         ids_en_snapshot.push_back(n_data.id);
-
         auto it = entities.find(n_data.id);
         if (it != entities.end()) {
-            // Un NPC se mueve. Como no tenemos su dirección en el snapshot de red,
-            // asumimos Direction::DOWN por defecto o calculamos su orientación en base al
-            // movimiento. Para mantenerlo robusto, le pasamos DOWN de momento.
-            it->second->move_to(n_data.pos_x, n_data.pos_y, DOWN);
+            it->second->move_to(n_data.pos_x, n_data.pos_y,
+                                DOWN);  // Ojo: cuando tengas dirección de NPC, ponla aquí
         } else {
-            // Si el NPC aparece por primera vez en la cámara:
-            // Nota: Usamos n_data.type_id como body_id para mapear el gráfico del monstruo (ej:
-            // 300.png para criatura) Cabezas y equipamiento van en 0 porque los monstruos suelen
-            // ser un único sprite consolidado.
             entities[n_data.id] = std::make_unique<RenderableEntity>(
-                    n_data.id, n_data.pos_x, n_data.pos_y, static_cast<uint8_t>(n_data.type_id), 0,
-                    0, 0);
+                    n_data.id, EntityType::NPC, n_data.pos_x, n_data.pos_y,
+                    static_cast<uint8_t>(n_data.type_id), 0, 0, 0);
             entities[n_data.id]->move_to(n_data.pos_x, n_data.pos_y, DOWN);
         }
     }
 
-    // -------------------------------------------------------------------------
-    // C. PROCESAR ÍTEMS TIRADOS EN EL SUELO
-    // -------------------------------------------------------------------------
+    // C. PROCESAR ÍTEMS EN EL SUELO
     for (const auto& i_data: snapshot.items_on_floor) {
-        // Generamos un ID único temporal para los ítems en el cliente para que no colisionen
-        // con los IDs de los jugadores/NPCs.
-        uint32_t item_client_id = i_data.item_id + 1000000;
+        // Generamos un ID único espacial (Spatial Hash).
+        // Asumiendo que el mapa no mide más de 1000x1000 baldosas:
+        // Ej: pos_x = 50, pos_y = 30 -> ID = 2000000 + 50000 + 30 = 2050030
+        uint32_t item_client_id = 2000000 + (i_data.pos_x * 1000) + i_data.pos_y;
         ids_en_snapshot.push_back(item_client_id);
-
         auto it = entities.find(item_client_id);
         if (it == entities.end()) {
-            // Si el ítem es nuevo en el piso, lo creamos.
-            // Le pasamos weapon_id y shield_id en 0. Su gráfico base será el item_id (ej: 1000.png)
             entities[item_client_id] = std::make_unique<RenderableEntity>(
-                    item_client_id, i_data.pos_x, i_data.pos_y,
+                    item_client_id, EntityType::ITEM, i_data.pos_x, i_data.pos_y,
                     static_cast<uint8_t>(i_data.item_id), 0, 0, 0);
         }
     }
 
-    // -------------------------------------------------------------------------
-    // D. LIMPIEZA / CULLING (Desconexiones, muertes o salida de rango)
-    // -------------------------------------------------------------------------
+    // D. PROCESAR LIMPIEZA / CULLING (Desconexiones, muertes o salida de rango)
     for (auto it = entities.begin(); it != entities.end();) {
         uint32_t entity_id = it->first;
 
@@ -157,7 +142,7 @@ void WorldRenderer::render() {
     SDL_Rect view_rect = {camera_screen_offset_x, camera_screen_offset_y, camera.w, camera.h};
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
 
-    // Matemática de Tile Culling (Se mantiene igual, adaptada al tamaño real de tu cámara)
+    // Matemática de Tile Culling (Se mantiene igual, adaptada al tamaño real de la cámara)
     int start_tile_x = std::max(0, camera.x / TILE_SIZE);
     int end_tile_x = std::min(current_map->width() - 1, (camera.x + camera.w) / TILE_SIZE + 1);
     int start_tile_y = std::max(0, camera.y / TILE_SIZE);
