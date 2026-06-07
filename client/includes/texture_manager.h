@@ -11,7 +11,6 @@
 #include "client/includes/window/windowSDL.h"
 
 static constexpr uint16_t DEFAULT_ANIMATION_SPEED_MS = 150;
-static constexpr uint8_t DEFAULT_ANIMATION_FRAMES_PER_ROW = 4;
 
 struct AnimationClip {
     std::vector<SDL_Rect> frames;
@@ -40,7 +39,7 @@ private:
                                  uint32_t speed_ms);
 
     void register_spritesheet(const std::string& base_id, int frame_width, int frame_height,
-                              uint8_t frames_per_row = DEFAULT_ANIMATION_FRAMES_PER_ROW,
+                              uint8_t frames_per_row,
                               uint32_t speed_ms = DEFAULT_ANIMATION_SPEED_MS);
 
     void load_heads_textures(

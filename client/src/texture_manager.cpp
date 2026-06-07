@@ -53,173 +53,173 @@ void TextureManager::load_heads_textures(
     // --- HUMAN HEADS --- //
     load_texture(textures_aux, "head_" + std::to_string(BROWN_SPIKY_BEARD),
                  "common/assets/units/heads/humanos/3060.png");
-    register_spritesheet("head_" + std::to_string(BROWN_SPIKY_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(BROWN_SPIKY_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BROWN_LONG_GOATEE),
                  "common/assets/units/heads/humanos/3061.png");
-    register_spritesheet("head_" + std::to_string(BROWN_LONG_GOATEE), 32, 45);
+    register_spritesheet("head_" + std::to_string(BROWN_LONG_GOATEE), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(DARK_RED_FULL_BEARD),
                  "common/assets/units/heads/humanos/3062.png");
-    register_spritesheet("head_" + std::to_string(DARK_RED_FULL_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(DARK_RED_FULL_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BLUE_PONYTAIL),
                  "common/assets/units/heads/humanos/3063.png");
-    register_spritesheet("head_" + std::to_string(BLUE_PONYTAIL), 32, 45);
+    register_spritesheet("head_" + std::to_string(BLUE_PONYTAIL), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BROWN_MESSY_BEARD),
                  "common/assets/units/heads/humanos/3064.png");
-    register_spritesheet("head_" + std::to_string(BROWN_MESSY_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(BROWN_MESSY_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BLONDE_WILD),
                  "common/assets/units/heads/humanos/3065.png");
-    register_spritesheet("head_" + std::to_string(BLONDE_WILD), 32, 45);
+    register_spritesheet("head_" + std::to_string(BLONDE_WILD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(RED_SPIKY_BEARD),
                  "common/assets/units/heads/humanos/3066.png");
-    register_spritesheet("head_" + std::to_string(RED_SPIKY_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(RED_SPIKY_BEARD), 27, 64, 1);
     // --- ELF HEADS --- //
     load_texture(textures_aux, "head_" + std::to_string(BLONDE_LONG),
                  "common/assets/units/heads/elfos/3000.png");
-    register_spritesheet("head_" + std::to_string(BLONDE_LONG), 32, 45);
+    register_spritesheet("head_" + std::to_string(BLONDE_LONG), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(GREY_LONG),
                  "common/assets/units/heads/elfos/3001.png");
-    register_spritesheet("head_" + std::to_string(GREY_LONG), 32, 45);
+    register_spritesheet("head_" + std::to_string(GREY_LONG), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BLUE_LONG),
                  "common/assets/units/heads/elfos/3002.png");
-    register_spritesheet("head_" + std::to_string(BLUE_LONG), 32, 45);
+    register_spritesheet("head_" + std::to_string(BLUE_LONG), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(SILVER_LONG),
                  "common/assets/units/heads/elfos/3003.png");
-    register_spritesheet("head_" + std::to_string(SILVER_LONG), 32, 45);
+    register_spritesheet("head_" + std::to_string(SILVER_LONG), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(RED_SPIKY),
                  "common/assets/units/heads/elfos/3004.png");
-    register_spritesheet("head_" + std::to_string(RED_SPIKY), 32, 45);
+    register_spritesheet("head_" + std::to_string(RED_SPIKY), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(GREEN_SPIKY),
                  "common/assets/units/heads/elfos/3005.png");
-    register_spritesheet("head_" + std::to_string(GREEN_SPIKY), 32, 45);
+    register_spritesheet("head_" + std::to_string(GREEN_SPIKY), 27, 64, 1);
     // --- DWARF HEADS --- //
     load_texture(textures_aux, "head_" + std::to_string(BROWN_SHORT_BEARD),
                  "common/assets/units/heads/enanos/3020.png");
-    register_spritesheet("head_" + std::to_string(BROWN_SHORT_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(BROWN_SHORT_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(GREY_SHORT_BEARD),
                  "common/assets/units/heads/enanos/3021.png");
-    register_spritesheet("head_" + std::to_string(GREY_SHORT_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(GREY_SHORT_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BROWN_FULL_BEARD),
                  "common/assets/units/heads/enanos/3022.png");
-    register_spritesheet("head_" + std::to_string(BROWN_FULL_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(BROWN_FULL_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(PURPLE_MOUSTACHE),
                  "common/assets/units/heads/enanos/3023.png");
-    register_spritesheet("head_" + std::to_string(PURPLE_MOUSTACHE), 32, 45);
+    register_spritesheet("head_" + std::to_string(PURPLE_MOUSTACHE), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(LIGHT_BROWN_LINE),
                  "common/assets/units/heads/enanos/3024.png");
-    register_spritesheet("head_" + std::to_string(LIGHT_BROWN_LINE), 32, 45);
+    register_spritesheet("head_" + std::to_string(LIGHT_BROWN_LINE), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(SILVER_BRAIDED),
                  "common/assets/units/heads/enanos/3025.png");
-    register_spritesheet("head_" + std::to_string(SILVER_BRAIDED), 32, 45);
+    register_spritesheet("head_" + std::to_string(SILVER_BRAIDED), 27, 64, 1);
     // --- GNOME HEADS --- //
     load_texture(textures_aux, "head_" + std::to_string(BROWN_WILD_BEARD),
                  "common/assets/units/heads/gnomos/3040.png");
-    register_spritesheet("head_" + std::to_string(BROWN_WILD_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(BROWN_WILD_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BROWN_LONG_BEARD),
                  "common/assets/units/heads/gnomos/3041.png");
-    register_spritesheet("head_" + std::to_string(BROWN_LONG_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(BROWN_LONG_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BROWN_CLEAN_SHAVEN),
                  "common/assets/units/heads/gnomos/3042.png");
-    register_spritesheet("head_" + std::to_string(BROWN_CLEAN_SHAVEN), 32, 45);
+    register_spritesheet("head_" + std::to_string(BROWN_CLEAN_SHAVEN), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(GREY_CLEAN_SHAVEN),
                  "common/assets/units/heads/gnomos/3043.png");
-    register_spritesheet("head_" + std::to_string(GREY_CLEAN_SHAVEN), 32, 45);
+    register_spritesheet("head_" + std::to_string(GREY_CLEAN_SHAVEN), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(GREY_WILD_BEARD),
                  "common/assets/units/heads/gnomos/3044.png");
-    register_spritesheet("head_" + std::to_string(GREY_WILD_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(GREY_WILD_BEARD), 27, 64, 1);
     load_texture(textures_aux, "head_" + std::to_string(BALD_GREY_BEARD),
                  "common/assets/units/heads/gnomos/3045.png");
-    register_spritesheet("head_" + std::to_string(BALD_GREY_BEARD), 32, 45);
+    register_spritesheet("head_" + std::to_string(BALD_GREY_BEARD), 27, 64, 1);
 }
 void TextureManager::load_bodies_textures(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
     // --- HUMAN BODIES --- //
     load_texture(textures_aux, "body_" + std::to_string(CITIZEN_LEATHER),
                  "common/assets/units/bodies/humanos/1036.png");
-    register_spritesheet("body_" + std::to_string(CITIZEN_LEATHER), 32, 45);
+    register_spritesheet("body_" + std::to_string(CITIZEN_LEATHER), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(CITIZEN_BLUE),
                  "common/assets/units/bodies/humanos/1056.png");
-    register_spritesheet("body_" + std::to_string(CITIZEN_BLUE), 32, 45);
+    register_spritesheet("body_" + std::to_string(CITIZEN_BLUE), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(CITIZEN_RED),
                  "common/assets/units/bodies/humanos/1070.png");
-    register_spritesheet("body_" + std::to_string(CITIZEN_RED), 32, 45);
+    register_spritesheet("body_" + std::to_string(CITIZEN_RED), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(PALADIN_PLATE),
                  "common/assets/units/bodies/humanos/1194.png");
-    register_spritesheet("body_" + std::to_string(PALADIN_PLATE), 32, 45);
+    register_spritesheet("body_" + std::to_string(PALADIN_PLATE), 27, 49, 6);
     // --- ELF BODIES --- //
     load_texture(textures_aux, "body_" + std::to_string(MAGE_ROBE_NAVY),
                  "common/assets/units/bodies/elfos/1689.png");
-    register_spritesheet("body_" + std::to_string(MAGE_ROBE_NAVY), 32, 45);
+    register_spritesheet("body_" + std::to_string(MAGE_ROBE_NAVY), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(NOBLE_COAT_BLUE),
                  "common/assets/units/bodies/elfos/1896.png");
-    register_spritesheet("body_" + std::to_string(NOBLE_COAT_BLUE), 32, 45);
+    register_spritesheet("body_" + std::to_string(NOBLE_COAT_BLUE), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(DRUID_ROBE_TEAL),
                  "common/assets/units/bodies/elfos/1897.png");
-    register_spritesheet("body_" + std::to_string(DRUID_ROBE_TEAL), 32, 45);
+    register_spritesheet("body_" + std::to_string(DRUID_ROBE_TEAL), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(WIZARD_STARS_ROBE),
                  "common/assets/units/bodies/elfos/1900.png");
-    register_spritesheet("body_" + std::to_string(WIZARD_STARS_ROBE), 32, 45);
+    register_spritesheet("body_" + std::to_string(WIZARD_STARS_ROBE), 27, 49, 6);
     // --- DWARF BODIES --- //
     load_texture(textures_aux, "body_" + std::to_string(WORKER_RED),
                  "common/assets/units/bodies/enanos/1681.png");
-    register_spritesheet("body_" + std::to_string(WORKER_RED), 32, 45);
+    register_spritesheet("body_" + std::to_string(WORKER_RED), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(ROYAL_TUNIC),
                  "common/assets/units/bodies/enanos/1718.png");
-    register_spritesheet("body_" + std::to_string(ROYAL_TUNIC), 32, 45);
+    register_spritesheet("body_" + std::to_string(ROYAL_TUNIC), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(CHAINMAIL_ARMOR),
                  "common/assets/units/bodies/enanos/1837.png");
-    register_spritesheet("body_" + std::to_string(CHAINMAIL_ARMOR), 32, 45);
+    register_spritesheet("body_" + std::to_string(CHAINMAIL_ARMOR), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(ADVENTURER_ORANGE),
                  "common/assets/units/bodies/enanos/1921.png");
-    register_spritesheet("body_" + std::to_string(ADVENTURER_ORANGE), 32, 45);
+    register_spritesheet("body_" + std::to_string(ADVENTURER_ORANGE), 27, 49, 6);
     // --- GNOME BODIES --- //
     load_texture(textures_aux, "body_" + std::to_string(FORESTER_LEAVES),
                  "common/assets/units/bodies/gnomos/1700.png");
-    register_spritesheet("body_" + std::to_string(FORESTER_LEAVES), 32, 45);
+    register_spritesheet("body_" + std::to_string(FORESTER_LEAVES), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(PIRATE_PANTS),
                  "common/assets/units/bodies/gnomos/1710.png");
-    register_spritesheet("body_" + std::to_string(PIRATE_PANTS), 32, 45);
+    register_spritesheet("body_" + std::to_string(PIRATE_PANTS), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(ASSASSIN_LEATHER),
                  "common/assets/units/bodies/gnomos/1841.png");
-    register_spritesheet("body_" + std::to_string(ASSASSIN_LEATHER), 32, 45);
+    register_spritesheet("body_" + std::to_string(ASSASSIN_LEATHER), 27, 49, 6);
     load_texture(textures_aux, "body_" + std::to_string(HUNTER_FUR),
                  "common/assets/units/bodies/gnomos/1861.png");
-    register_spritesheet("body_" + std::to_string(HUNTER_FUR), 32, 45);
+    register_spritesheet("body_" + std::to_string(HUNTER_FUR), 27, 49, 6);
 }
 void TextureManager::load_npcs_textures(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
     load_texture(textures_aux, "npc_" + std::to_string(FIELD_GOBLIN),
                  "client/assets/Sprites/Units/criatures/300.png");
-    register_spritesheet("npc_" + std::to_string(FIELD_GOBLIN), 32, 45);
+    register_spritesheet("npc_" + std::to_string(FIELD_GOBLIN), 25, 32, 8);
     load_texture(textures_aux, "npc_" + std::to_string(FOREST_GOBLIN),
                  "client/assets/Sprites/Units/criatures/301.png");
-    register_spritesheet("npc_" + std::to_string(FOREST_GOBLIN), 32, 45);
+    register_spritesheet("npc_" + std::to_string(FOREST_GOBLIN), 25, 32, 8);
     load_texture(textures_aux, "npc_" + std::to_string(SKELETON),
                  "client/assets/Sprites/Units/criatures/302.png");
-    register_spritesheet("npc_" + std::to_string(SKELETON), 32, 45);
+    register_spritesheet("npc_" + std::to_string(SKELETON), 25, 52, 6);
     load_texture(textures_aux, "npc_" + std::to_string(WARRIOR_SKELETON),
                  "client/assets/Sprites/Units/criatures/303.png");
-    register_spritesheet("npc_" + std::to_string(WARRIOR_SKELETON), 32, 45);
+    register_spritesheet("npc_" + std::to_string(WARRIOR_SKELETON), 25, 52, 6);
     load_texture(textures_aux, "npc_" + std::to_string(ZOMBIE),
                  "client/assets/Sprites/Units/criatures/304.png");
-    register_spritesheet("npc_" + std::to_string(ZOMBIE), 32, 45);
+    register_spritesheet("npc_" + std::to_string(ZOMBIE), 24, 47, 8);
     load_texture(textures_aux, "npc_" + std::to_string(DUNGEON_SPIDER),
-                 "client/assets/Sprites/Units/criatures/305.png");
-    register_spritesheet("npc_" + std::to_string(DUNGEON_SPIDER), 32, 45);
+                 "client/assets/Sprites/Units/criatures/307.png");
+    register_spritesheet("npc_" + std::to_string(DUNGEON_SPIDER), 192, 200, 5);
     load_texture(textures_aux, "npc_" + std::to_string(CAVE_SPIDER),
                  "client/assets/Sprites/Units/criatures/306.png");
-    register_spritesheet("npc_" + std::to_string(CAVE_SPIDER), 32, 45);
+    register_spritesheet("npc_" + std::to_string(CAVE_SPIDER), 97, 97, 5);
     load_texture(textures_aux, "npc_" + std::to_string(FOREST_SPIDER),
-                 "client/assets/Sprites/Units/criatures/307.png");
-    register_spritesheet("npc_" + std::to_string(FOREST_SPIDER), 32, 45);
+                 "client/assets/Sprites/Units/criatures/305.png");
+    register_spritesheet("npc_" + std::to_string(FOREST_SPIDER), 97, 97, 5);
     load_texture(textures_aux, "npc_" + std::to_string(ORC),
                  "client/assets/Sprites/Units/criatures/308.png");
-    register_spritesheet("npc_" + std::to_string(ORC), 32, 45);
+    register_spritesheet("npc_" + std::to_string(ORC), 24, 51, 6);
     load_texture(textures_aux, "npc_" + std::to_string(GOLEM),
                  "client/assets/Sprites/Units/criatures/309.png");
-    register_spritesheet("npc_" + std::to_string(GOLEM), 32, 45);
+    register_spritesheet("npc_" + std::to_string(GOLEM), 162, 162, 6);
     load_texture(textures_aux, "npc_" + std::to_string(INFERNAL_GOLEM),
                  "client/assets/Sprites/Units/criatures/310.png");
-    register_spritesheet("npc_" + std::to_string(INFERNAL_GOLEM), 32, 45);
+    register_spritesheet("npc_" + std::to_string(INFERNAL_GOLEM), 162, 162, 6);
 
     load_texture(textures_aux, "npc_" + std::to_string(PRIEST), "client/assets/NPCs/4.png");
     load_texture(textures_aux, "npc_" + std::to_string(BANKER), "client/assets/NPCs/0.png");
@@ -279,108 +279,108 @@ void TextureManager::load_animation_items(
     // --- HUMAN/ELF ITEMS ANIMATION --- //
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(SWORD),
                  "client/assets/Sprites/Units/items/humanos-elfos/1000.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(SWORD), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(SWORD), 25, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(AXE),
                  "client/assets/Sprites/Units/items/humanos-elfos/1001.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(AXE), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(AXE), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(HAMMER),
                  "client/assets/Sprites/Units/items/humanos-elfos/1002.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(HAMMER), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(HAMMER), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(ASH_STAFF),
                  "client/assets/Sprites/Units/items/humanos-elfos/1100.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(ASH_STAFF), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(ASH_STAFF), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(ELVEN_FLUTE),
                  "client/assets/Sprites/Units/items/humanos-elfos/1101.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(ELVEN_FLUTE), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(ELVEN_FLUTE), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(KNOTTED_STAFF),
                  "client/assets/Sprites/Units/items/humanos-elfos/1102.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(KNOTTED_STAFF), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(KNOTTED_STAFF), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(INLAID_STAFF),
                  "client/assets/Sprites/Units/items/humanos-elfos/1103.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(INLAID_STAFF), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(INLAID_STAFF), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(SIMPLE_BOW),
                  "client/assets/Sprites/Units/items/humanos-elfos/1003.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(SIMPLE_BOW), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(SIMPLE_BOW), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(COMPOUND_BOW),
                  "client/assets/Sprites/Units/items/humanos-elfos/1004.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(COMPOUND_BOW), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(COMPOUND_BOW), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(LEATHER_ARMOR),
                  "client/assets/Sprites/Units/items/humanos-elfos/1400.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(LEATHER_ARMOR), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(LEATHER_ARMOR), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(PLATE_AMOR),
                  "client/assets/Sprites/Units/items/humanos-elfos/1401.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(PLATE_AMOR), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(PLATE_AMOR), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(BLUE_TUNIC),
                  "client/assets/Sprites/Units/items/humanos-elfos/1402.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(BLUE_TUNIC), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(BLUE_TUNIC), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(HOOD),
                  "client/assets/Sprites/Units/items/humanos-elfos/1300.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(HOOD), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(HOOD), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(IRON_HELMET),
                  "client/assets/Sprites/Units/items/humanos-elfos/1301.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_HELMET), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_HELMET), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(TORTOISE_SHIELD),
                  "client/assets/Sprites/Units/items/humanos-elfos/1500.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(TORTOISE_SHIELD), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(TORTOISE_SHIELD), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(IRON_SHIELD),
                  "client/assets/Sprites/Units/items/humanos-elfos/1501.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_HELMET), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_HELMET), 32, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(MAGIC_HAT),
                  "client/assets/Sprites/Units/items/humanos-elfos/1302.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(MAGIC_HAT), 32, 45);
+    register_spritesheet("anim_hum_elf_" + std::to_string(MAGIC_HAT), 32, 45, 6);
 
     // --- DWARF/GNOME ITEMS ANIMATION --- //
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(SWORD),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11000.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(SWORD), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(SWORD), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(AXE),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11001.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(AXE), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(AXE), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(HAMMER),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11002.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(HAMMER), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(HAMMER), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(ASH_STAFF),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11100.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(ASH_STAFF), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(ASH_STAFF), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(ELVEN_FLUTE),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11101.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(ELVEN_FLUTE), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(ELVEN_FLUTE), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(KNOTTED_STAFF),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11102.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(KNOTTED_STAFF), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(KNOTTED_STAFF), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(INLAID_STAFF),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11103.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(INLAID_STAFF), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(INLAID_STAFF), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(SIMPLE_BOW),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11003.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(SIMPLE_BOW), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(SIMPLE_BOW), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(COMPOUND_BOW),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11004.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(COMPOUND_BOW), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(COMPOUND_BOW), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(LEATHER_ARMOR),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11400.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(LEATHER_ARMOR), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(LEATHER_ARMOR), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(PLATE_AMOR),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11401.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(PLATE_AMOR), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(PLATE_AMOR), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(BLUE_TUNIC),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11402.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(BLUE_TUNIC), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(BLUE_TUNIC), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(HOOD),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11300.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(HOOD), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(HOOD), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(IRON_HELMET),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11301.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(IRON_HELMET), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(IRON_HELMET), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(TORTOISE_SHIELD),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11500.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(TORTOISE_SHIELD), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(TORTOISE_SHIELD), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(IRON_SHIELD),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11501.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(IRON_SHIELD), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(IRON_SHIELD), 32, 45, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(MAGIC_HAT),
                  "client/assets/Sprites/Units/items/gnomos-enanos/11302.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(MAGIC_HAT), 32, 45);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(MAGIC_HAT), 32, 45, 6);
 }
 
 std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>
