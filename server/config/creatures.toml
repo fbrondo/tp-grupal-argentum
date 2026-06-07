@@ -1,0 +1,99 @@
+#-----------------------------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 1 #GOBLIN DE CAMPO
+name = "Goblin de campo"
+attack_range = 4
+hp_max_initial = 40
+minimal_level = 1
+maximun_level = 8
+#CAMPO: 5
+#--------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 2 #GOBLIN DE BOSQUE
+name = "Goblin de bosque"
+attack_range = 4
+hp_max_initial = 40
+minimal_level = 9
+maximun_level = 14
+#FOREST:3
+#------------------------------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 3 #ESQUELETO
+name = "Esqueleto"
+attack_range = 3
+hp_max_initial = 80
+minimal_level = 17
+maximun_level = 23
+#DESERT:4
+#--------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 4 #ESQUELETO GUERRERO
+name = "Esqueleto guerrero"
+attack_range = 3
+hp_max_initial = 100
+minimal_level = 30
+maximun_level = 40
+#MAZMORRA:2
+#-------------------------------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 5
+name = "Zombie"
+attack_range = 4
+hp_max_initial = 150
+minimal_level = 30
+maximun_level = 40
+#MAZMORRA:3
+# -------------------------------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 6 #ARANA DE MAZMORA
+name = "Araña de mazmorra"
+attack_range = 4
+hp_max_initial = 60
+minimal_level = 32
+maximun_level = 38
+#MAZMORRA:2
+#-----------------------------------------------------------------------------------------
+[[creature]]
+id_type = 7 #ARANA DE CAVERNA
+name = "Araña de carvena"
+attack_range = 4
+hp_max_initial = 60
+id_region = 1 #CAVERNA
+minimal_level = 24
+maximun_level = 30
+#--------------------------------------------------------------------------------------
+[[creature]]
+id_type = 8 #ARANA DE BOSQUE
+name = "Araña de bosque"
+attack_range = 4
+hp_max_initial = 30
+minimal_level = 10
+maximun_level = 15
+#FOREST:3
+#------------------------------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 9 #ORCO
+name = "Orco"
+attack_range = 6
+hp_max_initial = 100
+minimal_level = 10
+maximun_level = 20
+#CAVERN:1
+#------------------------------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 10 #GOLEM
+name = "Golem"
+attack_range = 3
+hp_max_initial = 120
+minimal_level = 17
+maximun_level = 22
+#DESERT:4
+#------------------------------------------------------------------------------------------------------------------------
+[[creature]]
+id_type = 11 #GOLEM INFERNAL
+name = "Golem infernal"
+attack_range = 3
+hp_max_initial = 120
+minimal_level = 17
+maximun_level = 22
+#DESERT:4  #CAVERNA:1

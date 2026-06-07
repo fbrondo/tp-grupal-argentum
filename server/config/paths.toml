@@ -4,6 +4,7 @@ clases = "clases.toml"
 races = "races.toml"
 items = "items.toml"
 npcs = "npcs.toml"
+creatures = "creatures.toml"
 regions = "regions.toml"
 
 [data]
