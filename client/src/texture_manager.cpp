@@ -188,7 +188,7 @@ void TextureManager::load_bodies_textures(
 void TextureManager::load_npcs_textures(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
     load_texture(textures_aux, "npc_" + std::to_string(FIELD_GOBLIN),
-        "client/assets/Sprites/Units/criatures/300.png");
+                 "client/assets/Sprites/Units/criatures/300.png");
     register_spritesheet("npc_" + std::to_string(FIELD_GOBLIN), 32, 45);
     load_texture(textures_aux, "npc_" + std::to_string(FOREST_GOBLIN),
                  "client/assets/Sprites/Units/criatures/301.png");
