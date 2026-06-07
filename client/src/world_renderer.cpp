@@ -19,7 +19,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& textur
     camera_screen_offset_y = 149;
 }
 
-void WorldRenderer::set_local_player(uint32_t id) { local_player_id = id; }
+void WorldRenderer::set_local_player(const uint32_t id) { local_player_id = id; }
 
 void WorldRenderer::load_map(Map&& new_map) {
     entities.clear();
@@ -34,21 +34,21 @@ void WorldRenderer::center_camera_on_player() {
     if (!current_map)
         return;
 
-    auto it = entities.find(local_player_id);
+    const auto it = entities.find(local_player_id);
     if (it == entities.end())
         return;  // Si el jugador local no está en la escena, no movemos cámara
 
     // Obtenemos la posición interpolada del jugador
-    float player_x = it->second->get_pixel_x();
-    float player_y = it->second->get_pixel_y();
+    const float player_x = it->second->get_pixel_x();
+    const float player_y = it->second->get_pixel_y();
 
     // Centramos la cámara restando la mitad de sus dimensiones de visor
     camera.x = static_cast<int>(player_x) - (camera.w / 2);
     camera.y = static_cast<int>(player_y) - (camera.h / 2);
 
     // LIMITACIÓN DE BORDES: Evitamos que la cámara muestre negro fuera de los límites del mapa
-    int max_width_px = current_map->width() * TILE_SIZE;
-    int max_height_px = current_map->height() * TILE_SIZE;
+    const int max_width_px = current_map->width() * TILE_SIZE;
+    const int max_height_px = current_map->height() * TILE_SIZE;
 
     if (camera.x < 0)
         camera.x = 0;
@@ -112,7 +112,7 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
     // -------------------------------------------------------------------------
     for (const auto& i_data: snapshot.items_on_floor) {
         // Generamos un ID único temporal para los ítems en el cliente para que no colisionen
-        // con los IDs de los jugadores/NPCs. Un truco profesional es usar un offset alto o bitmask:
+        // con los IDs de los jugadores/NPCs.
         uint32_t item_client_id = i_data.item_id + 1000000;
         ids_en_snapshot.push_back(item_client_id);
 

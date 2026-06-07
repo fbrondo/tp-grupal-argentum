@@ -40,7 +40,7 @@ public:
     WorldRenderer& operator=(const WorldRenderer&) = delete;
 
     void set_local_player(uint32_t id);
-    void load_map(Map&& map);
+    void load_map(Map&& new_map);
     // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
     void update_from_snapshot(const Snapshot& snapshot);
 
