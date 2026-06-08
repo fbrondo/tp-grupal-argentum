@@ -6,7 +6,8 @@ Snapshot ResponseBuilder::buildSnapshot(
     const std::map<Id, NpcInstance>& npcs,
     const std::map<Id, NpcInstance>& creatures,
     const std::map<Id, ItemInstance>& items_on_floor,
-    const std::map<Id, GoldBagInstance>& gold_on_floor) {
+    const std::map<Id, GoldBagInstance>& gold_on_floor,
+    const std::vector<SoundEffectSnapshotData>& sound_effects) {
     Snapshot snap;
 
     for (const auto& [id, player] : players) {
@@ -85,6 +86,8 @@ Snapshot ResponseBuilder::buildSnapshot(
 
         snap.gold_piles.push_back(gold_data);
     }
+
+    snap.sound_effects = sound_effects;
 
     return snap;
 }

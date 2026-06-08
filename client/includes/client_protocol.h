@@ -17,7 +17,8 @@ enum class TypeEventClient {
     MAP_CHANGE,
     MAP_DATA,
     OPEN_MERCHANT,
-    OPEN_BANK
+    OPEN_BANK,
+    INVENTORY_UPDATE
 };
 
 struct MerchantEventData {
@@ -35,6 +36,13 @@ struct MapData {
     std::vector<Tile> tiles;
 };
 
+struct InventoryUpdateEventData {
+    uint8_t slot_index;
+    uint16_t item_id;
+    uint16_t quantity;
+    uint8_t is_equipped;
+};
+
 struct EventClient {
     TypeEventClient type;
     Snapshot world;
@@ -44,6 +52,7 @@ struct EventClient {
     MapData map;               // Se usa para MAP_DATA
     MerchantEventData merchant;  // Se usa para OPEN_MERCHANT
     BankEventData bank;          // Se usa para OPEN_BANK
+    InventoryUpdateEventData inventory_update;   // Se usa para UPDATE_INVENTORY
 };
 
 #pragma pack(push, 1)

@@ -38,6 +38,10 @@ Player::Player(const User& user_, const Pose& pose_, Character&& ch_,
     this->exp = 0;
 }
 
+uint8_t Player::getSlotOfInstance(Id instance_id) const {
+    return this->inv.getSlotOfInstance(instance_id);
+}
+
 bool Player::hasEnoughMana(uint16_t mana_cost) const { return this->mana >= mana_cost; }
 
 uint16_t Player::hpMax() {
@@ -169,8 +173,18 @@ std::vector<TypeItem> Player::getEquipment() {
 Inventory& Player::getInventory() { return this->inv; }
 
 ItemInstance* Player::getItemInstance(Id instance_id) {
-    return this->inv.inventory.at(instance_id).get();
+    auto it_inv = this->inv.inventory.find(instance_id);
+    if (it_inv != this->inv.inventory.end()) {
+        return it_inv->second.get();
+    }
+    // Si no esta en el inv busco en el banco
+    auto it_bank = this->bank_account.safe_box.find(instance_id);
+    if (it_bank != this->bank_account.safe_box.end()) {
+        return it_bank->second.get();
+    }
+    return nullptr;
 }
+
 Pose Player::getPose() const { return this->pose; }
 
 uint32_t Player::getInventorySize() const { return this->inv.inventory.size(); }

@@ -370,11 +370,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.world.players.clear();
             out_event.world.npcs.clear();
             out_event.world.items_on_floor.clear();
-            out_evento.type = TypeEventClient::UPDATE_WORLD;
-            out_evento.world.players.clear();
-            out_evento.world.npcs.clear();
-            out_evento.world.items_on_floor.clear();
-            out_evento.world.sound_effects.clear();
+            out_event.world.gold_piles.clear();
+            out_event.world.sound_effects.clear();
 
             uint16_t p_count;
             socket.recvall(&p_count, 2);
@@ -385,13 +382,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.id = ntohl(p.id);
                 p.pos_x = ntohl(p.pos_x);
                 p.pos_y = ntohl(p.pos_y);
-                p.pos_x = ntohl(p.pos_x);
-                p.pos_y = ntohl(p.pos_y);
                 p.max_hp = ntohs(p.max_hp);
                 p.hp = ntohs(p.hp);
-                p.body_id = ntohs(p.body_id);
-                p.head_id = ntohs(p.head_id);
-                p.weapon_id = ntohs(p.weapon_id);
                 out_event.world.players.push_back(p);
             }
 
@@ -402,8 +394,6 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 NpcSnapshotData n;
                 socket.recvall(&n, sizeof(NpcSnapshotData));
                 n.id = ntohl(n.id);
-                n.pos_x = ntohl(n.pos_x);
-                n.pos_y = ntohl(n.pos_y);
                 n.pos_x = ntohl(n.pos_x);
                 n.pos_y = ntohl(n.pos_y);
                 n.type_id = ntohs(n.type_id);
@@ -443,14 +433,13 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             for (uint16_t i = 0; i < sound_count; ++i) {
                 SoundEffectSnapshotData e;
                 socket.recvall(&e, sizeof(SoundEffectSnapshotData));
-
-                uint16_t id_red = static_cast<uint16_t>(e.effect_id);
-                e.effect_id = static_cast<SoundEffectID>(ntohs(id_red));
-
+                uint16_t id_numerico;
+                std::memcpy(&id_numerico, &e.effect_id, sizeof(uint16_t));
+                id_numerico = ntohs(id_numerico);
+                e.effect_id = static_cast<SoundEffectID>(id_numerico);
                 e.pos_x = ntohl(e.pos_x);
                 e.pos_y = ntohl(e.pos_y);
-
-                out_evento.world.sound_effects.push_back(e);
+                out_event.world.sound_effects.push_back(e);
             }
 
             break;
@@ -561,6 +550,21 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                     item.instance_id = ntohs(item.instance_id);
                 }
             }
+            break;
+        }
+        case INVENTORY_UPDATE: {
+            out_event.type = TypeEventClient::INVENTORY_UPDATE;
+            MsgInventoryUpdate msg;
+            if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
+
+            msg.item_id = ntohs(msg.item_id);
+            msg.quantity = ntohs(msg.quantity);
+
+            out_event.inventory_update.slot_index = msg.slot_index;
+            out_event.inventory_update.item_id = msg.item_id;
+            out_event.inventory_update.quantity = msg.quantity;
+            out_event.inventory_update.is_equipped = msg.is_equipped;
+            
             break;
         }
         default:

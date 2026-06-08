@@ -21,6 +21,7 @@
 #include "server/includes/responses/response_signup.h"
 #include "server/includes/responses/response_snapshot.h"
 #include "server/includes/responses/response_trader_catalog.h"
+#include "server/includes/responses/response_inventory_update.h"
 #include "server/print.h"
 
 #define INVALID_REGISTER "Username already taken."
@@ -254,7 +255,8 @@ void Gameloop::executeBroacastSnapshot() {
         this->world.get_npc_positions(),
         this->world.get_creatures_positions(),
         this->world.get_items_on_flor(),
-        this->world.get_gold_on_floor()
+        this->world.get_gold_on_floor(),
+        this->sounds_of_current_tick
     );
 
     RespSnapshot resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
@@ -328,6 +330,13 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         damage_by_attacker =
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
     }
+
+    SoundEffectSnapshotData golpe_sound{};
+    golpe_sound.effect_id = SoundEffectID::GOLPE_ARMA;
+    golpe_sound.pos_x = attacker->getPose().position.x;
+    golpe_sound.pos_y = attacker->getPose().position.y;
+    this->sounds_of_current_tick.push_back(std::move(golpe_sound));
+
     victim->receiveDamage(damage_by_attacker, this->world);
     if (!victim->isAlive() && dynamic_cast<Creature*>(victim)) {
         this->creatures.erase(victim_id);
@@ -362,6 +371,10 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, uint8_t type_item) {
     Id id_instance = this->next_item_id++;
     player->buyItem(item_template, id_instance);
     player->breakMeditation();
+
+    uint8_t slot = player->getSlotOfInstance(id_instance);
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, static_cast<uint16_t>(tipo_buscado), 1, 0};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 }
 
 void Gameloop::processSellItem(Id player_id, Id npc_id, Id id_item) {
@@ -380,10 +393,15 @@ void Gameloop::processSellItem(Id player_id, Id npc_id, Id id_item) {
         return;  // Enviar error como "El NPC no compra ese ítem."
     }
 
+    uint8_t slot = player->getSlotOfInstance(id_item);
+
     ShopItem* item_template = dynamic_cast<ShopItem*>(tienda.at(tipo_buscado).get());
     uint32_t sell_price = item_template->selling_price;
     player->sellItem(id_item, sell_price);
     player->breakMeditation();
+
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, 0, 0, 0};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 }
 
 void Gameloop::processPlayerPickUp(Id player_id) {
@@ -399,12 +417,17 @@ void Gameloop::processPlayerPickUp(Id player_id) {
         player->getMaxInventorySize()) {  // Enviar error al cliente: "Inventario lleno."
         return;
     }
+    Id id_instance = ground_item->id;
+    uint16_t item_type_id = static_cast<uint16_t>(ground_item->type);
 
     std::unique_ptr<ItemInstance> picked_item = this->world.pickUpItem(player_pose.position);
 
     player->addItemToInventory(std::move(picked_item));
-
     player->breakMeditation();
+
+    uint8_t slot = player->getSlotOfInstance(id_instance);
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, item_type_id, 1, 0};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 }
 
 void Gameloop::processPlayerDropItem(Id player_id, Id instance_id) {
@@ -421,12 +444,16 @@ void Gameloop::processPlayerDropItem(Id player_id, Id instance_id) {
         // Enviar error: "No podes tirar objetos acá."
         return;
     }
+    uint8_t slot = player->getSlotOfInstance(instance_id);
 
     std::unique_ptr<ItemInstance> item_to_drop = player->removeItemFromInventory(instance_id);
 
     // this->world.dropItem(player_pose.position, std::move(item_to_drop));
 
     player->breakMeditation();
+
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, 0, 0, 0};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 }
 
 void Gameloop::processPlayerWithdrawItem(Id player_id, Id instance_id) {
@@ -441,10 +468,20 @@ void Gameloop::processPlayerWithdrawItem(Id player_id, Id instance_id) {
         // Error: "No tenes espacio en el inventario para retirar esto."
         return;
     }
+
+    uint16_t item_type_id = 0;
+    if (player->getItemInstance(instance_id)) {
+         item_type_id = static_cast<uint16_t>(player->getItemInstance(instance_id)->type);
+    }
+
     std::unique_ptr<ItemInstance> item_to_withdraw = player->removeItemFromBank(instance_id);
 
     player->addItemToInventory(std::move(item_to_withdraw));
     player->breakMeditation();
+
+    uint8_t slot = player->getSlotOfInstance(instance_id);
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, item_type_id, 1, 0};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 }
 
 void Gameloop::processPlayerDepositItem(Id player_id, Id instance_id) {
@@ -459,10 +496,14 @@ void Gameloop::processPlayerDepositItem(Id player_id, Id instance_id) {
         // Error: "No tenes espacio en el banco para depositar esto."
         return;
     }
+    uint8_t slot = player->getSlotOfInstance(instance_id);
     std::unique_ptr<ItemInstance> item_to_deposit = player->removeItemFromInventory(instance_id);
 
     player->addItemToBank(std::move(item_to_deposit));
     player->breakMeditation();
+
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, 0, 0, 0};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 }
 
 void Gameloop::processPlayerDepositGold(Id player_id, uint32_t amount) {
@@ -504,6 +545,12 @@ void Gameloop::processPlayerHeal(Id player_id) {
     }
     player->restoreAllHp();
     player->restoreAllMana();
+
+    SoundEffectSnapshotData sound_effect;
+    sound_effect.effect_id = SoundEffectID::CURAR;
+    sound_effect.pos_x = player->getPose().position.x;
+    sound_effect.pos_y = player->getPose().position.y;
+    this->sounds_of_current_tick.push_back(std::move(sound_effect));
 }
 
 void Gameloop::processListItems(Id player_id, Id npc_id) {
@@ -533,6 +580,11 @@ void Gameloop::processPlayerEquipItem(Id player_id, Id instance_id) {
     if (!player || !player->isAlive())
         return;
     player->equipItem(instance_id);
+
+    uint8_t slot = player->getSlotOfInstance(instance_id);
+    uint16_t item_type_id = static_cast<uint16_t>(player->getItemInstance(instance_id)->type);
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, item_type_id, 1, 1};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 }
 
 void Gameloop::processPlayerUnequipItem(Id player_id, Id instance_id) {
@@ -540,13 +592,21 @@ void Gameloop::processPlayerUnequipItem(Id player_id, Id instance_id) {
     if (!player || !player->isAlive())
         return;
     player->unequipItem(instance_id);
-}
 
+    uint8_t slot = player->getSlotOfInstance(instance_id);
+    uint16_t item_type_id = static_cast<uint16_t>(player->getItemInstance(instance_id)->type);
+    
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, item_type_id, 1, 0};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
+}
 void Gameloop::processPlayerUseItem(Id player_id, Id instance_id) {
     Player* player = this->players.at(player_id).get();
     if (!player || !player->isAlive())
         return;
+    uint8_t slot = player->getSlotOfInstance(instance_id);
     player->useItem(instance_id);
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, slot, 0, 0, 0};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 }
 
 void Gameloop::processPlayerResurrect(Id player_id) {

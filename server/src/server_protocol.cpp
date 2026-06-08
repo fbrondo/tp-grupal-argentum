@@ -125,8 +125,10 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
 
 void ServerProtocol::sendInventoryUpdate(const MsgInventoryUpdate& inv) const {
     MsgInventoryUpdate temp = inv;
+    
     temp.item_id = htons(inv.item_id);
     temp.quantity = htons(inv.quantity);
+    
     try {
         socket.sendall(&temp, sizeof(MsgInventoryUpdate));
     } catch (const std::exception& e) {

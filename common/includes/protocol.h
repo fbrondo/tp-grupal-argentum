@@ -111,6 +111,7 @@ struct MsgSignup {
     CharacterTraits traits;
 };
 
+
 // struct MsgCharacterCreate {
 //     uint8_t opcode = CHARACTER_CREATE;
 //     char name[MAX_NAME_SIZE];

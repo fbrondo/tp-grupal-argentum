@@ -53,6 +53,7 @@ private:
     std::map<Id, std::unique_ptr<Player>> players;
     std::map<Id, std::unique_ptr<Creature>> creatures;
     std::map<Id, TypeItem> items;
+    std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
     struct ResurrectPending {
         uint32_t time_left_ms;
         Position healer_pos;

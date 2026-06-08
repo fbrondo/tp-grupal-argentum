@@ -73,6 +73,7 @@ public:
     uint16_t getManaMax();
     uint16_t getExp() const;
     uint8_t getLevel() const;
+    uint8_t getSlotOfInstance(Id instance_id) const;
 
     void increaseInventoryGold(uint32_t amount);
     void decreaseInventoryGold(uint32_t amount);
