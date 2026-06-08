@@ -12,6 +12,7 @@ target_sources(taller_client
         src/commands/command_create_character.cpp
         src/commands/command_login.cpp
         src/commands/command_move.cpp
+        src/sound_manager.cpp
 
     PUBLIC
     # .h files
@@ -26,4 +27,5 @@ target_sources(taller_client
         includes/commands/command_move.h
         includes/commands/command_login.h
         includes/commands/command_create_character.h
+        includes/sound_manager.h
     )

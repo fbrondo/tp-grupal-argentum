@@ -370,6 +370,11 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.world.players.clear();
             out_event.world.npcs.clear();
             out_event.world.items_on_floor.clear();
+            out_evento.type = TypeEventClient::UPDATE_WORLD;
+            out_evento.world.players.clear();
+            out_evento.world.npcs.clear();
+            out_evento.world.items_on_floor.clear();
+            out_evento.world.sound_effects.clear();
 
             uint16_t p_count;
             socket.recvall(&p_count, 2);
@@ -378,6 +383,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 PlayerSnapshotData p;
                 socket.recvall(&p, sizeof(PlayerSnapshotData));
                 p.id = ntohl(p.id);
+                p.pos_x = ntohl(p.pos_x);
+                p.pos_y = ntohl(p.pos_y);
                 p.pos_x = ntohl(p.pos_x);
                 p.pos_y = ntohl(p.pos_y);
                 p.max_hp = ntohs(p.max_hp);
@@ -395,6 +402,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 NpcSnapshotData n;
                 socket.recvall(&n, sizeof(NpcSnapshotData));
                 n.id = ntohl(n.id);
+                n.pos_x = ntohl(n.pos_x);
+                n.pos_y = ntohl(n.pos_y);
                 n.pos_x = ntohl(n.pos_x);
                 n.pos_y = ntohl(n.pos_y);
                 n.type_id = ntohs(n.type_id);
@@ -425,6 +434,25 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 g.pos_y = ntohl(g.pos_y);
                 out_event.world.gold_piles.push_back(g);
             }
+
+            // 4. Efectos sonoros
+            uint16_t sound_count;
+            socket.recvall(&sound_count, 2);
+            sound_count = ntohs(sound_count);
+
+            for (uint16_t i = 0; i < sound_count; ++i) {
+                SoundEffectSnapshotData e;
+                socket.recvall(&e, sizeof(SoundEffectSnapshotData));
+
+                uint16_t id_red = static_cast<uint16_t>(e.effect_id);
+                e.effect_id = static_cast<SoundEffectID>(ntohs(id_red));
+
+                e.pos_x = ntohl(e.pos_x);
+                e.pos_y = ntohl(e.pos_y);
+
+                out_evento.world.sound_effects.push_back(e);
+            }
+
             break;
         }
         case PLAYER_STATS: {

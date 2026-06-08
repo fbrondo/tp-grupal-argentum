@@ -13,11 +13,12 @@
 ServerProtocol::ServerProtocol(Socket& s): socket(s) {}
 
 void ServerProtocol::sendSnapshot(const Snapshot& state) const {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t) +
-                              (state.players.size() * sizeof(PlayerSnapshotData)) +
+    const size_t size_total = sizeof(uint8_t) + 
+                              sizeof(uint16_t) + (state.players.size() * sizeof(PlayerSnapshotData)) +
                               sizeof(uint16_t) + (state.npcs.size() * sizeof(NpcSnapshotData)) +
-                              sizeof(uint16_t) +
-                              (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData));
+                              sizeof(uint16_t) + (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData)) +
+                              sizeof(uint16_t) + (state.gold_piles.size() * sizeof(GoldPileGroundSnapshotData)) +
+                              sizeof(uint16_t) + (state.sound_effects.size() * sizeof(SoundEffectSnapshotData));
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -43,6 +44,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         offset += sizeof(PlayerSnapshotData);
     }
 
+    // NPCs
     const uint16_t n_count_net = htons(static_cast<uint16_t>(state.npcs.size()));
     std::memcpy(buffer.data() + offset, &n_count_net, sizeof(n_count_net));
     offset += sizeof(n_count_net);
@@ -57,6 +59,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         offset += sizeof(NpcSnapshotData);
     }
 
+    // Items en el suelo
     const uint16_t i_count_net = htons(static_cast<uint16_t>(state.items_on_floor.size()));
     std::memcpy(buffer.data() + offset, &i_count_net, sizeof(i_count_net));
     offset += sizeof(i_count_net);
@@ -67,6 +70,36 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         i.pos_y = htonl(i.pos_y);
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));
         offset += sizeof(ItemGroundSnapshotData);
+    }
+
+    // Piles de oro
+    const uint16_t g_count_net = htons(static_cast<uint16_t>(state.gold_piles.size()));
+    std::memcpy(buffer.data() + offset, &g_count_net, sizeof(g_count_net));
+    offset += sizeof(g_count_net);
+
+    for (auto g : state.gold_piles) {
+        g.amount = htonl(g.amount);
+        g.pos_x = htonl(g.pos_x);
+        g.pos_y = htonl(g.pos_y);
+
+        std::memcpy(buffer.data() + offset, &g, sizeof(GoldPileGroundSnapshotData));
+        offset += sizeof(GoldPileGroundSnapshotData);
+    }
+
+    // Efectos sonoros
+    const uint16_t s_count_net = htons(static_cast<uint16_t>(state.sound_effects.size()));
+    std::memcpy(buffer.data() + offset, &s_count_net, sizeof(s_count_net));
+    offset += sizeof(s_count_net);
+
+    for (auto s : state.sound_effects) {
+        uint16_t id_numerico = htons(static_cast<uint16_t>(s.effect_id));
+        s.effect_id = static_cast<SoundEffectID>(id_numerico);
+        
+        s.pos_x = htonl(s.pos_x);
+        s.pos_y = htonl(s.pos_y);
+
+        std::memcpy(buffer.data() + offset, &s, sizeof(SoundEffectSnapshotData));
+        offset += sizeof(SoundEffectSnapshotData);
     }
 
     try {

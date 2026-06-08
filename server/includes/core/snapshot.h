@@ -52,12 +52,14 @@ struct GoldPileGroundSnapshotData {
     uint32_t pos_y;
 };
 
-// No estoy seguro aun como manejar los efectos visuales
-struct VisualEffect {
-    uint32_t pos_x;
-    uint32_t pos_y;
-    uint8_t effect_type;  // Sonido / Animación de explosión / etc
+
+struct SoundEffectSnapshotData {
+    SoundEffectID effect_id;
+    uint32_t pos_x;  // Coordenada X donde ocurrio (para audio posicional)
+    uint32_t pos_y;  // Coordenada Y
 };
+
+#pragma pack(pop)
 
 #pragma pack(pop)
 struct Snapshot {
@@ -65,7 +67,8 @@ struct Snapshot {
     std::vector<NpcSnapshotData> npcs;
     std::vector<ItemGroundSnapshotData> items_on_floor;
     std::vector<GoldPileGroundSnapshotData> gold_piles;
-    std::vector<VisualEffect> effects;
+    std::vector<SoundEffectSnapshotData> sound_effects;
 };
 
 #endif
+
