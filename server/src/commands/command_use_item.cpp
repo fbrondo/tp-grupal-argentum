@@ -2,8 +2,8 @@
 
 #include "server/includes/gameloop.h"
 
-UseItemCommand::UseItemCommand(Id id, Id slot): Command(id), slot_id(slot) {}
+UseItemCommand::UseItemCommand(Id id, Id instance_id): Command(id), instance_id(instance_id) {}
 
-void UseItemCommand::execute(Gameloop& /*world*/) {
-    // world.use_item(client_id, slot);
+void UseItemCommand::execute(Gameloop& game) {
+    game.processPlayerUseItem(this->client_id, this->instance_id);
 }

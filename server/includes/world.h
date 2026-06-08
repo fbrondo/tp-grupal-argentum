@@ -20,6 +20,7 @@
 #include "server/includes/npc/citizen_npc.h"
 #include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
+#include "server/includes/core/map.h"
 /*Representa mi mundo del juego:
     - Se sopne que recibo algo del editor para crear mi matriz
     - Una vez que se como es el mundo, esta clase sera la encargada modificar su estado
@@ -92,6 +93,12 @@ public:
     ~World() = default;
 
     const std::vector<std::tuple<Id, Region>> getZones();
+    const std::map<Id, Pose> get_players_positions();
+    const std::map<Id, NpcInstance> get_creatures_positions();
+    const std::map<Id, NpcInstance> get_npc_positions();
+    const std::map<Id, Position> get_treausures_positions();
+    const std::map<Id, ItemInstance> get_items_on_flor();
+    const std::map<Id, GoldBagInstance> get_gold_on_floor(); 
 
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isSafeZONE(const Position& /*pos*/);
@@ -100,6 +107,7 @@ public:
     Position calculatePositionRandom(const Id& zone_id);
     Position calculatePositionRandomSafeZone();
     Position findNearbyFreePosition(const Position& center);
+    Position findNearbyHealerPosition(const Position& center);
 
     void addPlayerWorld(const Id& player_id, const Pose& pose);
     void addCreatureWorld(const Id& creature_id, TypeNPC type, const Pose& pose);

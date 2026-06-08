@@ -54,6 +54,18 @@ uint16_t Player::manaMax() {
                                                 mana_f_clase, this->level);
 }
 
+uint16_t Player::getHpMax() { return this->hpMax(); }
+
+uint16_t Player::getManaMax() { return this->manaMax(); }
+
+uint8_t Player::getLevel() const { return this->level; }
+
+uint16_t Player::getExp() const { return this->exp; }
+
+uint16_t Player::getMana() const { return this->mana; }
+
+uint16_t Player::getHp() const { return this->hp; }
+
 // void Player::updatePose(Pose&& new_pos) { Entity::updatePosition(std::move(new_pos)); }
 
 bool Player::canBuy(const ShopItem* item) const {
@@ -70,13 +82,19 @@ bool Player::canBuy(const ShopItem* item) const {
 void Player::buyItem(const ShopItem* item, Id new_instance_id) {
     uint32_t final_price = item->purchase_price;
     this->inv.golden -= final_price;
-    auto new_instance = std::make_unique<ItemInstance>(new_instance_id, item->type, item->classif,
-                                                       item->body_part_use, this->pose.position);
+    auto new_instance =
+            std::make_unique<ItemInstance>(new_instance_id, item->type, item->classif,
+                                           item->body_part_use, const_cast<ShopItem*>(item));
+    new_instance->pos = this->pose.position;
     this->inv.inventory.emplace(new_instance_id, std::move(new_instance));
 }
 
 bool Player::canSell(const Id instance_id) const {
-    return this->inv.inventory.find(instance_id) != this->inv.inventory.end();
+    auto it = this->inv.inventory.find(instance_id);
+    if (it == this->inv.inventory.end()) {
+        return false;
+    }
+    return !it->second->is_equipped;
 }
 
 void Player::sellItem(Id instance_id, uint32_t sell_price) {
@@ -199,6 +217,8 @@ std::unique_ptr<ItemInstance> Player::removeItemFromBank(Id instance_id) {
     return std::move(node.mapped());
 }
 
+void Player::teleportTo(const Position& pos) { this->pose.position = pos; }
+
 bool Player::isMeditating() const { return this->is_meditating; }
 
 void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
@@ -233,6 +253,14 @@ void Player::meditating(float delta) {
 
 void Player::restoreAllHp() { this->hp = this->hpMax(); }
 
+void Player::restoreHp(uint16_t hp) {
+    this->hp = std::min(static_cast<uint16_t>(this->hp + hp), this->hpMax());
+}
+
+void Player::restoreMana(uint16_t mana) {
+    this->mana = std::min(static_cast<uint16_t>(this->mana + mana), this->manaMax());
+}
+
 void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
     this->exp += GameFormulas::calculationPointsExpAttack(damage, victim->getLevel(), this->level);
     uint16_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
@@ -259,6 +287,49 @@ std::vector<MsgItemInfo> Player::getBankItemsInfo() const {
     return info_vector;
 }
 
+void Player::equipItem(Id instance_id) {
+    auto it = this->inv.inventory.find(instance_id);
+    if (it == this->inv.inventory.end()) {
+        throw std::runtime_error("No tienes ese ítem en tu inventario.");
+    }
+
+    ItemInstance* item_to_equip = it->second.get();
+
+    ItemInstance* old_item = this->equipment.equipItem(item_to_equip);
+
+    item_to_equip->is_equipped = true;
+
+    if (old_item) {
+        old_item->is_equipped = false;
+    }
+}
+
+void Player::unequipItem(Id instance_id) {
+    if (this->inv.inventory.size() >= this->inv.max_inventory) {
+        throw std::runtime_error("No tienes espacio suficiente en el inventario.");
+    }
+
+    ItemInstance* item_to_unequip = this->equipment.removeItem(instance_id);
+    item_to_unequip->is_equipped = false;
+}
+
+void Player::useItem(Id instance_id) {
+    auto it = this->inv.inventory.find(instance_id);
+    if (it == this->inv.inventory.end()) {
+        throw std::runtime_error("No tienes ese objeto.");
+    }
+
+    ItemInstance* item_inst = it->second.get();
+    if (item_inst->is_equipped) {
+        throw std::runtime_error("No puedes usar un objeto equipado.");
+    }
+    bool se_consume = const_cast<Item*>(item_inst->item)->use(*this);
+
+    if (se_consume) {
+        this->inv.inventory.erase(it);
+    }
+}
+
 bool Player::isNewbie() const { return this->hp <= 12; }
 
 bool Player::isValidOpponent(Player* other) const {
@@ -278,19 +349,22 @@ bool Player::isValidOpponent(Player* other) const {
 
 
 void Player::onDeath(World& world) {
-    /*Vacio inventario*/
-    for (const auto& [id_inst, item_inv]: this->inv.inventory) {
-        ItemInstance item_drop;
-        item_drop.id = item_inv->id;
-        item_drop.type = item_inv->type;
-        item_drop.body_part_use = item_inv->body_part_use;
-        item_drop.classification = item_inv->classification;
-        item_drop.pos = world.findNearbyFreePosition(this->pose.position);
-        world.addItemWorld(item_drop);
+    for (auto it = this->inv.inventory.begin(); it != this->inv.inventory.end();) {
+        std::unique_ptr<ItemInstance> item_drop = std::move(it->second);
+
+        item_drop->pos = world.findNearbyFreePosition(this->pose.position);
+        item_drop->is_equipped = false;
+        ItemInstance copia_drop = *item_drop;
+        copia_drop.pos = world.findNearbyFreePosition(this->pose.position);
+        copia_drop.is_equipped = false;
+        world.addItemWorld(copia_drop);
+
+        it = this->inv.inventory.erase(it);
     }
-    this->inv.inventory.clear();
-    /*Perdemos el oro*/
+
+    /* Perdemos el oro */
     GoldBagInstance gold_pouche;
     gold_pouche.pos = world.findNearbyFreePosition(this->pose.position);
     world.spawnGoldOnFloor(gold_pouche);
+    this->inv.golden = 0;
 }

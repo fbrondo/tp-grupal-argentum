@@ -10,7 +10,6 @@ struct CharacterTraits {
     uint8_t race;
     uint8_t clase;
     CharacterTraits(): head(0), body(0), race(0), clase(0) {}
-
 };
 #pragma pack(pop)
 

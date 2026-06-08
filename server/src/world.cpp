@@ -7,6 +7,7 @@
 #include "common/includes/map/layer.h"
 #include "common/includes/map/map_serializer.h"
 #include "server/print.h"
+#include "server/includes/core/map.h"
 World::World(const std::filesystem::path& path, Id& next_item_id_):
         next_item_id(next_item_id_),
         map(MapSerializer::load(path)),
@@ -173,6 +174,49 @@ Position World::findNearbyFreePosition(const Position& center) {
         }
     }
     return center;
+}
+
+Position World::findNearbyHealerPosition(const Position& center) {
+    Position closest_position;
+    uint32_t min_distance = std::numeric_limits<uint32_t>::max();
+
+    // Mantenemos tu bucle con pipes intacto
+    for (const auto& npc: this->npc_positions | std::views::values) {
+        if (npc.type == PRIEST) {
+            uint32_t dist_x =
+                    std::abs(static_cast<int>(center.x) - static_cast<int>(npc.pose.position.x));
+            uint32_t dist_y =
+                    std::abs(static_cast<int>(center.y) - static_cast<int>(npc.pose.position.y));
+            uint32_t current_distance = dist_x + dist_y;
+
+            if (current_distance < min_distance) {
+                min_distance = current_distance;
+                closest_position = npc.pose.position;
+            }
+        }
+    }
+
+    return closest_position;
+}
+
+const std::map<Id, Pose> World::get_players_positions(){
+    return this->players_positions;
+}
+
+const std::map<Id, NpcInstance> World::get_creatures_positions(){
+    return this->creatures_positions;
+}
+
+const std::map<Id, NpcInstance> World::get_npc_positions(){
+    return this->npc_positions;
+}
+
+const std::map<Id, ItemInstance> World::get_items_on_flor(){
+    return this->items_on_flor;
+}
+
+const std::map<Id, GoldBagInstance> World::get_gold_on_floor(){
+    return this->gold_on_floor;
 }
 
 bool World::isWithinLimits(const Position& pos) const {

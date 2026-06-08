@@ -275,6 +275,54 @@ void ClientProtocol::sendWithdrawGold(uint32_t amount) {
     }
 }
 
+void ClientProtocol::sendEquipItem(Id item_id) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
+    std::vector<char> buffer(size_total);
+    size_t offset = 0;
+
+    constexpr uint8_t opcode = EQUIP_ITEM;
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
+
+    uint32_t item_id_net = htonl(static_cast<uint32_t>(item_id));
+    std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
+
+    try {
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendEquipItem -- ") + e.what());
+    }
+}
+
+void ClientProtocol::sendUnequipItem(Id item_id) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
+    std::vector<char> buffer(size_total);
+    size_t offset = 0;
+
+    constexpr uint8_t opcode = UNEQUIP_ITEM;
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
+
+    uint32_t item_id_net = htonl(static_cast<uint32_t>(item_id));
+    std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
+
+    try {
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendUnequipItem -- ") + e.what());
+    }
+}
+
+void ClientProtocol::sendResurrect() {
+    constexpr uint8_t opcode = RESURRECT;
+    try {
+        socket.sendall(&opcode, 1);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendResurrect -- ") + e.what());
+    }
+}
+
+
 // void ClientProtocol::sendCharacterCreate(const std::string& name, uint8_t race,
 //                                          uint8_t clase) const {
 //     MsgCharacterCreate msg{};
@@ -330,6 +378,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 PlayerSnapshotData p;
                 socket.recvall(&p, sizeof(PlayerSnapshotData));
                 p.id = ntohl(p.id);
+                p.pos_x = ntohl(p.pos_x);
+                p.pos_y = ntohl(p.pos_y);
                 p.max_hp = ntohs(p.max_hp);
                 p.hp = ntohs(p.hp);
                 p.body_id = ntohs(p.body_id);
@@ -345,6 +395,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 NpcSnapshotData n;
                 socket.recvall(&n, sizeof(NpcSnapshotData));
                 n.id = ntohl(n.id);
+                n.pos_x = ntohl(n.pos_x);
+                n.pos_y = ntohl(n.pos_y);
                 n.type_id = ntohs(n.type_id);
                 n.hp_actual = ntohs(n.hp_actual);
                 out_event.world.npcs.push_back(n);
@@ -357,7 +409,21 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 ItemGroundSnapshotData it;
                 socket.recvall(&it, sizeof(ItemGroundSnapshotData));
                 it.item_id = ntohs(it.item_id);
+                it.pos_x = ntohl(it.pos_x);
+                it.pos_y = ntohl(it.pos_y);
                 out_event.world.items_on_floor.push_back(it);
+            }
+
+            uint16_t g_count;
+            if (socket.recvall(&g_count, 2) <= 0) return false;
+            g_count = ntohs(g_count);
+            for (uint16_t i = 0; i < g_count; ++i) {
+                GoldPileGroundSnapshotData g;
+                socket.recvall(&g, sizeof(GoldPileGroundSnapshotData));
+                g.amount = ntohl(g.amount);
+                g.pos_x = ntohl(g.pos_x);
+                g.pos_y = ntohl(g.pos_y);
+                out_event.world.gold_piles.push_back(g);
             }
             break;
         }

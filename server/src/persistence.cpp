@@ -22,7 +22,7 @@ void Persistence::schedulePlayers(PlayerData data) {
 
 void Persistence::scheduleWorld(WorldStateData data) {
     this->world_data_queue.push(std::move(data));
-};
+}
 
 
 void Persistence::run() {

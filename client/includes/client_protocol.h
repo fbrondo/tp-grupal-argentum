@@ -73,6 +73,9 @@ public:
     void sendWithdrawItem(Id item_id);
     void sendDepositGold(uint32_t amount);
     void sendWithdrawGold(uint32_t amount);
+    void sendEquipItem(Id item_id);
+    void sendUnequipItem(Id item_id);
+    void sendResurrect();
 
 
     // Pre-game operations (signup, character)

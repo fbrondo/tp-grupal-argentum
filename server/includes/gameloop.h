@@ -25,6 +25,7 @@
 #include "server/includes/persistence.h"
 #include "server/includes/player.h"
 #include "server/includes/world.h"
+#include "server/includes/response_builder.h"
 
 class Gameloop: public Thread {
 
@@ -52,6 +53,13 @@ private:
     std::map<Id, std::unique_ptr<Player>> players;
     std::map<Id, std::unique_ptr<Creature>> creatures;
     std::map<Id, TypeItem> items;
+    struct ResurrectPending {
+        uint32_t time_left_ms;
+        Position healer_pos;
+    };
+
+    std::map<Id, ResurrectPending> pending_resurrects;
+    ResponseBuilder resp;
 
     void initConfigurationCitizenNPC();
     void initTreasures(const uint16_t& numbers_treasure, const Id& zona_id);
@@ -99,8 +107,11 @@ public:
     void processPlayerWithdrawGold(Id player_id, uint32_t amount);
     void processPlayerMeditate(Id player_id);
     void processPlayerHeal(Id player_id);
-    // void processPlayerResurrect(Id player_id);
+    void processPlayerResurrect(Id player_id);
     void processListItems(Id player_id, Id npc_id);
+    void processPlayerEquipItem(Id player_id, Id instance_id);
+    void processPlayerUnequipItem(Id player_id, Id instance_id);
+    void processPlayerUseItem(Id player_id, Id instance_id);
 
     void updatePlayersAttributes();
     void updateStateGame();

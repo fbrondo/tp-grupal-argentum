@@ -13,7 +13,12 @@ private:
     /* data */
 public:
     ResponseBuilder(/* args */) = default;
-    Snapshot buildSnapshot(const std::map<Id, std::unique_ptr<Player>>& players, World& world);
+    Snapshot buildSnapshot(
+        const std::map<Id, std::unique_ptr<Player>>& players,
+        const std::map<Id, NpcInstance>& npcs,
+        const std::map<Id, NpcInstance>& creatures,
+        const std::map<Id, ItemInstance>& items_on_floor,
+        const std::map<Id, GoldBagInstance>& gold_on_floor);
     ~ResponseBuilder();
 };
 

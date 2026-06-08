@@ -41,6 +41,10 @@ private:
     uint16_t hpMax();
     uint16_t manaMax();
 
+    bool is_resurrecting = false;
+    float resurrection_timer = 0.0f;  // Tiempo restante en segundos
+    Position healer_target_position;
+
 public:
     Player(const Player& other) = delete;
     Player& operator=(const Player& other) = delete;
@@ -57,11 +61,18 @@ public:
     Inventory& getInventory();
     ItemInstance* getItemInstance(Id instance_id);
     Pose getPose() const;
+    void teleportTo(const Position& pos);
 
     uint32_t getInventorySize() const;
     uint32_t getMaxInventorySize() const;
     uint32_t getInventoryGold() const;
     uint32_t getBankGold() const;
+    uint16_t getHp() const;
+    uint16_t getHpMax();
+    uint16_t getMana() const;
+    uint16_t getManaMax();
+    uint16_t getExp() const;
+    uint8_t getLevel() const;
 
     void increaseInventoryGold(uint32_t amount);
     void decreaseInventoryGold(uint32_t amount);
@@ -84,7 +95,9 @@ public:
     void updateMana(float delta);
     void meditating(float delta);
     void restoreAllMana();
+    void restoreMana(uint16_t amount);
     void restoreAllHp();
+    void restoreHp(uint16_t amount);
     void earnExperiencePoints(CombatEntity* victim, uint16_t damage);
 
     // void updatePose(Pose&& new_pos);
@@ -97,6 +110,10 @@ public:
     std::unique_ptr<ItemInstance> removeItemFromInventory(Id instance_id);
     void addItemToBank(std::unique_ptr<ItemInstance> item);
     std::unique_ptr<ItemInstance> removeItemFromBank(Id instance_id);
+
+    void equipItem(Id instance_id);
+    void unequipItem(Id instance_id);
+    void useItem(Id instance_id);
 
     uint16_t calculateDamage(bool& is_critical, Weapon& weapon);
     uint16_t calculateDefense(std::vector<Defense*> info_defense);

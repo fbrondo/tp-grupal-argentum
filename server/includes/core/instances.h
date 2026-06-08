@@ -11,10 +11,15 @@ struct ItemInstance {
     ItemClassification classification{NO_CLASSIF}; /* DEFENSIVE, ATTACK, HEALING*/
     BodyPart body_part_use{NO_BODY};
     Position pos; /*Nota cuando este equipado seguramente tenga la misma posicion que el jugador*/
+    bool is_equipped{false};
+
+    const Item* item{nullptr};
+
     ItemInstance() = default;
 
-    ItemInstance(const Id id_, TypeItem type, ItemClassification classif, BodyPart body_part):
-            id(id_), type(type), classification(classif), body_part_use(body_part) {}
+    ItemInstance(const Id id_, TypeItem type, ItemClassification classif, BodyPart body_part,
+                 Item* item_):
+            id(id_), type(type), classification(classif), body_part_use(body_part), item(item_) {}
 
     ItemInstance(const Id id_, TypeItem type, ItemClassification classif, BodyPart body_part,
                  Position pos):

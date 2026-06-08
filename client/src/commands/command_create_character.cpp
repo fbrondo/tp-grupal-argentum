@@ -5,5 +5,5 @@ CreateCharacterCommandClient::CreateCharacterCommandClient(std::string name, uin
         name(std::move(name)), race(race), clase(clase) {}
 
 void CreateCharacterCommandClient::execute(ClientProtocol& /*protocol*/) const {
-    //protocol.sendCharacterCreate(name, race, clase);
+    // protocol.sendCharacterCreate(name, race, clase);
 }

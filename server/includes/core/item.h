@@ -21,8 +21,13 @@ struct Item {
     TypeItem type;
     explicit Item(TypeItem type_): type(type_) {}
     // Item() = default;
+
+    virtual bool use(Player& user) {
+        throw std::runtime_error("Este objeto no se puede usar directamente desde el inventario.");
+    }
     virtual ~Item() = default;
 };
+
 struct GoldPouche: Item {
     uint32_t amount;
     Position pos;
@@ -122,4 +127,22 @@ struct MagicWeapon: Weapon {
             mana_cost(m_cost) {}
 };
 
+struct Potion: ShopItem {
+    uint16_t restore_amount;
+
+    Potion(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
+           uint16_t sell_price, uint16_t purch_price, uint16_t rest_amount):
+            ShopItem(type, body, classif, name, sell_price, purch_price),
+            restore_amount(rest_amount) {}
+
+
+    bool use(Player& user) override {
+        if (this->type == TypeItem::LIFE_POTION) {
+            user.restoreHp(this->restore_amount);
+        } else if (this->type == TypeItem::MANA_POTION) {
+            user.restoreMana(this->restore_amount);
+        }
+        return true;
+    }
+};
 #endif

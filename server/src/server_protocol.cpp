@@ -393,6 +393,10 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             queue.push(std::make_unique<InteractCommand>(player_id, ntohl(npc_id)));
             break;
         }
+        case RESURRECT: {
+            queue.push(std::make_unique<ResurrectCommand>(player_id));
+            break;
+        }
         case TAKE_ITEM: {
             queue.push(std::make_unique<TakeItemCommand>(player_id));
             break;
@@ -448,6 +452,19 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             npc_id = ntohl(npc_id);
 
             queue.push(std::make_unique<ListItemsCommand>(player_id, npc_id));
+            break;
+        }
+        case EQUIP_ITEM:
+        case UNEQUIP_ITEM: {
+            Id item_id;
+            socket.recvall(&item_id, 2);
+            item_id = ntohs(item_id);
+
+            if (opcode == EQUIP_ITEM) {
+                queue.push(std::make_unique<EquipCommand>(player_id, item_id));
+            } else {
+                queue.push(std::make_unique<CommandUnequip>(player_id, item_id));
+            }
             break;
         }
         case DISCONNECT: {

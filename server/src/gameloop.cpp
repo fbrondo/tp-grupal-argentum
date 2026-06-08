@@ -36,7 +36,9 @@ Gameloop::Gameloop(GameConfigLoader& loader_conf, MonitorQueues& monitor, QueueC
         files_data(loader_conf.getFilesData()),
         conf(loader_conf.getdGameConfiguration()),
         world(this->files_data.map, this->next_item_id),
-        persistence(this->files_data) {
+        persistence(this->files_data),
+        pending_resurrects(),
+        resp() {
 
     Print::printNpcsSafeLoads(this->conf.npcs);
     Print::printCreatureLoads(this->conf.creatures);
@@ -239,7 +241,7 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
         this->monitor.queueTheServerResponse(player_id,
                                              std::make_unique<ResponseLogin>(true, "none"));
         return;
-    };
+    }
 }
 
 void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
@@ -247,7 +249,14 @@ void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> resp
 }
 
 void Gameloop::executeBroacastSnapshot() {
-    Snapshot snap;  //= this->resp.buildSnapshot(this->players, this->world);
+    Snapshot snap = this->resp.buildSnapshot(
+        this->players,
+        this->world.get_npc_positions(),
+        this->world.get_creatures_positions(),
+        this->world.get_items_on_flor(),
+        this->world.get_gold_on_floor()
+    );
+
     RespSnapshot resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
 }
@@ -267,10 +276,10 @@ bool Gameloop::isItPossibleToAttack(const Id& player_id, const Id& victim_id, We
 
 CombatEntity* Gameloop::inSearchOfTheVictimAttack(const Id& id_search) const {
     CombatEntity* victim = nullptr;
-    if (this->players.contains(id_search)) {
+    if (this->players.find(id_search) != this->players.end()) {
         victim = this->players.at(id_search).get();
     }
-    if (this->npcs.contains(id_search)) {
+    if (this->npcs.find(id_search) != this->npcs.end()) {
         victim = this->creatures.at(id_search).get();
     }
     return victim;
@@ -339,7 +348,7 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, uint8_t type_item) {
     }
     auto& tienda = trader->getStore();
     TypeItem tipo_buscado = static_cast<TypeItem>(type_item);
-    if (!tienda.contains(tipo_buscado)) {
+    if (tienda.find(tipo_buscado) == tienda.end()) {
         return;  // Enviar error como "El NPC no vende ese ítem."
     }
 
@@ -367,7 +376,7 @@ void Gameloop::processSellItem(Id player_id, Id npc_id, Id id_item) {
     auto& tienda = trader->getStore();
     ItemInstance* itemInstance = player->getItemInstance(id_item);
     TypeItem tipo_buscado = itemInstance->type;
-    if (!tienda.contains(tipo_buscado)) {
+    if (tienda.find(tipo_buscado) == tienda.end()) {
         return;  // Enviar error como "El NPC no compra ese ítem."
     }
 
@@ -519,6 +528,40 @@ void Gameloop::processListItems(Id player_id, Id npc_id) {
     }
 }
 
+void Gameloop::processPlayerEquipItem(Id player_id, Id instance_id) {
+    Player* player = this->players.at(player_id).get();
+    if (!player || !player->isAlive())
+        return;
+    player->equipItem(instance_id);
+}
+
+void Gameloop::processPlayerUnequipItem(Id player_id, Id instance_id) {
+    Player* player = this->players.at(player_id).get();
+    if (!player || !player->isAlive())
+        return;
+    player->unequipItem(instance_id);
+}
+
+void Gameloop::processPlayerUseItem(Id player_id, Id instance_id) {
+    Player* player = this->players.at(player_id).get();
+    if (!player || !player->isAlive())
+        return;
+    player->useItem(instance_id);
+}
+
+void Gameloop::processPlayerResurrect(Id player_id) {
+    Player* player = this->players.at(player_id).get();
+    if (!player || player->isAlive())
+        return;
+
+    if (this->pending_resurrects.count(player_id) > 0)
+        return;
+
+    Position healer_pos = this->world.findNearbyHealerPosition(player->getPose().position);
+
+    this->pending_resurrects[player_id] = {5000, healer_pos};
+}
+
 void Gameloop::execuetRequest() {
     std::unique_ptr<Command> cmd;
     while (this->commands_queue.try_pop(cmd)) {
@@ -563,6 +606,23 @@ void Gameloop::run() {
         const uint32_t TICK_MS = 1000 / this->conf.times.server_update_frecuency;
         while (should_keep_running()) {
             this->execuetRequest();
+            for (auto it = this->pending_resurrects.begin();
+                 it != this->pending_resurrects.end();) {
+                if (it->second.time_left_ms <= TICK_MS) {
+                    Id p_id = it->first;
+                    Player* player = this->players.at(p_id).get();
+
+                    if (player) {
+                        player->teleportTo(it->second.healer_pos);
+                        player->restoreAllHp();
+                        player->restoreAllMana();
+                    }
+                    it = this->pending_resurrects.erase(it);
+                } else {
+                    it->second.time_left_ms -= TICK_MS;
+                    ++it;
+                }
+            }
             timer_attributes += TICK_MS;
             if (timer_attributes >= this->conf.times.update_player_atributes) {
                 this->updatePlayersAttributes();
