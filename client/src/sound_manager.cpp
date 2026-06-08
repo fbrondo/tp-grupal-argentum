@@ -1,8 +1,32 @@
 #include "client/includes/sound_manager.h"
-
+#include <iostream>
 
 void SoundManager::init() {
+    Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG);
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+}
+
+void SoundManager::play_background_music(const std::string& filepath) {
+    stop_background_music();
+
+    background_music = Mix_LoadMUS(filepath.c_str());
+    
+    if (!background_music) {
+        std::cerr << "No se pudo cargar la musica: " << Mix_GetError() << std::endl;
+        return;
+    }
+
+    if (Mix_PlayMusic(background_music, -1) == -1) {
+        std::cerr << "Error al reproducir la musica: " << Mix_GetError() << std::endl;
+    }
+}
+
+void SoundManager::stop_background_music() {
+    if (background_music) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(background_music);
+        background_music = nullptr;
+    }
 }
 
 void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t fx_y, uint32_t player_x, uint32_t player_y) {
@@ -47,9 +71,10 @@ void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t 
 }
 
 void SoundManager::cleanup() {
-   for (auto& [id, chunk] : sound_bank) {
-        if (chunk) Mix_FreeChunk(chunk);
-    }
-    sound_bank.clear();
-    Mix_CloseAudio();
+    stop_background_music();
+    for (auto& [id, chunk] : sound_bank) {
+         if (chunk) Mix_FreeChunk(chunk);
+     }
+     sound_bank.clear();
+     Mix_CloseAudio();
 }

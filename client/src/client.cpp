@@ -38,6 +38,8 @@ void Client::init_SDL() {
     SDL_SetColorKey(head.Get(), SDL_TRUE, SDL_MapRGB(head.Get()->format, 0, 0, 0));
     head_tex.emplace(*renderer, Surface(std::move(head)));
     sound_manager.emplace();
+    sound_manager->init();
+    sound_manager->play_background_music("client/assets/sounds/31.mp3");
 }
 
 void Client::handle_events() {
