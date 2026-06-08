@@ -1,6 +1,7 @@
 #include "server/includes/commands/command_chat.h"
-#include "server/includes/commands/command_meditate.h"
+
 #include "server/includes/commands/command_heal.h"
+#include "server/includes/commands/command_meditate.h"
 #include "server/includes/commands/command_resurrect.h"
 
 #define MEDITATE "/meditar"

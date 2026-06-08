@@ -2,8 +2,9 @@
 #define TREASURE_H
 
 #include <vector>
+
 #include "common/includes/types.h"
 struct Treasure {
     std::vector<TypeItem> items;
 };
-#endif //TREASURE_H
+#endif  // TREASURE_H

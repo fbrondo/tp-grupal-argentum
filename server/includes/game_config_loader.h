@@ -8,11 +8,12 @@
 #include <unordered_map>
 
 #include <toml++/toml.hpp>
+
 #include "server/includes/core/config.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/race.h"
-#include "server/includes/definitions.h"
 #include "server/includes/core/region.h"
+#include "server/includes/definitions.h"
 
 using Table = toml::table;
 using Table_array = toml::array;
@@ -25,16 +26,18 @@ private:
     FileData data;
 
     void loadPaths();
-    Path loadPath(const Table& config, const std::string& section_key, const std::string& fiel_key) const;
+    Path loadPath(const Table& config, const std::string& section_key,
+                  const std::string& fiel_key) const;
 
     Statistics loadTableStatistics(Table_array* stats_array);
 
-    void loadNpcs( std::map<std::string, NpcConfig>& npcs);
+    void loadCreatures(std::map<std::string, CreatureConfig>& creatures);
+    void loadNpcSafeZone(std::map<std::string, NpcSafeZone>& npcs);
     void loadRaces(std::map<TypeRace, Race>& info_races);
     void loadClases(std::map<TypeClase, Clase>& info_clases);
     void loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items);
     void loadRegions(std::map<Region, std::unique_ptr<RegionWorld>>& info_regions);
-    void loadGame( PlayerStateInit& player_init, ClanConfig& clan, TimesConfig& times);
+    void loadGame(PlayerStateInit& player_init, ClanConfig& clan, TimesConfig& times);
 
 public:
     GameConfigLoader(const GameConfigLoader& other) = delete;

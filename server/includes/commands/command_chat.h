@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+
 #include "server/includes/commands/command.h"
 
 class ChatCommand: public Command {

@@ -1,4 +1,5 @@
 #include "server/includes/responses/response_snapshot.h"
+
 #include "server/includes/server_protocol.h"
 
 ResponseSnapshot::ResponseSnapshot(Snapshot&& snp): snap(std::move(snp)) {}

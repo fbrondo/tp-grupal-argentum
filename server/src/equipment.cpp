@@ -59,7 +59,7 @@ void Equipment::removeItem(Id id_inst_item) {
 }
 
 TypeItem Equipment::getHandItem() const {
-    if ( this->equipment_container[INDEX_HAND]) {
+    if (this->equipment_container[INDEX_HAND]) {
         return this->equipment_container[INDEX_HAND]->type;
     }
     return NONE;

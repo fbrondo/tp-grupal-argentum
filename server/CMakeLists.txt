@@ -23,9 +23,10 @@ target_sources(taller_server
         src/commands/command_withdraw.cpp
         src/commands/command_withdraw_gold.cpp
 
+        src/entity/combat_entity.cpp
         src/npc/banker.cpp
-        src/npc/criature.cpp
-        src/npc/npc.cpp
+        src/npc/creature.cpp
+        src/npc/citizen_npc.cpp
         src/npc/merchant.cpp
         src/npc/priest.cpp
         src/npc/trader.cpp
@@ -53,7 +54,8 @@ target_sources(taller_server
         src/gameloop.cpp
         src/main.cpp
         src/monitor_queues.cpp
-        src/persistence_manager.cpp
+        src/persistence.cpp
+        src/data_storage.cpp
         src/player.cpp
         src/response_builder.cpp
         src/server_protocol.cpp
@@ -96,12 +98,15 @@ target_sources(taller_server
         includes/core/region.h
         includes/core/snapshot.h
         includes/core/treasure.h
-       
+
+        includes/entity/entity.h
+        includes/entity/combat_entity.h
+
         includes/npc/banker.h
-        includes/npc/citynpc.h
-        includes/npc/criature.h
+        includes/npc/citizen_npc.h
+        includes/npc/creature.h
         includes/npc/merchant.h
-        includes/npc/npc.h
+        includes/npc/citizen_npc.h
         includes/npc/priest.h
 
         includes/responses/response.h
@@ -122,15 +127,14 @@ target_sources(taller_server
         includes/client_handler.h
         includes/client_receiver.h
         includes/client_sender.h
-        includes/combat_entity.h
         includes/definitions.h
-        includes/entity.h
         includes/equipment.h
         includes/game_config_loader.h
         includes/game_formulas.h
         includes/gameloop.h
         includes/monitor_queues.h
-        includes/persistence_manager.h
+        includes/persistence.h
+        includes/data_storage.h
         includes/player.h
         includes/response_builder.h
         includes/server.h

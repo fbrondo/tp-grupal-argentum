@@ -6,11 +6,15 @@
 
 #include "common/includes/core/Statistics.h"
 #include "server/includes/game_formulas.h"
+#include "server/includes/world.h"
 
-#define STATE_DEAD 0
-using namespace std;
+Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerData& data):
+        CombatEntity(pos, data), ch(std::move(ch_)) {
+    this->max_hp = this->hpMax();
+    this->inv = std::move(inv_);
+    /*Falta init inventario**/
+}
 
-// Player::Player(Pose&& pose, Inventory&& inv_, const Race& ch_race, const Clase& ch_clase, uint8_t
 // level):
 //         CombatEntity(std::move(pose), 0),
 //         inv(std::move(inv_)),
@@ -23,16 +27,15 @@ using namespace std;
 // }
 
 /**/
-Player::Player(const User& user_, Pose&& pose_, Character&& ch_, const PlayerStateInit& state_init):
-        CombatEntity(std::move(pose_), 0),
-        user(user_),
-        ch(std::move(ch_)) {
-    this->level = state_init.level;
+Player::Player(const User& user_, const Pose& pose_, Character&& ch_,
+               const PlayerStateInit& state_init):
+        CombatEntity(pose_, 0, state_init.level), user(user_), ch(std::move(ch_)) {
     this->inv = Inventory(state_init.golden_init, state_init.max_inventory);
     this->statics = ch.getStatistics();
-    CombatEntity::max_hp = this->hpMax();
-    CombatEntity::hp = this->hpMax();
+    this->max_hp = this->hpMax();
+    this->hp = this->hpMax();
     this->mana = this->manaMax();
+    this->exp = 0;
 }
 
 bool Player::hasEnoughMana(uint16_t mana_cost) const { return this->mana >= mana_cost; }
@@ -44,9 +47,14 @@ uint16_t Player::hpMax() {
                                               this->level);
 }
 
-void Player::updatePose(Pose&& new_pos) {
-    Entity::updatePosition(std::move(new_pos));
+uint16_t Player::manaMax() {
+    const uint16_t& mana_f_race = this->ch.getManaFactorRace();
+    const uint16_t& mana_f_clase = this->ch.getManaFactorClase();
+    return GameFormulas::calculationMaximunMana(this->statics.intelligence, mana_f_race,
+                                                mana_f_clase, this->level);
 }
+
+// void Player::updatePose(Pose&& new_pos) { Entity::updatePosition(std::move(new_pos)); }
 
 bool Player::canBuy(const ShopItem* item) const {
     uint32_t final_price = item->purchase_price;
@@ -62,7 +70,8 @@ bool Player::canBuy(const ShopItem* item) const {
 void Player::buyItem(const ShopItem* item, Id new_instance_id) {
     uint32_t final_price = item->purchase_price;
     this->inv.golden -= final_price;
-    auto new_instance = make_unique<ItemInstance>(new_instance_id, item->type, item->classif, item->body_part_use, this->pose.position);
+    auto new_instance = std::make_unique<ItemInstance>(new_instance_id, item->type, item->classif,
+                                                       item->body_part_use, this->pose.position);
     this->inv.inventory.emplace(new_instance_id, std::move(new_instance));
 }
 
@@ -80,9 +89,9 @@ PlayerData Player::getPlayerData() {
     std::strncpy(data.username, user.username.c_str(), MAX_DATA);
     std::strncpy(data.password, user.password.c_str(), MAX_DATA);
     /*Pose del jugador - Posicion y direccion de mirada*/
-    data.x = Entity::pose.position.x;
-    data.y = Entity::pose.position.y;
-    data.direction = Entity::pose.direct;
+    data.x = this->pose.position.x;
+    data.y = this->pose.position.y;
+    data.direction = this->pose.direct;
     /*PERSONAJE*/
     data.charact_traits.race = static_cast<uint8_t>(this->ch.getTypeRace());
     data.charact_traits.clase = static_cast<uint8_t>(this->ch.getTypeClase());
@@ -90,15 +99,13 @@ PlayerData Player::getPlayerData() {
     data.charact_traits.body = static_cast<uint8_t>(this->ch.getTypeBody());
     /*Atributos actuales*/
     data.level = this->level;
-    data.hp = CombatEntity::hp;
+    data.hp = this->hp;
     data.mana = this->mana;
     /*INVENTARIO*/
     data.golden = this->inv.golden;
     for (const auto& [id_instance, item]: this->inv.inventory) {
         ItemInstanceData item_data;
         item_data.type_item = item->type;
-        item_data.classification = item->classification;
-        item_data.body_part_use = item->body_part_use;
         item_data.x = item->pos.x;
         item_data.y = item->pos.y;
         data.inventory.push_back(item_data);
@@ -109,8 +116,8 @@ PlayerData Player::getPlayerData() {
         ItemInstance* item = this->inv.inventory.at(id).get();
         ItemInstanceData item_data;
         item_data.type_item = item->type;
-        item_data.classification = item->classification;
-        item_data.body_part_use = item->body_part_use;
+        // item_data.classification = item->classification;
+        // item_data.body_part_use = item->body_part_use;
         item_data.x = item->pos.x;
         item_data.y = item->pos.y;
         data.equipment.push_back(item_data);
@@ -129,7 +136,7 @@ uint16_t Player::calculateDamage(bool& is_critical, Weapon& weapon) {
 uint16_t Player::calculateDefense(std::vector<Defense*> info_defense) {
     return GameFormulas::calculationDefense(info_defense);
 }
-
+TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
 std::vector<TypeItem> Player::getEquipment() {
     /*Esto no cuesta nada, lo maximo que puedo llegar a tener en el equip son 4 elementos -> O(1)*/
     std::vector<std::tuple<Id, TypeItem>> equip = this->equipment.getEquipmentDefensive();
@@ -146,7 +153,7 @@ Inventory& Player::getInventory() { return this->inv; }
 ItemInstance* Player::getItemInstance(Id instance_id) {
     return this->inv.inventory.at(instance_id).get();
 }
-Pose Player::getPose() const { return Entity::pose; }
+Pose Player::getPose() const { return this->pose; }
 
 uint32_t Player::getInventorySize() const { return this->inv.inventory.size(); }
 
@@ -198,7 +205,41 @@ void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
 
 void Player::breakMeditation() { this->is_meditating = false; }
 
+void Player::updateHp(float delta) {
+    if (this->hp >= this->hpMax()) {
+        return;
+    }
+    this->hp += GameFormulas::calculationRecoveredHp(this->ch.getHpFactorRace(), delta);
+    this->hp = std::min(this->hp, this->hpMax());
+}
+
+void Player::updateMana(float delta) {
+    if (this->mana >= this->manaMax()) {
+        return;
+    }
+    this->mana += GameFormulas::calculationOfManaTime(this->ch.getHpFactorRace(), delta);
+    this->mana = std::min(this->mana, this->manaMax());
+}
+
+void Player::meditating(float delta) {
+    if (this->mana >= this->manaMax()) {
+        return;
+    }
+    uint16_t fact_clase = ch.getManaFactorClase();
+    this->mana += GameFormulas::calculationOfManaMeditation(fact_clase, this->statics.intelligence,
+                                                            delta);
+    this->mana = std::min(this->mana, this->manaMax());
+}
+
 void Player::restoreAllHp() { this->hp = this->hpMax(); }
+
+void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
+    this->exp += GameFormulas::calculationPointsExpAttack(damage, victim->getLevel(), this->level);
+    uint16_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
+    if (this->exp >= limit) {
+        this->level += 1;
+    }
+}
 
 void Player::restoreAllMana() { this->mana = this->manaMax(); }
 
@@ -218,11 +259,38 @@ std::vector<MsgItemInfo> Player::getBankItemsInfo() const {
     return info_vector;
 }
 
-bool Player::isNewbie() const {
-    return CombatEntity::hp <= 12;
+bool Player::isNewbie() const { return this->hp <= 12; }
+
+bool Player::isValidOpponent(Player* other) const {
+    if (other == nullptr) {
+        return true; /*Mi oponente es un creature*/
+    }
+    if (other->isNewbie() || this->isNewbie()) {
+        return false;
+    }
+    const uint16_t max_lvl = std::max(this->level, other->level);
+    const uint16_t min_lvl = std::min(this->level, other->level);
+    if (max_lvl - min_lvl > 10) {
+        return false;
+    }
+    return true;
 }
 
 
-void Player::onDeath() {
-    // Convertirse en fantasma
+void Player::onDeath(World& world) {
+    /*Vacio inventario*/
+    for (const auto& [id_inst, item_inv]: this->inv.inventory) {
+        ItemInstance item_drop;
+        item_drop.id = item_inv->id;
+        item_drop.type = item_inv->type;
+        item_drop.body_part_use = item_inv->body_part_use;
+        item_drop.classification = item_inv->classification;
+        item_drop.pos = world.findNearbyFreePosition(this->pose.position);
+        world.addItemWorld(item_drop);
+    }
+    this->inv.inventory.clear();
+    /*Perdemos el oro*/
+    GoldBagInstance gold_pouche;
+    gold_pouche.pos = world.findNearbyFreePosition(this->pose.position);
+    world.spawnGoldOnFloor(gold_pouche);
 }

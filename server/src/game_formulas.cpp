@@ -3,6 +3,12 @@
 #include <cmath>
 #define EXP 1.1
 namespace GameFormulas {
+namespace {
+std::mt19937& getRng() {
+    static std::mt19937 rng{std::random_device{}()};
+    return rng;
+}
+}  // namespace
 uint16_t calculationMaximunHp(const uint16_t& constitution, const uint16_t& hpFactorRace,
                               const uint16_t& hpFactorClase, const uint8_t& level) {
     return constitution * hpFactorRace * hpFactorClase * level;
@@ -28,13 +34,13 @@ uint16_t calculationOfManaMeditation(const uint16_t& meditationFactorClase,
 
 uint16_t calculationDamage(const uint16_t& strength, const uint16_t& minDamage,
                            const uint16_t& maxDamage, bool& is_critical) {
-    std::random_device rd;
-    std::mt19937 rng(rd());
+    // std::random_device rd;
+    // std::mt19937 rng(rd());
     std::uniform_int_distribution<uint16_t> dist(minDamage, maxDamage);
-    uint16_t final_damage = strength * dist(rng);
+    uint16_t final_damage = strength * dist(getRng() /*rng*/);
     /*Golpe critico?*/
     std::uniform_int_distribution<int> crit_dist(1, 100);
-    if (crit_dist(rng) <= 10) {
+    if (crit_dist(getRng() /*rng*/) <= 10) {
         is_critical = true;
         final_damage *= 2;
     } else {
@@ -44,18 +50,19 @@ uint16_t calculationDamage(const uint16_t& strength, const uint16_t& minDamage,
 }
 
 uint16_t calculationPointsExpAttack(const uint16_t& damage, const uint8_t& opponentsLevel,
-                                    const uint8_t& victimLevel) {
-    return damage * std::max(opponentsLevel - victimLevel + 10, 0);
+                                    const uint8_t& level) {
+    return damage * std::max(static_cast<int>(opponentsLevel) - static_cast<int>(level) + 10, 0);
 }
 
-uint16_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint16_t& opponentsLevel,
-                                  const uint16_t& level) {
-    std::random_device rd;
-    std::mt19937 rng(rd());
+uint16_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint8_t& opponentsLevel,
+                                  const uint8_t& level) {
+    // std::random_device rd;
+    // std::mt19937 rng(rd());
     std::uniform_real_distribution<double> dist(0, 0.1);
-    double rand = dist(rng);
-    return static_cast<uint16_t>(rand * opponentsLifeMax *
-                                 std::max(opponentsLevel - level + 10, 0));
+    double rand = dist(getRng() /*rng*/);
+    int result = rand * opponentsLifeMax *
+                 std::max(static_cast<int>(opponentsLevel) - static_cast<int>(level) + 10, 0);
+    return static_cast<uint16_t>(result);
     // return dist(this->rng) * opponentsLifeMax * std::max(opponentsLevel - level + 10, 0);
 }
 
@@ -65,33 +72,36 @@ uint16_t calculationGoldenMax(const uint16_t& levelPlayer) {
     return 100 * std::pow(levelPlayer, EXP);
 }
 
-uint16_t calculationGoldenNpcKill(const uint16_t& lifeMaxNpc) {
-    std::random_device rd;
-    std::mt19937 rng(rd());
-    std::uniform_int_distribution<uint16_t> dist(0, 20);
-    uint16_t porcentaje = dist(rng);
-    return (lifeMaxNpc * porcentaje) / 100;
+uint32_t calculationGoldenNpcKill(const uint16_t& lifeMaxNpc) {
+    // std::random_device rd;
+    // std::mt19937 rng(rd());
+    // std::uniform_int_distribution<uint16_t> dist(0, 20);
+    // uint16_t porcentaje = dist(rng);
+    // return (lifeMaxNpc * porcentaje) / 100;
+    std::uniform_real_distribution<float> dist(0.01f, 0.2f);
+    float multiplicador = dist(getRng() /*rng*/);  // Ej: 0.125
+    return lifeMaxNpc * multiplicador;
 }
 
 uint16_t calculationDefense(const std::vector<Defense*>& info_defense) {
-    std::random_device rd;
-    std::mt19937 rng(rd());
+    // std::random_device rd;
+    // std::mt19937 rng(rd());
     uint16_t defensa_total = 0;
     for (const Defense* item_defense: info_defense) {
         uint16_t min_def = item_defense->minimal_defense;
         uint16_t max_def = item_defense->maximun_defense;
         std::uniform_int_distribution<uint16_t> dist(min_def, max_def);
-        defensa_total += dist(rng);
+        defensa_total += dist(getRng() /*rng*/);
     }
     return defensa_total;
 }
 
 bool calculationDodge() {
-    std::random_device rd;
-    std::mt19937 rng(rd());
+    // std::random_device rd;
+    // std::mt19937 rng(rd());
     std::uniform_int_distribution<uint16_t> dist(1, 100);
     uint16_t dodge_chance = 10;
-    return dist(rng) <= dodge_chance;
+    return dist(/*rng*/ getRng()) <= dodge_chance;
 }
 }  // namespace GameFormulas
 // std::mt19937& getRng() { return this->rng; }

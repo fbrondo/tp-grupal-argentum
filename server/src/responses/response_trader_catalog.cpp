@@ -1,4 +1,5 @@
 #include "server/includes/responses/response_trader_catalog.h"
+
 #include "server/includes/server_protocol.h"
 
 ResponseTraderCatalog::ResponseTraderCatalog(const std::map<TypeItem, uint32_t>& catalog) {

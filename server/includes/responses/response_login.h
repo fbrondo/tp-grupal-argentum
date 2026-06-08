@@ -2,6 +2,7 @@
 #define RESPONSE_REGISTER_H
 
 #include <string>
+
 #include "server/includes/responses/response.h"
 
 class ResponseLogin: public Response {

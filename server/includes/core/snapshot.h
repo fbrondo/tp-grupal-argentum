@@ -1,6 +1,5 @@
 #ifndef SNAPSHOT_H
 #define SNAPSHOT_H
-// #pragma once
 
 #include <cstdint>
 #include <string>
@@ -61,15 +60,11 @@ struct VisualEffect {
 };
 
 #pragma pack(pop)
-
 struct Snapshot {
-    // uint32_t turn_number;  // Turno actual
-
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;
     std::vector<ItemGroundSnapshotData> items_on_floor;
     std::vector<GoldPileGroundSnapshotData> gold_piles;
-
     std::vector<VisualEffect> effects;
 };
 

@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
@@ -12,7 +13,6 @@
 #include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
 
-class Comand;
 
 /*COMERCIANTE - Interaccion:
     - comprar
@@ -22,8 +22,8 @@ class Merchant: public TraderNPC {
 public:
     // Merchant(TypeNPC type, const std::string& name, Pose&& pos,
     //          std::map<TypeItem, std::unique_ptr<Item>>&& store);
-    Merchant(TypeNPC type, const std::string& name, Pose&& pos, std::vector<TypeItem> items_);
-    ~Merchant() = default;
+    Merchant(TypeNPC type, const std::string& name, std::vector<TypeItem> items_);
+    ~Merchant() override = default;
 };
 
 #endif

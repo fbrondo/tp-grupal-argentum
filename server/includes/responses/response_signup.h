@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "server/includes/server_protocol.h"
 #include "server/includes/responses/response.h"
+#include "server/includes/server_protocol.h"
 
 class ResponseSignup: public Response {
 private:

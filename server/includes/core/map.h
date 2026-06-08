@@ -1,15 +1,15 @@
 #ifndef MAP_H
 #define MAP_H
+#include <cstddef>
+#include <functional>
 
 #include "common/includes/direction.h"
 
 struct Position {
     uint32_t x;
     uint32_t y;
-
     /*Operador de igualdad*/
     bool operator==(const Position& other) const { return (x == other.x && y == other.y); }
-
     /*Operadot de desigualdad*/
     bool operator!=(const Position& other) const { return !(*this == other); }
 
@@ -27,6 +27,12 @@ struct Position {
     Position& operator=(const Position&) = default;
 };
 
+struct PositionHash {
+    size_t operator()(const Position& pos) const {
+        return std::hash<uint32_t>()(pos.x) ^ (std::hash<uint32_t>()(pos.y) << 32);
+    }
+};
+
 struct Pose {
     Position position;
     Direction direct;
@@ -40,5 +46,4 @@ struct Pose {
     Pose(const Pose&) = default;
     Pose& operator=(const Pose&) = default;
 };
-
 #endif

@@ -1,4 +1,5 @@
 #include "server/includes/commands/command_withdraw_gold.h"
+
 #include "server/includes/gameloop.h"
 
 WithdrawGoldCommand::WithdrawGoldCommand(Id id_, uint32_t amount): Command(id_), amount(amount) {}

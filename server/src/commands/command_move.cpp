@@ -1,6 +1,7 @@
 #include "server/includes/commands/command_move.h"
-#include "server/includes/gameloop.h"
+
 #include "common/includes/direction.h"
+#include "server/includes/gameloop.h"
 
 MoveCommand::MoveCommand(Id id, uint8_t dir): Command(id), direction(dir) {}
 

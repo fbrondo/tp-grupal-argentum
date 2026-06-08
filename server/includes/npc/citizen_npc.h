@@ -1,14 +1,18 @@
-#ifndef NPC_H
-#define NPC_H
+#pragma once
 
 #include <map>
 #include <memory>
 #include <string>
-#include "common/includes/types.h"
-#include "server/includes/core/map.h"
-#include "server/includes/entity.h"
-#include "server/includes/core/item.h"
 
+#include "../entity/entity.h"
+#include "common/includes/types.h"
+#include "server/includes/core/item.h"
+#include "server/includes/core/map.h"
+/*Representa un npc de ciudad/pueblo
+    - Banquero
+    - Sacerdote
+    - Comerciante
+*/
 enum class InteractionType : uint8_t { TRADER_SHOP, BANK_BOX };
 
 struct InteractionResult {
@@ -17,16 +21,15 @@ struct InteractionResult {
     bool open_bank = false;
 };
 
-class NPC: public Entity {
+class CitizenNPC: public Entity {
 protected:
     TypeNPC type_npc;
     std::string name;
 
 public:
-    NPC(TypeNPC type, const std::string& name, Pose&& pos);
+    CitizenNPC(TypeNPC type, const std::string& name /*const Pose& pos*/);
     TypeNPC getTypeNPC();
     virtual InteractionResult interact() = 0;  // Asi los npcs muestran su tienda/banco
-    virtual ~NPC() = default;
+    ~CitizenNPC() override = default;
+    bool isAttackable() override { return false; }
 };
-
-#endif

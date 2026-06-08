@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
@@ -17,16 +18,15 @@
     - puede vender baculos, varas, pociones.
 */
 class Priest: public TraderNPC {
-
 private:
     /*Baculos, varas, pociones*/
-    //std::map<TypeItem, std::unique_ptr<Item>> store;
+    // std::map<TypeItem, std::unique_ptr<Item>> store;
 
 public:
     // Priest(TypeNPC type, std::string&& name, Pose&& pos,
     //        std::map<TypeItem, std::unique_ptr<Item>>&& store_);
-    Priest(TypeNPC type, const std::string& name, Pose&& pos, std::vector<TypeItem> items_);
-    ~Priest() = default;
+    Priest(TypeNPC type, const std::string& name, std::vector<TypeItem> items_);
+    ~Priest() override = default;
 };
 
 #endif

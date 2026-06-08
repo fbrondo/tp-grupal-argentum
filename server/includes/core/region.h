@@ -1,10 +1,11 @@
 #ifndef REGION_H
 #define REGION_H
 
-#include <string>
-#include <vector>
 #include <cstdint>
 #include <optional>
+#include <string>
+#include <vector>
+
 #include "common/includes/map/tile.h"
 
 struct RegionWorld {
@@ -13,14 +14,14 @@ struct RegionWorld {
     virtual ~RegionWorld() = default;
 };
 
-struct WildRegion : RegionWorld {
+struct WildRegion: RegionWorld {
     uint16_t max_creatures;
     std::optional<uint16_t> min_treasure;
     std::optional<uint16_t> max_treasure;
 };
 
-struct SafeRegion : RegionWorld {
+struct SafeRegion: RegionWorld {
     std::vector<uint16_t> numbers_npc;
 };
 
-#endif //REGION_H
+#endif  // REGION_H

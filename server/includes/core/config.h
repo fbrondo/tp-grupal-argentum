@@ -3,6 +3,10 @@
 
 #include <filesystem>
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "common/includes/types.h"
 #include "server/includes/core/clase.h"
 #include "server/includes/core/item.h"
@@ -17,9 +21,9 @@ struct PathsConfig {
     Path races;
     Path items;
     Path npcs;
+    Path creatures;
     Path regions;
 };
-
 struct FileData {
     Path players; /*datos de los usuarios*/
     Path indx_players;
@@ -31,23 +35,23 @@ struct PlayerStateInit {
     uint32_t golden_init;
     uint32_t max_inventory;
 };
-
 struct ClanConfig {
     uint32_t max_members;
+    // ClanConfig() = default;
 };
-
-struct NpcConfig {
+struct NpcSafeZone {
     TypeNPC type;
     std::string name;
-    /*Solo las criaturas tienen las siguientes campos*/
+    std::vector<TypeItem> ids_items_store;
+};
+struct CreatureConfig {
+    TypeNPC type;
+    std::string name;
     uint16_t attack_range;
     uint16_t hp_max_initial;
     uint16_t minimal_level;
     uint16_t maximun_level;
-    std::vector<TypeItem> ids_items_store;
 };
-
-
 struct TimesConfig {
     uint32_t server_update_frecuency;
     uint32_t update_player_atributes;
@@ -56,14 +60,14 @@ struct TimesConfig {
     uint32_t pesistence_data;
     uint32_t npc_attack_cooldown;
 };
-
 struct GameConfig {
     PlayerStateInit player_init;
     ClanConfig clan;
     TimesConfig times;
     std::map<TypeRace, Race> races;
     std::map<TypeClase, Clase> clases;
-    std::map<std::string, NpcConfig> npcs;
+    std::map<std::string, NpcSafeZone> npcs;
+    std::map<std::string, CreatureConfig> creatures;
     std::map<Region, std::unique_ptr<RegionWorld>> regions;
     std::map<TypeItem, std::unique_ptr<Item>> items;
 
@@ -78,5 +82,4 @@ struct GameConfig {
     // clan(clan_),
     // times(times_) {}
 };
-
 #endif

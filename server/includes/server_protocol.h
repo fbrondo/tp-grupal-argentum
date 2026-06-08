@@ -31,6 +31,7 @@
 #include "common/includes/socket.h"
 #include "common/includes/types.h"
 #include "core/snapshot.h"
+
 #include "definitions.h"
 
 #pragma pack(push, 1)

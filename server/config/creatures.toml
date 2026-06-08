@@ -58,7 +58,6 @@ id_type = 7 #ARANA DE CAVERNA
 name = "Araña de carvena"
 attack_range = 4
 hp_max_initial = 60
-id_region = 1 #CAVERNA
 minimal_level = 24
 maximun_level = 30
 #--------------------------------------------------------------------------------------

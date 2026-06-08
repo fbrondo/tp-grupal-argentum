@@ -1,5 +1,6 @@
 #pragma once
 #include <utility>
+
 #include "common/includes/types.h"
 #include "server/includes/commands/command.h"
 
@@ -10,5 +11,5 @@ private:
 public:
     AttackCommand(Id player_id, Id target_id);
     void execute(Gameloop& gameloop) override;
-    //std::pair<Id, Id> getAttackInfo();
+    // std::pair<Id, Id> getAttackInfo();
 };

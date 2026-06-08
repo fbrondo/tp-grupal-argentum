@@ -1,4 +1,5 @@
 #include "server/includes/responses/response_login.h"
+
 #include "server/includes/server_protocol.h"
 
 ResponseLogin::ResponseLogin(const bool success_): success(success_) {}

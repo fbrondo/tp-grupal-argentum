@@ -44,11 +44,13 @@ enum TypeItem : uint8_t {
     MAGIC_HAT,       /*SOMBRERO MAGICO*/
     LIFE_POTION,     /*POCION VIDA*/
     MANA_POTION,     /*POCION MANA*/
-    GOLD             /*ORO*/
+    GOLD,             /*ORO*/
+    TREASURE,
 };
 
 enum ItemClassification : uint8_t {
-    ITEM_DEFENSIVE = 1, /*ITEM DE DEFENSA*/
+    NO_CLASSIF = 0,
+    ITEM_DEFENSIVE, /*ITEM DE DEFENSA*/
     ITEM_ATTACK,        /*ITEM DE ATAQUE*/
     ITEM_HEALING        /*ITEM DE CURACION*/
 };
