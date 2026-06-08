@@ -138,9 +138,6 @@ void ServerProtocol::sendSignupResponse(bool success, const std::string& msg) co
     sendSimpleResponse(SIGNUP_RESPONSE, success, msg);
 }
 
-void ServerProtocol::sendCharacterCreateResponse(bool success, const std::string& msg) const {
-    sendSimpleResponse(CHARACTER_CREATE_RESPONSE, success, msg);
-}
 
 void ServerProtocol::sendChangeMap(const uint16_t map_id) const {
     constexpr size_t total_size = sizeof(uint8_t) + sizeof(uint16_t);
