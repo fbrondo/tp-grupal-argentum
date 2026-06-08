@@ -150,6 +150,9 @@ void Client::close() {
     sender.stop();
     receiver.join();
     sender.join();
+    if (sound_manager.has_value()) {
+        sound_manager->cleanup();
+    }
 }
 
 void Client::launch() {
