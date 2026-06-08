@@ -52,7 +52,6 @@ public:
     void sendChatMsg(const std::string& msg) const;
     void sendLoginResponse(bool success, const std::string& msg = "") const;
     void sendSignupResponse(bool success, const std::string& msg = "") const;
-    void sendCharacterCreateResponse(bool success, const std::string& msg = "") const;
     void sendChangeMap(uint16_t map_id) const;
     void sendActionError(const std::string& error_msg) const;
     void sendMap(const Map& map);

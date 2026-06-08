@@ -1,6 +1,7 @@
 #include "../includes/server_protocol.h"
 
 #include <cstring>
+#include <iostream>
 
 #include <arpa/inet.h>
 

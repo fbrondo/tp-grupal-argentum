@@ -78,7 +78,6 @@ public:
     // Pre-game operations (signup, character)
     void sendSignup(const std::string& user, const std::string& password,
                     const CharacterTraits& traits) const;
-    void sendCharacterCreate(const std::string& name, uint8_t race, uint8_t clase) const;
 
     // Game loop receiver
     bool receiveMessage(EventClient& out_event) const;

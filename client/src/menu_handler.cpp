@@ -8,8 +8,10 @@
 MenuHandler::MenuHandler(const char* host, const char* port):
         socket(host, port), protocol(socket) {}
 
-bool MenuHandler::doSignup(const std::string& user, const std::string& password) {
+bool MenuHandler::doSignup(const std::string& user, const std::string& password,
+                           const CharacterTraits& traits) {
     try {
+        protocol.sendSignup(user, password, traits);
         CharacterTraits ch;
         protocol.sendSignup(user, password, ch );
         std::string msg;
@@ -32,7 +34,6 @@ bool MenuHandler::doLogin(const std::string& user, const std::string& password) 
             std::cerr << payload << std::endl;
             return false;
         }
-        // Print character info or "none" for the launcher to parse
         std::cout << payload << std::endl;
         return true;
     } catch (const std::exception& e) {
