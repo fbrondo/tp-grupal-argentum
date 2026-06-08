@@ -341,17 +341,6 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
                                                        std::move(signup.traits)));
             break;
         }
-        // case CHARACTER_CREATE: {
-        //     MsgCharacterCreate msg;
-        //     socket.recvall(msg.name, sizeof(msg.name));
-        //     socket.recvall(&msg.race, sizeof(msg.race));
-        //     socket.recvall(&msg.clase, sizeof(msg.clase));
-        //     msg.name[sizeof(msg.name) - 1] = '\0';
-        //     queue.push(std::make_unique<CreateCharacterCommand>(
-        //             player_id, std::string(msg.name), std::string(""),
-        //             static_cast<TypeRace>(msg.race), static_cast<TypeClase>(msg.clase)));
-        //     break;
-        // }
         case MOVE: {
             uint8_t dir;
             this->socket.recvall(&dir, sizeof(dir));
