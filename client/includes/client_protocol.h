@@ -28,8 +28,9 @@ struct EventClient {
     Snapshot world;
     MsgPlayerStats stats;
     std::string text_payload;  // Se usa para mensajes de chat, errores o el "OK"/"ERROR" del login
-    uint16_t map_id;           // Se usa para CAMBIO_MAPA
-    Map map_data;              // Se usa para MAP_DATA
+    bool login_success{false};
+    uint16_t map_id;  // Se usa para CAMBIO_MAPA
+    Map map_data;     // Se usa para MAP_DATA
 };
 
 #pragma pack(push, 1)

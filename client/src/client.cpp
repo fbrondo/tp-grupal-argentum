@@ -83,12 +83,10 @@ void Client::update_state_from_server() {
                 world_renderer.load_map(std::move(event.map_data));
                 break;
             }
-            /*case TypeEventClient::LOGIN_RESPONSE: {
-                is_running = true;
-                break;
-            }*/
-            default:
+            case TypeEventClient::DISCONNECTION:
                 is_running = false;
+                break;
+            default:
                 break;
         }
     }
@@ -117,8 +115,10 @@ void Client::close() {
     sender.join();
 }
 
-void Client::launch() {
+void Client::launch(const std::string& user, const std::string& pass) {
     try {
+        if (!user.empty())
+            protocol.sendLogin(user, pass);
         sender.start();
         receiver.start();
         last_frame_ticks = SDL_GetTicks();

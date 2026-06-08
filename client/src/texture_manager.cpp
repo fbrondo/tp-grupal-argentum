@@ -1,5 +1,6 @@
 #include "client/includes/texture_manager.h"
 
+#include <filesystem>
 #include <iostream>
 #include <memory>
 
@@ -383,6 +384,35 @@ void TextureManager::load_animation_items(
     register_spritesheet("anim_drf_gnm_" + std::to_string(MAGIC_HAT), 32, 45, 6);
 }
 
+void TextureManager::load_tile_textures(
+        std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
+    const std::array<std::pair<std::string, std::string>, 4> layers = {{
+            {"common/assets/maps/background/", "tile_bg_"},
+            {"common/assets/maps/details/", "tile_det_"},
+            {"common/assets/maps/objets/", "tile_obj_"},
+            {"common/assets/maps/roof/", "tile_roof_"},
+    }};
+    int total = 0;
+    for (const auto& [dir, prefix]: layers) {
+        if (!std::filesystem::exists(dir)) {
+            std::cout << "[TextureManager] DIRECTORIO NO ENCONTRADO: " << dir << std::endl;
+            continue;
+        }
+        int count = 0;
+        for (const auto& entry: std::filesystem::directory_iterator(dir)) {
+            if (entry.path().extension() != ".png")
+                continue;
+            const std::string id = entry.path().stem().string();
+            if (load_texture(textures_aux, prefix + id, entry.path().string()))
+                count++;
+        }
+        std::cout << "[TextureManager] " << prefix << "* : " << count << " tiles cargados."
+                  << std::endl;
+        total += count;
+    }
+    std::cout << "[TextureManager] Total tiles: " << total << std::endl;
+}
+
 std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>
         TextureManager::load_all_game_assets() {
     std::cout << "[TextureManager] Cargando assets..." << std::endl;
@@ -396,6 +426,8 @@ std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>
     load_bodies_textures(textures_aux);
     // --- NPCS --- //
     load_npcs_textures(textures_aux);
+    // --- TILES --- //
+    load_tile_textures(textures_aux);
     // --- EFFECTS --- //
     // --- HUD --- //
 

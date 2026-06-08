@@ -52,6 +52,8 @@ private:
             std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux);
     void load_animation_items(
             std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux);
+    void load_tile_textures(
+            std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux);
 
 public:
     explicit TextureManager(SDL2pp::Renderer& renderer_, WindowSDL& window_);
