@@ -7,8 +7,8 @@
 #include <tuple>
 #include <utility>
 
-#include "../includes/entity/combat_entity.h"
-#include "../includes/entity/entity.h"
+#include "server/includes/entity/combat_entity.h"
+#include "server/includes/entity/entity.h"
 #include "common/includes/map/tile.h"
 #include "server/includes/commands/command_signup.h"
 #include "server/includes/core/data.h"
@@ -48,11 +48,9 @@ void Gameloop::initConfigurationCitizenNPC() {
     NpcSafeZone banker_conf = conf.npcs["Banquero"];
     this->banker = std::make_unique<Banker>(banker_conf.type, banker_conf.name);
     NpcSafeZone merch_conf = conf.npcs["Comerciante"];
-    this->merchant = std::make_unique<Merchant>(merch_conf.type, merch_conf.name,
-                                                merch_conf.ids_items_store);
+    this->merchant = std::make_unique<Merchant>(merch_conf.type, merch_conf.name, merch_conf.ids_items_store);
     NpcSafeZone priest_conf = conf.npcs["Sacerdote"];
-    this->priest = std::make_unique<Priest>(priest_conf.type, priest_conf.name,
-                                            priest_conf.ids_items_store);
+    this->priest = std::make_unique<Priest>(priest_conf.type, priest_conf.name,priest_conf.ids_items_store);
 }
 
 void Gameloop::initTreasures(const uint16_t& numbers_treasure, const Id& zona_id) {
@@ -291,6 +289,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     Player* attacker = this->players.at(attacker_id).get();
     if (!attacker->isAlive())
         return;
+    Player& attacker = this->players.at(attacker_id);
 
     const TypeItem weapon_type = attacker->getHandItem();
     if (weapon_type == NONE)
