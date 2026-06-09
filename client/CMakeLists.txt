@@ -9,6 +9,10 @@ target_sources(taller_client
         src/commands/command_move.cpp
         src/menu_handler.cpp
         src/command_processor.cpp
+        src/texture_manager.cpp
+        src/window/windowSDL.cpp
+        src/renderable_entity.cpp
+        src/world_renderer.cpp
     PUBLIC
     # .h files
         includes/client_protocol.h
@@ -19,4 +23,10 @@ target_sources(taller_client
         includes/client_receiver.h
         includes/commands/command_client.h
         includes/commands/command_move.h
+        includes/commands/command_create_character.h
+        includes/texture_manager.h
+        includes/window/window.h
+        includes/window/windowSDL.h
+        includes/renderable_entity.h
+        includes/world_renderer.h
     )

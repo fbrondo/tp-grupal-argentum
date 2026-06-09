@@ -9,6 +9,7 @@
 #include "server/includes/core/data.h"
 #include "server/includes/core/snapshot.h"
 #include "server/includes/responses/response_login.h"
+#include "server/includes/responses/response_map.h"
 #include "server/includes/responses/response_signup.h"
 #include "server/includes/responses/response_snapshot.h"
 #include "server/print.h"
@@ -76,12 +77,14 @@ void Gameloop::handleLogin(LoginCommand* cmd) {
     }
     if (data.level == 0) {
         this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, "none"));
+        this->monitor.queueTheServerResponse(id, std::make_unique<ResponseMap>(world.getMap()));
         return;
     }
     std::ostringstream payload;
     payload << data.username << " " << static_cast<int>(data.race) << " "
             << static_cast<int>(data.clase) << " " << static_cast<int>(data.level);
     this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, payload.str()));
+    this->monitor.queueTheServerResponse(id, std::make_unique<ResponseMap>(world.getMap()));
 }
 
 void Gameloop::executeBroacastSnapshot() {

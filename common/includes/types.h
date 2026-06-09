@@ -24,11 +24,12 @@ using IdTile = uint32_t;
 #ifndef __ID_ITEM__
 #define __ID_ITEM__
 enum TypeItem : uint8_t {
+    NONE = 0,        /*NADA*/
     SWORD = 1,       /*ESPADA*/
     AXE,             /*HACHA*/
     HAMMER,          /*MARTILLO*/
     ASH_STAFF,       /*VARA DE FRESNO*/
-    ELVEN_FLUTE,     /*FLUTA ELFICA*/
+    ELVEN_FLUTE,     /*FLAUTA ELFICA*/
     KNOTTED_STAFF,   /*BACULO NUDOSO*/
     INLAID_STAFF,    /*BACULO ENGARZADO*/
     SIMPLE_BOW,      /*ARCO SIMPLE*/
@@ -42,7 +43,8 @@ enum TypeItem : uint8_t {
     IRON_SHIELD,     /*ESCUDO DE HIERRO*/
     MAGIC_HAT,       /*SOMBRERO MAGICO*/
     LIFE_POTION,     /*POCION VIDA*/
-    MANA_POTION      /*POCION MANA*/
+    MANA_POTION,     /*POCION MANA*/
+    GOLD             /*ORO*/
 };
 
 enum ItemClassification : uint8_t {
@@ -108,7 +110,7 @@ enum TypeNPC : uint8_t {
 //     TOWN,    /*PUEBLO*/
 // };
 // #endif
-
+/*-------------------------------------------------------------------------------------------------*/
 #ifndef __ID_BODY__
 #define __ID_BODY__
 
@@ -145,7 +147,7 @@ enum TypeGnomeBody : uint8_t {
 };
 
 #endif
-
+/*-------------------------------------------------------------------------------------------------*/
 #ifndef __ID_HEAD__
 #define __ID_HEAD__
 
@@ -187,5 +189,5 @@ enum TypeGnomeHead : uint8_t {
 };
 
 #endif
-
+/*-------------------------------------------------------------------------------------------------*/
 #endif
