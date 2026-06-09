@@ -149,8 +149,12 @@ void WorldRenderer::render() {
     int end_tile_y = std::min(current_map->height() - 1, (camera.y + camera.h) / TILE_SIZE + 1);
 
     // 1. RENDERIZADO DEL SUELO (Background, Details y Object)
-    std::array<Layer, 3> ground_layers = {Layer::Background, Layer::Details, Layer::Object};
-    for (Layer layer: ground_layers) {
+    std::array<std::pair<Layer, std::string>, 3> ground_layers = {{
+            {Layer::Background, "tile_bg_"},
+            {Layer::Details, "tile_det_"},
+            {Layer::Object, "tile_obj_"},
+    }};
+    for (auto& [layer, key_prefix]: ground_layers) {
         for (int y = start_tile_y; y <= end_tile_y; ++y) {
             for (int x = start_tile_x; x <= end_tile_x; ++x) {
                 auto& tile_data = current_map->tile_at(x, y, layer);
@@ -160,7 +164,7 @@ void WorldRenderer::render() {
                     continue;
 
                 try {
-                    std::string tex_key = "tile_" + std::to_string(sprite_id);
+                    std::string tex_key = key_prefix + std::to_string(sprite_id);
                     auto& texture =
                             const_cast<SDL2pp::Texture&>(texture_manager.get_texture(tex_key));
 
@@ -208,7 +212,7 @@ void WorldRenderer::render() {
                 continue;
 
             try {
-                std::string tex_key = "tile_" + std::to_string(sprite_id);
+                std::string tex_key = "tile_roof_" + std::to_string(sprite_id);
                 SDL2pp::Texture& texture =
                         const_cast<SDL2pp::Texture&>(texture_manager.get_texture(tex_key));
 

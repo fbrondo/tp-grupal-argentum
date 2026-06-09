@@ -86,6 +86,8 @@ public:
     ~World() = default;
 
     /*Consultas para validar*/
+    const Map& getMap() const { return map; }
+
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isSafeZONE(const Position& /*pos*/);
 

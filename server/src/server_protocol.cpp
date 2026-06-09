@@ -202,6 +202,8 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
 }
 
 void ServerProtocol::sendMap(const Map& map) {
+    std::cout << "[SERVER] sendMap: enviando mapa " << map.width() << "x" << map.height()
+              << " tiles." << std::endl;
     const size_t total_tiles = map.width() * map.height() * layer_count;
     const size_t size_total =
             sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + (total_tiles * 6);

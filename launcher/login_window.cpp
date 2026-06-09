@@ -35,7 +35,7 @@ bool LoginWindow::runClient(const QStringList& args, QString& out_stdout) {
 
     if (proc.exitCode() != 0) {
         const QString err = proc.readAllStandardError().trimmed();
-        setStatus(err.isEmpty() ? "Error desconocido." : err);
+        setStatus(err.isEmpty() ? "Usuario o contraseña incorrectos." : err);
         return false;
     }
 
@@ -48,11 +48,10 @@ bool LoginWindow::tryLogin(const QString& host, const QString& port, const QStri
     return runClient({host, port, "--login", user, pass}, out_payload);
 }
 
-void LoginWindow::launchGame(const QString& host, const QString& port) {
+void LoginWindow::launchGame(const QString& host, const QString& port, const QString& user,
+                             const QString& pass) {
     const QString binary = QCoreApplication::applicationDirPath() + "/taller_client";
-
-    // TODO: Review this
-    QProcess::startDetached(binary, {host, port});
+    QProcess::startDetached(binary, {host, port, user, pass});
     QApplication::quit();
 }
 
@@ -76,7 +75,7 @@ void LoginWindow::onLogin() {
         return;
     }
 
-    launchGame(host, port);
+    launchGame(host, port, user, pass);
 }
 
 void LoginWindow::onSignup() {

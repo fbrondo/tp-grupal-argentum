@@ -176,8 +176,11 @@ void MapScene::applyTileChange(int ax, int ay, Layer layer, const Tile& old_tile
                                const Tile& new_tile) {
     if (layer == current_layer_) {
         if (old_tile.sprite_id != 0) {
-            for (auto [nx, ny]: occupiedCells(ax, ay, old_tile.sprite_id))
+            for (auto [nx, ny]: occupiedCells(ax, ay, old_tile.sprite_id)) {
                 anchor_at_[tileIndex(nx, ny)] = -1;
+                if (nx != ax || ny != ay)
+                    map_->tile_at(nx, ny, layer) = {};
+            }
         }
     }
 
@@ -186,8 +189,11 @@ void MapScene::applyTileChange(int ax, int ay, Layer layer, const Tile& old_tile
     if (layer == current_layer_) {
         if (new_tile.sprite_id != 0) {
             int anchor_idx = tileIndex(ax, ay);
-            for (auto [nx, ny]: occupiedCells(ax, ay, new_tile.sprite_id))
+            for (auto [nx, ny]: occupiedCells(ax, ay, new_tile.sprite_id)) {
                 anchor_at_[tileIndex(nx, ny)] = anchor_idx;
+                if (nx != ax || ny != ay)
+                    map_->tile_at(nx, ny, layer) = {0, new_tile.walkable, new_tile.region};
+            }
         }
     }
 

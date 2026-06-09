@@ -2,6 +2,4 @@
 
 ResponseMap::ResponseMap(const Map& map): map(map) {}
 
-void ResponseMap::execute(ServerProtocol& protocol) {
-    // protocol.sendMap(this->map);
-}
+void ResponseMap::execute(ServerProtocol& protocol) { protocol.sendMap(this->map); }

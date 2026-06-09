@@ -1,6 +1,7 @@
 #include "client/includes/client_protocol.h"
 
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -281,6 +282,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.type = TypeEventClient::LOGIN_RESPONSE;
             uint8_t success;
             socket.recvall(&success, sizeof(success));
+            out_event.login_success = (success == 1);
 
             uint16_t len;
             socket.recvall(&len, sizeof(len));
@@ -313,7 +315,13 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             socket.recvall(&w_net, sizeof(w_net));
             socket.recvall(&h_net, sizeof(h_net));
 
-            Map map("Map", w_net, h_net);
+            // TODO: Revisar si hace falta ntohl y borrar prints
+            int width = static_cast<int>(ntohl(w_net));
+            int height = static_cast<int>(ntohl(h_net));
+            std::cout << "[CLIENT] MAP_DATA recibido: " << width << "x" << height << " tiles."
+                      << std::endl;
+            Map map("Map", width, height);
+
             std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details,
                                                      Layer::Object, Layer::Roof};
 

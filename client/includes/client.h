@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <SDL2pp/SDL.hh>
 #include <SDL2pp/SDLImage.hh>
@@ -55,5 +56,5 @@ private:
 
 public:
     Client(const char* host, const char* port);
-    void launch();
+    void launch(const std::string& user = "", const std::string& pass = "");
 };
