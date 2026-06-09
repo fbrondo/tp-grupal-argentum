@@ -173,5 +173,10 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                           SDL2pp::Rect(dst_rect));
         }
 
-    } catch (const std::exception& e) {}
+    } catch (const std::exception& e) {
+        if (!render_error_logged) {
+            render_error_logged = true;
+            std::cerr << "[render] entity " << id << " render failed: " << e.what() << std::endl;
+        }
+    }
 }

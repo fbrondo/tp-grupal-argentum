@@ -21,7 +21,11 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& textur
     camera_screen_offset_y = 149;
 }
 
-void WorldRenderer::set_local_player(const uint32_t id) { local_player_id = id; }
+void WorldRenderer::set_local_player(const uint32_t id) {
+    std::cout << "[WorldRenderer] set_local_player called with id=" << id
+              << " (previous=" << local_player_id << ")" << std::endl;
+    local_player_id = id;
+}
 
 void WorldRenderer::load_map(Map&& new_map) {
     entities.clear();
@@ -69,6 +73,10 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
     // A. PROCESAR JUGADORES
     for (const auto& p_data: snapshot.players) {
         ids_en_snapshot.push_back(p_data.id);
+        std::cout << "[snapshot] player id=" << p_data.id << " pos=(" << p_data.pos_x << ","
+                  << p_data.pos_y << ") body_id=" << (int)p_data.body_id
+                  << " head_id=" << (int)p_data.head_id << " weapon=" << (int)p_data.weapon_id
+                  << std::endl;
         auto it = entities.find(p_data.id);
         if (it != entities.end()) {
             it->second->move_to(p_data.pos_x, p_data.pos_y,

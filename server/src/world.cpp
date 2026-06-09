@@ -6,8 +6,8 @@
 #include "server/print.h"
 World::World(const std::filesystem::path& path):
         map(MapSerializer::load(path)),
-        limit_height(10 /*this->map.height()*/),
-        limit_width(10 /*this->map.width()*/) {
+        limit_height(this->map.height()),
+        limit_width(this->map.width()) {
     this->buildTilesWorld();
     this->identifyZones();
     // Print::printinitMatrizMap(this->map_tiles, this->limit_height, this->limit_width);

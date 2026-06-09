@@ -1,5 +1,7 @@
 #include "client/includes/client.h"
 
+#include <sstream>
+
 #include <SDL2/SDL_image.h>
 
 #include "client/includes/commands/command_move.h"
@@ -86,6 +88,18 @@ void Client::update_state_from_server() {
             case TypeEventClient::DISCONNECTION:
                 is_running = false;
                 break;
+            case TypeEventClient::LOGIN_RESPONSE: {
+                if (event.login_success && !event.text_payload.empty()) {
+                    std::istringstream ss(event.text_payload);
+                    uint32_t player_id;
+                    ss >> player_id;
+                    std::cout << "[client] LOGIN_RESPONSE payload=\"" << event.text_payload
+                              << "\" parsed_id=" << player_id << " ss.fail=" << ss.fail()
+                              << std::endl;
+                    world_renderer.set_local_player(player_id);
+                }
+                break;
+            }
             default:
                 break;
         }

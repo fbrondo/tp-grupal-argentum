@@ -11,6 +11,7 @@
 #include "server/includes/commands/command_attack.h"
 #include "server/includes/commands/command_buy_item.h"
 #include "server/includes/commands/command_chat.h"
+#include "server/includes/commands/command_disconnect.h"
 #include "server/includes/commands/command_drop_item.h"
 #include "server/includes/commands/command_interact.h"
 #include "server/includes/commands/command_login.h"

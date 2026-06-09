@@ -32,6 +32,8 @@ private:
     uint8_t weapon_id;
     uint8_t shield_id;
 
+    bool render_error_logged = false;
+
     AnimationState anim_state;
 
 public:

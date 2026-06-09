@@ -62,7 +62,8 @@ void Gameloop::handleSignup(SignupCommand* cmd) {
 
 void Gameloop::handleLogin(LoginCommand* cmd) {
     auto [id, username, password] = cmd->getLoginInfo();
-    std::cerr << "[server] login user=" << username << " pass=" << password << std::endl;
+    std::cerr << "[server] login user=" << username << " pass=" << password << " id=" << id
+              << std::endl;
     if (!this->persistence.exists(username)) {
         this->monitor.queueTheServerResponse(
                 id, std::make_unique<ResponseLogin>(false, "El usuario no existe"));
@@ -87,26 +88,30 @@ void Gameloop::handleLogin(LoginCommand* cmd) {
     Player new_player(std::move(user), std::move(pose), std::move(character),
                       this->game_conf.player_init);
     this->players.emplace(id, std::move(new_player));
-
     if (data.level == 0) {
-        this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, "none"));
-        this->monitor.queueTheServerResponse(id, std::make_unique<ResponseMap>(world.getMap()));
-        Snapshot snap = this->resp.buildSnapshot(this->players, this->world);
+        std::ostringstream payload;
+        payload << id << " none";
+        std::cerr << "[server] LOGIN_RESPONSE id=" << id << " payload=\"" << payload.str() << "\""
+                  << std::endl;
         this->monitor.queueTheServerResponse(id,
-                                             std::make_unique<ResponseSnapshot>(std::move(snap)));
+                                             std::make_unique<ResponseLogin>(true, payload.str()));
+        this->monitor.queueTheServerResponse(id, std::make_unique<ResponseMap>(world.getMap()));
+        this->executeBroacastSnapshot();
         return;
     }
     std::ostringstream payload;
-    payload << data.username << " " << static_cast<int>(data.race) << " "
+    payload << id << " " << data.username << " " << static_cast<int>(data.race) << " "
             << static_cast<int>(data.clase) << " " << static_cast<int>(data.level);
+    std::cerr << "[server] LOGIN_RESPONSE id=" << id << " payload=\"" << payload.str() << "\""
+              << std::endl;
     this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, payload.str()));
     this->monitor.queueTheServerResponse(id, std::make_unique<ResponseMap>(world.getMap()));
-    Snapshot snap = this->resp.buildSnapshot(this->players, this->world);
-    this->monitor.queueTheServerResponse(id, std::make_unique<ResponseSnapshot>(std::move(snap)));
+    this->executeBroacastSnapshot();
 }
 
 void Gameloop::executeBroacastSnapshot() {
     Snapshot snap = this->resp.buildSnapshot(this->players, this->world);
+    std::cerr << "[server] broadcastSnapshot: " << snap.players.size() << " players" << std::endl;
     std::shared_ptr<ResponseSnapshot> resp_snap =
             std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
@@ -132,6 +137,12 @@ void Gameloop::execuetRequest() {
             this->handleLogin(login_cmd);
         } else if (MoveCommand* move_cmd = dynamic_cast<MoveCommand*>(cmd.get())) {
             this->executeMovePlayer(move_cmd);
+        } else if (DisconnectCommand* disc_cmd = dynamic_cast<DisconnectCommand*>(cmd.get())) {
+            std::cerr << "[Gameloop] -> DisconnectCommand" << std::endl;
+            Id pid = disc_cmd->getIdPlayer();
+            this->world.removePlayer(pid);
+            this->players.erase(pid);
+            this->executeBroacastSnapshot();
         } else {
             std::cerr << "[Gameloop] -> UnknownCommand (discarded)" << std::endl;
         }

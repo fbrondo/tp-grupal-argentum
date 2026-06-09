@@ -241,8 +241,8 @@ void SignupWindow::onCrear() {
     setBusy(true);
     setStatus("Registrando...");
 
-    const int headSpriteId = QFileInfo(head_files_[head_id_ - 1]).baseName().toInt();
-    const int bodySpriteId = QFileInfo(body_files_[body_id_ - 1]).baseName().toInt();
+    const int headSpriteId = head_id_ - 1;
+    const int bodySpriteId = body_id_ - 1;
 
     QString ignored;
     if (!runClient({host_, port_, "--signup", user, pass, QString::number(race_idx_ + 1),

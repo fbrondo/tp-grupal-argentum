@@ -59,6 +59,8 @@ public:
     void updatePose(Position pos, Direction direct);
 
 
+    const std::string& getUsername() const { return user.username; }
+
     uint16_t getHp() const { return hp; }
     uint16_t getMana() const { return mana; }
     uint8_t getHeadId() const { return this->ch.getTypeHead(); }
