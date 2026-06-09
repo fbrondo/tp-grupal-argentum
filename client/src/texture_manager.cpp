@@ -249,49 +249,6 @@ void TextureManager::load_items_textures(
         load_texture(textures_aux, "item_" + std::to_string(item.id), base_path + item.filename);
     }
 }
-/*void TextureManager::load_items_textures(
-        std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
-    load_texture(textures_aux, "item_" + std::to_string(SWORD),
-                 "client/assets/Sprites/Items/1000.png");
-    load_texture(textures_aux, "item_" + std::to_string(AXE),
-                 "client/assets/Sprites/Items/1001.png");
-    load_texture(textures_aux, "item_" + std::to_string(HAMMER),
-                 "client/assets/Sprites/Items/1002.png");
-    load_texture(textures_aux, "item_" + std::to_string(ASH_STAFF),
-                 "client/assets/Sprites/Items/1100.png");
-    load_texture(textures_aux, "item_" + std::to_string(ELVEN_FLUTE),
-                 "client/assets/Sprites/Items/1101.png");
-    load_texture(textures_aux, "item_" + std::to_string(KNOTTED_STAFF),
-                 "client/assets/Sprites/Items/1102.png");
-    load_texture(textures_aux, "item_" + std::to_string(INLAID_STAFF),
-                 "client/assets/Sprites/Items/1103.png");
-    load_texture(textures_aux, "item_" + std::to_string(SIMPLE_BOW),
-                 "client/assets/Sprites/Items/1003.png");
-    load_texture(textures_aux, "item_" + std::to_string(COMPOUND_BOW),
-                 "client/assets/Sprites/Items/1004.png");
-    load_texture(textures_aux, "item_" + std::to_string(LEATHER_ARMOR),
-                 "client/assets/Sprites/Items/1400.png");
-    load_texture(textures_aux, "item_" + std::to_string(PLATE_AMOR),
-                 "client/assets/Sprites/Items/1401.png");
-    load_texture(textures_aux, "item_" + std::to_string(BLUE_TUNIC),
-                 "client/assets/Sprites/Items/1402.png");
-    load_texture(textures_aux, "item_" + std::to_string(HOOD),
-                 "client/assets/Sprites/Items/1300.png");
-    load_texture(textures_aux, "item_" + std::to_string(IRON_HELMET),
-                 "client/assets/Sprites/Items/1301.png");
-    load_texture(textures_aux, "item_" + std::to_string(TORTOISE_SHIELD),
-                 "client/assets/Sprites/Items/1500.png");
-    load_texture(textures_aux, "item_" + std::to_string(IRON_SHIELD),
-                 "client/assets/Sprites/Items/1501.png");
-    load_texture(textures_aux, "item_" + std::to_string(MAGIC_HAT),
-                 "client/assets/Sprites/Items/1302.png");
-    load_texture(textures_aux, "item_" + std::to_string(LIFE_POTION),
-                 "client/assets/Sprites/Items/1600.png");
-    load_texture(textures_aux, "item_" + std::to_string(MANA_POTION),
-                 "client/assets/Sprites/Items/1601.png");
-    load_texture(textures_aux, "item_" + std::to_string(GOLD),
-                 "client/assets/Sprites/Items/2000.png");
-}*/
 void TextureManager::load_animation_items(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
     // --- HUMAN/ELF ITEMS ANIMATION --- //
@@ -423,11 +380,11 @@ void TextureManager::load_tile_textures(
             if (load_texture(textures_aux, prefix + id, entry.path().string()))
                 count++;
         }
-        std::cout << "[TextureManager] " << prefix << "* : " << count << " tiles cargados."
-                  << std::endl;
+        /*std::cout << "[TextureManager] " << prefix << "* : " << count << " tiles cargados."
+                  << std::endl;*/
         total += count;
     }
-    std::cout << "[TextureManager] Total tiles: " << total << std::endl;
+    //std::cout << "[TextureManager] Total tiles: " << total << std::endl;
 }
 void TextureManager::load_HUD_textures(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
@@ -466,7 +423,7 @@ void TextureManager::load_HUD_textures(
 
 std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>
         TextureManager::load_all_game_assets() {
-    std::cout << "[TextureManager] Cargando assets..." << std::endl;
+    //std::cout << "[TextureManager] Cargando assets..." << std::endl;
     std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>> textures_aux;
     // --- ITEMS --- //
     load_items_textures(textures_aux);
@@ -483,7 +440,7 @@ std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>
     // --- HUD --- //
     load_HUD_textures(textures_aux);
 
-    std::cout << "[TextureManager] Carga finalizada." << std::endl;
+    //std::cout << "[TextureManager] Carga finalizada." << std::endl;
     return textures_aux;
 }
 

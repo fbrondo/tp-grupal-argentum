@@ -29,8 +29,8 @@ void WorldRenderer::load_map(Map&& new_map) {
     current_map = std::move(new_map);
     camera.x = 0;
     camera.y = 0;
-    std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión: "
-              << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;
+    /*std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión: "
+              << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;*/
 }
 
 void WorldRenderer::center_camera_on_player() {
@@ -146,6 +146,9 @@ void WorldRenderer::render() {
 
     center_camera_on_player();
 
+    SDL_RenderSetClipRect(renderer.Get(), nullptr);
+    hud_renderer.render();
+
     SDL_Rect view_rect = {camera_screen_offset_x, camera_screen_offset_y, camera.w, camera.h};
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
 
@@ -236,6 +239,5 @@ void WorldRenderer::render() {
             } catch (...) {}
         }
     }
-    hud_renderer.render();
     SDL_RenderSetClipRect(renderer.Get(), nullptr);
 }
