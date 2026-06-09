@@ -36,15 +36,21 @@ void Persistence::scheduleWorld(WorldStateData data) {
 
 
 void Persistence::run() {
-    while (should_keep_running()) {
-        PlayerData player;
-        while (this->players_data_queue.try_pop(player)) {
-            this->storage.updateStatePlayer(player);
+    try {
+        while (should_keep_running()) {
+            PlayerData player;
+            while (this->players_data_queue.try_pop(player)) {
+                this->storage.updateStatePlayer(player);
+            }
+            WorldStateData world;
+            while (this->world_data_queue.try_pop(world)) {
+                this->storage.saveWorldState(world);
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
-        WorldStateData world;
-        while (this->world_data_queue.try_pop(world)) {
-            storage.saveWorldState(world);
-        }
+    } catch (const std::exception& e) {
+        std::cerr << "[Persistence] Error inesperado en el hilo: " << e.what() << std::endl;
     }
+    std::clog << "[Persistence] Bucle principal terminado correctamente." << std::endl;
 }
 
