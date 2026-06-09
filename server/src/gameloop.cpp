@@ -316,6 +316,16 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseMap>(std::move(map)));
 }
 
+void Gameloop::processDisconnect(Id player_id) {
+    auto it = this->players.find(player_id);
+    if (it != this->players.end()) {
+        PlayerData data = it->second->getPlayerData();
+        this->persistence.schedulePlayers(std::move(data));
+        this->world.removePlayer(player_id);
+        this->players.erase(it);
+    }
+}
+
 void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
     this->monitor.queueTheServerResponse(player_id, std::move(response));
 }

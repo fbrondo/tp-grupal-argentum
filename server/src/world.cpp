@@ -285,9 +285,13 @@ bool World::isSafeZONE(const Position& /*pos*/) { return true; }
 
 
 void World::removePlayer(const Id& player_id) {
-    const Position& pos = this->players_positions[player_id].position;
+    auto it = this->players_positions.find(player_id);
+    if (it == this->players_positions.end())
+        return;
+
+    const Position& pos = it->second.position;
     this->occupied_tiles[pos] = false;
-    this->players_positions.erase(player_id);
+    this->players_positions.erase(it);
 }
 
 void World::removeCreature(const Id& creature_id) {

@@ -87,6 +87,7 @@ public:
 
     void processHandleSignup(const Id& player_id, const User& user, const CharacterTraits& traits);
     void processHandleLogin(const Id& player_id, const User& user);
+    void processDisconnect(Id player_id);
     void sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response);
     void executeAttackPlayer(const Id& player_id, const Id& victim_id);
 

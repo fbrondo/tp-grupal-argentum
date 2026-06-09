@@ -174,6 +174,8 @@ void ClientProtocol::sendSignup(const std::string& user, const std::string& pass
     std::strncpy(msg.user, user.c_str(), sizeof(msg.user) - 1);
     std::strncpy(msg.password, password.c_str(), sizeof(msg.password) - 1);
     msg.traits = traits;
+    msg.traits.head = htons(msg.traits.head);
+    msg.traits.body = htons(msg.traits.body);
     try {
         socket.sendall(&msg, sizeof(MsgSignup));
     } catch (const std::exception& e) {
@@ -229,6 +231,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.hp = ntohs(p.hp);
                 p.mana = ntohs(p.mana);
                 p.max_mana = ntohs(p.max_mana);
+                p.body_id = ntohs(p.body_id);
+                p.head_id = ntohs(p.head_id);
                 out_event.world.players.push_back(p);
             }
 

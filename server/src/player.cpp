@@ -97,8 +97,8 @@ PlayerData Player::getPlayerData() {
     /*PERSONAJE*/
     data.charact_traits.race = static_cast<uint8_t>(this->ch.getTypeRace());
     data.charact_traits.clase = static_cast<uint8_t>(this->ch.getTypeClase());
-    data.charact_traits.head = static_cast<uint8_t>(this->ch.getTypeHead());
-    data.charact_traits.body = static_cast<uint8_t>(this->ch.getTypeBody());
+    data.charact_traits.head = this->ch.getTypeHead();
+    data.charact_traits.body = this->ch.getTypeBody();
     /*Atributos actuales*/
     data.exp = this->exp;
     data.level = this->level;
@@ -141,7 +141,7 @@ uint16_t Player::calculateDefense(std::vector<Defense*> info_defense) {
 }
 
 PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
-    PlayerSnapshotData data;
+    PlayerSnapshotData data{};
     data.id = player_id;
     data.pos_x = this->pose.position.x;
     data.pos_y = this->pose.position.y;

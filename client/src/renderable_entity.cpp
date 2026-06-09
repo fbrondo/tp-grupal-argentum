@@ -6,7 +6,7 @@
 static constexpr int TILE_SIZE = 32;
 
 RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_,
-                                   int start_tile_y_, uint8_t body_id_, uint8_t head_id_,
+                                   int start_tile_y_, uint16_t body_id_, uint16_t head_id_,
                                    uint8_t weapon_id_, uint8_t shield_id_, bool is_short_race_):
         id(id_),
         type(type_),
@@ -156,10 +156,15 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         // Cabeza
         if (head_id != 0) {
             std::string head_tex_key = "head_" + std::to_string(head_id);
+            std::string head_anim =
+                    head_tex_key + "_idle_" + std::to_string(current_dir);
+            const AnimationClip& head_clip = texture_manager.get_animation(head_anim);
+            SDL_Rect head_src = head_clip.frames[0];
             SDL2pp::Texture& head_texture = texture_manager.get_texture(head_tex_key);
-            SDL_Rect dst_head = dst_rect;
+            SDL_Rect dst_head = {dst_rect.x + (dst_rect.w - head_src.w) / 2, dst_rect.y,
+                                 head_src.w, head_src.h};
             dst_head.y -= 10;  // Offset hacia arriba para el cuello
-            renderer.Copy(head_texture, SDL2pp::NullOpt, SDL2pp::Rect(dst_head));
+            renderer.Copy(head_texture, SDL2pp::Rect(head_src), SDL2pp::Rect(dst_head));
         }
 
         // Escudo (Suele ir en la capa más alta para tapar parte del cuerpo)
@@ -173,5 +178,7 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                           SDL2pp::Rect(dst_rect));
         }
 
-    } catch (const std::exception& e) {}
+    } catch (const std::exception& e) {
+        std::cerr << "[RenderableEntity] " << e.what() << std::endl;
+    }
 }
