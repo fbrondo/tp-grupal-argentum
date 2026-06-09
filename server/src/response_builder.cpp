@@ -9,6 +9,8 @@ Snapshot ResponseBuilder::buildSnapshot(const std::map<Id, Player>& players, Wor
         p.pos_x = pos.x;
         p.pos_y = pos.y;
         p.direction = 0;
+        p.body_id = BROWN_SPIKY_BEARD;
+        p.head_id = CITIZEN_LEATHER;
         snap.players.push_back(p);
     }
     return snap;

@@ -234,6 +234,23 @@ void TextureManager::load_npcs_textures(
 }
 void TextureManager::load_items_textures(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
+
+    const std::string base_path = "client/assets/Sprites/Items/";
+    const std::vector<ItemTextureInfo> items_to_load = {
+            {SWORD, "1000.png"},         {AXE, "1001.png"},         {HAMMER, "1002.png"},
+            {ASH_STAFF, "1100.png"},     {ELVEN_FLUTE, "1101.png"}, {KNOTTED_STAFF, "1102.png"},
+            {INLAID_STAFF, "1103.png"},  {SIMPLE_BOW, "1003.png"},  {COMPOUND_BOW, "1004.png"},
+            {LEATHER_ARMOR, "1400.png"}, {PLATE_AMOR, "1401.png"},  {BLUE_TUNIC, "1402.png"},
+            {HOOD, "1300.png"},          {IRON_HELMET, "1301.png"}, {TORTOISE_SHIELD, "1500.png"},
+            {IRON_SHIELD, "1501.png"},   {MAGIC_HAT, "1302.png"},   {LIFE_POTION, "1600.png"},
+            {MANA_POTION, "1601.png"},   {GOLD, "2000.png"}};
+
+    for (const auto& item: items_to_load) {
+        load_texture(textures_aux, "item_" + std::to_string(item.id), base_path + item.filename);
+    }
+}
+/*void TextureManager::load_items_textures(
+        std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
     load_texture(textures_aux, "item_" + std::to_string(SWORD),
                  "client/assets/Sprites/Items/1000.png");
     load_texture(textures_aux, "item_" + std::to_string(AXE),
@@ -274,7 +291,7 @@ void TextureManager::load_items_textures(
                  "client/assets/Sprites/Items/1601.png");
     load_texture(textures_aux, "item_" + std::to_string(GOLD),
                  "client/assets/Sprites/Items/2000.png");
-}
+}*/
 void TextureManager::load_animation_items(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
     // --- HUMAN/ELF ITEMS ANIMATION --- //
