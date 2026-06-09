@@ -1,6 +1,6 @@
 #include "server/includes/character.h"
 
-Character::Character(const Race& race, const Clase& clase, uint8_t head_, uint8_t body_):
+Character::Character(const Race& race, const Clase& clase, uint16_t head_, uint16_t body_):
         race(race), clase(clase) {
     this->head = head_;
     this->body = body_;
@@ -18,8 +18,8 @@ const Statistics& Character::getStatistics() const { return this->stats; }
 TypeRace Character::getTypeRace() const { return this->race.type; }
 TypeClase Character::getTypeClase() const { return this->clase.type; }
 
-const uint8_t& Character::getTypeHead() const { return this->head; }
-const uint8_t& Character::getTypeBody() const { return this->body; }
+const uint16_t& Character::getTypeHead() const { return this->head; }
+const uint16_t& Character::getTypeBody() const { return this->body; }
 
 const uint16_t& Character::getHpFactorRace() { return this->race.hp_factor; }
 const uint16_t& Character::getHpFactorClase() { return this->clase.hp_factor; }

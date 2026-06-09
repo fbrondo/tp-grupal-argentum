@@ -41,25 +41,25 @@ bool MenuHandler::doLogin(const std::string& user, const std::string& password) 
         return false;
     }
 }
-
-bool MenuHandler::doCreateCharacter(const std::string& user, const std::string& password,
-                                    const std::string& /*name*/, uint8_t /*race*/, uint8_t /*clase*/) {
-    try {
-        protocol.sendLogin(user, password);
-        std::string msg;
-        if (!protocol.recvResponse(LOGIN_RESPONSE, msg)) {
-            std::cerr << msg << std::endl;
-            return false;
-        }
-
-        //protocol.sendCharacterCreate(name, race, clase);
-        if (!protocol.recvResponse(CHARACTER_CREATE_RESPONSE, msg)) {
-            std::cerr << msg << std::endl;
-            return false;
-        }
-        return true;
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return false;
-    }
-}
+//
+// bool MenuHandler::doCreateCharacter(const std::string& user, const std::string& password,
+//                                     const std::string& /*name*/, uint8_t /*race*/, uint8_t /*clase*/) {
+//     try {
+//         protocol.sendLogin(user, password);
+//         std::string msg;
+//         if (!protocol.recvResponse(LOGIN_RESPONSE, msg)) {
+//             std::cerr << msg << std::endl;
+//             return false;
+//         }
+//
+//         //protocol.sendCharacterCreate(name, race, clase);
+//         if (!protocol.recvResponse(CHARACTER_CREATE_RESPONSE, msg)) {
+//             std::cerr << msg << std::endl;
+//             return false;
+//         }
+//         return true;
+//     } catch (const std::exception& e) {
+//         std::cerr << e.what() << std::endl;
+//         return false;
+//     }
+// }

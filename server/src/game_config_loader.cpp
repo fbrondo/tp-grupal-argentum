@@ -325,36 +325,8 @@ const FileData GameConfigLoader::getFilesData() { return this->data; }
 
 GameConfig GameConfigLoader::getdGameConfiguration() {
     try {
-        // Table config = toml::parse_file(paths.game.string());
-        //
-        // /*Estado inicial del jugador*/
-        // auto player_init = config["player_state_init"];
-        // PlayerStateInit state_init;
-        // state_init.level = static_cast<uint8_t>(player_init["level"].value_or(0));
-        // state_init.golden_init = static_cast<uint32_t>(player_init["golden_init"].value_or(0));
-        // state_init.max_inventory =
-        // static_cast<uint32_t>(player_init["max_inventory"].value_or(0));
-        //
-        // /*Condiciones de un clan*/
-        // auto clan_info = config["clan"];
-        // ClanConfig clan_conf;
-        // clan_conf.max_members = static_cast<uint32_t>(clan_info["max_members"].value_or(10));
-        //
-        // /*Tiempos del juego*/
-        // auto times_info = config["times"];
-        // TimesConfig times;
-        // times.server_update_frecuency =
-        // static_cast<uint32_t>(times_info["server_update_frecuency"].value_or(30));
-        // times.update_player_atributes =
-        // static_cast<uint32_t>(times_info["update_player_atributes"].value_or(500));
-        // times.spawn_npcs = static_cast<uint32_t>(times_info["spawn_npcs"].value_or(3000));
-        // times.disappear_dropped_item =
-        // static_cast<uint32_t>(times_info["disappear_dropped_item"].value_or(60000));
-        // times.pesistence_data = static_cast<uint32_t>(times_info["pesist_data"].value_or(60000));
-        // times.npc_attack_cooldown =
-        // static_cast<uint32_t>(times_info["npc_attack_cooldown"].value_or(1000)); return
-        // GameConfig(state_init, clan_conf, times);
         GameConfig config;
+        config.paths = this->getFilesData();
         this->loadGame(config.player_init, config.clan, config.times);
         this->loadRaces(config.races);
         this->loadClases(config.clases);

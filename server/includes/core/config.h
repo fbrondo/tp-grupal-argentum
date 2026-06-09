@@ -61,6 +61,7 @@ struct TimesConfig {
     uint32_t npc_attack_cooldown;
 };
 struct GameConfig {
+    FileData paths;
     PlayerStateInit player_init;
     ClanConfig clan;
     TimesConfig times;

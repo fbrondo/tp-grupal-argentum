@@ -105,6 +105,8 @@ public:
     void addCreatureWorld(const Id& creature_id, TypeNPC type, const Pose& pose);
     void addNpcWorld(const Id& npc_id, TypeNPC type, const Pose& pose);
     void addItemWorld(const ItemInstance& item);
+    void addTreasuresWorld(const Id& treasures_id, const Position& position);
+
     void addGoldWorld(const Id& id, const GoldBagInstance& gold);
     /*Un critauta pierde la vida*/
     void spawnGoldOnFloor(const GoldBagInstance& gold);

@@ -154,13 +154,13 @@ void DataStorage::saveWorldState(const WorldStateData& state) const {
     const uint32_t citizen_npc_size = static_cast<uint32_t>(state.citizen_npcs.size());
     world_file.write(reinterpret_cast<const char*>(&citizen_npc_size), sizeof(citizen_npc_size));
     world_file.write(reinterpret_cast<const char*>(state.citizen_npcs.data()),
-                     citizen_npc_size * sizeof(NpcStateData));
+                     citizen_npc_size * sizeof(CitizenNpcData));
 
     /*cantidad de criaturas*/
     const uint32_t creatures_size = static_cast<uint32_t>(state.creatures.size());
     world_file.write(reinterpret_cast<const char*>(&creatures_size), sizeof(creatures_size));
     world_file.write(reinterpret_cast<const char*>(state.creatures.data()),
-                     creatures_size * sizeof(NpcStateData));
+                     creatures_size * sizeof(CreatureData));
 
     /*cantidad de tesoros*/
     const uint32_t treasures_size = static_cast<uint32_t>(state.treasures.size());
@@ -193,14 +193,14 @@ WorldStateData DataStorage::loadWorldState() {
     world_file.read(reinterpret_cast<char*>(&citizan_npc_size), sizeof(citizan_npc_size));
     state.creatures.resize(citizan_npc_size);
     world_file.read(reinterpret_cast<char*>(state.creatures.data()),
-                    citizan_npc_size * sizeof(NpcStateData));
+                    citizan_npc_size * sizeof(CitizenNpcData));
 
     // criaturas
     uint32_t creatures_size;
     world_file.read(reinterpret_cast<char*>(&creatures_size), sizeof(creatures_size));
     state.creatures.resize(creatures_size);
     world_file.read(reinterpret_cast<char*>(state.creatures.data()),
-                    creatures_size * sizeof(NpcStateData));
+                    creatures_size * sizeof(CreatureData));
 
     // tesoros
     uint32_t treasures_size;

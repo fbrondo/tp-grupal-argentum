@@ -32,11 +32,22 @@ struct PlayerData {
     std::vector<ItemInstanceData> equipment;
 };
 
-struct NpcStateData {
-    uint8_t type;  // TypeNPC
+struct CitizenNpcData {
+    uint8_t  type;  // TypeNPC
     uint32_t pos_x;
     uint32_t pos_y;
     uint8_t direction;
+};
+
+struct CreatureData {
+    uint8_t  type;  // TypeNPC
+    uint32_t x;
+    uint32_t y;
+    uint8_t direction;
+    uint16_t hp;
+    uint16_t max_hp;
+    uint16_t level;
+    uint16_t range_attack;
 };
 struct TreasureStateData {
     uint32_t pos_x;
@@ -48,8 +59,8 @@ struct GoldBagsData {
     uint32_t pos_y;
 };
 struct WorldStateData {
-    std::vector<NpcStateData> citizen_npcs;
-    std::vector<NpcStateData> creatures;
+    std::vector<CitizenNpcData> citizen_npcs;
+    std::vector<CreatureData> creatures;
     std::vector<TreasureStateData> treasures;
     std::vector<GoldBagsData> gold_bags;
     std::vector<ItemInstanceData> items;

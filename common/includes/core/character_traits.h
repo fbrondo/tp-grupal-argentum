@@ -5,12 +5,13 @@
 
 #pragma pack(push, 1)
 struct CharacterTraits {
-    uint8_t head;
-    uint8_t body;
-    uint8_t race;
-    uint8_t clase;
-    CharacterTraits(): head(0), body(0), race(0), clase(0) {}
-
+    uint16_t head{0};
+    uint16_t body{0};
+    uint8_t race{0};
+    uint8_t clase{0};
+    CharacterTraits() = default;
+    CharacterTraits(uint16_t head, uint16_t body, uint8_t race, uint8_t clase):
+    head(head), body(body), race(race), clase(clase) {}
 };
 #pragma pack(pop)
 

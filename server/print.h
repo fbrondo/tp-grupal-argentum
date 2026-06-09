@@ -8,6 +8,7 @@
 #include "common/includes/core/user.h"
 #include "common/includes/map/tile.h"
 #include "common/includes/types.h"
+#include "includes/core/creature_attributes.h"
 #include "server/includes/core/config.h"
 #include "server/includes/core/data.h"
 #include "server/includes/core/instances.h"
@@ -22,6 +23,7 @@ std::string directionToString(Direction dir);
 std::string RaceToString(TypeRace rac);
 std::string claseToString(TypeClase clase);
 std::string tileToString(Tile tile);
+std::string npcToString(TypeNPC typeC);
 
 void initServer();
 /*World*/
@@ -43,10 +45,18 @@ void playerLoad(std::string op, const PlayerData& player);
 // void printPositionNewPlayer(const Id& id, const PlayerInstance& inst);
 // void printPositionPlayerUpdate(const Id& id, const PlayerInstance& inst);
 
+void printPositionTreasure(const Id& id, const Position& position);
+void printPositionCreature(const Id& id, TypeNPC type, const Position& pos, const NpcAttributes& attrib);
+void printPositionNPC(const Id& id, TypeNPC type, const Position& pos);
+void printPositionItem(const ItemInstance& item);
+void printPositionGold(const Id& id, GoldBagInstance);
+
 void printCreatureLoads(const std::map<std::string, CreatureConfig>& info_npcs);
 void printNpcsSafeLoads(const std::map<std::string, NpcSafeZone>& info_npcs);
 void printRacesLoad(const std::map<TypeRace, Race>& info_races);
 void printClasesLoad(const std::map<TypeClase, Clase>& info_clases);
+
+    void printInitGameloop(std::string message);
 };  // namespace Print
 
 #endif

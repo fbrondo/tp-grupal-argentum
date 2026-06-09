@@ -3,10 +3,11 @@
 
 #include <vector>
 
-#include "../entity/combat_entity.h"
 #include "common/includes/types.h"
-#include "server/includes/core/criature_attributes.h"
+#include "server/includes/entity/combat_entity.h"
+#include "server/includes/core/creature_attributes.h"
 #include "server/includes/core/instances.h"
+#include "server/includes/core/data.h"
 #include "server/includes/core/map.h"
 #include "server/includes/world.h"
 
@@ -34,6 +35,8 @@ public:
              const std::vector<ItemInstance>& items_);
 
     void onDeath(World& world) override;
+    CreatureData getCreatureData();
+
 };
 
 

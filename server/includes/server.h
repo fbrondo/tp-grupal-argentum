@@ -2,11 +2,20 @@
 #define SERVER_H
 
 #include "server/includes/game_config_loader.h"
+#include "server/includes/acceptor.h"
+#include "server/includes/core/config.h"
+#include "server/includes/definitions.h"
+#include "server/includes/monitor_queues.h"
+
 class Server {
 
 private:
     const char* serverName;  // Pasar una referencia al acceptor
-    GameConfigLoader config;
+    GameConfigLoader load_config;
+    QueueCmd commands_queue;
+    MonitorQueues monitor;
+    Acceptor acceptor;
+    GameConfig config;
 
 public:
     Server(const Server& other) = delete;

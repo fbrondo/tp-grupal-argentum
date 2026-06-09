@@ -249,6 +249,11 @@ void World::addItemWorld(const ItemInstance& item) {
     this->occupied_tiles[item.pos] = true;
 }
 
+void World::addTreasuresWorld(const Id &treasures_id, const Position &position) {
+    this->treausures_positions.emplace(treasures_id, position);
+    this->occupied_tiles[position] = true;
+}
+
 void World::addGoldWorld(const Id& id, const GoldBagInstance& gold) {
     this->gold_on_floor.emplace(id, gold);
     this->occupied_tiles[gold.pos] = true;
@@ -267,11 +272,11 @@ void World::spawnGoldOnFloor(const GoldBagInstance& gold) {
     this->occupied_tiles[gold.pos] = true;
 }
 
-void World::spawnTreasure(const Id& treasure_id, const Id& zone_id) {
-    Position random_position = this->calculatePositionRandom(zone_id);
-    this->treausures_positions.emplace(treasure_id, random_position);
-    this->occupied_tiles[random_position] = true;
-}
+// void World::spawnTreasure(const Id& treasure_id, const Id& zone_id) {
+//     Position random_position = this->calculatePositionRandom(zone_id);
+//     this->treausures_positions.emplace(treasure_id, random_position);
+//     this->occupied_tiles[random_position] = true;
+// }
 
 bool World::isSafeZONE(const Position& /*pos*/) { return true; }
 
@@ -325,21 +330,12 @@ int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const I
 WorldStateData World::buildWorldState() {
     WorldStateData world_data;
     for (const auto& npc: this->npc_positions | std::views::values) {
-        NpcStateData citizen_npc;
+        CitizenNpcData citizen_npc;
         citizen_npc.type = npc.type;
         citizen_npc.pos_x = npc.pose.position.x;
         citizen_npc.pos_y = npc.pose.position.y;
         citizen_npc.direction = npc.pose.direct;
         world_data.citizen_npcs.push_back(citizen_npc);
-    }
-
-    for (const auto& creature: this->creatures_positions | std::views::values) {
-        NpcStateData creauture_npc;
-        creauture_npc.type = creature.type;
-        creauture_npc.pos_x = creature.pose.position.x;
-        creauture_npc.pos_y = creature.pose.position.y;
-        creauture_npc.direction = creature.pose.direct;
-        world_data.creatures.push_back(creauture_npc);
     }
 
     for (const auto& treasure: this->treausures_positions | std::views::values) {

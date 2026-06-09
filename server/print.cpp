@@ -125,6 +125,43 @@ std::string tileToString(Region region) {
     return "DESCONOCIDO";
 }
 
+std::string npcToString(TypeNPC type) {
+    switch (type) {
+        case FIELD_GOBLIN:
+            return "GOBLIN DE CAMPO";
+        case FOREST_GOBLIN:
+            return "GOBLIN DE BOSQUE";
+        case SKELETON:
+            return "ESQUELETO";
+        case WARRIOR_SKELETON:
+            return "ESQUELETO GUERRERO";
+        case ZOMBIE:
+            return "ZOMBIE";
+        case DUNGEON_SPIDER:
+            return "ARAÑA DE MAZMORRA";
+        case CAVE_SPIDER:
+            return "ARAÑA DE CAVERNA";
+        case FOREST_SPIDER:
+            return "ARAÑA DE BOSQUE";
+        case ORC:
+            return "ORCO";
+        case GOLEM:
+            return "GOLEM";
+        case INFERNAL_GOLEM:
+            return "GOLEM INFERNAL";
+        case PRIEST:
+            return "SACERDOTE";
+        case BANKER:
+            return "BANQUERO";
+        case MERCHANT:
+            return "COMERCIANTE";
+        default:
+            break;
+    }
+    return "DESCONOCIDO";
+}
+
+
 void initServer() {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
@@ -319,6 +356,76 @@ void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config,
     }
 }
 
+void printPositionTreasure(const Id &id, const Position &position) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - Init] - Tesoro | ID: "<< id << "---" << "Pos: (" << position.x << ", " << position.y << ")" << " |";
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+}
+
+void printPositionCreature(const Id& id, TypeNPC type, const Position& pos, const NpcAttributes& attrib) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - Init] - Creature: " << npcToString(type);
+        oss << "| ID: "<< id ;
+        oss << "---" << "Pos: (" << pos.x << ", " << pos.y << ")" << " |";
+        oss << "Atributos: " << SALTO;
+        oss << " > HP: " << attrib.hp_current << SALTO;
+        oss << " > MAX HP: " << attrib.hp_max << SALTO;
+        oss << " > RANGO ATAQUE: " << attrib.range_attack << SALTO;
+        oss << " > LEVEL: " <<attrib.difficulty_level << SALTO;
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+}
+
+void printPositionNPC(const Id &id, TypeNPC type, const Position &pos) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - Init] - NPC: " << npcToString(type);
+        oss << "| ID: "<< id ;
+        oss << "---" << "Pos: (" << pos.x << ", " << pos.y << ")" << " |";
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+}
+
+void printPositionGold(const Id& id, GoldBagInstance go) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - Init] - BOLSA DE ORO: " << go.amount;
+        oss << "| ID: "<< id ;
+        oss << "---" << "Pos: (" << go.pos.x << ", " << go.pos.y << ")" << " |";
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+
+}
+
+void printPositionItem(const ItemInstance& item) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - Init] - ITEM: " << itemToString(item.type);
+        oss << "| ID: "<< item.id ;
+        oss << "---" << "Pos: (" << item.pos.x << ", " << item.pos.y << ")" << " |";
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+
+}
+
 void printCreatureLoads(const std::map<std::string, CreatureConfig>& info_npcs) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
@@ -462,4 +569,17 @@ void printPositionRandom(const Position& pos) {
         print_message_console(message);
     }
 }
-}  // namespace Print
+
+ void printInitGameloop(std::string mess) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - Init] ----- " << mess << " |";
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+}
+
+}
+ // namespace Print

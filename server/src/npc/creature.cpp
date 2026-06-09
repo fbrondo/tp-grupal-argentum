@@ -67,6 +67,18 @@ void Creature::onDeath(World& world) {
     world.removeCreature(this->id);
 }
 
+CreatureData Creature::getCreatureData() {
+    CreatureData creauture_npc;
+    creauture_npc.type = this->type_creature;
+    creauture_npc.hp = this->hp;
+    creauture_npc.max_hp = this->max_hp;
+    creauture_npc.x = this->pose.position.x;
+    creauture_npc.y = this->pose.position.y;
+    creauture_npc.direction = this->pose.direct;
+    creauture_npc.range_attack = this->range_attack;
+    return creauture_npc;
+}
+
 
 // // Elegimos al azar un item de su pool de objetos
 // TypeItem item_to_drop = NONE;
