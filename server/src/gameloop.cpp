@@ -140,9 +140,9 @@ void Gameloop::initCreatures(Region type_region, const Id& zone_id) {
         this->createCreature(type_npc, std::move(pose_spawn), attrib);
     }
     if (region->min_treasure.has_value() && region->max_treasure.has_value()) {
-        const uint16_t minimo = region->min_treasure.value();
-        const uint16_t maximun = region->max_treasure.value();
-        std::uniform_int_distribution<uint16_t> distrib_treasure(minimo, maximun);
+        const uint16_t min = region->min_treasure.value();
+        const uint16_t max = region->max_treasure.value();
+        std::uniform_int_distribution<uint16_t> distrib_treasure(min, max);
         const uint16_t number_treasure = distrib_treasure(this->gen);
         for (uint16_t i = 0; i < number_treasure; i++) {
             Position treasure_position = this->world.calculatePositionRandom(zone_id);
@@ -334,7 +334,7 @@ std::vector<Defense*> Gameloop::getPlayerDefensiveEquipment(const Id& player_id)
     std::vector<Defense*> info_equipment_defensive;
     std::vector<TypeItem> equipmentTypes = this->players[player_id]->getEquipment();
     for (auto Type: equipmentTypes) {
-        Defense* item_defensive = dynamic_cast<Defense*>(this->conf.items.at(Type).get());
+        auto* item_defensive = dynamic_cast<Defense*>(this->conf.items.at(Type).get());
         info_equipment_defensive.push_back(item_defensive);
     }
     return info_equipment_defensive;
@@ -617,7 +617,7 @@ void Gameloop::updateStatePlayers() {
 void Gameloop::run() {
     std::cerr << "[Gameloop] run() started" << std::endl;
     try {
-        //this->persistence.start();
+        this->persistence.start();
         uint32_t timer_attributes = 0;
         uint32_t timer_spawn_npcs = 0;
         uint32_t timer_drop_items = 0;
@@ -642,11 +642,10 @@ void Gameloop::run() {
             }
             timer_persistence += TICK_MS;
             if (timer_persistence >= this->conf.times.pesistence_data) {
-                //this->updateStatePlayers();
+                this->updateStatePlayers();
                 timer_persistence = 0;
             }
             this->executeBroacastSnapshot();
-            // this->executeBroacastSnapshot();
             std::this_thread::sleep_for(std::chrono::milliseconds(TICK_MS));
         }
     } catch (const ClosedQueue&) {
@@ -654,10 +653,14 @@ void Gameloop::run() {
     } catch (const std::exception& e) {
         std::cerr << "[Gameloop] run() exited: " << e.what() << std::endl;
     }
-    for (auto& [id, player]: this->players) {
-        PlayerData data = player->getPlayerData();
-        this->persistence.savePlayer(data);
-    }
-    this->persistence.stop();
+    this->updateStatePlayers();
+    this->persistence.join();
     std::cerr << "[Gameloop] run() finished" << std::endl;
+}
+
+void Gameloop::stop() {
+    Thread::stop();             // Cambia el should_keep_running del Gameloop a false
+    this->persistence.stop();   // <-- IMPORTANTE: Cambia el should_keep_running de la persistencia a false
+}
+Gameloop::~Gameloop() {
 }

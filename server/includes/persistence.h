@@ -14,6 +14,7 @@ private:
     Queue<WorldStateData> world_data_queue;
 
 public:
+    ~Persistence();
     explicit Persistence(const FileData& paths);
     void run() override;
 

@@ -16,9 +16,6 @@ Server::Server(const char* serverName, const char* config_path):
 
 void Server::start() {
     Print::initServer();
-    //QueueCmd commands_queue;
-    //MonitorQueues monitor;
-    //Acceptor acceptorPlayers(this->serverName, monitor, commands_queue);
     acceptor.start();
     GameConfig conf = this->load_config.getdGameConfiguration();
     Gameloop gameWord(std::move(conf), monitor, commands_queue);
@@ -33,14 +30,15 @@ void Server::start() {
         }
     }
     this->acceptor.stop();
-    gameWord.stop();
+    this->acceptor.clear();
+    this->commands_queue.close();
 
-    this->acceptor.join();
+    gameWord.stop();
     gameWord.join();
 
-    this->acceptor.clear();
+    this->acceptor.join();
 }
 
 Server::~Server() {
-    this->commands_queue.close();
+    std::cout << "[Server] Apagado completo con éxito." << std::endl;
 }

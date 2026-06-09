@@ -2,6 +2,16 @@
 
 #include <stdexcept>
 
+Persistence::~Persistence() {
+    try {
+        this->players_data_queue.close();
+    } catch (...) {}
+    try {
+        this->world_data_queue.close();
+    } catch (...) {}
+    std::cerr << "[Persistence] ----- Exit" << std::endl;
+}
+
 Persistence::Persistence(const FileData& paths): storage(paths) {}
 
 bool Persistence::exists(const std::string& username) const { return storage.exists(username); }
@@ -27,28 +37,14 @@ void Persistence::scheduleWorld(WorldStateData data) {
 
 void Persistence::run() {
     while (should_keep_running()) {
-        try {
-            PlayerData player;
-            while (this->players_data_queue.try_pop(player)) {
-                this->storage.updateStatePlayer(player);
-            }
-        } catch (const ClosedQueue&) {
-            std::cerr << "[Persistence] run() exited: ClosedQueue - player_data" << std::endl;
-
-        } catch (const std::exception& e) {
-            std::cerr << "[Persistencer] run() exited: " << e.what() << std::endl;
+        PlayerData player;
+        while (this->players_data_queue.try_pop(player)) {
+            this->storage.updateStatePlayer(player);
         }
-
-        try {
-            WorldStateData world;
-            while (this->world_data_queue.try_pop(world)) {
-                storage.saveWorldState(world);
-            }
-        } catch (const ClosedQueue&) {
-            std::cerr << "[Persistence] run() exited: ClosedQueue - world_data" << std::endl;
-
-        } catch (const std::exception& e) {
-            std::cerr << "[Persistencer] run() exited: " << e.what() << std::endl;
+        WorldStateData world;
+        while (this->world_data_queue.try_pop(world)) {
+            storage.saveWorldState(world);
         }
     }
 }
+

@@ -108,6 +108,8 @@ public:
     void updateStatePlayers();
     void updateStateWorld();
     void run() override;
+    void stop() override;
+    ~Gameloop();
 };
 
 #endif
