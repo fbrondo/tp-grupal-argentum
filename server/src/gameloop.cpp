@@ -266,7 +266,6 @@ void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_d
 }
 
 void Gameloop::createNewPlayer(const Id& player_id, const User& user, const CharacterTraits& traits) {
-
     Character ch = this->createCharacter(traits);
     const Position position_spawn = this->world.calculatePositionRandomSafeZone();
     Pose pose_spawn(position_spawn, DOWN);
@@ -287,7 +286,6 @@ void Gameloop::processHandleSignup(const Id& player_id, const User& user, const 
     }
     this->createNewPlayer(player_id, user, traits);
     this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseSignup>(true));
-    //this->executeBroacastSnapshot();
 }
 
 void Gameloop::processHandleLogin(const Id& player_id, const User& user) {

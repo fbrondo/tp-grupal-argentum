@@ -29,9 +29,12 @@ void World::buildTilesWorld() {
             this->map_tiles[x][y].region = bg.region;
             if (!obj.walkable) {
                 this->occupied_tiles[Position(x, y)] = true;
+            } else {
+                this->occupied_tiles[Position(x, y)] = false;
             }
         }
     }
+    Print::imprimirTilesOcupadas(this->occupied_tiles);
 }
 
 void World::floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone) {
@@ -136,7 +139,6 @@ Position World::calculatePositionRandom(const Id& zone_id) {
     Position random_postion = tiles[distrib(this->gen)];
     while (this->isOccupied(random_postion)) {
         random_postion = tiles[distrib(this->gen)];
-        //Print::printPositionRandom(random_postion);
     }
     return random_postion;
 }

@@ -649,5 +649,44 @@ void imprimirCajaContenedora(const PlayerData& player) {
         std::cout << std::string(ancho_total, '*') << "\n";
     }
 }
+void imprimirTilesOcupadas(const std::unordered_map<Position, bool, PositionHash>& occupied_tiles) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        const int MARGEN = 2;
+        std::vector<std::string> lineas;
+
+        for (const auto& [pos, is_occupied] : occupied_tiles) {
+            // Solo nos interesan las que están ocupadas (true)
+            if (is_occupied) {
+                std::string texto = " Tile en (" + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ") -> OCUPADA";
+                lineas.push_back(texto);
+            }
+        }
+
+        if (lineas.empty()) {
+            lineas.push_back(" No hay casillas ocupadas actualmente.");
+        }
+
+        size_t max_longitud = 0;
+        for (const auto& linea : lineas) {
+            max_longitud = std::max(max_longitud, linea.length());
+        }
+
+        size_t ancho_total = max_longitud + (MARGEN * 2) + 2;
+
+        std::cout << std::string(ancho_total, '*') << "\n";
+
+        for (const auto& linea : lineas) {
+            std::cout << "*";
+            std::cout << std::string(MARGEN, ' ')
+                      << std::left << std::setw(max_longitud) << linea
+                      << std::string(MARGEN, ' ')
+                      << "*\n";
+        }
+        std::cout << std::string(ancho_total, '*') << "\n";
+    }
+
+}
 }
  // namespace Print
