@@ -283,7 +283,7 @@ void Gameloop::processHandleSignup(const Id& player_id, const User& user, const 
         return;
     }
     this->createNewPlayer(player_id, user, traits);
-    this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseSignup>(true));
+    this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(true));
     //this->executeBroacastSnapshot();
 }
 
@@ -297,9 +297,8 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
         this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(false, INVALID_PASSWORD));
     }
     Print::printMessageConsole("JUGADOR CONECTADO");
-    this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(true));
     Map map = this->world.getMap();
-    this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseMap>(std::move(map)));
+    this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseMap>(map));
 
 }
 

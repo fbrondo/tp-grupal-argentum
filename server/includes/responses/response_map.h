@@ -8,6 +8,6 @@ private:
     const Map& map;
 
 public:
-    explicit ResponseMap(Map&& map);
+    explicit ResponseMap(const Map& map);
     void execute(ServerProtocol& protocol) override;
 };
