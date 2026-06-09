@@ -258,4 +258,8 @@ if(TALLER_TESTS)
         taller_common
         GTest::gtest_main
     )
+
+    set_target_properties(taller_tests PROPERTIES
+        BUILD_WITH_INSTALL_RPATH OFF
+    )
 endif()
