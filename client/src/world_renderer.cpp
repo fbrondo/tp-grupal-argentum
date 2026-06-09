@@ -136,6 +136,10 @@ void WorldRenderer::update_animations(float dt) {
 
 // Renderizamos con el Algoritmo de pintor (Z-Order por eje Y)
 void WorldRenderer::render() {
+    // HARCODEADO! centra la camara
+    // camera.x = 0;
+    // camera.y = 0;
+
     if (!current_map)
         return;
 

@@ -93,6 +93,7 @@ public:
 
     /*void loadPlayer(const Id& player_id, Position&& position, Direction dir)*/
     void spawnPlayer(const Id& player_id);
+    void setPlayerPosition(const Id& player_id, const Position& pos);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void movePlayer(const Id& player_id, Direction dir);
     Position positionPlayerInTheWorld(const Id& player_id);
