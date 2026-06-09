@@ -8,10 +8,10 @@ ClientReceiver::ClientReceiver(ClientProtocol& protocol, Queue<EventClient>& eve
 void ClientReceiver::recvEventClient() const {
     EventClient event;
     if (!protocol.receiveMessage(event)) {
-        events_queue.push(event);  // el evento ya tiene type = DISCONNECTION
+        events_queue.push(std::move(event));  // el evento ya tiene type = DISCONNECTION
         throw LibError(EPIPE, "server closed connection");
     }
-    events_queue.push(event);
+    events_queue.push(std::move(event));
 }
 
 void ClientReceiver::run() {

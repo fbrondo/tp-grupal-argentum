@@ -31,6 +31,9 @@ struct EventClient {
     bool login_success{false};
     uint16_t map_id;  // Se usa para CAMBIO_MAPA
     Map map_data;     // Se usa para MAP_DATA
+    EventClient() = default;
+    EventClient(EventClient&&) = default;
+    EventClient& operator=(EventClient&&) = default;
 };
 
 #pragma pack(push, 1)

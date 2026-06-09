@@ -5,7 +5,7 @@
 
 class ResponseMap: public Response {
 private:
-    const Map& map;
+    Map map;
 
 public:
     explicit ResponseMap(Map&& map);

@@ -11,6 +11,12 @@ constexpr int MAX_MAP_HEIGHT = 1000;
 
 class Map {
 public:
+    Map(const Map&) = default;
+    Map& operator=(const Map&) = default;
+    
+    Map(Map&&) = default;
+    Map& operator=(Map&&) = default;
+
     Map(): width_(0), height_(0) {}
     Map(std::string name, int width, int height);
 

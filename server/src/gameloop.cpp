@@ -295,11 +295,17 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     PlayerData data = this->persistence.loadPlayer(user.username);
     if (std::string(data.password) != user.password) {
         this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(false, INVALID_PASSWORD));
+        return;
     }
     Print::printMessageConsole("JUGADOR CONECTADO");
     this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(true));
     Map map = this->world.getMap();
-
+    std::string message = "Altura: ";
+    message += std::to_string(map.height());
+    message += "---";
+    message += "Anchura: ";
+    message += std::to_string(map.width());
+    Print::printMessageConsole(message);
     this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseMap>(std::move(map)));
 
 }
