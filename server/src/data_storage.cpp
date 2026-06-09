@@ -59,6 +59,9 @@ void DataStorage::savePlayer(const PlayerData& data) {
     // this->saveIndexEntry(data.username, offset);  // actualizás el archivo de índice en disco
     this->data_file.seekp(0, std::ios::end); /*se mueve el curso hacia el final del archivo*/
     std::streampos offset = this->data_file.tellp(); /*tellp nos da la posicion en que quedo*/
+
+    this->data_file.write(data.username, MAX_DATA);
+    this->data_file.write(data.password, MAX_DATA);
     /* campos fijos */
     this->data_file.write(reinterpret_cast<const char*>(&data.x), sizeof(data.x));
     this->data_file.write(reinterpret_cast<const char*>(&data.y), sizeof(data.y));
@@ -90,6 +93,8 @@ PlayerData DataStorage::loadPlayer(const std::string& username) {
     PlayerData data;
     // std::streampos offset = this->index.at(username)
     this->data_file.seekg(this->index.at(username));
+    this->data_file.read(data.username, MAX_DATA);
+    this->data_file.read(data.password, MAX_DATA);
     // campos fijos
     this->data_file.read(reinterpret_cast<char*>(&data.x), sizeof(data.x));
     this->data_file.read(reinterpret_cast<char*>(&data.y), sizeof(data.y));
@@ -121,6 +126,9 @@ void DataStorage::updateStatePlayer(const PlayerData& data) {
     std::streampos offset = this->index.at(data.username);
     this->data_file.seekp(offset);
 
+    this->data_file.write(data.username, MAX_DATA);
+    this->data_file.write(data.password, MAX_DATA);
+    
     /* campos fijos */
     this->data_file.write(reinterpret_cast<const char*>(&data.x), sizeof(data.x));
     this->data_file.write(reinterpret_cast<const char*>(&data.y), sizeof(data.y));

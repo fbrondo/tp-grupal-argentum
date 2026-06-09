@@ -5,28 +5,24 @@
 #include <vector>
 
 #include "common/includes/core/Statistics.h"
+#include "server/print.h"
 #include "server/includes/game_formulas.h"
 #include "server/includes/world.h"
 
 Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerData& data):
         CombatEntity(pos, data), ch(std::move(ch_)) {
+    this->hp = data.hp;
     this->max_hp = this->hpMax();
+    this->mana = data.mana;
+    this->exp = data.exp;
     this->inv = std::move(inv_);
+    this->level = data.level;
+    this->user.username = data.username;
+    this->user.password = data.password;
+    Print::imprimirCajaContenedora(data);
     /*Falta init inventario**/
 }
 
-// level):
-//         CombatEntity(std::move(pose), 0),
-//         inv(std::move(inv_)),
-//         ch(ch_race, ch_clase) {
-//
-//     this->statics = ch.getStatistics();
-//     this->max_hp = this->hpMax();
-//     this->hp = this->hpMax();;
-//     this->mana = this->manaMax();
-// }
-
-/**/
 Player::Player(const User& user_, const Pose& pose_, Character&& ch_,
                const PlayerStateInit& state_init):
         CombatEntity(pose_, 0, state_init.level), user(user_), ch(std::move(ch_)) {
@@ -86,8 +82,14 @@ void Player::sellItem(Id instance_id, uint32_t sell_price) {
 
 PlayerData Player::getPlayerData() {
     PlayerData data{};
-    std::strncpy(data.username, user.username.c_str(), MAX_DATA);
-    std::strncpy(data.password, user.password.c_str(), MAX_DATA);
+    std::memset(data.username, 0, MAX_DATA);
+    user.username.copy(data.username, MAX_DATA - 1);
+
+    std::memset(data.password, 0, MAX_DATA);
+    user.password.copy(data.password, MAX_DATA - 1);
+
+    //std::strncpy(data.username, user.username.c_str(), MAX_DATA);
+    //std::strncpy(data.password, user.password.c_str(), MAX_DATA);
     /*Pose del jugador - Posicion y direccion de mirada*/
     data.x = this->pose.position.x;
     data.y = this->pose.position.y;
@@ -98,6 +100,7 @@ PlayerData Player::getPlayerData() {
     data.charact_traits.head = static_cast<uint8_t>(this->ch.getTypeHead());
     data.charact_traits.body = static_cast<uint8_t>(this->ch.getTypeBody());
     /*Atributos actuales*/
+    data.exp = this->exp;
     data.level = this->level;
     data.hp = this->hp;
     data.mana = this->mana;
