@@ -30,3 +30,9 @@ target_sources(taller_client
         includes/renderable_entity.h
         includes/world_renderer.h
     )
+
+if(NOT DEFINED ARGENTUM_SHARE_PATH)
+    set(ARGENTUM_SHARE_PATH "${CMAKE_SOURCE_DIR}")
+endif()
+target_compile_definitions(taller_client PRIVATE
+    "ARGENTUM_SHARE_PATH=\"${ARGENTUM_SHARE_PATH}\"")
