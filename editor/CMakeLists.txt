@@ -17,3 +17,9 @@ target_sources(taller_editor
     map_view.h
     new_map_dialog.h
 )
+
+if(NOT DEFINED ARGENTUM_SHARE_PATH)
+    set(ARGENTUM_SHARE_PATH "${CMAKE_SOURCE_DIR}")
+endif()
+target_compile_definitions(taller_editor PRIVATE
+    "ARGENTUM_SHARE_PATH=\"${ARGENTUM_SHARE_PATH}\"")

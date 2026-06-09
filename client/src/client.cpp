@@ -17,21 +17,21 @@ void Client::init_SDL() {
     window.emplace("Argentum Online", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_W,
                    WINDOW_H, SDL_WINDOW_RESIZABLE);
 
-    if (const Surface icon(IMG_Load("client/assets/icon.png")); icon.Get()) {
+    if (const Surface icon(IMG_Load(ARGENTUM_SHARE_PATH "/client/assets/icon.png")); icon.Get()) {
         window->SetIcon(icon);
     }
 
     renderer.emplace(*window, -1, SDL_RENDERER_ACCELERATED);
 
     // Color key negro para transparencia (fondo negro del PNG → transparente)
-    Surface body(IMG_Load("client/assets/body.png"));
+    Surface body(IMG_Load(ARGENTUM_SHARE_PATH "/client/assets/body.png"));
     if (!body.Get()) {
         throw std::runtime_error(std::string("No se pudo cargar body.png: ") + IMG_GetError());
     }
     SDL_SetColorKey(body.Get(), SDL_TRUE, SDL_MapRGB(body.Get()->format, 0, 0, 0));
     body_tex.emplace(*renderer, Surface(std::move(body)));
 
-    Surface head(IMG_Load("client/assets/head.png"));
+    Surface head(IMG_Load(ARGENTUM_SHARE_PATH "/client/assets/head.png"));
     if (!head.Get()) {
         throw std::runtime_error(std::string("No se pudo cargar head.png: ") + IMG_GetError());
     }
