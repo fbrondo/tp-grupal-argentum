@@ -166,6 +166,10 @@ void World::spawnPlayer(const Id& player_id) {
     // Print::printPositionPlayerUpdate(player_id, this->players_positions.at(player_id));
 }
 
+void World::setPlayerPosition(const Id& player_id, const Position& pos) {
+    this->players_positions[player_id] = pos;
+}
+
 void World::removePlayer(const Id& player_id) { this->players_positions.erase(player_id); }
 
 void World::movePlayer(const Id& player_id, Direction dir) {

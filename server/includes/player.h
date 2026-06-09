@@ -59,6 +59,15 @@ public:
     void updatePose(Position pos, Direction direct);
 
 
+    uint16_t getHp() const { return hp; }
+    uint16_t getMana() const { return mana; }
+    uint8_t getHeadId() const { return this->ch.getTypeHead(); }
+    uint8_t getBodyId() const { return this->ch.getTypeBody(); }
+    TypeRace getRace() const { return this->ch.getTypeRace(); }
+    TypeClase getClase() const { return this->ch.getTypeClase(); }
+    Direction getDirection() const { return this->pose.direct; }
+    Position getPosition() const { return this->pose.position; }
+
     /*tirar item*/
     /*equipar item*/
     /*recibir dano*/

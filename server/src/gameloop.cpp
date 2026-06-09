@@ -62,7 +62,6 @@ void Gameloop::handleSignup(SignupCommand* cmd) {
 
 void Gameloop::handleLogin(LoginCommand* cmd) {
     auto [id, username, password] = cmd->getLoginInfo();
-    // TOOD: Delete this debugs prints
     std::cerr << "[server] login user=" << username << " pass=" << password << std::endl;
     if (!this->persistence.exists(username)) {
         this->monitor.queueTheServerResponse(
@@ -75,9 +74,26 @@ void Gameloop::handleLogin(LoginCommand* cmd) {
                 id, std::make_unique<ResponseLogin>(false, "La contraseña es incorrecta."));
         return;
     }
+
+    this->world.spawnPlayer(id);
+    this->world.setPlayerPosition(
+            id, Position{static_cast<uint32_t>(data.x), static_cast<uint32_t>(data.y)});
+
+    User user(std::move(username), std::move(password));
+    Character character(this->info_races.at(static_cast<TypeRace>(data.race)),
+                        this->info_clases.at(static_cast<TypeClase>(data.clase)), data.head,
+                        data.body);
+    Pose pose(this->world.positionPlayerInTheWorld(id), static_cast<Direction>(data.direction));
+    Player new_player(std::move(user), std::move(pose), std::move(character),
+                      this->game_conf.player_init);
+    this->players.emplace(id, std::move(new_player));
+
     if (data.level == 0) {
         this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, "none"));
         this->monitor.queueTheServerResponse(id, std::make_unique<ResponseMap>(world.getMap()));
+        Snapshot snap = this->resp.buildSnapshot(this->players, this->world);
+        this->monitor.queueTheServerResponse(id,
+                                             std::make_unique<ResponseSnapshot>(std::move(snap)));
         return;
     }
     std::ostringstream payload;
@@ -85,6 +101,8 @@ void Gameloop::handleLogin(LoginCommand* cmd) {
             << static_cast<int>(data.clase) << " " << static_cast<int>(data.level);
     this->monitor.queueTheServerResponse(id, std::make_unique<ResponseLogin>(true, payload.str()));
     this->monitor.queueTheServerResponse(id, std::make_unique<ResponseMap>(world.getMap()));
+    Snapshot snap = this->resp.buildSnapshot(this->players, this->world);
+    this->monitor.queueTheServerResponse(id, std::make_unique<ResponseSnapshot>(std::move(snap)));
 }
 
 void Gameloop::executeBroacastSnapshot() {
@@ -123,8 +141,12 @@ void Gameloop::execuetRequest() {
 void Gameloop::run() {
     std::cerr << "[Gameloop] run() started" << std::endl;
     try {
+        uint32_t tick_counter = 0;
         while (should_keep_running()) {
             this->execuetRequest();
+            tick_counter++;
+            if (tick_counter % 2 == 0)
+                this->executeBroacastSnapshot();
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     } catch (const ClosedQueue&) {
