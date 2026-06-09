@@ -9,14 +9,15 @@
 #include "client/includes/client_protocol.h"
 #include "client/includes/renderable_entity.h"
 #include "client/includes/texture_manager.h"
+#include "client/includes/hud_renderer.h"
 
 static constexpr int TILE_SIZE = 32;
 
 class WorldRenderer {
 private:
     SDL2pp::Renderer& renderer;
-
     TextureManager& texture_manager;
+    HudRenderer hud_renderer;
 
     // El diccionario central que guarda TODAS las entidades visibles en el cliente
     // La clave (key) es el 'id' único que envía el servidor

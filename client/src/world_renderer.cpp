@@ -8,6 +8,7 @@
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_):
         renderer(renderer_),
         texture_manager(texture_manager_),
+        hud_renderer(renderer, texture_manager, WINDOW_W, WINDOW_H),
         local_player_id(0),
         current_map(std::nullopt) {
 
@@ -235,5 +236,6 @@ void WorldRenderer::render() {
             } catch (...) {}
         }
     }
+    hud_renderer.render();
     SDL_RenderSetClipRect(renderer.Get(), nullptr);
 }

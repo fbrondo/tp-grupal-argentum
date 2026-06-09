@@ -429,6 +429,40 @@ void TextureManager::load_tile_textures(
     }
     std::cout << "[TextureManager] Total tiles: " << total << std::endl;
 }
+void TextureManager::load_HUD_textures(
+        std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
+    // --- HUD BASE --- //
+    load_texture(textures_aux, "hud_upper_layer",
+                 "client/assets/HUD/UpperLayer.png");
+
+    // --- CONSOLA --- //
+    load_texture(textures_aux, "hud_console_base",
+                 "client/assets/HUD/Console/base.png");
+
+    // --- STATS & INFO --- //
+    load_texture(textures_aux, "hud_stats_base",
+                 "client/assets/HUD/UserStats/base.png");
+    load_texture(textures_aux, "hud_user_info_base",
+                 "client/assets/HUD/UserInfo/base.png");
+
+    // --- INVENTARIO --- //
+    load_texture(textures_aux, "hud_inventory_base",
+                 "client/assets/HUD/UserInventory/base.png");
+    load_texture(textures_aux, "hud_inventory_selected",
+                 "client/assets/HUD/UserInventory/selected.png");
+
+    // --- BARRAS DE PROGRESO (Vida, Maná, Exp) --- //
+    load_texture(textures_aux, "hud_pb_base",
+                 "client/assets/HUD/ProgressBar/base.png");
+    load_texture(textures_aux, "hud_pb_bisel",
+                 "client/assets/HUD/ProgressBar/bisel.png");
+    load_texture(textures_aux, "hud_pb_black_border",
+                 "client/assets/HUD/ProgressBar/black_border.png");
+    load_texture(textures_aux, "hud_pb_white_border",
+                 "client/assets/HUD/ProgressBar/white_border.png");
+    load_texture(textures_aux, "hud_pb_old_base",
+                 "client/assets/HUD/ProgressBar/old_base.png");
+}
 
 std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>
         TextureManager::load_all_game_assets() {
@@ -447,6 +481,7 @@ std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>
     load_tile_textures(textures_aux);
     // --- EFFECTS --- //
     // --- HUD --- //
+    load_HUD_textures(textures_aux);
 
     std::cout << "[TextureManager] Carga finalizada." << std::endl;
     return textures_aux;
