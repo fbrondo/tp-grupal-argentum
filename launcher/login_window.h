@@ -29,7 +29,8 @@ private:
     bool runClient(const QStringList& args, QString& out_stdout);
     bool tryLogin(const QString& host, const QString& port, const QString& user,
                   const QString& pass, QString& out_payload);
-    void launchGame(const QString& host, const QString& port);
+    void launchGame(const QString& host, const QString& port, const QString& user,
+                    const QString& pass);
     void setStatus(const QString& msg);
     void setBusy(bool busy);
 

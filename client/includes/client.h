@@ -1,14 +1,15 @@
 #pragma once
-#include <cstdint>
-#include <memory>
-#include <optional>
 
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
+#include <memory>
+#include <string>
+
+#include <SDL2pp/SDL.hh>
 #include <SDL2pp/SDLImage.hh>
 
+#include "client/includes/texture_manager.h"
+#include "client/includes/window/windowSDL.h"
+#include "client/includes/world_renderer.h"
 #include "commands/command_client.h"
-#include "common/includes/direction.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
 
@@ -22,36 +23,12 @@ using SDL2pp::SDL;
 using SDL2pp::SDLImage;
 using SDL2pp::Surface;
 using SDL2pp::Texture;
-using SDL2pp::Window;
 
-static constexpr int WINDOW_W = 800;
-static constexpr int WINDOW_H = 600;
 static constexpr int TARGET_FPS = 60;
 static constexpr int FRAME_MS = 1000 / TARGET_FPS;
-static constexpr int TILE_SIZE = 32;
-static constexpr int BODY_W = 19;
-static constexpr int BODY_H = 37;
-static constexpr int HEAD_W = 13;
-static constexpr int HEAD_H = 14;
-
-struct PlayerPosition {
-    uint32_t pos_x;
-    uint32_t pos_y;
-    uint8_t dir;
-};
 
 class Client {
 private:
-    std::optional<SDL> sdl;
-    std::optional<SDLImage> img;
-    std::optional<Window> window;
-    std::optional<Renderer> renderer;
-    std::optional<Texture> body_tex;
-    std::optional<Texture> head_tex;
-
-    bool is_running = true;
-    uint32_t it = 0;
-
     Socket skt;
     ClientProtocol protocol;
 
@@ -60,17 +37,24 @@ private:
     ClientSender sender;
     ClientReceiver receiver;
 
-    PlayerPosition player_state;
+    SDLImage img;
+    WindowSDL window;
+    TextureManager texture_manager;
+    WorldRenderer world_renderer;
 
-    void init_SDL();
+    uint32_t last_frame_ticks = 0;
+    uint32_t it = 0;
+    bool is_running = true;
+
     void update_state_from_server();
     void handle_events();
     void clear_display();
+    float calculate_delta_time();
     void render_in_z_order();
     uint32_t sleep_and_calc_next_it(uint32_t frame_start) const;
     void close();
 
 public:
     Client(const char* host, const char* port);
-    void launch();
+    void launch(const std::string& user = "", const std::string& pass = "");
 };

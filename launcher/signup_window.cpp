@@ -245,25 +245,16 @@ void SignupWindow::onCrear() {
     const int bodySpriteId = QFileInfo(body_files_[body_id_ - 1]).baseName().toInt();
 
     QString ignored;
-    if (!runClient({host_, port_, "--signup", user, pass,
-                    QString::number(race_idx_ + 1),   // TypeRace starts at 1
-                    QString::number(clase_idx_ + 1),  // TypeClase starts at 1
-                    QString::number(headSpriteId), QString::number(bodySpriteId)},
+    if (!runClient({host_, port_, "--signup", user, pass, QString::number(race_idx_ + 1),
+                    QString::number(clase_idx_ + 1), QString::number(headSpriteId),
+                    QString::number(bodySpriteId)},
                    ignored)) {
         setBusy(false);
         return;
     }
 
-    setStatus("Iniciando sesión...");
-
-    QString payload;
-    if (!runClient({host_, port_, "--login", user, pass}, payload)) {
-        setBusy(false);
-        return;
-    }
-
     const QString binary = QCoreApplication::applicationDirPath() + "/taller_client";
-    QProcess::startDetached(binary, {host_, port_});
+    QProcess::startDetached(binary, {host_, port_, user, pass});
     QApplication::quit();
 }
 

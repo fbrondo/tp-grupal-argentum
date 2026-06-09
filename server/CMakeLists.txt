@@ -21,6 +21,7 @@ target_sources(taller_server
         src/npc/priest.cpp
 
         src/responses/response_login.cpp
+        src/responses/response_map.cpp
         src/responses/response_signup.cpp
         src/responses/response_snapshot.cpp
         
