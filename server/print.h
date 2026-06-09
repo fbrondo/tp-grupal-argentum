@@ -17,6 +17,7 @@
 namespace Print {
 
 void print_message_console(const std::string& message);
+    void printMessageConsole(const std::string& message);
 
 std::string itemToString(TypeItem item);
 std::string directionToString(Direction dir);

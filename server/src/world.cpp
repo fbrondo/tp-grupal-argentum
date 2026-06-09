@@ -79,6 +79,7 @@ void World::saveIdsOfTheSafeZones() {
 
 void World::identifyZones() {
     MatrizBool visited(this->limit_width, std::vector<bool>(this->limit_height, false));
+    Id zone_id = 0;
     for (uint32_t y = 0; y < this->limit_height; y++) {
         for (uint32_t x = 0; x < this->limit_width; x++) {
             if (visited[x][y])
@@ -87,11 +88,13 @@ void World::identifyZones() {
             Region region = this->map_tiles[x][y].region;
             Zone zone;
             zone.region = region;
-            zone.zone_id = static_cast<uint32_t>(this->zones.size());
+            zone_id++;
+            zone.id = zone_id;
 
-            this->zone_count[region]++;
+
+            //this->zone_count[region]++;
             this->floodFill(Position{x, y}, region, visited, zone);
-            this->zones.emplace(this->zone_count[region], std::move(zone));
+            this->zones.emplace(zone_id, std::move(zone));
         }
     }
 }
@@ -133,7 +136,7 @@ Position World::calculatePositionRandom(const Id& zone_id) {
     Position random_postion = tiles[distrib(this->gen)];
     while (this->isOccupied(random_postion)) {
         random_postion = tiles[distrib(this->gen)];
-        Print::printPositionRandom(random_postion);
+        //Print::printPositionRandom(random_postion);
     }
     return random_postion;
 }

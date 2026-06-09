@@ -79,6 +79,17 @@ CreatureData Creature::getCreatureData() {
     return creauture_npc;
 }
 
+NpcSnapshotData Creature::getNpcSnapshotData() {
+    NpcSnapshotData npc_snapshot;
+    npc_snapshot.id = this->id;
+    npc_snapshot.type_id = this->type_creature;
+    npc_snapshot.hp_actual = this->hp;
+    npc_snapshot.pos_x = this->pose.position.x;
+    npc_snapshot.pos_y = this->pose.position.y;
+    npc_snapshot.is_alive = this->isAlive();
+    return  npc_snapshot;
+}
+
 
 // // Elegimos al azar un item de su pool de objetos
 // TypeItem item_to_drop = NONE;

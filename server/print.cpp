@@ -13,6 +13,17 @@
 namespace Print {
 void print_message_console(const std::string& message) { std::cout << message << std::endl; }
 
+void printMessageConsole(const std::string &message) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "----------[" << message << "]----------";
+        std::string m = oss.str();
+        print_message_console(m);
+    }
+}
+
 std::string itemToString(TypeItem item) {
     switch (item) {
         case SWORD:
@@ -564,7 +575,7 @@ void printPositionRandom(const Position& pos) {
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
         std::ostringstream oss;
-        oss << "[DEBUG - World] - | Pos: (" << pos.x << ", " << pos.y << ")" << " |";
+        oss << "[DEBUG - World] - RANDOM | Pos: (" << pos.x << ", " << pos.y << ")" << " |";
         std::string message = oss.str();
         print_message_console(message);
     }

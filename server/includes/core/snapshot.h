@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+//#include "cmake-build-linux/_deps/sdl2_mixer-src/src/codecs/stb_vorbis/stb_vorbis.h"
+
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
     uint32_t id;
@@ -47,6 +49,7 @@ struct ItemGroundSnapshotData {
 };
 
 struct GoldPileGroundSnapshotData {
+    uint32_t id;
     uint32_t amount;
     uint32_t pos_x;
     uint32_t pos_y;

@@ -10,6 +10,7 @@
 
 struct RegionWorld {
     Region type;
+    bool is_safe;
     std::vector<std::string> npc_types;
     virtual ~RegionWorld() = default;
 };

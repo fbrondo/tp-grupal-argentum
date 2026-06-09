@@ -36,7 +36,7 @@
 */
 
 struct Zone {
-    Id zone_id;
+    Id id;
     Region region;
     uint32_t tile_count{0};
     std::vector<Position> tiles;  // posiciones de todos los tiles de la zona
@@ -58,7 +58,7 @@ private:
 
     std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
     std::map<Id, Zone> zones;               // todas las zonas identificadas
-    std::map<Region, uint32_t> region_count;
+    //std::map<Region, uint32_t> region_count;
     std::vector<Id> safe_zones;  // spawn npc, new player o /resucitar
 
     std::unordered_map<Position, bool, PositionHash> occupied_tiles;
@@ -92,6 +92,9 @@ public:
     ~World() = default;
 
     const std::vector<std::tuple<Id, Region>> getZones();
+
+    /*Consultas para validar*/
+    const Map& getMap() const { return map; }
 
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isSafeZONE(const Position& /*pos*/);

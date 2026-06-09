@@ -249,11 +249,10 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
         for (const auto& region_node: *regions_array) {
             const Table& region = *region_node.as_table();
             bool is_safe = region["is_safe_zone"].value_or(false);
-
             Region type = static_cast<Region>(region["id_type"].value_or(0));
             if (is_safe) {
                 auto r = std::make_unique<SafeRegion>();
-                r->type = type;
+                r->type = type; r->is_safe = true;
                 if (auto numbers_array = region["numbers_npcs"].as_array()) {
                     for (auto&& node: *numbers_array) {
                         uint16_t valor = static_cast<uint16_t>(node.value_or<int64_t>(1));
@@ -263,7 +262,7 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
                 }
             } else {
                 auto r = std::make_unique<WildRegion>();
-                r->type = type;
+                r->type = type; r->is_safe = false;
                 r->max_creatures = region["max_criatures"].value_or(0);
                 if (region["min_treasure"].value<int>())
                     r->min_treasure = region["min_treasure"].value_or(0);

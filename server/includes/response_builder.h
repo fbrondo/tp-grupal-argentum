@@ -2,19 +2,19 @@
 #define RESPONSE_BUILDER_H
 #include <map>
 #include <memory>
+#include <vector>
 
 #include "server/includes/core/snapshot.h"
 #include "server/includes/player.h"
+#include "server/includes/npc/creature.h"
 
 #include "world.h"
 
-class ResponseBuilder {
-private:
-    /* data */
-public:
-    ResponseBuilder(/* args */) = default;
-    Snapshot buildSnapshot(const std::map<Id, std::unique_ptr<Player>>& players, World& world);
-    ~ResponseBuilder();
+namespace ResponseBuilder {
+    //std::vector<PlayerSnapshotData> buildPlayerSnapshot(const std::map<Id, std::unique_ptr<Player>>& players);
+    std::vector<PlayerSnapshotData> buildPlayerSnapshot(const std::map<Id, std::unique_ptr<Player>>& players);
+    std::vector<NpcSnapshotData> buildNpcSnapshot(const std::map<Id, std::unique_ptr<Creature>>& npcs);
+    std::vector<ItemGroundSnapshotData> buildGoldPileSnapshot(const std::map<Id, TypeItem> items);
 };
 
 #endif

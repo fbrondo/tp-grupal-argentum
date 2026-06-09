@@ -37,9 +37,6 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         p.pos_y = htonl(p.pos_y);
         p.max_hp = htons(p.max_hp);
         p.hp = htons(p.hp);
-        p.body_id = htons(p.body_id);
-        p.head_id = htons(p.head_id);
-        p.weapon_id = htons(p.weapon_id);
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));
         offset += sizeof(PlayerSnapshotData);
     }
@@ -83,7 +80,7 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
     temp.mana = htonl(stats.mana);
     temp.gold = htonl(stats.gold);
     temp.exp = htonl(stats.exp);
-    temp.level = stats.level;
+    // temp.level = stats.level;
     try {
         socket.sendall(&temp, sizeof(MsgPlayerStats));
     } catch (const std::exception& e) {
@@ -205,9 +202,11 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
 }
 
 void ServerProtocol::sendMap(const Map& map) {
+    std::cout << "[SERVER] sendMap: enviando mapa " << map.width() << "x" << map.height()
+              << " tiles." << std::endl;
     const size_t total_tiles = map.width() * map.height() * layer_count;
     const size_t size_total =
-            sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + (total_tiles * 5);
+            sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + (total_tiles * 6);
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -226,16 +225,22 @@ void ServerProtocol::sendMap(const Map& map) {
 
     std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details, Layer::Object,
                                              Layer::Roof};
-    for (Layer layer: layers) {
+    for (const Layer layer: layers) {
         for (int y = 0; y < map.height(); ++y) {
             for (int x = 0; x < map.width(); ++x) {
-                const Tile& tile = map.tile_at(x, y, layer);
-                int32_t sprite_id_net = htonl(tile.sprite_id);
+                const auto& [sprite_id, walkable, region] = map.tile_at(x, y, layer);
+
+                int32_t sprite_id_net = htonl(sprite_id);
                 std::memcpy(buffer.data() + offset, &sprite_id_net, sizeof(sprite_id_net));
                 offset += sizeof(sprite_id_net);
-                uint8_t walkable_byte = tile.walkable ? 1 : 0;
+
+                uint8_t walkable_byte = walkable ? 1 : 0;
                 std::memcpy(buffer.data() + offset, &walkable_byte, sizeof(walkable_byte));
                 offset += sizeof(walkable_byte);
+
+                uint8_t region_byte = static_cast<uint8_t>(region);
+                std::memcpy(buffer.data() + offset, &region_byte, sizeof(region_byte));
+                offset += sizeof(region_byte);
             }
         }
     }

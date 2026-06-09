@@ -8,36 +8,11 @@ Client::Client(const char* host, const char* port):
         skt(host, port),
         protocol(this->skt),
         sender(protocol, cmd_queue),
-        receiver(protocol, events_queue) {}
-
-void Client::init_SDL() {
-    // El orden importa: SDL primero, luego imagen, luego ventana, luego renderer, luego texturas
-    sdl.emplace(SDL_INIT_VIDEO);
-    img.emplace(IMG_INIT_PNG);
-    window.emplace("Argentum Online", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_W,
-                   WINDOW_H, SDL_WINDOW_RESIZABLE);
-
-    if (const Surface icon(IMG_Load("client/assets/icon.png")); icon.Get()) {
-        window->SetIcon(icon);
-    }
-
-    renderer.emplace(*window, -1, SDL_RENDERER_ACCELERATED);
-
-    // Color key negro para transparencia (fondo negro del PNG → transparente)
-    Surface body(IMG_Load("client/assets/body.png"));
-    if (!body.Get()) {
-        throw std::runtime_error(std::string("No se pudo cargar body.png: ") + IMG_GetError());
-    }
-    SDL_SetColorKey(body.Get(), SDL_TRUE, SDL_MapRGB(body.Get()->format, 0, 0, 0));
-    body_tex.emplace(*renderer, Surface(std::move(body)));
-
-    Surface head(IMG_Load("client/assets/head.png"));
-    if (!head.Get()) {
-        throw std::runtime_error(std::string("No se pudo cargar head.png: ") + IMG_GetError());
-    }
-    SDL_SetColorKey(head.Get(), SDL_TRUE, SDL_MapRGB(head.Get()->format, 0, 0, 0));
-    head_tex.emplace(*renderer, Surface(std::move(head)));
-}
+        receiver(protocol, events_queue),
+        img(IMG_INIT_JPG | IMG_INIT_PNG),
+        window("Argentum Online"),
+        texture_manager(window.get_renderer(), window),
+        world_renderer(window.get_renderer(), texture_manager) {}
 
 void Client::handle_events() {
     SDL_Event event;
@@ -74,7 +49,6 @@ void Client::handle_events() {
                     is_move = false;
                     break;
             }
-
             if (is_move) {
                 auto cmd = std::make_unique<MoveCommandClient>(dir);
                 cmd_queue.push(std::move(cmd));
@@ -83,52 +57,51 @@ void Client::handle_events() {
     }
 }
 
-void Client::clear_display() {
-    renderer->SetDrawColor(34, 139, 34, 255);
-    renderer->Clear();
+void Client::clear_display() { window.clear(); }
+
+float Client::calculate_delta_time() {
+    const uint32_t current_ticks = SDL_GetTicks();
+    const float dt = static_cast<float>(current_ticks - last_frame_ticks) / 1000.0f;
+    last_frame_ticks = current_ticks;
+    return dt;
 }
 
 void Client::render_in_z_order() {
-    Rect src_body(0, 0, BODY_W, BODY_H);
-    Rect dst_body(static_cast<int>(player_state.pos_x), static_cast<int>(player_state.pos_y),
-                  BODY_W, BODY_H);
-    renderer->Copy(*body_tex, src_body, dst_body);
-
-    Rect src_head(0, 0, HEAD_W, HEAD_H);
-    Rect dst_head(static_cast<int>(player_state.pos_x) + (BODY_W - HEAD_W) / 2,
-                  static_cast<int>(player_state.pos_y) - HEAD_H + 3, HEAD_W, HEAD_H);
-    renderer->Copy(*head_tex, src_head, dst_head);
-
-    renderer->Present();
+    world_renderer.render();
+    window.present();
 }
 
 void Client::update_state_from_server() {
     EventClient event;
     while (events_queue.try_pop(event)) {
-        if (event.type == TypeEventClient::DISCONNECTION) {
-            is_running = false;
-            return;
-        }
-        if (event.type == TypeEventClient::LOGIN_RESPONSE) {
-            is_running = true;
-        }
-        if (event.type == TypeEventClient::UPDATE_WORLD && !event.world.players.empty()) {
-            std::cout << "Posicion x: " << event.world.players[0].pos_x << std::endl;
-            std::cout << "Posicion y: " << event.world.players[0].pos_y << std::endl;
-            player_state.pos_x = event.world.players[0].pos_x * TILE_SIZE;
-            player_state.pos_y = event.world.players[0].pos_y * TILE_SIZE;
-            player_state.dir = event.world.players[0].direction;
+        switch (event.type) {
+            case TypeEventClient::UPDATE_WORLD: {
+                world_renderer.update_from_snapshot(event.world);
+                break;
+            }
+            case TypeEventClient::MAP_DATA: {
+                world_renderer.load_map(std::move(event.map_data));
+                break;
+            }
+            case TypeEventClient::DISCONNECTION:
+                is_running = false;
+                break;
+            default:
+                break;
         }
     }
 }
 
 uint32_t Client::sleep_and_calc_next_it(const uint32_t frame_start) const {
-    if (const uint32_t elapsed = SDL_GetTicks() - frame_start;
-        elapsed < static_cast<uint32_t>(FRAME_MS)) {
+    const uint32_t current_ticks = SDL_GetTicks();
+    const uint32_t elapsed = current_ticks - frame_start;
+
+    if (elapsed < static_cast<uint32_t>(FRAME_MS)) {
         SDL_Delay(FRAME_MS - elapsed);
         return it + 1;
     }
-    return it + (SDL_GetTicks() - frame_start) / FRAME_MS;
+    const uint32_t frames_passed = (elapsed / FRAME_MS);
+    return it + std::max(1u, frames_passed);
 }
 
 void Client::close() {
@@ -142,18 +115,23 @@ void Client::close() {
     sender.join();
 }
 
-void Client::launch() {
+void Client::launch(const std::string& user, const std::string& pass) {
     try {
-        init_SDL();
+        if (!user.empty())
+            protocol.sendLogin(user, pass);
         sender.start();
         receiver.start();
+        last_frame_ticks = SDL_GetTicks();
         while (is_running) {
             if (!receiver.is_alive() || !sender.is_alive()) {
                 break;
             }
-            const uint32_t frame_start = SDL_GetTicks();
+            const float dt = calculate_delta_time();
+            const uint32_t frame_start = last_frame_ticks;
+
             update_state_from_server();
             handle_events();
+            world_renderer.update_animations(dt);
             clear_display();
             render_in_z_order();
             it = sleep_and_calc_next_it(frame_start);

@@ -39,6 +39,7 @@ target_sources(taller_server
         src/responses/response_login.cpp
         src/responses/response_map.cpp
         src/responses/response_player_stats.cpp
+        src/responses/response_map.cpp
         src/responses/response_signup.cpp
         src/responses/response_snapshot.cpp
         src/responses/response_trader_catalog.cpp

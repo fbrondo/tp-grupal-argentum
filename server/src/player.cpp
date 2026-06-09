@@ -136,6 +136,34 @@ uint16_t Player::calculateDamage(bool& is_critical, Weapon& weapon) {
 uint16_t Player::calculateDefense(std::vector<Defense*> info_defense) {
     return GameFormulas::calculationDefense(info_defense);
 }
+
+PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
+    PlayerSnapshotData data;
+    data.id = player_id;
+    data.pos_x = this->pose.position.x;
+    data.pos_y = this->pose.position.y;
+    data.direction = this->pose.direct;
+    data.hp = this->hp;
+    data.max_hp = this->hpMax();
+    data.mana = this->mana;
+    data.max_mana = this->manaMax();
+    data.body_id = this->ch.getTypeBody();
+    data.head_id = this->ch.getTypeHead();
+    data.raza = this->ch.getTypeRace();
+    data.clase = this->ch.getTypeClase();
+
+    return data;
+    /*equipo*/
+    // uint8_t weapon_id;
+    // uint8_t shield_id; /*Debe ser none si no esta equipado*/
+    // uint8_t armor_id;
+    // uint8_t head;
+
+    // uint8_t raza;
+    // uint8_t clase;
+    // uint8_t flags;
+}
+
 TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
 std::vector<TypeItem> Player::getEquipment() {
     /*Esto no cuesta nada, lo maximo que puedo llegar a tener en el equip son 4 elementos -> O(1)*/

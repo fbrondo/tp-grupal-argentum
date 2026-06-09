@@ -18,6 +18,7 @@
 #include "server/includes/core/inventory.h"
 #include "server/includes/core/map.h"
 #include "server/includes/equipment.h"
+#include "server/includes/core//snapshot.h"
 
 struct BankAccount {
     uint32_t gold;
@@ -101,7 +102,7 @@ public:
     uint16_t calculateDamage(bool& is_critical, Weapon& weapon);
     uint16_t calculateDefense(std::vector<Defense*> info_defense);
 
-
+    PlayerSnapshotData getPlayerSnapshotData(const Id& id);
     PlayerData getPlayerData();
 
     void onDeath(World& world) override;  // El jugador se convierte en fantasma

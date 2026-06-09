@@ -16,7 +16,6 @@
 #include "server/includes/core/inventory.h"
 #include "server/includes/core/item.h"
 #include "server/includes/definitions.h"
-#include "server/includes/game_config_loader.h"
 #include "server/includes/monitor_queues.h"
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/citizen_npc.h"
@@ -29,14 +28,11 @@
 class Gameloop: public Thread {
 
 private:
-    bool loadState;
-
     std::mt19937 gen;
     Id next_item_id{0};
     Id next_npc_id{0};
     Id next_creature_id{0};
     Direction direction_default{UP};
-
     MonitorQueues& monitor;
     QueueCmd& commands_queue;
 
