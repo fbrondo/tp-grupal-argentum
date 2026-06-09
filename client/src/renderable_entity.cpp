@@ -102,10 +102,13 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         try {
             std::string item_key = "item_" + std::to_string(body_id);
             SDL2pp::Texture& tex = texture_manager.get_texture(item_key);
+            int tex_w_ = tex.GetWidth();
+            int tex_h_ = tex.GetHeight();
             SDL_Rect dst_rect = {
                     static_cast<int>(current_pixel_x) - cam_x + offset_x,
-                    static_cast<int>(current_pixel_y) - cam_y + offset_y, TILE_SIZE,
-                    TILE_SIZE  // Asumimos que entran en un tile
+                    static_cast<int>(current_pixel_y) + TILE_SIZE - cam_y + offset_y - tex_h_,
+                    tex_w_,
+                    tex_h_,
             };
             renderer.Copy(tex, SDL2pp::NullOpt, SDL2pp::Rect(dst_rect));
         } catch (...) {}

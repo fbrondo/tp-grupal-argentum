@@ -136,8 +136,14 @@ void WorldRenderer::update_animations(float dt) {
 
 // Renderizamos con el Algoritmo de pintor (Z-Order por eje Y)
 void WorldRenderer::render() {
+    // HARCODEADO! centra la camara
+    // camera.x = 0;
+    // camera.y = 0;
+
     if (!current_map)
         return;
+
+    center_camera_on_player();
 
     SDL_Rect view_rect = {camera_screen_offset_x, camera_screen_offset_y, camera.w, camera.h};
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
@@ -165,15 +171,16 @@ void WorldRenderer::render() {
 
                 try {
                     std::string tex_key = key_prefix + std::to_string(sprite_id);
-                    auto& texture =
-                            const_cast<SDL2pp::Texture&>(texture_manager.get_texture(tex_key));
+                    SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
+
+                    int tex_w = texture.GetWidth();
+                    int tex_h = texture.GetHeight();
 
                     SDL_Rect dst;
-                    // Posición Mundo - Posición Cámara + Offset de Pantalla
                     dst.x = (x * TILE_SIZE) - camera.x + camera_screen_offset_x;
-                    dst.y = (y * TILE_SIZE) - camera.y + camera_screen_offset_y;
-                    dst.w = TILE_SIZE;
-                    dst.h = TILE_SIZE;
+                    dst.y = (y * TILE_SIZE + TILE_SIZE) - camera.y + camera_screen_offset_y - tex_h;
+                    dst.w = tex_w;
+                    dst.h = tex_h;
 
                     renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
                 } catch (...) {}
@@ -213,14 +220,16 @@ void WorldRenderer::render() {
 
             try {
                 std::string tex_key = "tile_roof_" + std::to_string(sprite_id);
-                SDL2pp::Texture& texture =
-                        const_cast<SDL2pp::Texture&>(texture_manager.get_texture(tex_key));
+                SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
+
+                int tex_w = texture.GetWidth();
+                int tex_h = texture.GetHeight();
 
                 SDL_Rect dst;
                 dst.x = (x * TILE_SIZE) - camera.x + camera_screen_offset_x;
-                dst.y = (y * TILE_SIZE) - camera.y + camera_screen_offset_y;
-                dst.w = TILE_SIZE;
-                dst.h = TILE_SIZE;
+                dst.y = (y * TILE_SIZE + TILE_SIZE) - camera.y + camera_screen_offset_y - tex_h;
+                dst.w = tex_w;
+                dst.h = tex_h;
 
                 renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
             } catch (...) {}

@@ -3,7 +3,6 @@
 #include <QActionGroup>
 #include <QCheckBox>
 #include <QComboBox>
-#include <QCoreApplication>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -305,14 +304,7 @@ void MainWindow::updateTitle() {
 }
 
 void MainWindow::tryDefaultGraficosDir() {
-    const QString app_dir = QCoreApplication::applicationDirPath();
-    const QStringList candidates = {
-            app_dir + "/../../common/assets/maps",
-            app_dir + "/../common/assets/maps",
-            app_dir + "/common/assets/maps",
-    };
-    auto it = std::find_if(candidates.begin(), candidates.end(),
-                           [](const QString& c) { return QDir(c).exists(); });
-    if (it != candidates.end())
-        loadLayerSprites(QDir(*it).absolutePath());
+    const QString maps_dir = QString(ARGENTUM_SHARE_PATH) + "/common/assets/maps";
+    if (QDir(maps_dir).exists())
+        loadLayerSprites(QDir(maps_dir).absolutePath());
 }
