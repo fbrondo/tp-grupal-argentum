@@ -146,6 +146,9 @@ target_sources(taller_server
 
     )
 
-target_compile_definitions(taller_server PRIVATE 
-"CONFIG_PATH=\"${CMAKE_SOURCE_DIR}/server/config\""
+if(NOT DEFINED ARGENTUM_CONFIG_PATH)
+    set(ARGENTUM_CONFIG_PATH "${CMAKE_SOURCE_DIR}/server/config")
+endif()
+target_compile_definitions(taller_server PRIVATE
+    "CONFIG_PATH=\"${ARGENTUM_CONFIG_PATH}\""
 )

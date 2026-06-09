@@ -23,6 +23,11 @@ struct AnimationState {
     bool is_looping;
 };
 
+struct ItemTextureInfo {
+    uint32_t id;
+    std::string filename;
+};
+
 class TextureManager {
 private:
     SDL2pp::Renderer& renderer;

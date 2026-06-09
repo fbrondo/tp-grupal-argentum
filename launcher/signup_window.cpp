@@ -12,10 +12,7 @@
 
 static const QStringList RACES = {"Humano", "Elfo", "Enano", "Gnomo"};
 static const QStringList CLASES = {"Mago", "Clérigo", "Paladín", "Guerrero"};
-// Units assets are at <project_root>/common/assets/units, one level above the build dir
-static QString unitsBase() {
-    return QCoreApplication::applicationDirPath() + "/../common/assets/units";
-}
+static QString unitsBase() { return QString(ARGENTUM_SHARE_PATH) + "/common/assets/units"; }
 
 // --- Race helpers ---
 
@@ -185,8 +182,7 @@ void SignupWindow::updatePreview() {
     QPainter painter(&canvas);
     painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
-    const QPixmap bg(QCoreApplication::applicationDirPath() +
-                     "/../common/assets/maps/background/121.png");
+    const QPixmap bg(QString(ARGENTUM_SHARE_PATH) + "/common/assets/maps/background/121.png");
     if (!bg.isNull())
         painter.drawPixmap(0, 0, PREVIEW_W, PREVIEW_H, bg);
 
