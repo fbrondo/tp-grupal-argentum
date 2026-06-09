@@ -57,6 +57,8 @@ void printNpcsSafeLoads(const std::map<std::string, NpcSafeZone>& info_npcs);
 void printRacesLoad(const std::map<TypeRace, Race>& info_races);
 void printClasesLoad(const std::map<TypeClase, Clase>& info_clases);
 
+    void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& prev);
+    void imprimirCajaContenedora(const PlayerData& player);
     void printInitGameloop(std::string message);
 };  // namespace Print
 

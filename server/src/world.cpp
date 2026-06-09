@@ -298,8 +298,11 @@ void World::removeCreature(const Id& creature_id) {
 
 Pose World::movePlayer(const Id& player_id, Direction dir) {
     Position new_position = this->calculatePosition(player_id, dir);
+    Position previous_position = this->players_positions[player_id].position;
     Pose pose_move(new_position, dir);
+    this->occupied_tiles[previous_position] = false;
     this->players_positions[player_id] = pose_move;
+    Print::printPositionMovePlayer(player_id, pose_move, previous_position);
     return pose_move;
 }
 

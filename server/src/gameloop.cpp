@@ -260,10 +260,13 @@ void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_d
     Position position(player_data.x, player_data.y);
     Direction dir = static_cast<Direction>(player_data.direction);
     Pose pose(position, dir);
+    auto new_player = std::make_unique<Player>(pose, std::move(inv), std::move(charact), player_data);
+    this->players.emplace(player_id, std::move(new_player));
     this->world.addPlayerWorld(player_id, pose);
 }
 
 void Gameloop::createNewPlayer(const Id& player_id, const User& user, const CharacterTraits& traits) {
+
     Character ch = this->createCharacter(traits);
     const Position position_spawn = this->world.calculatePositionRandomSafeZone();
     Pose pose_spawn(position_spawn, DOWN);
@@ -295,8 +298,12 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     PlayerData data = this->persistence.loadPlayer(user.username);
     if (std::string(data.password) != user.password) {
         this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(false, INVALID_PASSWORD));
+        std::string m = "Contrasena Invalida --- Jugador: ";
+        m+= user.username;
+        Print::printMessageConsole(m);
         return;
     }
+    this->loadingPlayerData(player_id, data);
     Print::printMessageConsole("JUGADOR CONECTADO");
     this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(true));
     Map map = this->world.getMap();
@@ -307,7 +314,6 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     message += std::to_string(map.width());
     Print::printMessageConsole(message);
     this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseMap>(std::move(map)));
-
 }
 
 void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
@@ -389,9 +395,11 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
 }
 
 void Gameloop::processMovePlayer(Id player_id, Direction dir) {
-    this->players[player_id]->breakMeditation();
-    Pose new_pose = this->world.movePlayer(player_id, dir);
-    this->players[player_id]->updatePose(std::move(new_pose));
+    if (this->world.isWalkable(player_id, dir)) {
+        this->players[player_id]->breakMeditation();
+        Pose new_pose = this->world.movePlayer(player_id, dir);
+        this->players[player_id]->updatePose(std::move(new_pose));
+    }
 }
 
 void Gameloop::processBuyItem(Id player_id, Id npc_id, uint8_t type_item) {

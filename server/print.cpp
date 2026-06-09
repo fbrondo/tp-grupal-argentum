@@ -592,5 +592,62 @@ void printPositionRandom(const Position& pos) {
     }
 }
 
+
+    void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& prev) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - Game] - El jugador de " ;
+        oss << "| ID: "<< id << SALTO;
+        oss << "Se movio de " << "Pos: (" << prev.x << ", " << prev.y << ")" << " a" << SALTO;
+        oss << "Nueva posicion " << "Pos: (" << pose.position.x << ", " << pose.position.y << ")"  << SALTO;
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+}
+void imprimirCajaContenedora(const PlayerData& player) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        const int MARGEN = 2; // Espacio en blanco a los lados del texto
+
+        // 1. Preparamos las líneas de texto que queremos mostrar
+        std::vector<std::string> lineas = {
+            " JUGADOR: ", player.username,
+            " Posicion: (" + std::to_string(player.x) + ", " + std::to_string(player.y) + ")",
+            " Nivel:    " + std::to_string(static_cast<int>(player.level)),
+            " HP:       " + std::to_string(player.hp),
+            " Mana:     " + std::to_string(player.mana)
+        };
+
+        // 2. Buscamos la longitud de la línea más larga usando algoritmos de C++
+        size_t max_longitud = 0;
+        for (const auto& linea : lineas) {
+            max_longitud = std::max(max_longitud, linea.length());
+        }
+
+        // El ancho total cuenta los bordes de la caja y los márgenes internos
+        size_t ancho_total = max_longitud + (MARGEN * 2) + 2;
+
+        // 3. Imprimir la tapa superior (Línea de asteriscos)
+        std::cout << std::string(ancho_total, '*') << "\n";
+
+        // 4. Imprimir el contenido con sus bordes laterales
+        for (const auto& linea : lineas) {
+            std::cout << "*"; // Borde izquierdo
+
+            // `std::setw` se encarga de rellenar con espacios automáticamente a la derecha
+            // Restamos max_longitud - linea.length() de forma implícita gracias al ancho fijo
+            std::cout << std::string(MARGEN, ' ')
+                      << std::left << std::setw(max_longitud) << linea
+                      << std::string(MARGEN, ' ')
+                      << "*\n"; // Borde derecho
+        }
+
+        // 5. Imprimir la tapa inferior
+        std::cout << std::string(ancho_total, '*') << "\n";
+    }
+}
 }
  // namespace Print
