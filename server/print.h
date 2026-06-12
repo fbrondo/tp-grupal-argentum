@@ -17,7 +17,7 @@
 namespace Print {
 
 void print_message_console(const std::string& message);
-    void printMessageConsole(const std::string& message);
+void printMessageConsole(const std::string& message);
 
 std::string itemToString(TypeItem item);
 std::string directionToString(Direction dir);
@@ -47,7 +47,8 @@ void playerLoad(std::string op, const PlayerData& player);
 // void printPositionPlayerUpdate(const Id& id, const PlayerInstance& inst);
 
 void printPositionTreasure(const Id& id, const Position& position);
-void printPositionCreature(const Id& id, TypeNPC type, const Position& pos, const NpcAttributes& attrib);
+void printPositionCreature(const Id& id, TypeNPC type, const Position& pos,
+                           const NpcAttributes& attrib);
 void printPositionNPC(const Id& id, TypeNPC type, const Position& pos);
 void printPositionItem(const ItemInstance& item);
 void printPositionGold(const Id& id, GoldBagInstance);
@@ -57,9 +58,9 @@ void printNpcsSafeLoads(const std::map<std::string, NpcSafeZone>& info_npcs);
 void printRacesLoad(const std::map<TypeRace, Race>& info_races);
 void printClasesLoad(const std::map<TypeClase, Clase>& info_clases);
 
-    void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& prev);
-    void imprimirCajaContenedora(const PlayerData& player);
-    void printInitGameloop(std::string message);
+void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& prev);
+void imprimirCajaContenedora(const PlayerData& player);
+void printInitGameloop(std::string message);
 };  // namespace Print
 
 #endif

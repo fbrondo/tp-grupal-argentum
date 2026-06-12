@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "common/includes/core/Statistics.h"
-#include "server/print.h"
 #include "server/includes/game_formulas.h"
 #include "server/includes/world.h"
+#include "server/print.h"
 
 Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerData& data):
         CombatEntity(pos, data), ch(std::move(ch_)) {
@@ -88,8 +88,8 @@ PlayerData Player::getPlayerData() {
     std::memset(data.password, 0, MAX_DATA);
     user.password.copy(data.password, MAX_DATA - 1);
 
-    //std::strncpy(data.username, user.username.c_str(), MAX_DATA);
-    //std::strncpy(data.password, user.password.c_str(), MAX_DATA);
+    // std::strncpy(data.username, user.username.c_str(), MAX_DATA);
+    // std::strncpy(data.password, user.password.c_str(), MAX_DATA);
     /*Pose del jugador - Posicion y direccion de mirada*/
     data.x = this->pose.position.x;
     data.y = this->pose.position.y;

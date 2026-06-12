@@ -128,7 +128,7 @@ void DataStorage::updateStatePlayer(const PlayerData& data) {
 
     this->data_file.write(data.username, MAX_DATA);
     this->data_file.write(data.password, MAX_DATA);
-    
+
     /* campos fijos */
     this->data_file.write(reinterpret_cast<const char*>(&data.x), sizeof(data.x));
     this->data_file.write(reinterpret_cast<const char*>(&data.y), sizeof(data.y));

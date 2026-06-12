@@ -92,7 +92,7 @@ void World::identifyZones() {
             zone.id = zone_id;
 
 
-            //this->zone_count[region]++;
+            // this->zone_count[region]++;
             this->floodFill(Position{x, y}, region, visited, zone);
             this->zones.emplace(zone_id, std::move(zone));
         }
@@ -136,7 +136,7 @@ Position World::calculatePositionRandom(const Id& zone_id) {
     Position random_postion = tiles[distrib(this->gen)];
     while (this->isOccupied(random_postion)) {
         random_postion = tiles[distrib(this->gen)];
-        //Print::printPositionRandom(random_postion);
+        // Print::printPositionRandom(random_postion);
     }
     return random_postion;
 }
@@ -252,7 +252,7 @@ void World::addItemWorld(const ItemInstance& item) {
     this->occupied_tiles[item.pos] = true;
 }
 
-void World::addTreasuresWorld(const Id &treasures_id, const Position &position) {
+void World::addTreasuresWorld(const Id& treasures_id, const Position& position) {
     this->treausures_positions.emplace(treasures_id, position);
     this->occupied_tiles[position] = true;
 }

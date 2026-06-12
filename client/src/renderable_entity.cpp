@@ -156,13 +156,12 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         // Cabeza
         if (head_id != 0) {
             std::string head_tex_key = "head_" + std::to_string(head_id);
-            std::string head_anim =
-                    head_tex_key + "_idle_" + std::to_string(current_dir);
+            std::string head_anim = head_tex_key + "_idle_" + std::to_string(current_dir);
             const AnimationClip& head_clip = texture_manager.get_animation(head_anim);
             SDL_Rect head_src = head_clip.frames[0];
             SDL2pp::Texture& head_texture = texture_manager.get_texture(head_tex_key);
-            SDL_Rect dst_head = {dst_rect.x + (dst_rect.w - head_src.w) / 2, dst_rect.y,
-                                 head_src.w, head_src.h};
+            SDL_Rect dst_head = {dst_rect.x + (dst_rect.w - head_src.w) / 2, dst_rect.y, head_src.w,
+                                 head_src.h};
             dst_head.y -= 10;  // Offset hacia arriba para el cuello
             renderer.Copy(head_texture, SDL2pp::Rect(head_src), SDL2pp::Rect(dst_head));
         }

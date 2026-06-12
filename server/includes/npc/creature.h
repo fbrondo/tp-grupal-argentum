@@ -4,13 +4,13 @@
 #include <vector>
 
 #include "common/includes/types.h"
-#include "server/includes/entity/combat_entity.h"
 #include "server/includes/core/creature_attributes.h"
-#include "server/includes/core/instances.h"
 #include "server/includes/core/data.h"
+#include "server/includes/core/instances.h"
 #include "server/includes/core/map.h"
-#include "server/includes/world.h"
 #include "server/includes/core/snapshot.h"
+#include "server/includes/entity/combat_entity.h"
+#include "server/includes/world.h"
 
 /*Representa uba criatura
     - Goblin
@@ -38,7 +38,6 @@ public:
     void onDeath(World& world) override;
     CreatureData getCreatureData();
     NpcSnapshotData getNpcSnapshotData();
-
 };
 
 

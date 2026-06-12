@@ -5,16 +5,18 @@
 #include <vector>
 
 #include "server/includes/core/snapshot.h"
-#include "server/includes/player.h"
 #include "server/includes/npc/creature.h"
+#include "server/includes/player.h"
 
 #include "world.h"
 
 namespace ResponseBuilder {
-    //std::vector<PlayerSnapshotData> buildPlayerSnapshot(const std::map<Id, std::unique_ptr<Player>>& players);
-    std::vector<PlayerSnapshotData> buildPlayerSnapshot(const std::map<Id, std::unique_ptr<Player>>& players);
-    std::vector<NpcSnapshotData> buildNpcSnapshot(const std::map<Id, std::unique_ptr<Creature>>& npcs);
-    std::vector<ItemGroundSnapshotData> buildGoldPileSnapshot(const std::map<Id, TypeItem> items);
-};
+// std::vector<PlayerSnapshotData> buildPlayerSnapshot(const std::map<Id, std::unique_ptr<Player>>&
+// players);
+std::vector<PlayerSnapshotData> buildPlayerSnapshot(
+        const std::map<Id, std::unique_ptr<Player>>& players);
+std::vector<NpcSnapshotData> buildNpcSnapshot(const std::map<Id, std::unique_ptr<Creature>>& npcs);
+std::vector<ItemGroundSnapshotData> buildGoldPileSnapshot(const std::map<Id, TypeItem> items);
+};  // namespace ResponseBuilder
 
 #endif

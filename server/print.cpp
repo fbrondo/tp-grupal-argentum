@@ -13,7 +13,7 @@
 namespace Print {
 void print_message_console(const std::string& message) { std::cout << message << std::endl; }
 
-void printMessageConsole(const std::string &message) {
+void printMessageConsole(const std::string& message) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
@@ -367,42 +367,44 @@ void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config,
     }
 }
 
-void printPositionTreasure(const Id &id, const Position &position) {
+void printPositionTreasure(const Id& id, const Position& position) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
         std::ostringstream oss;
-        oss << "[DEBUG - Init] - Tesoro | ID: "<< id << "---" << "Pos: (" << position.x << ", " << position.y << ")" << " |";
+        oss << "[DEBUG - Init] - Tesoro | ID: " << id << "---" << "Pos: (" << position.x << ", "
+            << position.y << ")" << " |";
         std::string message = oss.str();
         print_message_console(message);
     }
 }
 
-void printPositionCreature(const Id& id, TypeNPC type, const Position& pos, const NpcAttributes& attrib) {
+void printPositionCreature(const Id& id, TypeNPC type, const Position& pos,
+                           const NpcAttributes& attrib) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
         std::ostringstream oss;
         oss << "[DEBUG - Init] - Creature: " << npcToString(type);
-        oss << "| ID: "<< id ;
+        oss << "| ID: " << id;
         oss << "---" << "Pos: (" << pos.x << ", " << pos.y << ")" << " |";
         oss << "Atributos: " << SALTO;
         oss << " > HP: " << attrib.hp_current << SALTO;
         oss << " > MAX HP: " << attrib.hp_max << SALTO;
         oss << " > RANGO ATAQUE: " << attrib.range_attack << SALTO;
-        oss << " > LEVEL: " <<attrib.difficulty_level << SALTO;
+        oss << " > LEVEL: " << attrib.difficulty_level << SALTO;
         std::string message = oss.str();
         print_message_console(message);
     }
 }
 
-void printPositionNPC(const Id &id, TypeNPC type, const Position &pos) {
+void printPositionNPC(const Id& id, TypeNPC type, const Position& pos) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
         std::ostringstream oss;
         oss << "[DEBUG - Init] - NPC: " << npcToString(type);
-        oss << "| ID: "<< id ;
+        oss << "| ID: " << id;
         oss << "---" << "Pos: (" << pos.x << ", " << pos.y << ")" << " |";
         std::string message = oss.str();
         print_message_console(message);
@@ -415,12 +417,11 @@ void printPositionGold(const Id& id, GoldBagInstance go) {
     if (debug_mode) {
         std::ostringstream oss;
         oss << "[DEBUG - Init] - BOLSA DE ORO: " << go.amount;
-        oss << "| ID: "<< id ;
+        oss << "| ID: " << id;
         oss << "---" << "Pos: (" << go.pos.x << ", " << go.pos.y << ")" << " |";
         std::string message = oss.str();
         print_message_console(message);
     }
-
 }
 
 void printPositionItem(const ItemInstance& item) {
@@ -429,12 +430,11 @@ void printPositionItem(const ItemInstance& item) {
     if (debug_mode) {
         std::ostringstream oss;
         oss << "[DEBUG - Init] - ITEM: " << itemToString(item.type);
-        oss << "| ID: "<< item.id ;
+        oss << "| ID: " << item.id;
         oss << "---" << "Pos: (" << item.pos.x << ", " << item.pos.y << ")" << " |";
         std::string message = oss.str();
         print_message_console(message);
     }
-
 }
 
 void printCreatureLoads(const std::map<std::string, CreatureConfig>& info_npcs) {
@@ -581,7 +581,7 @@ void printPositionRandom(const Position& pos) {
     }
 }
 
- void printInitGameloop(std::string mess) {
+void printInitGameloop(std::string mess) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
@@ -593,15 +593,16 @@ void printPositionRandom(const Position& pos) {
 }
 
 
-    void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& prev) {
+void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& prev) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
         std::ostringstream oss;
-        oss << "[DEBUG - Game] - El jugador de " ;
-        oss << "| ID: "<< id << SALTO;
+        oss << "[DEBUG - Game] - El jugador de ";
+        oss << "| ID: " << id << SALTO;
         oss << "Se movio de " << "Pos: (" << prev.x << ", " << prev.y << ")" << " a" << SALTO;
-        oss << "Nueva posicion " << "Pos: (" << pose.position.x << ", " << pose.position.y << ")"  << SALTO;
+        oss << "Nueva posicion " << "Pos: (" << pose.position.x << ", " << pose.position.y << ")"
+            << SALTO;
         std::string message = oss.str();
         print_message_console(message);
     }
@@ -610,20 +611,20 @@ void imprimirCajaContenedora(const PlayerData& player) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
-        const int MARGEN = 2; // Espacio en blanco a los lados del texto
+        const int MARGEN = 2;  // Espacio en blanco a los lados del texto
 
         // 1. Preparamos las líneas de texto que queremos mostrar
         std::vector<std::string> lineas = {
-            " JUGADOR: ", player.username,
-            " Posicion: (" + std::to_string(player.x) + ", " + std::to_string(player.y) + ")",
-            " Nivel:    " + std::to_string(static_cast<int>(player.level)),
-            " HP:       " + std::to_string(player.hp),
-            " Mana:     " + std::to_string(player.mana)
-        };
+                " JUGADOR: ",
+                player.username,
+                " Posicion: (" + std::to_string(player.x) + ", " + std::to_string(player.y) + ")",
+                " Nivel:    " + std::to_string(static_cast<int>(player.level)),
+                " HP:       " + std::to_string(player.hp),
+                " Mana:     " + std::to_string(player.mana)};
 
         // 2. Buscamos la longitud de la línea más larga usando algoritmos de C++
         size_t max_longitud = 0;
-        for (const auto& linea : lineas) {
+        for (const auto& linea: lineas) {
             max_longitud = std::max(max_longitud, linea.length());
         }
 
@@ -634,20 +635,18 @@ void imprimirCajaContenedora(const PlayerData& player) {
         std::cout << std::string(ancho_total, '*') << "\n";
 
         // 4. Imprimir el contenido con sus bordes laterales
-        for (const auto& linea : lineas) {
-            std::cout << "*"; // Borde izquierdo
+        for (const auto& linea: lineas) {
+            std::cout << "*";  // Borde izquierdo
 
             // `std::setw` se encarga de rellenar con espacios automáticamente a la derecha
             // Restamos max_longitud - linea.length() de forma implícita gracias al ancho fijo
-            std::cout << std::string(MARGEN, ' ')
-                      << std::left << std::setw(max_longitud) << linea
-                      << std::string(MARGEN, ' ')
-                      << "*\n"; // Borde derecho
+            std::cout << std::string(MARGEN, ' ') << std::left << std::setw(max_longitud) << linea
+                      << std::string(MARGEN, ' ') << "*\n";  // Borde derecho
         }
 
         // 5. Imprimir la tapa inferior
         std::cout << std::string(ancho_total, '*') << "\n";
     }
 }
-}
- // namespace Print
+}  // namespace Print
+   // namespace Print

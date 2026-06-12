@@ -13,12 +13,12 @@
 #include "common/includes/types.h"
 #include "entity/combat_entity.h"
 #include "server/includes/character.h"
+#include "server/includes/core//snapshot.h"
 #include "server/includes/core/config.h"
 #include "server/includes/core/data.h"
 #include "server/includes/core/inventory.h"
 #include "server/includes/core/map.h"
 #include "server/includes/equipment.h"
-#include "server/includes/core//snapshot.h"
 
 struct BankAccount {
     uint32_t gold;

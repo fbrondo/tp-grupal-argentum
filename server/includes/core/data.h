@@ -34,14 +34,14 @@ struct PlayerData {
 };
 
 struct CitizenNpcData {
-    uint8_t  type;  // TypeNPC
+    uint8_t type;  // TypeNPC
     uint32_t pos_x;
     uint32_t pos_y;
     uint8_t direction;
 };
 
 struct CreatureData {
-    uint8_t  type;  // TypeNPC
+    uint8_t type;  // TypeNPC
     uint32_t x;
     uint32_t y;
     uint8_t direction;

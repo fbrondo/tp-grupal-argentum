@@ -29,7 +29,8 @@ void WorldRenderer::load_map(Map&& new_map) {
     current_map = std::move(new_map);
     camera.x = 0;
     camera.y = 0;
-    /*std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión: "
+    /*std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión:
+       "
               << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;*/
 }
 

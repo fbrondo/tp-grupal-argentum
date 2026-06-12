@@ -11,7 +11,7 @@ struct CharacterTraits {
     uint8_t clase{0};
     CharacterTraits() = default;
     CharacterTraits(uint16_t head, uint16_t body, uint8_t race, uint8_t clase):
-    head(head), body(body), race(race), clase(clase) {}
+            head(head), body(body), race(race), clase(clase) {}
 };
 #pragma pack(pop)
 

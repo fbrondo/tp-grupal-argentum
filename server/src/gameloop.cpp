@@ -6,22 +6,23 @@
 #include <string>
 #include <tuple>
 #include <utility>
-#include "server/includes/entity/combat_entity.h"
+
+#include "common/includes/map/map.h"
 #include "common/includes/map/tile.h"
 #include "server/includes/commands/command.h"
 #include "server/includes/commands/command_signup.h"
 #include "server/includes/core/data.h"
+#include "server/includes/entity/combat_entity.h"
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/creature.h"
 #include "server/includes/npc/merchant.h"
 #include "server/includes/npc/priest.h"
+#include "server/includes/response_builder.h"
 #include "server/includes/responses/response_bank_content.h"
 #include "server/includes/responses/response_login.h"
-#include "server/includes/response_builder.h"
 #include "server/includes/responses/response_map.h"
 #include "server/includes/responses/response_signup.h"
 #include "server/includes/responses/response_snapshot.h"
-#include "common/includes/map/map.h"
 #include "server/print.h"
 
 #define INVALID_REGISTER "Username already taken."
@@ -31,7 +32,10 @@
 using RespSnapshot = std::shared_ptr<ResponseSnapshot>;
 
 Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_queue):
-        gen(std::random_device{}()), monitor(monitor), commands_queue(cmmds_queue), conf(std::move(conf_)),
+        gen(std::random_device{}()),
+        monitor(monitor),
+        commands_queue(cmmds_queue),
+        conf(std::move(conf_)),
         world(this->conf.paths.map, this->next_item_id),
         persistence(this->conf.paths) {
     this->initConfigurationCitizenNPC();
@@ -52,14 +56,16 @@ void Gameloop::initConfigurationCitizenNPC() {
     NpcSafeZone banker_conf = conf.npcs["Banquero"];
     this->banker = std::make_unique<Banker>(banker_conf.type, banker_conf.name);
     NpcSafeZone merch_conf = conf.npcs["Comerciante"];
-    this->merchant = std::make_unique<Merchant>(merch_conf.type, merch_conf.name, merch_conf.ids_items_store);
+    this->merchant = std::make_unique<Merchant>(merch_conf.type, merch_conf.name,
+                                                merch_conf.ids_items_store);
     NpcSafeZone priest_conf = conf.npcs["Sacerdote"];
-    this->priest = std::make_unique<Priest>(priest_conf.type, priest_conf.name,priest_conf.ids_items_store);
+    this->priest = std::make_unique<Priest>(priest_conf.type, priest_conf.name,
+                                            priest_conf.ids_items_store);
 }
 
 
 void Gameloop::loadTreasures(const WorldStateData& world_data) {
-    for (const auto&[pos_x, pos_y]: world_data.treasures) {
+    for (const auto& [pos_x, pos_y]: world_data.treasures) {
         Position pos(pos_x, pos_y);
         this->treasurePlacemen(pos);
     }
@@ -89,7 +95,7 @@ void Gameloop::loadCitizenNPCs(const WorldStateData& world_data) {
 }
 
 void Gameloop::loadGoldBags(const WorldStateData& world_data) {
-    for (const auto& data:world_data.gold_bags) {
+    for (const auto& data: world_data.gold_bags) {
         GoldBagInstance gold;
         const Id& id = this->next_item_id++;
         gold.amount = data.amount;
@@ -132,7 +138,8 @@ void Gameloop::initCreatures(Region type_region, const Id& zone_id) {
     const auto region = dynamic_cast<WildRegion*>(this->conf.regions[type_region].get());
     std::uniform_int_distribution<size_t> distrib_npc(0, region->npc_types.size() - 1);
     for (uint16_t i = 0; i < region->max_creatures; i++) {
-        std::string name_npc = region->npc_types[distrib_npc(this->gen)];;
+        std::string name_npc = region->npc_types[distrib_npc(this->gen)];
+        ;
         const TypeNPC type_npc = this->conf.creatures[name_npc].type;
         const Position position_spawn = this->world.calculatePositionRandom(zone_id);
         Pose pose_spawn(position_spawn, DOWN);
@@ -177,9 +184,7 @@ void Gameloop::initNPCS() {
     }
 }
 
-void Gameloop::initWorld() {
-    this->initNPCS();
-}
+void Gameloop::initWorld() { this->initNPCS(); }
 
 void Gameloop::loadWorld(const WorldStateData& world_data) {
     this->loadCitizenNPCs(world_data);
@@ -260,12 +265,14 @@ void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_d
     Position position(player_data.x, player_data.y);
     Direction dir = static_cast<Direction>(player_data.direction);
     Pose pose(position, dir);
-    auto new_player = std::make_unique<Player>(pose, std::move(inv), std::move(charact), player_data);
+    auto new_player =
+            std::make_unique<Player>(pose, std::move(inv), std::move(charact), player_data);
     this->players.emplace(player_id, std::move(new_player));
     this->world.addPlayerWorld(player_id, pose);
 }
 
-void Gameloop::createNewPlayer(const Id& player_id, const User& user, const CharacterTraits& traits) {
+void Gameloop::createNewPlayer(const Id& player_id, const User& user,
+                               const CharacterTraits& traits) {
 
     Character ch = this->createCharacter(traits);
     const Position position_spawn = this->world.calculatePositionRandomSafeZone();
@@ -278,8 +285,10 @@ void Gameloop::createNewPlayer(const Id& player_id, const User& user, const Char
     world.addPlayerWorld(player_id, pose_spawn);
 }
 
-void Gameloop::processHandleSignup(const Id& player_id, const User& user, const CharacterTraits& traits) {
-    Print::printNewPlayerArrived(player_id, user, static_cast<TypeRace>(traits.race), static_cast<TypeClase>(traits.clase));
+void Gameloop::processHandleSignup(const Id& player_id, const User& user,
+                                   const CharacterTraits& traits) {
+    Print::printNewPlayerArrived(player_id, user, static_cast<TypeRace>(traits.race),
+                                 static_cast<TypeClase>(traits.clase));
     if (this->persistence.exists(user.username)) {
         this->monitor.queueTheServerResponse(
                 player_id, std::make_unique<ResponseSignup>(false, INVALID_REGISTER));
@@ -287,19 +296,21 @@ void Gameloop::processHandleSignup(const Id& player_id, const User& user, const 
     }
     this->createNewPlayer(player_id, user, traits);
     this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseSignup>(true));
-    //this->executeBroacastSnapshot();
+    // this->executeBroacastSnapshot();
 }
 
 void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     if (!this->persistence.exists(user.username)) {
-        this->monitor.queueTheServerResponse(player_id,std::make_unique<ResponseLogin>(false, INVALID_LOGIN));
+        this->monitor.queueTheServerResponse(player_id,
+                                             std::make_unique<ResponseLogin>(false, INVALID_LOGIN));
         return;
     }
     PlayerData data = this->persistence.loadPlayer(user.username);
     if (std::string(data.password) != user.password) {
-        this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(false, INVALID_PASSWORD));
+        this->monitor.queueTheServerResponse(
+                player_id, std::make_unique<ResponseLogin>(false, INVALID_PASSWORD));
         std::string m = "Contrasena Invalida --- Jugador: ";
-        m+= user.username;
+        m += user.username;
         Print::printMessageConsole(m);
         return;
     }
@@ -625,7 +636,7 @@ void Gameloop::updatePlayersAttributes() {
 
 void Gameloop::updateStateWorld() {
     WorldStateData world_state = this->world.buildWorldState();
-    for (const auto& creature : this->creatures| std::views::values) {
+    for (const auto& creature: this->creatures | std::views::values) {
         CreatureData data = creature->getCreatureData();
         world_state.creatures.push_back(data);
     }
@@ -685,8 +696,8 @@ void Gameloop::run() {
 }
 
 void Gameloop::stop() {
-    Thread::stop();             // Cambia el should_keep_running del Gameloop a false
-    this->persistence.stop();   // <-- IMPORTANTE: Cambia el should_keep_running de la persistencia a false
+    Thread::stop();  // Cambia el should_keep_running del Gameloop a false
+    this->persistence
+            .stop();  // <-- IMPORTANTE: Cambia el should_keep_running de la persistencia a false
 }
-Gameloop::~Gameloop() {
-}
+Gameloop::~Gameloop() {}
