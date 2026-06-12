@@ -117,8 +117,21 @@ void Client::close() {
 
 void Client::launch(const std::string& user, const std::string& pass) {
     try {
-        if (!user.empty())
+        if (!user.empty()) {
             protocol.sendLogin(user, pass);
+            EventClient login_event;
+            while (protocol.receiveMessage(login_event)) {
+                if (login_event.type == TypeEventClient::LOGIN_RESPONSE) {
+                    if (login_event.login_success) {
+                        world_renderer.set_local_player(login_event.player_id);
+                    }
+                    break;
+                }
+                if (login_event.type == TypeEventClient::MAP_DATA) {
+                    world_renderer.load_map(std::move(login_event.map_data));
+                }
+            }
+        }
         sender.start();
         receiver.start();
         last_frame_ticks = SDL_GetTicks();

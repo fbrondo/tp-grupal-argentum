@@ -366,23 +366,23 @@ void TextureManager::load_tile_textures(
             {"common/assets/maps/objets/", "tile_obj_"},
             {"common/assets/maps/roof/", "tile_roof_"},
     }};
-    int total = 0;
+    //int total = 0;
     for (const auto& [dir, prefix]: layers) {
         if (!std::filesystem::exists(dir)) {
             std::cout << "[TextureManager] DIRECTORIO NO ENCONTRADO: " << dir << std::endl;
             continue;
         }
-        int count = 0;
+        //int count = 0;
         for (const auto& entry: std::filesystem::directory_iterator(dir)) {
             if (entry.path().extension() != ".png")
                 continue;
             const std::string id = entry.path().stem().string();
-            if (load_texture(textures_aux, prefix + id, entry.path().string()))
-                count++;
+            load_texture(textures_aux, prefix + id, entry.path().string());
+                //count++;
         }
         /*std::cout << "[TextureManager] " << prefix << "* : " << count << " tiles cargados."
                   << std::endl;*/
-        total += count;
+        //total += count;
     }
     //std::cout << "[TextureManager] Total tiles: " << total << std::endl;
 }

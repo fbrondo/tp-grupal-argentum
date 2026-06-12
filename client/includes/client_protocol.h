@@ -29,6 +29,7 @@ struct EventClient {
     MsgPlayerStats stats;
     std::string text_payload;  // Se usa para mensajes de chat, errores o el "OK"/"ERROR" del login
     bool login_success{false};
+    uint32_t player_id{0};
     uint16_t map_id;  // Se usa para CAMBIO_MAPA
     Map map_data;     // Se usa para MAP_DATA
     EventClient() = default;

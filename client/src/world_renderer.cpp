@@ -66,7 +66,6 @@ void WorldRenderer::center_camera_on_player() {
 void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
     // Registro para saber qué entidades siguen activas en el rango de visión
     std::vector<uint32_t> ids_en_snapshot;
-
     // A. PROCESAR JUGADORES
     for (const auto& p_data: snapshot.players) {
         ids_en_snapshot.push_back(p_data.id);
