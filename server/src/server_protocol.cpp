@@ -131,8 +131,10 @@ void ServerProtocol::sendSimpleResponse(uint8_t opcode, bool success,
     }
 }
 
-void ServerProtocol::sendLoginResponse(bool success, const std::string& msg) const {
+void ServerProtocol::sendLoginResponse(bool success, Id player_id, const std::string& msg) const {
     sendSimpleResponse(LOGIN_RESPONSE, success, msg);
+    const uint32_t player_id_net = htonl(player_id);
+    socket.sendall(&player_id_net, sizeof(player_id_net));
 }
 
 void ServerProtocol::sendSignupResponse(bool success, const std::string& msg) const {

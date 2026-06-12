@@ -47,21 +47,17 @@ void WorldRenderer::center_camera_on_player() {
     const float player_y = it->second->get_pixel_y();
 
     // Centramos la cámara restando la mitad de sus dimensiones de visor
-    camera.x = static_cast<int>(player_x) - (camera.w / 2);
-    camera.y = static_cast<int>(player_y) - (camera.h / 2);
+    const int target_x = static_cast<int>(player_x) + (TILE_SIZE / 2) - (camera.w / 2);
+    const int target_y = static_cast<int>(player_y) + (TILE_SIZE / 2) - (camera.h / 2);
 
     // LIMITACIÓN DE BORDES: Evitamos que la cámara muestre negro fuera de los límites del mapa
     const int max_width_px = current_map->width() * TILE_SIZE;
     const int max_height_px = current_map->height() * TILE_SIZE;
 
-    if (camera.x < 0)
-        camera.x = 0;
-    if (camera.y < 0)
-        camera.y = 0;
-    if (camera.x > max_width_px - camera.w)
-        camera.x = max_width_px - camera.w;
-    if (camera.y > max_height_px - camera.h)
-        camera.y = max_height_px - camera.h;
+    const int max_camera_x = std::max(0, max_width_px - camera.w);
+    const int max_camera_y = std::max(0, max_height_px - camera.h);
+    camera.x = std::clamp(target_x, 0, max_camera_x);
+    camera.y = std::clamp(target_y, 0, max_camera_y);
 }
 
 void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {

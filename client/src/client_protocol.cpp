@@ -293,6 +293,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             len = ntohs(len);
             out_event.text_payload.resize(len);
             socket.recvall(out_event.text_payload.data(), len);
+            socket.recvall(&out_event.player_id, sizeof(out_event.player_id));
+            out_event.player_id = ntohl(out_event.player_id);
             break;
         }
         case CHANGE_MAP: {

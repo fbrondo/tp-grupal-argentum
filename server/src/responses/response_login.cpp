@@ -2,11 +2,9 @@
 
 #include "server/includes/server_protocol.h"
 
-ResponseLogin::ResponseLogin(const bool success_): success(success_) {}
-
-ResponseLogin::ResponseLogin(const bool success_, const std::string& error_msg):
-        success(success_), error_msg(error_msg) {}
+ResponseLogin::ResponseLogin(const bool success_, Id player_id_, const std::string& error_msg):
+        success(success_), player_id(player_id_), error_msg(error_msg) {}
 
 void ResponseLogin::execute(ServerProtocol& protocol) {
-    protocol.sendLoginResponse(this->success, this->error_msg);
+    protocol.sendLoginResponse(this->success, this->player_id, this->error_msg);
 }

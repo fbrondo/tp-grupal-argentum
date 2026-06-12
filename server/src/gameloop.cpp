@@ -302,13 +302,15 @@ void Gameloop::processHandleSignup(const Id& player_id, const User& user,
 void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     if (!this->persistence.exists(user.username)) {
         this->monitor.queueTheServerResponse(player_id,
-                                             std::make_unique<ResponseLogin>(false, INVALID_LOGIN));
+                                             std::make_unique<ResponseLogin>(
+                                                     false, player_id, INVALID_LOGIN));
         return;
     }
     PlayerData data = this->persistence.loadPlayer(user.username);
     if (std::string(data.password) != user.password) {
         this->monitor.queueTheServerResponse(
-                player_id, std::make_unique<ResponseLogin>(false, INVALID_PASSWORD));
+                player_id,
+                std::make_unique<ResponseLogin>(false, player_id, INVALID_PASSWORD));
         std::string m = "Contrasena Invalida --- Jugador: ";
         m += user.username;
         Print::printMessageConsole(m);
@@ -316,7 +318,8 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     }
     this->loadingPlayerData(player_id, data);
     Print::printMessageConsole("JUGADOR CONECTADO");
-    this->monitor.queueTheServerResponse(player_id, std::make_unique<ResponseLogin>(true));
+    this->monitor.queueTheServerResponse(player_id,
+                                         std::make_unique<ResponseLogin>(true, player_id));
     Map map = this->world.getMap();
     std::string message = "Altura: ";
     message += std::to_string(map.height());
