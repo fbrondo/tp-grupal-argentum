@@ -47,6 +47,13 @@ void RenderableEntity::move_to(int target_tile_x, int target_tile_y, Direction d
             anim_state.start_time = SDL_GetTicks();
         }
     } else {
+        const float target_pixel_x = static_cast<float>(tile_x * TILE_SIZE);
+        const float target_pixel_y = static_cast<float>(tile_y * TILE_SIZE);
+        if (current_pixel_x != target_pixel_x || current_pixel_y != target_pixel_y) {
+            is_moving = true;
+            return;
+        }
+
         is_moving = false;
         std::string prefix = (type == EntityType::NPC) ? "npc_" : "body_";
         anim_state.current_anim_id =
