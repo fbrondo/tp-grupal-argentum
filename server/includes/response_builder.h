@@ -16,7 +16,7 @@ namespace ResponseBuilder {
 std::vector<PlayerSnapshotData> buildPlayerSnapshot(
         const std::map<Id, std::unique_ptr<Player>>& players);
 std::vector<NpcSnapshotData> buildNpcSnapshot(const std::map<Id, std::unique_ptr<Creature>>& npcs);
-std::vector<ItemGroundSnapshotData> buildGoldPileSnapshot(const std::map<Id, TypeItem> items);
+std::vector<ItemGroundSnapshotData> buildGoldPileSnapshot(const std::map<Id, TypeItem>& items);
 };  // namespace ResponseBuilder
 
 #endif

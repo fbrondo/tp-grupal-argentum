@@ -139,7 +139,6 @@ void Gameloop::initCreatures(Region type_region, const Id& zone_id) {
     std::uniform_int_distribution<size_t> distrib_npc(0, region->npc_types.size() - 1);
     for (uint16_t i = 0; i < region->max_creatures; i++) {
         std::string name_npc = region->npc_types[distrib_npc(this->gen)];
-        ;
         const TypeNPC type_npc = this->conf.creatures[name_npc].type;
         const Position position_spawn = this->world.calculatePositionRandom(zone_id);
         Pose pose_spawn(position_spawn, DOWN);
@@ -301,16 +300,14 @@ void Gameloop::processHandleSignup(const Id& player_id, const User& user,
 
 void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     if (!this->persistence.exists(user.username)) {
-        this->monitor.queueTheServerResponse(player_id,
-                                             std::make_unique<ResponseLogin>(
-                                                     false, player_id, INVALID_LOGIN));
+        this->monitor.queueTheServerResponse(
+                player_id, std::make_unique<ResponseLogin>(false, player_id, INVALID_LOGIN));
         return;
     }
     PlayerData data = this->persistence.loadPlayer(user.username);
     if (std::string(data.password) != user.password) {
         this->monitor.queueTheServerResponse(
-                player_id,
-                std::make_unique<ResponseLogin>(false, player_id, INVALID_PASSWORD));
+                player_id, std::make_unique<ResponseLogin>(false, player_id, INVALID_PASSWORD));
         std::string m = "Contrasena Invalida --- Jugador: ";
         m += user.username;
         Print::printMessageConsole(m);
@@ -504,9 +501,7 @@ void Gameloop::processPlayerDropItem(Id player_id, Id instance_id) {
         return;
     }
 
-    std::unique_ptr<ItemInstance> item_to_drop = player->removeItemFromInventory(instance_id);
-
-    // this->world.dropItem(player_pose.position, std::move(item_to_drop));
+    // this->world.dropItem(player_pose.position, player->removeItemFromInventory(instance_id));
 
     player->breakMeditation();
 }

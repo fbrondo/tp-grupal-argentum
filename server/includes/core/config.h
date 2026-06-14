@@ -62,9 +62,9 @@ struct TimesConfig {
 };
 struct GameConfig {
     FileData paths;
-    PlayerStateInit player_init;
-    ClanConfig clan;
-    TimesConfig times;
+    PlayerStateInit player_init{};
+    ClanConfig clan{};
+    TimesConfig times{};
     std::map<TypeRace, Race> races;
     std::map<TypeClase, Clase> clases;
     std::map<std::string, NpcSafeZone> npcs;
