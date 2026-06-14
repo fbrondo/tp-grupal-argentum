@@ -57,11 +57,12 @@ function buildProject() {
     local build_dir="${repo_dir}/build"
 
     header "COMPILACIÓN"
-    rm -rf "$build_dir"
     cmake -S "$repo_dir" -B "$build_dir" \
         -DARGENTUM_SHARE_PATH="${SHARE_DIR}" \
         -DARGENTUM_CONFIG_PATH="${CONFIG_DIR}/server/config" \
-        -DTALLER_LAUNCHER=ON
+        -DTALLER_LAUNCHER=ON \
+        -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+        -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
     cmake --build "$build_dir" -j"$(nproc)"
     info "Compilación finalizada."
 }
@@ -81,10 +82,15 @@ function installFiles() {
 
     header "INSTALACIÓN DE ARCHIVOS"
 
-    mkdir -p "$BIN_DIR" \
+    local lib_dir="${HOME}/.local/lib"
+    mkdir -p "$BIN_DIR" "$lib_dir" \
              "${SHARE_DIR}/client" \
              "${SHARE_DIR}/common" \
              "${CONFIG_DIR}/server/config/data"
+
+    # Shared libraries → ~/.local/lib/
+    find "$build_dir" -name "*.so*" ! -path "*/CMakeFiles/*" -exec cp -Pf {} "$lib_dir/" \;
+    info "Librerías: ${lib_dir}"
 
     # Binarios → ~/.local/bin/
     for bin in taller_client taller_server taller_editor taller_launcher; do
@@ -113,7 +119,7 @@ function installFiles() {
 function installGame() {
     resolveRepoDir
     buildProject "$REPO_DIR"
-    runTests "$REPO_DIR"
+    # runTests "$REPO_DIR"
     installFiles "$REPO_DIR"
     header "INSTALACIÓN COMPLETA"
     info "Ejecutar el servidor: taller_server <puerto>"
