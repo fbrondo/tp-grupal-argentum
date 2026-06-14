@@ -5,7 +5,6 @@ max_inventory = 40
 #-------------------------------------------------------------------------------------------------------
 [clan]
 max_members = 16
-
 #------------------------------------------------------------------------------------------------------
 [times]
 # frecuencia de actualizacion del servidor. El juego procesa la logica 30 veces por segundos.
@@ -24,7 +23,6 @@ disappear_dropped_item = 60000
 
 # Auto save. El servidor guarda el progreso de los jugadores en el base cada 60 segundos.
 pesist_data = 60000
-
 #
 npc_attack_cooldown = 1000
 

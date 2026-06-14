@@ -1,7 +1,10 @@
-#include "../../includes/npc/merchant.h"
+#include "server/includes/npc/merchant.h"
 
-Merchant::Merchant(TypeNPC type, std::string&& name, Position&& pos,
-                   std::map<TypeItem, std::unique_ptr<Item>>&& store):
-        CityNPC(type, std::move(name), std::move(pos)), store(std::move(store)) {}
+// Merchant::Merchant(TypeNPC type, std::string&& name, Pose&& pose,
+//                    std::map<TypeItem, std::unique_ptr<Item>>&& store):
+//         TraderNPC(type, std::move(name), std::move(pose), std::move(store)) {}
+
+Merchant::Merchant(TypeNPC type, const std::string& name, std::vector<TypeItem> items_):
+        TraderNPC(type, name, items_) {}
 
 // void Merchant::interact(const Id& id_player, World& word, Comand& cmd) {}

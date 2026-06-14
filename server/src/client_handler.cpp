@@ -38,7 +38,7 @@ void ClientHandler::join() {
 }
 
 ClientHandler::~ClientHandler() {
-    this->stop();
-    this->join();
-    this->monitor.removeQueuesPlayer(this->player_id);
+    // this->stop();
+    // this->join();
+    // this->monitor.removeQueuesPlayer(this->player_id);
 }

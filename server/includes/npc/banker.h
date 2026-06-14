@@ -3,24 +3,18 @@
 
 #include <cstdint>
 #include <map>
-#include <memory>
+// #include <memory>
 #include <string>
-#include <utility>
-#include <vector>
 
-#include "../core/item.h"
-#include "../core/map.h"
 #include "common/includes/types.h"
-// #include "../commands/command.h"
-#include "../player.h"
+#include "server/includes//player.h"
+#include "server/includes/npc/citizen_npc.h"
 
-#include "citynpc.h"
 
-class Comand;
-class World;
-struct BanckAccount {
-    uint16_t golden;
-    std::vector<std::unique_ptr<ItemInstace>> safe_box;
+struct Account {
+    uint32_t golden{0};
+    std::map<Id, ItemInstance> safe_box;
+    Account() = default;
 };
 
 /*Banquero - Interaccion:
@@ -28,16 +22,15 @@ struct BanckAccount {
     - vender
     - listar
 */
-class Banker: public CityNPC {
-
+class Banker: public CitizenNPC {
 private:
-    /*Toda clase de Items menos items magicos*/
-    std::map<TypeItem, std::unique_ptr<Item>> store;
+    std::map<Id, Account> bank;
 
 public:
-    Banker(TypeNPC type, std::string&& name, Position&& pos);
-    ~Banker() = default;
-    // void interact(const Id& id_player, World& word, Comand& cmd) override;
+    Banker(TypeNPC type, const std::string& name /*,const Pose& pos*/);
+    void createPlayerAccount(const Id& player_id);
+    ~Banker() override = default;
+    InteractionResult interact() override;
 };
 
 #endif

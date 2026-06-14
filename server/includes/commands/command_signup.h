@@ -1,25 +1,20 @@
 #pragma once
 
 #include <string>
-#include <tuple>
 
 #include "common/includes/core/character_traits.h"
+#include "common/includes/core/user.h"
 #include "common/includes/types.h"
-
-#include "command.h"
-
-using std::string;
-using SignupInfo = std::tuple<Id, string, string, CharacterTraits>;
+#include "server/includes/commands/command.h"
 
 class SignupCommand: public Command {
 private:
-    string username;
-    string password;
+    User user;
     CharacterTraits charact;
 
-
 public:
-    SignupCommand(Id id, const string& username, const string& pass, CharacterTraits&& charact);
-    SignupInfo getSignupInfo();
-    void execute(World& world) override;
+    SignupCommand(Id id, const std::string& username, const std::string& pass,
+                  CharacterTraits&& charact);
+    // SignupInfo getSignupInfo();
+    void execute(Gameloop& game) override;
 };

@@ -1,12 +1,10 @@
-#include "../../includes/commands/command_move.h"
+#include "server/includes/commands/command_move.h"
 
-MoveCommand::MoveCommand(uint32_t id, uint8_t dir): Command(id), direction(dir) {}
+#include "common/includes/direction.h"
+#include "server/includes/gameloop.h"
 
+MoveCommand::MoveCommand(Id id, uint8_t dir): Command(id), direction(dir) {}
 
-MoveInfo MoveCommand::getMoveInfo() {
-    return std::make_tuple(client_id, static_cast<Direction>(this->direction));
-}
-
-void MoveCommand::execute(World& world) {
-    world.movePlayer(this->client_id, static_cast<Direction>(this->direction));
+void MoveCommand::execute(Gameloop& game) {
+    game.processMovePlayer(this->client_id, static_cast<Direction>(this->direction));
 }

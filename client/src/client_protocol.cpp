@@ -70,7 +70,7 @@ void ClientProtocol::sendChat(const std::string& msg) const {
 void ClientProtocol::sendUseItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
     msg.opcode = USE_ITEM;
-    msg.slot_index = slot_index;
+    msg.instance_id = slot_index;
     try {
         socket.sendall(&msg, sizeof(MsgSlotItem));
     } catch (const std::exception& e) {
@@ -81,7 +81,7 @@ void ClientProtocol::sendUseItem(const uint8_t slot_index) const {
 void ClientProtocol::sendDropItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
     msg.opcode = DROP_ITEM;
-    msg.slot_index = slot_index;
+    msg.instance_id = slot_index;
     try {
         socket.sendall(&msg, sizeof(MsgSlotItem));
     } catch (const std::exception& e) {
@@ -174,6 +174,8 @@ void ClientProtocol::sendSignup(const std::string& user, const std::string& pass
     std::strncpy(msg.user, user.c_str(), sizeof(msg.user) - 1);
     std::strncpy(msg.password, password.c_str(), sizeof(msg.password) - 1);
     msg.traits = traits;
+    msg.traits.head = htons(msg.traits.head);
+    msg.traits.body = htons(msg.traits.body);
     try {
         socket.sendall(&msg, sizeof(MsgSignup));
     } catch (const std::exception& e) {
@@ -229,6 +231,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.hp = ntohs(p.hp);
                 p.mana = ntohs(p.mana);
                 p.max_mana = ntohs(p.max_mana);
+                p.body_id = ntohs(p.body_id);
+                p.head_id = ntohs(p.head_id);
                 out_event.world.players.push_back(p);
             }
 
@@ -289,6 +293,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             len = ntohs(len);
             out_event.text_payload.resize(len);
             socket.recvall(out_event.text_payload.data(), len);
+            socket.recvall(&out_event.player_id, sizeof(out_event.player_id));
+            out_event.player_id = ntohl(out_event.player_id);
             break;
         }
         case CHANGE_MAP: {

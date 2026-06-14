@@ -37,6 +37,10 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         p.pos_y = htonl(p.pos_y);
         p.max_hp = htons(p.max_hp);
         p.hp = htons(p.hp);
+        p.mana = htons(p.mana);
+        p.max_mana = htons(p.max_mana);
+        p.body_id = htons(p.body_id);
+        p.head_id = htons(p.head_id);
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));
         offset += sizeof(PlayerSnapshotData);
     }
@@ -127,8 +131,10 @@ void ServerProtocol::sendSimpleResponse(uint8_t opcode, bool success,
     }
 }
 
-void ServerProtocol::sendLoginResponse(bool success, const std::string& msg) const {
+void ServerProtocol::sendLoginResponse(bool success, Id player_id, const std::string& msg) const {
     sendSimpleResponse(LOGIN_RESPONSE, success, msg);
+    const uint32_t player_id_net = htonl(player_id);
+    socket.sendall(&player_id_net, sizeof(player_id_net));
 }
 
 void ServerProtocol::sendSignupResponse(bool success, const std::string& msg) const {
@@ -251,6 +257,66 @@ void ServerProtocol::sendMap(const Map& map) {
     }
 }
 
+void ServerProtocol::sendTraderCatalog(const std::map<TypeItem, uint32_t>& catalog) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t) + (catalog.size() * 5);
+
+    std::vector<char> buffer(size_total);
+    size_t offset = 0;
+
+    constexpr uint8_t opcode = TRADER_CATALOG;
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
+
+    uint16_t net_total_items = htons(static_cast<uint16_t>(catalog.size()));
+    std::memcpy(buffer.data() + offset, &net_total_items, sizeof(net_total_items));
+    offset += sizeof(net_total_items);
+
+    for (auto& [item_type, price]: catalog) {
+        uint8_t type_byte = static_cast<uint8_t>(item_type);
+        std::memcpy(buffer.data() + offset, &type_byte, sizeof(type_byte));
+        offset += sizeof(type_byte);
+
+        uint32_t net_price = htonl(price);
+        std::memcpy(buffer.data() + offset, &net_price, sizeof(net_price));
+        offset += sizeof(net_price);
+    }
+    try {
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendTraderCatalog -- ") + e.what());
+    }
+}
+
+void ServerProtocol::sendBankContent(const std::vector<MsgItemInfo>& items, uint32_t gold) {
+    const size_t size_items = items.size() * sizeof(MsgItemInfo);
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + size_items;
+
+    std::vector<char> buffer(size_total);
+    size_t offset = 0;
+
+    constexpr uint8_t opcode = BANK_CONTENT;
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
+
+    uint32_t net_gold = htonl(gold);
+    std::memcpy(buffer.data() + offset, &net_gold, sizeof(net_gold));
+    offset += sizeof(net_gold);
+
+    uint16_t net_total_items = htons(static_cast<uint16_t>(items.size()));
+    std::memcpy(buffer.data() + offset, &net_total_items, sizeof(net_total_items));
+    offset += sizeof(net_total_items);
+
+    if (!items.empty()) {
+        std::memcpy(buffer.data() + offset, items.data(), size_items);
+        offset += size_items;
+    }
+    try {
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendBankContent -- ") + e.what());
+    }
+}
+
 bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0)
@@ -277,6 +343,8 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             socket.recvall(&signup.traits.body, sizeof(signup.traits.body));
             socket.recvall(&signup.traits.race, sizeof(signup.traits.race));
             socket.recvall(&signup.traits.clase, sizeof(signup.traits.clase));
+            signup.traits.head = ntohs(signup.traits.head);
+            signup.traits.body = ntohs(signup.traits.body);
             signup.user[sizeof(signup.user) - 1] = '\0';
             signup.password[sizeof(signup.password) - 1] = '\0';
             // CharacterTraits traits = signup.traits;
@@ -288,20 +356,20 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         }
         case MOVE: {
             uint8_t dir;
-            this->socket.recvall(&dir, 1);
+            this->socket.recvall(&dir, sizeof(dir));
             queue.push(std::make_unique<MoveCommand>(player_id, dir));
             break;
         }
         case ATTACK: {
             uint32_t target_id;
-            socket.recvall(&target_id, 4);
+            socket.recvall(&target_id, sizeof(target_id));
             queue.push(std::make_unique<AttackCommand>(player_id, ntohl(target_id)));
             break;
         }
         case CHAT:
         case COMMAND: {
             uint16_t len;
-            socket.recvall(&len, 2);
+            socket.recvall(&len, sizeof(len));
             len = ntohs(len);
             std::string texto(len, '\0');
             socket.recvall(texto.data(), len);
@@ -310,12 +378,12 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         }
         case USE_ITEM:
         case DROP_ITEM: {
-            uint8_t slot;
-            socket.recvall(&slot, 1);
+            uint32_t instance_id;
+            socket.recvall(&instance_id, 4);
             if (opcode == USE_ITEM) {
-                queue.push(std::make_unique<UseItemCommand>(player_id, slot));
+                queue.push(std::make_unique<UseItemCommand>(player_id, ntohl(instance_id)));
             } else {
-                queue.push(std::make_unique<DropItemCommand>(player_id, slot));
+                queue.push(std::make_unique<DropItemCommand>(player_id, ntohl(instance_id)));
             }
             break;
         }
@@ -331,20 +399,55 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         }
         case BUY_ITEM:
         case SELL_ITEM: {
-            uint32_t npc_id;
-            uint16_t item_id;
-            uint16_t quantity;
-            socket.recvall(&npc_id, 4);
-            socket.recvall(&item_id, 2);
-            socket.recvall(&quantity, 2);
-            npc_id = ntohl(npc_id);
-            item_id = ntohs(item_id);
-            quantity = ntohs(quantity);
+            uint32_t network_npc_id;
+            uint32_t network_item_id;
+
+            socket.recvall(&network_npc_id, sizeof(network_npc_id));
+            socket.recvall(&network_item_id, sizeof(network_item_id));
+
+            Id npc_id = ntohl(network_npc_id);
+
+            Id item_id = ntohl(network_item_id);
+
             if (opcode == BUY_ITEM) {
-                queue.push(std::make_unique<BuyItemCommand>(player_id, npc_id, item_id, quantity));
+                queue.push(std::make_unique<BuyItemCommand>(player_id, npc_id, item_id));
             } else {
-                queue.push(std::make_unique<SellItemCommand>(player_id, npc_id, item_id, quantity));
+                queue.push(std::make_unique<SellItemCommand>(player_id, npc_id, item_id));
             }
+            break;
+        }
+        case DEPOSIT_ITEM:
+        case WITHDRAW_ITEM: {
+            Id item_id;
+            socket.recvall(&item_id, 2);
+            item_id = ntohs(item_id);
+
+            if (opcode == DEPOSIT_ITEM) {
+                queue.push(std::make_unique<DepositItemCommand>(player_id, item_id));
+            } else {
+                queue.push(std::make_unique<WithdrawItemCommand>(player_id, item_id));
+            }
+            break;
+        }
+        case DEPOSIT_GOLD:
+        case WITHDRAW_GOLD: {
+            uint32_t amount;
+            socket.recvall(&amount, 4);
+            amount = ntohl(amount);
+
+            if (opcode == DEPOSIT_GOLD) {
+                queue.push(std::make_unique<DepositGoldCommand>(player_id, amount));
+            } else {
+                queue.push(std::make_unique<WithdrawGoldCommand>(player_id, amount));
+            }
+            break;
+        }
+        case LIST_ITEMS: {
+            Id npc_id;
+            socket.recvall(&npc_id, 4);
+            npc_id = ntohl(npc_id);
+
+            queue.push(std::make_unique<ListItemsCommand>(player_id, npc_id));
             break;
         }
         case DISCONNECT: {

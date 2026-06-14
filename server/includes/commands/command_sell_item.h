@@ -1,16 +1,13 @@
 #pragma once
 
-#include "../world.h"
-
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 class SellItemCommand: public Command {
 private:
-    uint32_t npc_id;
-    uint16_t item_id;
-    uint16_t quantity;
+    Id npc_id;
+    Id item_id;
 
 public:
-    SellItemCommand(uint32_t id, uint32_t npc_id, uint16_t item_id, uint16_t quantity);
-    void execute(World& world) override;
+    SellItemCommand(Id id, Id npc_id, Id instance_id);
+    void execute(Gameloop& gameloop) override;
 };

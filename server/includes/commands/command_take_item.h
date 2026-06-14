@@ -1,11 +1,9 @@
 #pragma once
 
-#include "../world.h"
-
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 class TakeItemCommand: public Command {
 public:
-    explicit TakeItemCommand(uint32_t id);
-    void execute(World& world) override;
+    explicit TakeItemCommand(Id id);
+    void execute(Gameloop& game) override;
 };

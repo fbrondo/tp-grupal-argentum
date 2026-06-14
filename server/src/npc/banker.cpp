@@ -1,6 +1,13 @@
-#include "../../includes/npc/banker.h"
+#include "server/includes/npc/banker.h"
 
-Banker::Banker(TypeNPC type, std::string&& name, Position&& pos):
-        CityNPC(type, std::move(name), std::move(pos)) {}
+Banker::Banker(TypeNPC type, const std::string& name /*, const Pose& pose_*/):
+        CitizenNPC(type, name /*, pose_*/) {}
 
-// void Banker::interact(const Id& id_player, World& word, Comand& cmd) {}
+void Banker::createPlayerAccount(const Id& player_id) { this->bank.emplace(player_id, Account()); }
+
+InteractionResult Banker::interact() {
+    InteractionResult result;
+    result.type = InteractionType::BANK_BOX;
+    result.open_bank = true;
+    return result;
+}

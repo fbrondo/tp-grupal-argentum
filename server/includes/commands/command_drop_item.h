@@ -1,14 +1,12 @@
 #pragma once
 
-#include "../world.h"
-
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 class DropItemCommand: public Command {
 private:
-    uint8_t slot;
+    Id instance_id;
 
 public:
-    DropItemCommand(uint32_t id, uint8_t slot);
-    void execute(World& world) override;
+    DropItemCommand(Id id, Id instance_id);
+    void execute(Gameloop& gameloop) override;
 };

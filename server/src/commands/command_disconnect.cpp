@@ -1,7 +1,7 @@
-#include "../../includes/commands/command_disconnect.h"
+#include "server/includes/commands/command_disconnect.h"
 
-DisconnectCommand::DisconnectCommand(uint32_t id): Command(id) {}
+#include "server/includes/gameloop.h"
 
-void DisconnectCommand::execute(World& /*world*/) {
-    // world.disconnect_client(this->client_id);
-}
+DisconnectCommand::DisconnectCommand(Id id): Command(id) {}
+
+void DisconnectCommand::execute(Gameloop& game) { game.processDisconnect(this->client_id); }

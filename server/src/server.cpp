@@ -5,45 +5,38 @@
 #include <string>
 
 #include "server/includes/acceptor.h"
-#include "server/includes/definitions.h"
 #include "server/includes/gameloop.h"
-#include "server/includes/monitor_queues.h"
 #include "server/print.h"
 
 Server::Server(const char* serverName, const char* config_path):
-        serverName(serverName), config(Path{config_path}) {}
+        serverName(serverName),
+        load_config(Path{config_path}),
+        acceptor(serverName, this->monitor, this->commands_queue) {}
 
 
 void Server::start() {
     Print::initServer();
-    QueueCmd commands_queue;
-    MonitorQueues monitor;
-    Acceptor acceptorPlayers(this->serverName, monitor, commands_queue);
-    acceptorPlayers.start();
-
-    // std::cerr << "Antes de construir Gameloop..." << std::endl;
-    // std::cerr << "Gameloop construido, antes de start..." << std::endl;
-    // std::cerr << "Gameloop started OK" << std::endl;
-    Gameloop gameWord(this->config, monitor, commands_queue);
+    acceptor.start();
+    GameConfig conf = this->load_config.getdGameConfiguration();
+    Gameloop gameWord(std::move(conf), monitor, commands_queue);
     gameWord.start();
 
-    std::string comandExit;
-    while (std::getline(std::cin, comandExit)) {
-        if (comandExit != "q") {
+    std::string comand_exit;
+    while (std::getline(std::cin, comand_exit)) {
+        if (comand_exit != "q") {
             continue;
         } else {
             break;
         }
     }
-    acceptorPlayers.stop();
-    gameWord.stop();
+    this->acceptor.stop();
+    this->acceptor.clear();
+    this->commands_queue.close();
 
-    acceptorPlayers.join();
+    gameWord.stop();
     gameWord.join();
 
-    acceptorPlayers.clear();
-
-    commands_queue.close();
+    this->acceptor.join();
 }
 
-Server::~Server() {}
+Server::~Server() { std::cout << "[Server] Apagado completo con éxito." << std::endl; }

@@ -1,133 +1,117 @@
-#REGIONES DONDE PUEDEN APARARECER ESTOS NPCS -> CAMPOS,BOSQUES, DESIERTOS, CAVERNAS, MAZMORRAS
-#-----------------------------------------------------------------------------------------------------------------------
-[[npcs]]
-id_type = 1 #puede no ser necesario si ya tengo el id
-name = "Goblin"
-attack_range = 4
-hp_max_initial = 40
-
-[[npcs.regions]] #En el campo solo van a aparecer goblin que esten en estos niveles "faciles"
-id_region = 5 #CAMPO
-minimalLevel = 1
-maximunLevel = 8
-
-[[npcs.regions]] #En el bosque solo van a aparecer goblin que esten en estos niveles "medios"
-id_region = 3 #FOREST
-minimalLevel = 9
-maximunLevel = 14
-# -------------------------------------------------------------------------------------------------------------------------
-[[npcs]]
-id_type = 2
-name = "Araña"
-attack_range = 4
-hp_max_initial = 60
-
-[[npcs.regions]] #En las mazmorras solo van a aparecer estas arañas que tiene en estos niveles "dificiles"
-id_region =  2 #MAZMORRA
-minimalLevel = 32
-maximunLevel = 38
-
-[[npcs.regions]] #En las cavernas solo van a aparecer estas arañas que tiene en estos niveles "dificiles"
-id_region = 1 #CAVERNA
-minimalLevel = 24
-maximunLevel = 30
-
-[[npcs.regions]] #En los bosques solo van a aparecer estas arañas que tiene en estos niveles "medios"
-id_region = 3 #FOREST
-minimalLevel = 10
-maximunLevel = 15
-#------------------------------------------------------------------------------------------------------------------------
-[[npcs]]
-id_type = 3
-name = "Esqueletos"
-attack_range = 3
-hp_max_initial = 80
-
-[[npcs.regions]] #En el campo solo van a aparecer esqueletos que esten en estos niveles "dificiles"
-id_region = 2 #MAZMORRA
-minimalLevel = 30
-maximunLevel = 40
-
-[[npcs.regions]] #En el bosque solo van a aparecer esqueletos que esten en estos niveles "medios-dificiles"
-id_region = 4 #DESERT
-minimalLevel = 17
-maximunLevel = 23
-#------------------------------------------------------------------------------------------------------------------------
-[[npcs]]
-id_type = 4
-name = "Orco"
-attack_range = 6
-hp_max_initial = 100
-
-[[npcs.regions]] #En las mazmorras solo van a aparecer orcos que esten en estos niveles "dificiles"
-id_region =  2 #MAZMORRA
-minimalLevel = 31
-maximunLevel = 40
-
-[[npcs.regions]] #En las cavernas solo van a aparecer orcos que esten en estos niveles "dificiles"
-id_region = 1 #CAVERNA
-minimalLevel = 25
-maximunLevel = 30
-
-[[npcs.regions]] #En el Desierto solo van a aparecer orcos que esten en estos niveles "medio/dificiles"
-id_region = 4 #DESERT
-minimalLevel = 17
-maximunLevel = 20
-#------------------------------------------------------------------------------------------------------------------------
-[[npcs]]
-id_type = 5
-name = "Golem"
-attack_range = 3
-hp_max_initial = 120
-
-[[npcs.regions]] #En el desierto solo van a aparecer golem que esten en estos niveles "medio/dificiles"
-id_region = 4 #DESERT
-minimalLevel = 17
-maximunLevel = 22
-
-[[npcs.regions]] #En las cavernas solo van a aparecer golem que esten en estos niveles "dificiles"
-id_region = 1 #CAVERNA
-minimalLevel = 24
-maximunLevel = 30
-#-------------------------------------------------------------------------------------------------------------------------
-[[npcs]]
-id_type = 6
-name = "Zombie"
-attack_range = 4
-hp_max_initial = 150
-
-[[npcs.regions]] #En el desierto solo van a aparecer zombies que esten en estos niveles dificiles"
-id_region = 2 #MAZMORRA
-minimalLevel = 30
-maximunLevel = 40
+##-----------------------------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 1 #GOBLIN DE CAMPO
+#name = "Goblin de campo"
+#attack_range = 4
+#hp_max_initial = 40
+#minimal_level = 1
+#maximun_level = 8
+##CAMPO: 5
+##--------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 2 #GOBLIN DE BOSQUE
+#name = "Goblin de bosque"
+#attack_range = 4
+#hp_max_initial = 40
+#minimal_level = 9
+#maximun_level = 14
+##FOREST:3
+##------------------------------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 3 #ESQUELETO
+#name = "Esqueleto"
+#attack_range = 3
+#hp_max_initial = 80
+#minimal_level = 17
+#maximun_level = 23
+##DESERT:4
+##--------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 4 #ESQUELETO GUERRERO
+#name = "Esqueleto guerrero"
+#attack_range = 3
+#hp_max_initial = 100
+#minimal_level = 30
+#maximun_level = 40
+##MAZMORRA:2
+##-------------------------------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 5
+#name = "Zombie"
+#attack_range = 4
+#hp_max_initial = 150
+#minimal_level = 30
+#maximun_level = 40
+##MAZMORRA:3
+## -------------------------------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 6 #ARANA DE MAZMORA
+#name = "Araña de mazmorra"
+#attack_range = 4
+#hp_max_initial = 60
+#minimal_level = 32
+#maximun_level = 38
+##MAZMORRA:2
+##-----------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 7 #ARANA DE CAVERNA
+#name = "Araña de carvena"
+#attack_range = 4
+#hp_max_initial = 60
+#id_region = 1 #CAVERNA
+#minimal_level = 24
+#maximun_level = 30
+##--------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 8 #ARANA DE BOSQUE
+#name = "Araña de bosque"
+#attack_range = 4
+#hp_max_initial = 30
+#minimal_level = 10
+#maximun_level = 15
+##FOREST:3
+##------------------------------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 9 #ORCO
+#name = "Orco"
+#attack_range = 6
+#hp_max_initial = 100
+#minimal_level = 10
+#maximun_level = 20
+##CAVERN:1
+##------------------------------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 10 #GOLEM
+#name = "Golem"
+#attack_range = 3
+#hp_max_initial = 120
+#minimal_level = 17
+#maximun_level = 22
+##DESERT:4
+##------------------------------------------------------------------------------------------------------------------------
+#[[npcs]]
+#id_type = 11 #GOLEM INFERNAL
+#name = "Golem infernal"
+#attack_range = 3
+#hp_max_initial = 120
+#minimal_level = 17
+#maximun_level = 22
+##DESERT:4  #CAVERNA:1
 #------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 7
+id_type = 12
 name = "Comerciante"
-
-[[npcs.regions]]
-id_region = 7 #PUEBLO
-
-[[npcs.regions]] 
-id_region = 6 # CITY
+id_items_store = [1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]#Puede vender/comprar: cualquier item,menos baculos y varas (hechizos)
+#PUEBLO: 7, CITY:6
 #------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 8
+id_type = 13
 name = "Sacerdote"
-
-[[npcs.regions]]
-id_region = 7 #PUEBLO
-
-[[npcs.regions]] 
-id_region = 6 # CITY
+id_items_store = [4, 5, 6, 7, 18, 19]#Puede vender: baculos, varas, pociones
+#PUEBLO:7, CITY:6
 #----------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 9
+id_type = 14
 name = "Banquero"
-
-[[npcs.regions]]
-id_region = 7 #PUEBLO
-
-[[npcs.regions]] 
-id_region = 6 #CITY
+#PUEBLO:7, CITY:6
 #------------------------------------------------------------------------------------------------

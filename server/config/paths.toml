@@ -4,10 +4,11 @@ clases = "clases.toml"
 races = "races.toml"
 items = "items.toml"
 npcs = "npcs.toml"
+creatures = "creatures.toml"
 regions = "regions.toml"
 
 [data]
 players = "data/players.dat"
 indx_players = "data/players.idx"
 world = "data/world.dat" #guardo el estado del mundo
-map = "data/mapa-01.toml" #despues deberia ser data/mapa.toml
+map = "data/mapa-pueblo.toml" #despues deberia ser data/mapa.toml

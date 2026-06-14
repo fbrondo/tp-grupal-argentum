@@ -12,6 +12,7 @@
 #include "server/includes/core/config.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/race.h"
+#include "server/includes/core/region.h"
 #include "server/includes/definitions.h"
 
 using Table = toml::table;
@@ -25,11 +26,18 @@ private:
     FileData data;
 
     void loadPaths();
-    // void loadFilesData();
-    Statistics loadTableStatistics(Table_array* stats_array);
     Path loadPath(const Table& config, const std::string& section_key,
                   const std::string& fiel_key) const;
 
+    Statistics loadTableStatistics(Table_array* stats_array);
+
+    void loadCreatures(std::map<std::string, CreatureConfig>& creatures);
+    void loadNpcSafeZone(std::map<std::string, NpcSafeZone>& npcs);
+    void loadRaces(std::map<TypeRace, Race>& info_races);
+    void loadClases(std::map<TypeClase, Clase>& info_clases);
+    void loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items);
+    void loadRegions(std::map<Region, std::unique_ptr<RegionWorld>>& info_regions);
+    void loadGame(PlayerStateInit& player_init, ClanConfig& clan, TimesConfig& times);
 
 public:
     GameConfigLoader(const GameConfigLoader& other) = delete;
@@ -38,9 +46,6 @@ public:
     explicit GameConfigLoader(Path config_dir_);
 
     const FileData getFilesData();
-    void loadRaces(std::unordered_map<TypeRace, Race>& info_races);
-    void loadClases(std::unordered_map<TypeClase, Clase>& info_clases);
-    void loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items);
     GameConfig getdGameConfiguration();
 };
 

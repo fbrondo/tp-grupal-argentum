@@ -5,34 +5,25 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
-#include "../core/item.h"
-#include "../core/map.h"
 #include "common/includes/types.h"
+#include "server/includes/core/item.h"
+#include "server/includes/core/map.h"
+#include "server/includes/npc/trader.h"
+#include "server/includes/player.h"
 
-// #include "../commands/command.h"
-#include "../player.h"
-
-#include "citynpc.h"
-
-class Comand;
-class World;
 
 /*COMERCIANTE - Interaccion:
     - comprar
     - vender
 */
-class Merchant: public CityNPC {
-
-private:
-    /*Toda clase de Items menos items magicos*/
-    std::map<TypeItem, std::unique_ptr<Item>> store;
-
+class Merchant: public TraderNPC {
 public:
-    Merchant(TypeNPC type, std::string&& name, Position&& pos,
-             std::map<TypeItem, std::unique_ptr<Item>>&& store);
-    ~Merchant() = default;
-    // void interact(const Id& id_player, World& word, Comand& cmd) override;
+    // Merchant(TypeNPC type, const std::string& name, Pose&& pos,
+    //          std::map<TypeItem, std::unique_ptr<Item>>&& store);
+    Merchant(TypeNPC type, const std::string& name, std::vector<TypeItem> items_);
+    ~Merchant() override = default;
 };
 
 #endif

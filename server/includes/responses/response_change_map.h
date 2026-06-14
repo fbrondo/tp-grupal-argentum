@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "server/includes/responses/response.h"
-#include "server/includes/server_protocol.h"
 
 class ResponseChangeMap: public Response {
 private:

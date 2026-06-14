@@ -4,34 +4,29 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
-#include "server/includes/npc/citynpc.h"
-// #include "command.h"
+#include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
-
-
-class Comand;
-class World;
 
 /*SACERDOTE - Interaccion:
     - resucitar jugador
     - curar jugador (puede curar tanto mana como vida)
     - puede vender baculos, varas, pociones.
 */
-class Priest: public CityNPC {
-
+class Priest: public TraderNPC {
 private:
     /*Baculos, varas, pociones*/
-    std::map<TypeItem, std::unique_ptr<Item>> store;
+    // std::map<TypeItem, std::unique_ptr<Item>> store;
 
 public:
-    Priest(TypeNPC type, std::string&& name, Position&& pos,
-           std::map<TypeItem, std::unique_ptr<Item>>&& store_);
-    ~Priest() = default;
-    // void interact(const Id& id_player, World& word, Comand& cmd) override;
+    // Priest(TypeNPC type, std::string&& name, Pose&& pos,
+    //        std::map<TypeItem, std::unique_ptr<Item>>&& store_);
+    Priest(TypeNPC type, const std::string& name, std::vector<TypeItem> items_);
+    ~Priest() override = default;
 };
 
 #endif

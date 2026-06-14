@@ -1,7 +1,9 @@
-#include "../../includes/commands/command_use_item.h"
+#include "server/includes/commands/command_use_item.h"
 
-UseItemCommand::UseItemCommand(uint32_t id, uint8_t slot): Command(id), slot(slot) {}
+#include "server/includes/gameloop.h"
 
-void UseItemCommand::execute(World& /*world*/) {
+UseItemCommand::UseItemCommand(Id id, Id slot): Command(id), slot_id(slot) {}
+
+void UseItemCommand::execute(Gameloop& /*world*/) {
     // world.use_item(client_id, slot);
 }

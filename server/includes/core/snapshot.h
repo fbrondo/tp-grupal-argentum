@@ -1,16 +1,15 @@
 #ifndef SNAPSHOT_H
 #define SNAPSHOT_H
-// #pragma once
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
-#pragma pack(push, 1)
+// #include "cmake-build-linux/_deps/sdl2_mixer-src/src/codecs/stb_vorbis/stb_vorbis.h"
 
+#pragma pack(push, 1)
 struct PlayerSnapshotData {
     uint32_t id;
-
     // Posicion en el mapa
     uint32_t pos_x;
     uint32_t pos_y;
@@ -21,10 +20,13 @@ struct PlayerSnapshotData {
     uint16_t mana;
     uint16_t max_mana;
 
-    uint8_t body_id;
-    uint8_t head_id;
+    uint16_t body_id;
+    uint16_t head_id;
+    /*equipo*/
     uint8_t weapon_id;
-    uint8_t shield_id;
+    uint8_t shield_id; /*Debe ser none si no esta equipado*/
+    uint8_t armor_id;
+    uint8_t head;
 
     uint8_t raza;
     uint8_t clase;
@@ -46,6 +48,13 @@ struct ItemGroundSnapshotData {
     uint32_t pos_y;
 };
 
+struct GoldPileGroundSnapshotData {
+    uint32_t id;
+    uint32_t amount;
+    uint32_t pos_x;
+    uint32_t pos_y;
+};
+
 // No estoy seguro aun como manejar los efectos visuales
 struct VisualEffect {
     uint32_t pos_x;
@@ -54,14 +63,11 @@ struct VisualEffect {
 };
 
 #pragma pack(pop)
-
 struct Snapshot {
-    // uint32_t turn_number;  // Turno actual
-
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;
     std::vector<ItemGroundSnapshotData> items_on_floor;
-
+    std::vector<GoldPileGroundSnapshotData> gold_piles;
     std::vector<VisualEffect> effects;
 };
 

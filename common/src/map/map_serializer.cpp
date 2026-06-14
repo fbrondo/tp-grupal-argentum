@@ -44,9 +44,7 @@ static Region regionFromString(const std::string& region_str) {
 }
 
 Map MapSerializer::load(const std::filesystem::path& filepath) {
-    std::cout << "--- Serializando Map: " << filepath << " ---" << std::endl;
     TomlConfig cfg(filepath);
-
     std::string name = cfg.get_or<std::string>("metadata.name", "");
     int width = cfg.get_or<int>("metadata.width", 0);
     int height = cfg.get_or<int>("metadata.height", 0);
@@ -73,7 +71,6 @@ Map MapSerializer::load(const std::filesystem::path& filepath) {
             tiles[j].region = (j < regions.size()) ? regionFromString(regions[j]) : Region::Field;
         }
     }
-    std::cout << "--- Termino serializacion Map: " << filepath << " ---" << std::endl;
     return map;
 }
 

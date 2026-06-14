@@ -1,11 +1,8 @@
 #pragma once
-
-#include "../world.h"
-
-#include "command.h"
+#include "server/includes/commands/command.h"
 
 class DisconnectCommand: public Command {
 public:
-    explicit DisconnectCommand(uint32_t id);
-    void execute(World& world) override;
+    explicit DisconnectCommand(Id id);
+    void execute(Gameloop& game) override;
 };

@@ -8,6 +8,7 @@
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_):
         renderer(renderer_),
         texture_manager(texture_manager_),
+        hud_renderer(renderer, texture_manager, WINDOW_W, WINDOW_H),
         local_player_id(0),
         current_map(std::nullopt) {
 
@@ -28,8 +29,9 @@ void WorldRenderer::load_map(Map&& new_map) {
     current_map = std::move(new_map);
     camera.x = 0;
     camera.y = 0;
-    std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión: "
-              << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;
+    /*std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión:
+       "
+              << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;*/
 }
 
 void WorldRenderer::center_camera_on_player() {
@@ -45,27 +47,22 @@ void WorldRenderer::center_camera_on_player() {
     const float player_y = it->second->get_pixel_y();
 
     // Centramos la cámara restando la mitad de sus dimensiones de visor
-    camera.x = static_cast<int>(player_x) - (camera.w / 2);
-    camera.y = static_cast<int>(player_y) - (camera.h / 2);
+    const int target_x = static_cast<int>(player_x) + (TILE_SIZE / 2) - (camera.w / 2);
+    const int target_y = static_cast<int>(player_y) + (TILE_SIZE / 2) - (camera.h / 2);
 
     // LIMITACIÓN DE BORDES: Evitamos que la cámara muestre negro fuera de los límites del mapa
     const int max_width_px = current_map->width() * TILE_SIZE;
     const int max_height_px = current_map->height() * TILE_SIZE;
 
-    if (camera.x < 0)
-        camera.x = 0;
-    if (camera.y < 0)
-        camera.y = 0;
-    if (camera.x > max_width_px - camera.w)
-        camera.x = max_width_px - camera.w;
-    if (camera.y > max_height_px - camera.h)
-        camera.y = max_height_px - camera.h;
+    const int max_camera_x = std::max(0, max_width_px - camera.w);
+    const int max_camera_y = std::max(0, max_height_px - camera.h);
+    camera.x = std::clamp(target_x, 0, max_camera_x);
+    camera.y = std::clamp(target_y, 0, max_camera_y);
 }
 
 void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
     // Registro para saber qué entidades siguen activas en el rango de visión
     std::vector<uint32_t> ids_en_snapshot;
-
     // A. PROCESAR JUGADORES
     for (const auto& p_data: snapshot.players) {
         ids_en_snapshot.push_back(p_data.id);
@@ -144,6 +141,9 @@ void WorldRenderer::render() {
         return;
 
     center_camera_on_player();
+
+    SDL_RenderSetClipRect(renderer.Get(), nullptr);
+    hud_renderer.render();
 
     SDL_Rect view_rect = {camera_screen_offset_x, camera_screen_offset_y, camera.w, camera.h};
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);

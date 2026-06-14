@@ -21,40 +21,45 @@ void Client::handle_events() {
             is_running = false;
             return;
         }
-        if (event.type == SDL_KEYDOWN) {
-            Direction dir;
-            bool is_move = true;
-
-            switch (event.key.keysym.sym) {
-                case SDLK_ESCAPE:
-                    is_running = false;
-                    return;
-                case SDLK_DOWN:
-                case SDLK_s:
-                    dir = DOWN;
-                    break;
-                case SDLK_UP:
-                case SDLK_w:
-                    dir = UP;
-                    break;
-                case SDLK_LEFT:
-                case SDLK_a:
-                    dir = LEFT;
-                    break;
-                case SDLK_RIGHT:
-                case SDLK_d:
-                    dir = RIGHT;
-                    break;
-                default:
-                    is_move = false;
-                    break;
-            }
-            if (is_move) {
-                auto cmd = std::make_unique<MoveCommandClient>(dir);
-                cmd_queue.push(std::move(cmd));
-            }
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
+            is_running = false;
+            return;
         }
     }
+}
+
+void Client::process_movement_input() {
+    const uint8_t* keys = SDL_GetKeyboardState(nullptr);
+    Direction direction = DOWN;
+    bool movement_key_down = true;
+
+    if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S]) {
+        direction = DOWN;
+    } else if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W]) {
+        direction = UP;
+    } else if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A]) {
+        direction = LEFT;
+    } else if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D]) {
+        direction = RIGHT;
+    } else {
+        movement_key_down = false;
+    }
+
+    if (!movement_key_down) {
+        movement_key_was_down = false;
+        return;
+    }
+
+    const uint32_t now = SDL_GetTicks();
+    const bool direction_changed = movement_key_was_down && direction != last_move_direction;
+    const bool repeat_due = now - last_move_command_ticks >= MOVE_REPEAT_MS;
+
+    if (!movement_key_was_down || direction_changed || repeat_due) {
+        cmd_queue.push(std::make_unique<MoveCommandClient>(direction));
+        last_move_command_ticks = now;
+        last_move_direction = direction;
+    }
+    movement_key_was_down = true;
 }
 
 void Client::clear_display() { window.clear(); }
@@ -117,8 +122,21 @@ void Client::close() {
 
 void Client::launch(const std::string& user, const std::string& pass) {
     try {
-        if (!user.empty())
+        if (!user.empty()) {
             protocol.sendLogin(user, pass);
+            EventClient login_event;
+            while (protocol.receiveMessage(login_event)) {
+                if (login_event.type == TypeEventClient::LOGIN_RESPONSE) {
+                    if (login_event.login_success) {
+                        world_renderer.set_local_player(login_event.player_id);
+                    }
+                    break;
+                }
+                if (login_event.type == TypeEventClient::MAP_DATA) {
+                    world_renderer.load_map(std::move(login_event.map_data));
+                }
+            }
+        }
         sender.start();
         receiver.start();
         last_frame_ticks = SDL_GetTicks();
@@ -131,6 +149,7 @@ void Client::launch(const std::string& user, const std::string& pass) {
 
             update_state_from_server();
             handle_events();
+            process_movement_input();
             world_renderer.update_animations(dt);
             clear_display();
             render_in_z_order();

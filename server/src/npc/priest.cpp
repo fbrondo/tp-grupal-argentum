@@ -1,7 +1,8 @@
-#include "../../includes/npc/priest.h"
+#include "server/includes/npc/priest.h"
 
-Priest::Priest(TypeNPC type, std::string&& name, Position&& pos,
-               std::map<TypeItem, std::unique_ptr<Item>>&& store_):
-        CityNPC(type, std::move(name), std::move(pos)), store(std::move(store_)) {}
+// Priest::Priest(TypeNPC type, std::string&& name, Pose&& pose,
+//                std::map<TypeItem, std::unique_ptr<Item>>&& store_):
+//         TraderNPC(type, std::move(name), std::move(pose), std::move(store_)) {}
 
-// void Priest::interact(const Id& id_player, World& world, Comand& cmd) {}
+Priest::Priest(TypeNPC type, const std::string& name, std::vector<TypeItem> items_):
+        TraderNPC(type, name, items_) {}

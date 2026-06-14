@@ -213,9 +213,16 @@ bool SignupWindow::runClient(const QStringList& args, QString& out_stdout) {
     QProcess proc;
     proc.start(binary, args);
 
+    if (!proc.waitForStarted(PROCESS_TIMEOUT_MS)) {
+        setStatus("No se pudo iniciar taller_client: " + proc.errorString());
+        return false;
+    }
+
     if (!proc.waitForFinished(PROCESS_TIMEOUT_MS)) {
         proc.kill();
-        setStatus("Timeout: no se pudo conectar al servidor.");
+        proc.waitForFinished();
+        const QString err = proc.readAllStandardError().trimmed();
+        setStatus(err.isEmpty() ? "Timeout: el servidor no respondió al registro." : err);
         return false;
     }
 

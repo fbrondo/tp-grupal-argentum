@@ -24,13 +24,17 @@ enum class TypeEventClient {
 };*/
 
 struct EventClient {
-    TypeEventClient type;
+    TypeEventClient type{TypeEventClient::UPDATE_WORLD};
     Snapshot world;
     MsgPlayerStats stats;
     std::string text_payload;  // Se usa para mensajes de chat, errores o el "OK"/"ERROR" del login
     bool login_success{false};
-    uint16_t map_id;  // Se usa para CAMBIO_MAPA
-    Map map_data;     // Se usa para MAP_DATA
+    uint32_t player_id{0};
+    uint16_t map_id{0};  // Se usa para CAMBIO_MAPA
+    Map map_data;        // Se usa para MAP_DATA
+    EventClient() = default;
+    EventClient(EventClient&&) = default;
+    EventClient& operator=(EventClient&&) = default;
 };
 
 #pragma pack(push, 1)
