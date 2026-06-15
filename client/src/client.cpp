@@ -52,8 +52,7 @@ void Client::process_movement_input() {
     }
 
     const uint32_t now = SDL_GetTicks();
-    const bool direction_changed =
-            movement_key_was_down && direction != last_move_direction;
+    const bool direction_changed = movement_key_was_down && direction != last_move_direction;
     const bool repeat_due = now - last_move_command_ticks >= MOVE_REPEAT_MS;
 
     if (!movement_key_was_down || direction_changed || repeat_due) {

@@ -1,6 +1,8 @@
 #ifndef PERSISTENCE_H
 #define PERSISTENCE_H
 
+#include <string>
+
 #include "common/includes/queue.h"
 #include "common/includes/thread.h"
 #include "server/includes/core/config.h"
