@@ -21,6 +21,7 @@
 #include "server/includes/responses/response_bank_content.h"
 #include "server/includes/responses/response_login.h"
 #include "server/includes/responses/response_map.h"
+#include "server/includes/responses/response_player_stats.h"
 #include "server/includes/responses/response_signup.h"
 #include "server/includes/responses/response_snapshot.h"
 #include "server/print.h"
@@ -625,6 +626,13 @@ void Gameloop::executeBroacastSnapshot() {
     this->monitor.executeBroadcast(std::move(resp_snap));
 }
 
+void Gameloop::sendPlayerStats() {
+    for (auto& [id, player]: this->players) {
+        this->monitor.queueTheServerResponse(
+                id, std::make_unique<ResponsePlayerStats>(player->getPlayerStats()));
+    }
+}
+
 void Gameloop::updatePlayersAttributes() {
     const float delta = this->conf.times.update_player_atributes / 1000.0f;
     for (auto& player: this->players | std::views::values) {
@@ -686,6 +694,7 @@ void Gameloop::run() {
                 timer_persistence = 0;
             }
             this->executeBroacastSnapshot();
+            this->sendPlayerStats();
             std::this_thread::sleep_for(std::chrono::milliseconds(TICK_MS));
         }
     } catch (const ClosedQueue&) {

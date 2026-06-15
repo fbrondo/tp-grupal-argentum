@@ -270,14 +270,24 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             socket.recvall(&out_event.stats.hp, sizeof(out_event.stats.hp));
             out_event.stats.hp = ntohl(out_event.stats.hp);
 
+            socket.recvall(&out_event.stats.max_hp, sizeof(out_event.stats.max_hp));
+            out_event.stats.max_hp = ntohl(out_event.stats.max_hp);
+
             socket.recvall(&out_event.stats.mana, sizeof(out_event.stats.mana));
             out_event.stats.mana = ntohl(out_event.stats.mana);
+
+            socket.recvall(&out_event.stats.max_mana, sizeof(out_event.stats.max_mana));
+            out_event.stats.max_mana = ntohl(out_event.stats.max_mana);
 
             socket.recvall(&out_event.stats.gold, sizeof(out_event.stats.gold));
             out_event.stats.gold = ntohl(out_event.stats.gold);
 
             socket.recvall(&out_event.stats.exp, sizeof(out_event.stats.exp));
             out_event.stats.exp = ntohl(out_event.stats.exp);
+
+            socket.recvall(&out_event.stats.exp_next_level,
+                           sizeof(out_event.stats.exp_next_level));
+            out_event.stats.exp_next_level = ntohl(out_event.stats.exp_next_level);
 
             socket.recvall(&out_event.stats.level, sizeof(out_event.stats.level));
             break;

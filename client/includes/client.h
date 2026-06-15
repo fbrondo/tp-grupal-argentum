@@ -5,6 +5,7 @@
 
 #include <SDL2pp/SDL.hh>
 #include <SDL2pp/SDLImage.hh>
+#include <SDL2pp/SDLTTF.hh>
 
 #include "client/includes/texture_manager.h"
 #include "client/includes/window/windowSDL.h"
@@ -39,6 +40,7 @@ private:
     ClientReceiver receiver;
 
     SDLImage img;
+    SDL2pp::SDLTTF ttf;
     WindowSDL window;
     TextureManager texture_manager;
     WorldRenderer world_renderer;

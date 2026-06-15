@@ -24,6 +24,14 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& textur
 
 void WorldRenderer::set_local_player(const uint32_t id) { local_player_id = id; }
 
+void WorldRenderer::set_player_name(const std::string& name) {
+    hud_renderer.set_player_name(name);
+}
+
+void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
+    hud_renderer.update_stats(stats);
+}
+
 void WorldRenderer::load_map(Map&& new_map) {
     entities.clear();
     current_map = std::move(new_map);

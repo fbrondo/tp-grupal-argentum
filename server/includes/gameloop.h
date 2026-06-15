@@ -75,6 +75,7 @@ private:
 
 
     void executeBroacastSnapshot();
+    void sendPlayerStats();
 
     /*Metodos del Comando Attack*/
     bool isItPossibleToAttack(const Id& player_id, const Id& victim, Weapon& weapon);

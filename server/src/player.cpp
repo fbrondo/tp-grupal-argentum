@@ -11,6 +11,7 @@
 
 Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerData& data):
         CombatEntity(pos, data), ch(std::move(ch_)) {
+    this->statics = this->ch.getStatistics();
     this->hp = data.hp;
     this->max_hp = this->hpMax();
     this->mana = data.mana;
@@ -167,6 +168,19 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     // uint8_t flags;
 }
 
+MsgPlayerStats Player::getPlayerStats() {
+    MsgPlayerStats stats{};
+    stats.hp = this->hp;
+    stats.max_hp = this->hpMax();
+    stats.mana = this->mana;
+    stats.max_mana = this->manaMax();
+    stats.gold = this->inv.golden;
+    stats.exp = this->exp;
+    stats.exp_next_level = GameFormulas::limitMoveUpToNextLevel(this->level);
+    stats.level = this->level;
+    return stats;
+}
+
 TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
 std::vector<TypeItem> Player::getEquipment() {
     /*Esto no cuesta nada, lo maximo que puedo llegar a tener en el equip son 4 elementos -> O(1)*/
@@ -266,9 +280,12 @@ void Player::restoreAllHp() { this->hp = this->hpMax(); }
 
 void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
     this->exp += GameFormulas::calculationPointsExpAttack(damage, victim->getLevel(), this->level);
+
     uint16_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
-    if (this->exp >= limit) {
+    while (this->exp >= limit) {
+        this->exp -= limit;
         this->level += 1;
+        limit = GameFormulas::limitMoveUpToNextLevel(this->level);
     }
 }
 

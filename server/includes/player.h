@@ -103,6 +103,7 @@ public:
     uint16_t calculateDefense(std::vector<Defense*> info_defense);
 
     PlayerSnapshotData getPlayerSnapshotData(const Id& id);
+    MsgPlayerStats getPlayerStats();
     PlayerData getPlayerData();
 
     void onDeath(World& world) override;  // El jugador se convierte en fantasma

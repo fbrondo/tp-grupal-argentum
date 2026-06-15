@@ -81,10 +81,12 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
     MsgPlayerStats temp = stats;
     temp.hp = htonl(stats.hp);
+    temp.max_hp = htonl(stats.max_hp);
     temp.mana = htonl(stats.mana);
+    temp.max_mana = htonl(stats.max_mana);
     temp.gold = htonl(stats.gold);
     temp.exp = htonl(stats.exp);
-    // temp.level = stats.level;
+    temp.exp_next_level = htonl(stats.exp_next_level);
     try {
         socket.sendall(&temp, sizeof(MsgPlayerStats));
     } catch (const std::exception& e) {

@@ -10,6 +10,7 @@ Client::Client(const char* host, const char* port):
         sender(protocol, cmd_queue),
         receiver(protocol, events_queue),
         img(IMG_INIT_JPG | IMG_INIT_PNG),
+        ttf(),
         window("Argentum Online"),
         texture_manager(window.get_renderer(), window),
         world_renderer(window.get_renderer(), texture_manager) {}
@@ -89,6 +90,9 @@ void Client::update_state_from_server() {
                 world_renderer.load_map(std::move(event.map_data));
                 break;
             }
+            case TypeEventClient::OWN_STATS:
+                world_renderer.update_hud_stats(event.stats);
+                break;
             case TypeEventClient::DISCONNECTION:
                 is_running = false;
                 break;
@@ -124,6 +128,7 @@ void Client::close() {
 void Client::launch(const std::string& user, const std::string& pass) {
     try {
         if (!user.empty()) {
+            world_renderer.set_player_name(user);
             protocol.sendLogin(user, pass);
             EventClient login_event;
             while (protocol.receiveMessage(login_event)) {
