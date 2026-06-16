@@ -53,14 +53,19 @@ target_sources(taller_server
         src/game_config_loader.cpp
         src/game_formulas.cpp
         src/gameloop.cpp
+        src/inventory.cpp
         src/main.cpp
+        src/items_positions.cpp
         src/monitor_queues.cpp
+        src/npcs_positions.cpp
         src/persistence.cpp
         src/data_storage.cpp
         src/player.cpp
         src/response_builder.cpp
         src/server_protocol.cpp
         src/server.cpp
+        src/slot.cpp
+        src/spawn_manager.cpp
         src/world.cpp
 
         print.cpp
@@ -88,6 +93,7 @@ target_sources(taller_server
         includes/commands/command_withdraw.h
         includes/commands/command_withdraw_gold.h
 
+        includes/core/bank.h
         includes/core/clase.h
         includes/core/config.h
         includes/core/data.h
@@ -133,13 +139,17 @@ target_sources(taller_server
         includes/game_config_loader.h
         includes/game_formulas.h
         includes/gameloop.h
+        includes/items_positions.h
         includes/monitor_queues.h
+        includes/npcs_positions.h
         includes/persistence.h
         includes/data_storage.h
         includes/player.h
         includes/response_builder.h
         includes/server.h
         includes/server_protocol.h
+        includes/slot.h
+        includes/spawn_manager.h
         includes/world.h
 
         print.h

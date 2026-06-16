@@ -21,8 +21,13 @@ struct Item {
     TypeItem type;
     explicit Item(TypeItem type_): type(type_) {}
     // Item() = default;
+
+    // virtual bool use(Player& user) {
+    //     throw std::runtime_error("Este objeto no se puede usar directamente desde el inventario.");
+    // }
     virtual ~Item() = default;
 };
+
 struct GoldPouche: Item {
     uint32_t amount;
     Position pos;
@@ -33,22 +38,25 @@ struct GoldPouche: Item {
 
 /*Un ShopItem es equipable y almacenable en un inventario/tienda */
 // consultar si es preferible usar una clase. Lo hice un struct porque no como tal no maneja logica.
-struct ShopItem: Item {          /*quiero cambiar esto */
-    BodyPart body_part_use;      //= NO_BODY;
-    ItemClassification classif;  // = NO_CLASS;
+struct ShopItem: Item {
+    TypeItem type;/*quiero cambiar esto */
+    BodyPart body_part_use{NO_BODY};      //= NO_BODY;
+    ItemClassification classif{NO_CLASSIF};  // = NO_CLASS;
     std::string name;
-    uint16_t selling_price;   // = 0;
-    uint16_t purchase_price;  // = 0;
+    uint32_t selling_price{0};
+    uint32_t purchase_price{0};
 
-    // ShopItem() = default;
+
     ShopItem(TypeItem type, BodyPart body, ItemClassification classif_, const std::string& name,
-             uint16_t sell_price, uint16_t purch_price):
+             uint32_t sell_price, uint32_t purch_price):
             Item(type),
             body_part_use(body),
             classif(classif_),
             name(name),
             selling_price(sell_price),
             purchase_price(purch_price) {}
+
+    virtual bool is_equpped() { return body_part_use != MOUTH; }
     virtual ~ShopItem() = default;
 };
 
@@ -64,7 +72,7 @@ struct Defense: ShopItem {
 
     // Defense() = default;
     Defense(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
-            uint16_t sell_price, uint16_t purch_price, uint16_t min_def, uint16_t max_def):
+            uint32_t sell_price, uint32_t purch_price, uint16_t min_def, uint16_t max_def):
             ShopItem(type, body, classif, name, sell_price, purch_price),
             minimal_defense(min_def),
             maximun_defense(max_def) {}
@@ -84,7 +92,7 @@ struct Weapon: ShopItem {
 
     // Weapon() = default;
     Weapon(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
-           uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam,
+           uint32_t sell_price, uint32_t purch_price, uint16_t min_dam, uint16_t max_dam,
            uint16_t r_attack):
             ShopItem(type, body, classif, name, sell_price, purch_price),
             minimal_damage(min_dam),
@@ -101,7 +109,7 @@ struct ObjectMagic: ShopItem {
 
     // ObjectMagic() = default;
     ObjectMagic(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
-                uint16_t sell_price, uint16_t purch_price, uint16_t m_cost, uint16_t range):
+                uint32_t sell_price, uint32_t purch_price, uint16_t m_cost, uint16_t range):
             ShopItem(type, body, classif, name, sell_price, purch_price),
             mana_cost(m_cost),
             range(range) {}
@@ -116,10 +124,28 @@ struct MagicWeapon: Weapon {
 
     // MagicWeapon() = default;
     MagicWeapon(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
-                uint16_t sell_price, uint16_t purch_price, uint16_t min_dam, uint16_t max_dam,
+                uint32_t sell_price, uint32_t purch_price, uint16_t min_dam, uint16_t max_dam,
                 uint16_t m_cost, uint16_t range):
             Weapon(type, body, classif, name, sell_price, purch_price, min_dam, max_dam, range),
             mana_cost(m_cost) {}
 };
 
+struct Potion: ShopItem {
+    uint16_t restore_amount;
+
+    Potion(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
+           uint16_t sell_price, uint16_t purch_price, uint16_t rest_amount):
+            ShopItem(type, body, classif, name, sell_price, purch_price),
+            restore_amount(rest_amount) {}
+
+
+    // bool use(Player& user) override {
+    //     if (this->type == TypeItem::LIFE_POTION) {
+    //         user.restoreHp(this->restore_amount);
+    //     } else if (this->type == TypeItem::MANA_POTION) {
+    //         user.restoreMana(this->restore_amount);
+    //     }
+    //     return true;
+    // }
+};
 #endif

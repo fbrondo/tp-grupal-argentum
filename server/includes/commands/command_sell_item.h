@@ -5,9 +5,10 @@
 class SellItemCommand: public Command {
 private:
     Id npc_id;
-    Id item_id;
+    TypeItem type_item;
+    //Id item_id;
 
 public:
-    SellItemCommand(Id id, Id npc_id, Id instance_id);
+    SellItemCommand(Id id, Id npc_id, uint8_t type_item);
     void execute(Gameloop& gameloop) override;
 };

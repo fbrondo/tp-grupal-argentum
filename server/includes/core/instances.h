@@ -7,18 +7,13 @@
 
 struct ItemInstance {
     Id id{0};
-    TypeItem type{NONE};
-    ItemClassification classification{NO_CLASSIF}; /* DEFENSIVE, ATTACK, HEALING*/
-    BodyPart body_part_use{NO_BODY};
-    Position pos; /*Nota cuando este equipado seguramente tenga la misma posicion que el jugador*/
+    Position position;
+    const Item* item{nullptr};
+    //bool is_equipped{false};
+
     ItemInstance() = default;
-
-    ItemInstance(const Id id_, TypeItem type, ItemClassification classif, BodyPart body_part):
-            id(id_), type(type), classification(classif), body_part_use(body_part) {}
-
-    ItemInstance(const Id id_, TypeItem type, ItemClassification classif, BodyPart body_part,
-                 Position pos):
-            id(id_), type(type), classification(classif), body_part_use(body_part), pos(pos) {}
+    ItemInstance(const Item* item_):item(item_) {}
+    ItemInstance(const Id id_, const  Item* item_): id(id_), item(item_) {}
 
     ItemInstance(ItemInstance&&) = default;
     ItemInstance& operator=(ItemInstance&&) = default;
@@ -27,24 +22,50 @@ struct ItemInstance {
     ItemInstance& operator=(const ItemInstance&) = default;
 };
 
-struct NpcInstance {
-    TypeNPC type;
-    Pose pose;
-    NpcInstance() = default;
-    NpcInstance(TypeNPC type_npc, const Pose& pose): type(type_npc), pose(pose) {}
-};
-
 struct GoldBagInstance {
+    Id id;
     uint32_t amount{0};
-    Position pos;
+    Position position;
 
     GoldBagInstance() = default;
-    GoldBagInstance(Position pos_, uint32_t amount_): amount(amount_), pos(pos_) {}
+    GoldBagInstance(Position pos_, uint32_t amount_): amount(amount_), position(pos_) {}
 
     GoldBagInstance(GoldBagInstance&&) = default;
     GoldBagInstance& operator=(GoldBagInstance&&) = default;
 
     GoldBagInstance(const GoldBagInstance&) = default;
     GoldBagInstance& operator=(const GoldBagInstance&) = default;
+};
+
+struct TreasureInstance {
+    Id      id{0};
+    Id      zone_id{0};
+    Position position;
+    uint32_t amount_golden{0};
+    std::vector<ItemInstance> items; // El tesoro contiene múltiples ítems adentro
+
+    TreasureInstance() = default;
+    TreasureInstance(TreasureInstance&&) = default;
+    TreasureInstance& operator=(TreasureInstance&&) = default;
+    TreasureInstance(const TreasureInstance&) = default;
+    TreasureInstance& operator=(const TreasureInstance&) = default;
+};
+
+struct NpcInstance {
+    Id id{0};
+    Id zone_id;
+    TypeNPC type;
+    Pose pose;
+
+    NpcInstance() = default;
+    NpcInstance(const Id& id_, const Id& zone_id_, TypeNPC type_, const Pose& pose):
+    id(id_),
+    zone_id(zone_id_),
+    type(type_),
+    pose(pose) {}
+    NpcInstance(NpcInstance&&) = default;
+    NpcInstance& operator=(NpcInstance&&) = default;
+    NpcInstance(const NpcInstance&) = default;
+    NpcInstance& operator=(const NpcInstance&) = default;
 };
 #endif

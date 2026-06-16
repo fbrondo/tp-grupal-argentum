@@ -16,6 +16,7 @@
 #include "client_protocol.h"
 #include "client_receiver.h"
 #include "client_sender.h"
+#include "sound_manager.h"
 
 using SDL2pp::Rect;
 using SDL2pp::Renderer;

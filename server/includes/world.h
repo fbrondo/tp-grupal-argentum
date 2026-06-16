@@ -5,7 +5,6 @@
 #include <map>
 #include <memory>
 #include <random>
-#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -17,9 +16,11 @@
 #include "server/includes/core/instances.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
-#include "server/includes/npc/citizen_npc.h"
-#include "server/includes/npc/trader.h"
+#include "server/includes/npcs_positions.h"
+#include "server/includes/items_positions.h"
 #include "server/includes/player.h"
+#include "server/includes/player.h"
+#include "server/includes/core/map.h"
 /*Representa mi mundo del juego:
     - Se sopne que recibo algo del editor para crear mi matriz
     - Una vez que se como es el mundo, esta clase sera la encargada modificar su estado
@@ -39,6 +40,8 @@ struct Zone {
     Id id;
     Region region;
     uint32_t tile_count{0};
+    uint32_t creatures_count{0};
+    uint32_t treasures_count{0};
     std::vector<Position> tiles;  // posiciones de todos los tiles de la zona
 };
 
@@ -49,34 +52,38 @@ using Path = std::filesystem::path;
 
 class World {
 private:
-    Id& next_item_id;
-    Map map;
+    Id next_item_id{0};
+    std::mt19937 gen;
+    const Map map;
     const uint32_t limit_height;
     const uint32_t limit_width;
     MatrizMap map_tiles;
-    std::mt19937 gen;
-
-    std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
-    std::map<Id, Zone> zones;               // todas las zonas identificadas
-    //std::map<Region, uint32_t> region_count;
-    std::vector<Id> safe_zones;  // spawn npc, new player o /resucitar
-
-    std::unordered_map<Position, bool, PositionHash> occupied_tiles;
+    //std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
+    //std::unordered_map<Id, Zone> zones;
+    std::unordered_map<Id, Zone> safe_zones;
+    std::unordered_map<Id, Zone>  hostile_zones;
+    std::unordered_map<Position, bool, PositionHash> not_walkable_tiles;
+    std::unordered_map<Position, bool, PositionHash> player_tiles;
 
     std::map<Id, Pose> players_positions;
-    std::map<Id, NpcInstance> creatures_positions;
-    std::map<Id, NpcInstance> npc_positions;
-    std::map<Id, Position> treausures_positions;
-    std::map<Id, ItemInstance> items_on_flor;
-    std::map<Id, GoldBagInstance> gold_on_floor;
+    NpcPositions npc_positions;
+    ItemsPositions item_positions;
+
+    // std::map<Id, NpcInstance> creatures_positions;
+    // std::map<Id, NpcInstance> bankers_positions;
+    // std::map<Id, NpcInstance> citizen_positions;
+    // std::map<Id, NpcInstance> priest_positions;
+
+    // std::map<Id, ItemInstance> items_on_flor;
+    // std::map<Id, Position> treausures_positions;
+    // std::map<Id, GoldBagInstance> gold_on_floor;
 
     void buildTilesWorld();
     void identifyZones();
     void floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone);
-    void saveIdsOfTheSafeZones();
 
-
-    bool isOccupied(const Position& pos);
+    bool positionNotWalkabled(const Position& pos) const;
+    bool isInPlayerVisionRange(const Position& pos) const;
     bool isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir);
     bool isWithinLimits(const Position& pos) const;
 
@@ -88,29 +95,37 @@ public:
     World(const World& other) = delete;
     World& operator=(const World& other) = delete;
 
-    explicit World(const Path& path, Id& next_item_id_);
+    explicit World(const Path& path);
     ~World() = default;
 
-    const std::vector<std::tuple<Id, Region>> getZones();
+    std::unordered_map<Id, Zone> getHostileZones();
+    std::unordered_map<Id, Zone> getSafeZones();
+
+    //const std::map<Id, Pose> get_players_positions();
+    // const std::map<Id, NpcInstance> get_creatures_positions();
+    // const std::map<Id, NpcInstance> get_npc_positions();
+    // const std::map<Id, Position> get_treausures_positions();
+    // const std::map<Id, ItemInstance> get_items_on_flor();
+    // const std::map<Id, GoldBagInstance> get_gold_on_floor();
 
     /*Consultas para validar*/
     const Map& getMap() const { return map; }
 
     bool isWalkable(const Id& id_player, const Direction dir);
-    bool isSafeZONE(const Position& /*pos*/);
-    bool canDropItemAt(const Position& pos);
+    bool isSafeZONE(const Position& pos);
+    //bool canDropItemAt(const Position& pos);
 
     Position calculatePositionRandom(const Id& zone_id);
     Position calculatePositionRandomSafeZone();
-    Position findNearbyFreePosition(const Position& center);
+    Position findNearbyFreePosition(const Position& center) const;
+    //Position findNearbyHealerPosition(const Position& center);
 
     void addPlayerWorld(const Id& player_id, const Pose& pose);
-    void addCreatureWorld(const Id& creature_id, TypeNPC type, const Pose& pose);
-    void addNpcWorld(const Id& npc_id, TypeNPC type, const Pose& pose);
+    void addNpcWorld(const NpcInstance& npc);
     void addItemWorld(const ItemInstance& item);
-    void addTreasuresWorld(const Id& treasures_id, const Position& position);
+    void addItemWorld(const GoldBagInstance& gold);
+    void addTreasuresWorld(TreasureInstance& treasure);
 
-    void addGoldWorld(const Id& id, const GoldBagInstance& gold);
     /*Un critauta pierde la vida*/
     void spawnGoldOnFloor(const GoldBagInstance& gold);
     /*Inicializacion*/
@@ -125,8 +140,9 @@ public:
     Position positionEntityTheWorld(const Id& id) const;
     Position positionPlayerInTheWorld(const Id& player_id);
 
-    NpcInstance* getNpcById(const Id& npc_id);
-    ItemInstance* getItemAt(const Position& pos);
+    //NpcInstance* getNpcById(const Id& npc_id);
+    void playerTakeItemOnTheFloor(Player& player);
+
     std::unique_ptr<ItemInstance> pickUpItem(const Position& pos);
     // void dropItem(const Position& pos, std::unique_ptr<ItemInstance> item);
 

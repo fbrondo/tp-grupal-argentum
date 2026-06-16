@@ -7,16 +7,15 @@
 #include "common/includes/map/layer.h"
 #include "common/includes/map/map_serializer.h"
 #include "server/print.h"
-World::World(const std::filesystem::path& path, Id& next_item_id_):
-        next_item_id(next_item_id_),
+#include "server/includes/core/map.h"
+World::World(const std::filesystem::path& path):
+        gen(std::random_device{}()),
         map(MapSerializer::load(path)),
         limit_height(this->map.height()),
-        limit_width(this->map.width()),
-        gen(std::random_device{}()) {
+        limit_width(this->map.width()) {
     this->buildTilesWorld();
-    Print::printInitMatrizMap(this->map_tiles, this->limit_height, this->limit_width);
     this->identifyZones();
-    this->saveIdsOfTheSafeZones();
+    //this->classifyZone();
 }
 
 void World::buildTilesWorld() {
@@ -28,13 +27,11 @@ void World::buildTilesWorld() {
             this->map_tiles[x][y].walkable = obj.walkable;
             this->map_tiles[x][y].region = bg.region;
             if (!obj.walkable) {
-                this->occupied_tiles[Position(x, y)] = true;
-            } else {
-                this->occupied_tiles[Position(x, y)] = false;
+                this->not_walkable_tiles[Position(x, y)] = true;
             }
         }
     }
-    Print::imprimirTilesOcupadas(this->occupied_tiles);
+    //Print::imprimirTilesOcupadas(this->not_walkable_tiles);
 }
 
 void World::floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone) {
@@ -43,7 +40,6 @@ void World::floodFill(const Position pos_start, Region region, MatrizBool& visit
     while (!stack.empty()) {
         auto pos = stack.top();
         stack.pop();
-
         if (pos.x >= static_cast<uint32_t>(this->limit_width))
             continue;
         if (pos.y >= static_cast<uint32_t>(this->limit_height))
@@ -55,27 +51,19 @@ void World::floodFill(const Position pos_start, Region region, MatrizBool& visit
 
         visited[pos.x][pos.y] = true;
         zone.tile_count++;
-        zone.tiles.push_back(Position{pos.x, pos.y});
+        zone.tiles.emplace_back(pos.x, pos.y);
 
         if (pos.x + 1 < static_cast<uint32_t>(this->limit_width)) {
-            stack.push(Position{pos.x + 1, pos.y});  // puedo reutilizar calcular posicio
+            stack.emplace(pos.x + 1, pos.y);  // puedo reutilizar calcular posicio
         }
         if (pos.x > 0) {
-            stack.push({pos.x - 1, pos.y});  // puedo reutilizar calcular posicion
+            stack.emplace(pos.x - 1, pos.y);  // puedo reutilizar calcular posicion
         }
         if (pos.y + 1 < static_cast<uint32_t>(this->limit_height)) {
-            stack.push({pos.x, pos.y + 1});  // puedo reutilizar calcular posicion
+            stack.emplace(pos.x, pos.y + 1);  // puedo reutilizar calcular posicion
         }
         if (pos.y > 0) {
-            stack.push({pos.x, pos.y - 1});  // puedo reutilizar calcular posicion
-        }
-    }
-}
-
-void World::saveIdsOfTheSafeZones() {
-    for (auto& [id, zone]: this->zones) {
-        if (zone.region == Town || zone.region == City) {
-            this->safe_zones.push_back(id);
+            stack.emplace(pos.x, pos.y - 1);  // puedo reutilizar calcular posicion
         }
     }
 }
@@ -88,23 +76,97 @@ void World::identifyZones() {
             if (visited[x][y])
                 continue;
             /*Tile no visitado, es decir nueva zona*/
-            Region region = this->map_tiles[x][y].region;
+            const Region region = this->map_tiles[x][y].region;
             Zone zone;
             zone.region = region;
             zone_id++;
             zone.id = zone_id;
-
-
             //this->zone_count[region]++;
             this->floodFill(Position{x, y}, region, visited, zone);
-            this->zones.emplace(zone_id, std::move(zone));
+            if (region == Town || region == City) {
+                this->safe_zones.emplace(zone.id, zone);
+            } else {
+                this->hostile_zones.emplace(zone.id, zone);
+            }
+            //this->zones.emplace(zone_id, std::move(zone));
         }
     }
 }
 
 Id World::calculateZoneSafeRandom() {
     std::uniform_int_distribution<size_t> dist(0, this->safe_zones.size() - 1);
-    return this->safe_zones[dist(this->gen)];
+    size_t random_index = dist(this->gen);
+    auto it = std::next(this->safe_zones.begin(), random_index);
+    return it->first;
+}
+
+bool World::positionNotWalkabled(const Position &pos) const {
+    return this->not_walkable_tiles.contains(pos);
+}
+
+bool World::isInPlayerVisionRange(const Position& pos) const {
+    constexpr int32_t VISION_RANGE = 5;  // 10x10 → 5 tiles en cada dirección -> en archivo toml
+
+    for (const auto &player_pos: this->players_positions | std::views::values) {
+        const int x_player =  static_cast<int32_t>(player_pos.position.x);
+        const int y_player = static_cast<int32_t>(player_pos.position.y);
+        const int x = static_cast<int32_t>(pos.x);
+        const int y = static_cast<int32_t>(pos.y);
+
+        const int32_t dx = std::abs( x - x_player );
+        const int32_t dy = std::abs( y - y_player);
+
+        if (dx <= VISION_RANGE && dy <= VISION_RANGE) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool World::isWithinLimits(const Position& pos) const {
+    return (pos.x < this->limit_width) && (pos.y < this->limit_height);
+}
+
+bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir) {
+    const Position& pos = this->players_positions[player_id].position;
+    switch (dir) {
+        case DOWN:
+            return (pos.y + 1 < this->limit_height);
+        case UP:
+            return (pos.y > 0);
+        case LEFT:
+            return (pos.x > 0);
+        case RIGHT:
+            return (pos.x + 1 < this->limit_width);
+        default:
+            break;
+    }
+    return false;
+}
+
+bool World::isWalkable(const Id& player_id, const Direction dir) {
+    if (!this->isThisPlayerWithinTheLimits(player_id, dir)) {
+        return false;
+    }
+    const Position position = this->calculatePosition(player_id, dir);
+    if (this->positionNotWalkabled(position)) {
+        return false;
+    }
+    if (this->npc_positions.isOcupied(position)) {
+        return false;
+    }
+    return true;
+}
+
+bool World::isSafeZONE(const Position& pos) {
+    for (const auto& [id, zone]: this->safe_zones) {
+        for (const auto& position: zone.tiles) {
+            if (position == pos) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 Position World::calculatePosition(const Id& player_id, const Direction dir) {
@@ -134,22 +196,23 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
 }
 
 Position World::calculatePositionRandom(const Id& zone_id) {
-    const std::vector<Position>& tiles = this->zones[zone_id].tiles;
-    std::uniform_int_distribution<size_t> distrib(0, tiles.size() - 1);
-    Position random_postion = tiles[distrib(this->gen)];
-    while (this->isOccupied(random_postion)) {
-        random_postion = tiles[distrib(this->gen)];
-    }
-    return random_postion;
+    const std::vector<Position>& tiles = this->hostile_zones[zone_id].tiles;
+    std::uniform_int_distribution<size_t> dist(0, tiles.size() - 1);
+    Position random;
+    bool is_ocupied;
+    do {
+        random = tiles[dist(this->gen)];
+        is_ocupied = this->player_tiles.contains(random) || this->npc_positions.isOcupied(random) || this->item_positions.isOcupied(random);
+    } while (this->positionNotWalkabled(random) || this->isInPlayerVisionRange(random) || is_ocupied);
+    return random;
 }
 
 Position World::calculatePositionRandomSafeZone() {
-    std::uniform_int_distribution<size_t> distrib_zone(0, this->safe_zones.size() - 1);
-    Id zone_id = this->safe_zones[distrib_zone(this->gen)];
+    Id zone_id = this->calculateZoneSafeRandom();
     return this->calculatePositionRandom(zone_id);
 }
 
-Position World::findNearbyFreePosition(const Position& center) {
+Position World::findNearbyFreePosition(const Position& center) const {
     std::queue<Position> queue;
     std::unordered_set<Position, PositionHash> visited;
 
@@ -159,8 +222,8 @@ Position World::findNearbyFreePosition(const Position& center) {
     while (!queue.empty()) {
         Position pos = queue.front();
         queue.pop();
-
-        if (!this->isOccupied(pos) && this->isWithinLimits(pos)) {
+        bool is_ocupied =  this->player_tiles.contains(pos) ||  this->npc_positions.isOcupied(pos) || this->item_positions.isOcupied(pos);
+        if (!is_ocupied && this->isWithinLimits(pos) && !this->positionNotWalkabled(pos) ) {
             return pos;
         }
         std::vector<Position> neighbors = {
@@ -171,7 +234,7 @@ Position World::findNearbyFreePosition(const Position& center) {
         };
 
         for (auto& neighbor: neighbors) {
-            if (!visited.count(neighbor) && this->isWithinLimits(neighbor)) {
+            if (!visited.contains(neighbor) && this->isWithinLimits(neighbor)) {
                 visited.insert(neighbor);
                 queue.push(neighbor);
             }
@@ -179,103 +242,120 @@ Position World::findNearbyFreePosition(const Position& center) {
     }
     return center;
 }
+//
+// Position World::findNearbyHealerPosition(const Position& center) {
+//     Position closest_position;
+//     uint32_t min_distance = std::numeric_limits<uint32_t>::max();
+//
+//     // Mantenemos tu bucle con pipes intacto
+//     for (const auto& npc: this->npc_positions | std::views::values) {
+//         if (npc.type == PRIEST) {
+//             uint32_t dist_x =
+//                     std::abs(static_cast<int>(center.x) - static_cast<int>(npc.pose.position.x));
+//             uint32_t dist_y =
+//                     std::abs(static_cast<int>(center.y) - static_cast<int>(npc.pose.position.y));
+//             uint32_t current_distance = dist_x + dist_y;
+//
+//             if (current_distance < min_distance) {
+//                 min_distance = current_distance;
+//                 closest_position = npc.pose.position;
+//             }
+//         }
+//     }
+//
+//     return closest_position;
+// }
 
-bool World::isWithinLimits(const Position& pos) const {
-    return (pos.x < this->limit_width) && (pos.y < this->limit_height);
+// const std::map<Id, Pose> World::get_players_positions(){
+//     return this->players_positions;
+// }
+
+
+// const std::map<Id, NpcInstance> World::get_creatures_positions(){
+//     return this->creatures_positions;
+// }
+//
+// const std::map<Id, NpcInstance> World::get_npc_positions(){
+//     return this->npc_positions;
+// }
+//
+// const std::map<Id, ItemInstance> World::get_items_on_flor(){
+//     return this->items_on_flor;
+// }
+//
+// const std::map<Id, GoldBagInstance> World::get_gold_on_floor(){
+//     return this->gold_on_floor;
+// }
+
+
+std::unordered_map<Id, Zone> World::getHostileZones() {
+   return this->hostile_zones;
 }
 
-bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id].position;
-    switch (dir) {
-        case DOWN:
-            return (pos.y + 1 < this->limit_height);
-        case UP:
-            return (pos.y > 0);
-        case LEFT:
-            return (pos.x > 0);
-        case RIGHT:
-            return (pos.x + 1 < this->limit_width);
-        default:
-            break;
-    }
-    return false;
+std::unordered_map<Id, Zone> World::getSafeZones() {
+    return this->safe_zones;
 }
 
-const std::vector<std::tuple<Id, Region>> World::getZones() {
-    std::vector<std::tuple<Id, Region>> info_zones;
-    for (auto [id, zone]: this->zones) {
-        info_zones.push_back(std::make_tuple(id, zone.region));
-    }
-    return info_zones;
-}
 
-bool World::isOccupied(const Position& pos) { return this->occupied_tiles[pos]; }
 
-bool World::isWalkable(const Id& player_id, const Direction dir) {
-    if (!this->isThisPlayerWithinTheLimits(player_id, dir)) {
-        return false;
-    }
-    const Position pos = this->calculatePosition(player_id, dir);
-    if (this->isOccupied(pos)) {
-        return false;
-    }
-    return true;
-}
-
-bool World::canDropItemAt(const Position& pos) {
-    for (auto& [id, item]: this->items_on_flor) {
-        if (item.pos == pos) {
-            return false;
-        }
-    }
-    return true;
-}
+// bool World::canDropItemAt(const Position& pos) {
+//     for (auto& [id, item]: this->items_on_flor) {
+//         if (item.pos == pos) {
+//             return false;
+//         }
+//     }
+//     return true;
+// }
 
 
 void World::addPlayerWorld(const Id& player_id, const Pose& pose) {
     this->players_positions.emplace(player_id, pose);
-    this->occupied_tiles[pose.position] = true;
+    this->player_tiles.emplace(pose.position, true);
 }
 
-void World::addCreatureWorld(const Id& creature_id, TypeNPC type, const Pose& pose) {
-    NpcInstance new_npc(type, pose);
-    this->creatures_positions.emplace(creature_id, new_npc);
-    this->occupied_tiles[pose.position] = true;
-}
-
-void World::addNpcWorld(const Id& npc_id, TypeNPC type, const Pose& pose) {
-    NpcInstance new_npc(type, pose);
-    this->creatures_positions.emplace(npc_id, new_npc);
-    this->occupied_tiles[pose.position] = true;
+void World::addNpcWorld(const NpcInstance& npc) {
+    this->npc_positions.add(npc);
+    if (this->hostile_zones.contains(npc.zone_id)) {
+        this->hostile_zones[npc.zone_id].creatures_count++;
+    }
 }
 
 void World::addItemWorld(const ItemInstance& item) {
-    this->items_on_flor.emplace(item.id, item);
-    this->occupied_tiles[item.pos] = true;
+    ItemInstance instance = item;
+    instance.id = this->next_item_id++;
+    this->item_positions.add(instance);
 }
 
-void World::addTreasuresWorld(const Id &treasures_id, const Position &position) {
-    this->treausures_positions.emplace(treasures_id, position);
-    this->occupied_tiles[position] = true;
+void World::addItemWorld(const GoldBagInstance &gold) {
+    GoldBagInstance gold_instance = gold;
+    gold_instance.id = this->next_item_id;
+    this->item_positions.add(gold_instance);
 }
 
-void World::addGoldWorld(const Id& id, const GoldBagInstance& gold) {
-    this->gold_on_floor.emplace(id, gold);
-    this->occupied_tiles[gold.pos] = true;
+void World::addTreasuresWorld(TreasureInstance& treasure) {
+    treasure.id = this->next_item_id;
+    this->item_positions.add(treasure);
+    this->hostile_zones[treasure.zone_id].treasures_count++;
 }
 
-void World::spawnItemOnFloor(const ItemInstance& item) {
-    ItemInstance new_item_instance(item);
-    Id instance_id = this->next_item_id++;
-    new_item_instance.id = instance_id;
-    this->items_on_flor.emplace(instance_id, new_item_instance);
-    this->occupied_tiles[new_item_instance.pos] = true;
-}
-void World::spawnGoldOnFloor(const GoldBagInstance& gold) {
-    Id id_gold = this->next_item_id++;
-    this->gold_on_floor.emplace(id_gold, gold);
-    this->occupied_tiles[gold.pos] = true;
-}
+// void World::addGoldWorld(const Id& id, const GoldBagInstance& gold) {
+//     this->gold_on_floor.emplace(id, gold);
+//     this->occupied_tiles[gold.pos] = true;
+// }
+
+// void World::spawnItemOnFloor(const ItemInstance& item) {
+//     ItemInstance new_item_instance(item);
+//     Id instance_id = this->next_item_id++;
+//     new_item_instance.id = instance_id;
+//     this->items_on_flor.emplace(instance_id, new_item_instance);
+//     this->occupied_tiles[new_item_instance.pos] = true;
+// }
+
+// void World::spawnGoldOnFloor(const GoldBagInstance& gold) {
+//     Id id_gold = this->next_item_id++;
+//     this->gold_on_floor.emplace(id_gold, gold);
+//     this->occupied_tiles[gold.pos] = true;
+// }
 
 // void World::spawnTreasure(const Id& treasure_id, const Id& zone_id) {
 //     Position random_position = this->calculatePositionRandom(zone_id);
@@ -283,26 +363,25 @@ void World::spawnGoldOnFloor(const GoldBagInstance& gold) {
 //     this->occupied_tiles[random_position] = true;
 // }
 
-bool World::isSafeZONE(const Position& /*pos*/) { return true; }
-
 
 void World::removePlayer(const Id& player_id) {
     const Position& pos = this->players_positions[player_id].position;
-    this->occupied_tiles[pos] = false;
+    this->player_tiles.erase(pos);
     this->players_positions.erase(player_id);
 }
 
-void World::removeCreature(const Id& creature_id) {
-    const Position& pos = this->creatures_positions[creature_id].pose.position;
-    this->occupied_tiles[pos] = false;
-    this->creatures_positions.erase(creature_id);
-}
+// void World::removeCreature(const Id& creature_id) {
+//     const Position& pos = this->creatures_positions[creature_id].pose.position;
+//     this->occupied_tiles[pos] = false;
+//     this->creatures_positions.erase(creature_id);
+// }
 
 Pose World::movePlayer(const Id& player_id, Direction dir) {
     Position new_position = this->calculatePosition(player_id, dir);
     Position previous_position = this->players_positions[player_id].position;
+    this->player_tiles.erase(previous_position);
+    this->player_tiles.emplace(new_position, true);
     Pose pose_move(new_position, dir);
-    this->occupied_tiles[previous_position] = false;
     this->players_positions[player_id] = pose_move;
     Print::printPositionMovePlayer(player_id, pose_move, previous_position);
     return pose_move;
@@ -312,17 +391,17 @@ Position World::positionPlayerInTheWorld(const Id& player_id) {
     return this->players_positions[player_id].position;
 }
 
-Position World::positionEntityTheWorld(const Id& id) const {
-    if (this->npc_positions.contains(id)) {
-        return this->npc_positions.at(id).pose.position;
-    }
-    if (this->npc_positions.contains(id)) {
-        return this->creatures_positions.at(id).pose.position;
-    }
-    return this->players_positions.at(id).position;
-}
-
-NpcInstance* World::getNpcById(const Id& npc_id) { return &this->npc_positions[npc_id]; }
+// Position World::positionEntityTheWorld(const Id& id) const {
+//     if (this->npc_positions.contains(id)) {
+//         return this->npc_positions.at(id).pose.position;
+//     }
+//     if (this->npc_positions.contains(id)) {
+//         return this->creatures_positions.at(id).pose.position;
+//     }
+//     return this->players_positions.at(id).position;
+// }
+//
+// NpcInstance* World::getNpcById(const Id& npc_id) { return &this->npc_positions[npc_id]; }
 
 
 int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {
@@ -337,36 +416,36 @@ int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const I
 
 WorldStateData World::buildWorldState() {
     WorldStateData world_data;
-    for (const auto& npc: this->npc_positions | std::views::values) {
-        CitizenNpcData citizen_npc;
-        citizen_npc.type = npc.type;
-        citizen_npc.pos_x = npc.pose.position.x;
-        citizen_npc.pos_y = npc.pose.position.y;
-        citizen_npc.direction = npc.pose.direct;
-        world_data.citizen_npcs.push_back(citizen_npc);
-    }
-
-    for (const auto& treasure: this->treausures_positions | std::views::values) {
-        TreasureStateData treas;
-        treas.pos_x = treasure.x;
-        treas.pos_y = treasure.y;
-        world_data.treasures.push_back(treas);
-    }
-    for (const auto& gold_bags: this->gold_on_floor | std::views::values) {
-        GoldBagsData gold;
-        gold.pos_x = gold_bags.pos.x;
-        gold.pos_y = gold_bags.pos.y;
-        gold.amount = gold_bags.amount;
-        world_data.gold_bags.push_back(gold);
-    }
-
-    for (const auto& item_inst: this->items_on_flor | std::views::values) {
-        ItemInstanceData item;
-        item.type_item = item_inst.type;
-        item.x = item_inst.pos.x;
-        item.y = item_inst.pos.y;
-        world_data.items.push_back(item);
-    }
+    // for (const auto& npc: this->npc_positions | std::views::values) {
+    //     CitizenNpcData citizen_npc;
+    //     citizen_npc.type = npc.type;
+    //     citizen_npc.pos_x = npc.pose.position.x;
+    //     citizen_npc.pos_y = npc.pose.position.y;
+    //     citizen_npc.direction = npc.pose.direct;
+    //     world_data.citizen_npcs.push_back(citizen_npc);
+    // }
+    //
+    // for (const auto& treasure: this->treausures_positions | std::views::values) {
+    //     TreasureStateData treas;
+    //     treas.pos_x = treasure.x;
+    //     treas.pos_y = treasure.y;
+    //     world_data.treasures.push_back(treas);
+    // }
+    // for (const auto& gold_bags: this->gold_on_floor | std::views::values) {
+    //     GoldBagsData gold;
+    //     gold.pos_x = gold_bags.pos.x;
+    //     gold.pos_y = gold_bags.pos.y;
+    //     gold.amount = gold_bags.amount;
+    //     world_data.gold_bags.push_back(gold);
+    // }
+    //
+    // for (const auto& item_inst: this->items_on_flor | std::views::values) {
+    //     ItemInstanceData item;
+    //     item.type_item = item_inst.type;
+    //     item.x = item_inst.pos.x;
+    //     item.y = item_inst.pos.y;
+    //     world_data.items.push_back(item);
+    // }
     return world_data;
 }
 
@@ -385,28 +464,23 @@ WorldStateData World::buildWorldState() {
 //     }
 // }
 
-ItemInstance* World::getItemAt(const Position& pos) {
-    for (auto& [id, item]: this->items_on_flor) {
-        if (item.pos == pos) {
-            return &item;
-        }
-    }
-    return nullptr;
+void  World::playerTakeItemOnTheFloor(Player& player) {
+    this->item_positions.removeItemTakeToPlayer(player);
 }
 
-std::unique_ptr<ItemInstance> World::pickUpItem(const Position& pos) {
-    auto it = this->items_on_flor.begin();
-    while (it != this->items_on_flor.end()) {
-        if (it->second.pos == pos) {
-            auto item_ptr = std::make_unique<ItemInstance>(std::move(it->second));
-            this->items_on_flor.erase(it);
-            return item_ptr;
-        } else {
-            ++it;
-        }
-    }
-    return nullptr;
-}
+// std::unique_ptr<ItemInstance> World::pickUpItem(const Position& pos) {
+//     auto it = this->items_on_flor.begin();
+//     while (it != this->items_on_flor.end()) {
+//         if (it->second.pos == pos) {
+//             auto item_ptr = std::make_unique<ItemInstance>(std::move(it->second));
+//             this->items_on_flor.erase(it);
+//             return item_ptr;
+//         } else {
+//             ++it;
+//         }
+//     }
+//     return nullptr;
+// }
 
 // void World::dropItem(const Position& pos, std::unique_ptr<ItemInstance> item) {
 //     Id item_id = item->id;

@@ -1,10 +1,13 @@
 #include "server/includes/npc/merchant.h"
 
-// Merchant::Merchant(TypeNPC type, std::string&& name, Pose&& pose,
-//                    std::map<TypeItem, std::unique_ptr<Item>>&& store):
-//         TraderNPC(type, std::move(name), std::move(pose), std::move(store)) {}
+Merchant::Merchant(TypeNPC type, const std::string& name, std::map<TypeItem, Item*>&& items_):
+        TraderNPC(type, name, std::move(items_)) {}
 
-Merchant::Merchant(TypeNPC type, const std::string& name, std::vector<TypeItem> items_):
-        TraderNPC(type, name, items_) {}
+void Merchant::executePlayerSellsItem(Player& player, TypeItem type_item) {
+        if (!this->store.contains(type_item)) {
+                return;  /*SI NO ESTA EN SU STORE, NO COMPRA ESTE OBJETO*/
+        }
+        const auto item = dynamic_cast<ShopItem*>(this->store.at(type_item));
+        player.sellItem(type_item, item->selling_price);
+}
 
-// void Merchant::interact(const Id& id_player, World& word, Comand& cmd) {}

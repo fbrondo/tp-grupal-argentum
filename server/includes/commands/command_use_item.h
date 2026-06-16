@@ -4,9 +4,9 @@
 
 class UseItemCommand: public Command {
 private:
-    Id slot_id;
+    Id instance_id;
 
 public:
-    UseItemCommand(Id id, Id slot_id);
+    UseItemCommand(Id id, Id instance_id);
     void execute(Gameloop& game) override;
 };

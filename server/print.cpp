@@ -387,8 +387,8 @@ void printPositionCreature(const Id& id, TypeNPC type, const Position& pos, cons
         oss << "| ID: "<< id ;
         oss << "---" << "Pos: (" << pos.x << ", " << pos.y << ")" << " |";
         oss << "Atributos: " << SALTO;
-        oss << " > HP: " << attrib.hp_current << SALTO;
-        oss << " > MAX HP: " << attrib.hp_max << SALTO;
+        oss << " > HP: " << attrib.current_hp << SALTO;
+        oss << " > MAX HP: " << attrib.max_hp << SALTO;
         oss << " > RANGO ATAQUE: " << attrib.range_attack << SALTO;
         oss << " > LEVEL: " <<attrib.difficulty_level << SALTO;
         std::string message = oss.str();
@@ -416,7 +416,7 @@ void printPositionGold(const Id& id, GoldBagInstance go) {
         std::ostringstream oss;
         oss << "[DEBUG - Init] - BOLSA DE ORO: " << go.amount;
         oss << "| ID: "<< id ;
-        oss << "---" << "Pos: (" << go.pos.x << ", " << go.pos.y << ")" << " |";
+        oss << "---" << "Pos: (" << go.position.x << ", " << go.position.y << ")" << " |";
         std::string message = oss.str();
         print_message_console(message);
     }
@@ -430,7 +430,7 @@ void printPositionItem(const ItemInstance& item) {
         std::ostringstream oss;
         oss << "[DEBUG - Init] - ITEM: " << itemToString(item.type);
         oss << "| ID: "<< item.id ;
-        oss << "---" << "Pos: (" << item.pos.x << ", " << item.pos.y << ")" << " |";
+        oss << "---" << "Pos: (" << item.position.x << ", " << item.position.y << ")" << " |";
         std::string message = oss.str();
         print_message_console(message);
     }

@@ -1,6 +1,7 @@
 #include "../includes/equipment.h"
 
 #include <algorithm>
+#include <stdexcept>
 
 #include "common/includes/types.h"
 
@@ -17,45 +18,59 @@ void Equipment::equipHandItem(ItemInstance* item_inst) {
     this->equipment_container[INDEX_HAND] = item_inst;
 }
 
-void Equipment::equipItemDefensive(ItemInstance* item_inst) {
-
-    switch (item_inst->body_part_use) {
+void Equipment::equipItemDefensive(ItemInstance* inst) {
+    const auto item = dynamic_cast<const ShopItem*>(inst->item);
+    switch (item->body_part_use) {
         case HEAD:
-            this->equipment_container[INDEX_HEAD] = item_inst;
+            this->equipment_container[INDEX_HEAD] = inst;
             break;
         case BACK:
-            this->equipment_container[INDEX_BACK] = item_inst;
+            this->equipment_container[INDEX_BACK] = inst;
             break;
         case HAND:
-            this->equipment_container[INDEX_SHIELD] = item_inst;
+            this->equipment_container[INDEX_SHIELD] = inst;
             break;
         default:
             break;
     }
 }
 
-void Equipment::equipItem(ItemInstance* item_inst) {
-    switch (item_inst->classification) {
-        case ITEM_DEFENSIVE:
-            this->equipItemDefensive(item_inst);
-            break;
-        case ITEM_ATTACK: /*arma de combate a mano o a distancia*/
-            this->equipHandItem(item_inst);
-            break;
-        case ITEM_HEALING: /*objeto magico*/
-            this->equipHandItem(item_inst);
-            break;
-        default:
-            break;
-    }
-}
+ItemInstance* Equipment::equipItem(ItemInstance* item_inst) {
+    size_t target_index = 0;
 
-void Equipment::removeItem(Id id_inst_item) {
-    for (size_t i = INDEX_HEAD; i <= INDEX_SHIELD; i++) {
-        if (this->equipment_container[i] && id_inst_item == this->equipment_container[i]->id) {
-            this->equipment_container[INDEX_HAND] = nullptr;
+    if (item_inst->classification == ITEM_ATTACK || item_inst->classification == ITEM_HEALING) {
+        target_index = INDEX_HAND;
+    } else if (item_inst->classification == ITEM_DEFENSIVE) {
+        switch (item_inst->body_part_use) {
+            case HEAD:
+                target_index = INDEX_HEAD;
+                break;
+            case BACK:
+                target_index = INDEX_BACK;
+                break;
+            case HAND:
+                target_index = INDEX_SHIELD;
+                break;
+            default:
+                throw std::runtime_error("Parte del cuerpo inválida para defensa.");
         }
     }
+
+    ItemInstance* viejo_item = this->equipment_container[target_index];
+    this->equipment_container[target_index] = item_inst;
+    return viejo_item;
+}
+
+ItemInstance* Equipment::removeItem(Id id_inst_item) {
+    for (size_t i = 0; i < MAX_EQUIPMENT_SIZE; i++) {
+        if (this->equipment_container[i] && this->equipment_container[i]->id == id_inst_item) {
+            ItemInstance* item_encontrado = this->equipment_container[i];
+
+            this->equipment_container[i] = nullptr;
+            return item_encontrado;
+        }
+    }
+    return nullptr;
 }
 
 TypeItem Equipment::getHandItem() const {
@@ -65,13 +80,12 @@ TypeItem Equipment::getHandItem() const {
     return NONE;
 }
 
-std::vector<std::tuple<Id, TypeItem>> Equipment::getEquipmentDefensive() {
-    std::vector<std::tuple<Id, TypeItem>> equipment;
+std::vector<TypeItem> Equipment::getEquipmentDefensive() {
+    std::vector<TypeItem> equipment;
     for (size_t i = INDEX_HEAD; i <= INDEX_SHIELD; i++) {
         if (this->equipment_container[i]) {
-            auto id = this->equipment_container[i]->id;
-            auto type = this->equipment_container[i]->type;
-            equipment.push_back(std::make_tuple(id, type));
+            auto type = this->equipment_container[i]->item->type;
+            equipment.push_back(type);
         }
     }
     return equipment;

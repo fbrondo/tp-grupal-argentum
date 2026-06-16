@@ -14,6 +14,7 @@ target_sources(taller_common
         includes/core/Statistics.h
         includes/core/character_traits.h
         includes/core/user.h
+        includes/core/player_stats.h
 
         includes/map/tile.h
         includes/map/layer.h
