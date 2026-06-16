@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
+#include <cstddef>  // Para size_t
 #include <deque>
-#include <cstddef> // Para size_t
+#include <string>
 
 class ChatManager {
 private:

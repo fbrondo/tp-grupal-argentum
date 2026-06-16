@@ -2,17 +2,11 @@
 
 #include <SDL2/SDL.h>
 
-bool ChatManager::is_active() const { 
-    return active; 
-}
+bool ChatManager::is_active() const { return active; }
 
-const std::string& ChatManager::get_buffer() const { 
-    return buffer; 
-}
+const std::string& ChatManager::get_buffer() const { return buffer; }
 
-const std::deque<std::string>& ChatManager::get_log() const { 
-    return log; 
-}
+const std::deque<std::string>& ChatManager::get_log() const { return log; }
 
 void ChatManager::set_active(bool state) {
     active = state;
