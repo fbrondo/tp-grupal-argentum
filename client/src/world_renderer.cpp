@@ -237,3 +237,20 @@ void WorldRenderer::render() {
     }
     SDL_RenderSetClipRect(renderer.Get(), nullptr);
 }
+
+std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_screen(
+        int screen_x, int screen_y) const {
+    for (const auto& [id, entity]: entities) {
+        if (entity->get_type() == EntityType::ITEM)
+            continue;
+        if (id == local_player_id)
+            continue;
+        int ex = static_cast<int>(entity->get_pixel_x()) - camera.x + camera_screen_offset_x;
+        int ey = static_cast<int>(entity->get_pixel_y()) - camera.y + camera_screen_offset_y;
+        if (screen_x >= ex && screen_x < ex + TILE_SIZE && screen_y >= ey &&
+            screen_y < ey + TILE_SIZE) {
+            return std::make_pair(id, entity->get_type());
+        }
+    }
+    return std::nullopt;
+}

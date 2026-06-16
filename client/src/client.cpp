@@ -1,5 +1,7 @@
 #include "client/includes/client.h"
 
+#include <iostream>
+
 #include <SDL2/SDL_image.h>
 
 #include "client/includes/commands/command_move.h"
@@ -24,6 +26,26 @@ void Client::handle_events() {
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
             is_running = false;
             return;
+        }
+        if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+            // TODO: revisar este hardcodeo. Lo estoy tomando de worldrenderer
+            constexpr SDL_Rect world_view = {7, 149, 672, 384};
+            int mx = event.button.x;
+            int my = event.button.y;
+            if (mx >= world_view.x && mx < world_view.x + world_view.w && my >= world_view.y &&
+                my < world_view.y + world_view.h) {
+                auto hit = world_renderer.get_entity_at_screen(mx, my);
+                if (hit) {
+                    auto [entity_id, entity_type] = *hit;
+                    std::string type_str = (entity_type == EntityType::PLAYER) ? "PLAYER" :
+                                           (entity_type == EntityType::NPC)    ? "NPC" :
+                                                                                 "CITIZEN_NPC";
+                    std::cout << "[CLICK] entity_id=" << entity_id << " type=" << type_str
+                              << std::endl;
+                } else {
+                    std::cout << "[CLICK] no entity at (" << mx << "," << my << ")" << std::endl;
+                }
+            }
         }
     }
 }
