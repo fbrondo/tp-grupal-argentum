@@ -87,9 +87,12 @@ struct MsgTrade {
 struct MsgPlayerStats {
     uint8_t opcode = PLAYER_STATS;
     uint32_t hp;
+    uint32_t max_hp;
     uint32_t mana;
+    uint32_t max_mana;
     uint32_t gold;
     uint32_t exp;
+    uint32_t exp_next_level;
     uint8_t level;
 };
 

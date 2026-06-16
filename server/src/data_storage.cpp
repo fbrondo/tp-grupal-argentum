@@ -90,7 +90,7 @@ void DataStorage::savePlayer(const PlayerData& data) {
 }
 
 PlayerData DataStorage::loadPlayer(const std::string& username) {
-    PlayerData data;
+    PlayerData data{};
     // std::streampos offset = this->index.at(username)
     this->data_file.seekg(this->index.at(username));
     this->data_file.read(data.username, MAX_DATA);
