@@ -11,7 +11,7 @@ struct User {
     User& operator=(const User&) = default;
     User(User&&) = default;
     User& operator=(User&&) = default;
-    User(std::string user, std::string pass): username(user), password(pass) {}
+    User(const std::string& user, const std::string& pass): username(user), password(pass) {}
 };
 
 #endif

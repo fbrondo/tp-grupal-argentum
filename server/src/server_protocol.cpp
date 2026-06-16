@@ -38,6 +38,10 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         p.pos_y = htonl(p.pos_y);
         p.max_hp = htons(p.max_hp);
         p.hp = htons(p.hp);
+        p.mana = htons(p.mana);
+        p.max_mana = htons(p.max_mana);
+        p.body_id = htons(p.body_id);
+        p.head_id = htons(p.head_id);
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));
         offset += sizeof(PlayerSnapshotData);
     }
@@ -110,10 +114,12 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
     MsgPlayerStats temp = stats;
     temp.hp = htonl(stats.hp);
+    temp.max_hp = htonl(stats.max_hp);
     temp.mana = htonl(stats.mana);
+    temp.max_mana = htonl(stats.max_mana);
     temp.gold = htonl(stats.gold);
     temp.exp = htonl(stats.exp);
-    // temp.level = stats.level;
+    temp.exp_next_level = htonl(stats.exp_next_level);
     try {
         socket.sendall(&temp, sizeof(MsgPlayerStats));
     } catch (const std::exception& e) {
@@ -162,8 +168,10 @@ void ServerProtocol::sendSimpleResponse(uint8_t opcode, bool success,
     }
 }
 
-void ServerProtocol::sendLoginResponse(bool success, const std::string& msg) const {
+void ServerProtocol::sendLoginResponse(bool success, Id player_id, const std::string& msg) const {
     sendSimpleResponse(LOGIN_RESPONSE, success, msg);
+    const uint32_t player_id_net = htonl(player_id);
+    socket.sendall(&player_id_net, sizeof(player_id_net));
 }
 
 void ServerProtocol::sendSignupResponse(bool success, const std::string& msg) const {
@@ -372,6 +380,8 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             socket.recvall(&signup.traits.body, sizeof(signup.traits.body));
             socket.recvall(&signup.traits.race, sizeof(signup.traits.race));
             socket.recvall(&signup.traits.clase, sizeof(signup.traits.clase));
+            signup.traits.head = ntohs(signup.traits.head);
+            signup.traits.body = ntohs(signup.traits.body);
             signup.user[sizeof(signup.user) - 1] = '\0';
             signup.password[sizeof(signup.password) - 1] = '\0';
             // CharacterTraits traits = signup.traits;

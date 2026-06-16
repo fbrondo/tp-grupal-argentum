@@ -85,7 +85,7 @@ NpcSnapshotData Creature::getNpcSnapshotData() {
     npc_snapshot.pos_x = this->pose.position.x;
     npc_snapshot.pos_y = this->pose.position.y;
     npc_snapshot.is_alive = this->isAlive();
-    return  npc_snapshot;
+    return npc_snapshot;
 }
 
 

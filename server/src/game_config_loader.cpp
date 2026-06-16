@@ -259,7 +259,7 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
                 auto r = std::make_unique<HostileRegion>();
                 r->type = type; r->is_safe = false;
                 r->max_creatures = region["max_criatures"].value_or(1);
-                
+
                 if (auto node = region["min_treasure"])
                     r->min_treasure = node.value<uint16_t>();
                 if (auto node = region["max_treasure"])

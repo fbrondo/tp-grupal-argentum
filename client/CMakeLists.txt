@@ -13,6 +13,7 @@ target_sources(taller_client
         src/window/windowSDL.cpp
         src/renderable_entity.cpp
         src/world_renderer.cpp
+        src/hud_renderer.cpp
     PUBLIC
     # .h files
         includes/client_protocol.h
@@ -30,6 +31,7 @@ target_sources(taller_client
         includes/renderable_entity.h
         includes/world_renderer.h
         includes/sound_manager.h
+        includes/hud_renderer.h
     )
 
 if(NOT DEFINED ARGENTUM_SHARE_PATH)

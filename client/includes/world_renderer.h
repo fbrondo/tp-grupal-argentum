@@ -1,12 +1,14 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
 
 #include "client/includes/client_protocol.h"
+#include "client/includes/hud_renderer.h"
 #include "client/includes/renderable_entity.h"
 #include "client/includes/texture_manager.h"
 
@@ -15,8 +17,8 @@ static constexpr int TILE_SIZE = 32;
 class WorldRenderer {
 private:
     SDL2pp::Renderer& renderer;
-
     TextureManager& texture_manager;
+    HudRenderer hud_renderer;
 
     // El diccionario central que guarda TODAS las entidades visibles en el cliente
     // La clave (key) es el 'id' único que envía el servidor
@@ -40,6 +42,8 @@ public:
     WorldRenderer& operator=(const WorldRenderer&) = delete;
 
     void set_local_player(uint32_t id);
+    void set_player_name(const std::string& name);
+    void update_hud_stats(const MsgPlayerStats& stats);
     void load_map(Map&& new_map);
     // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
     void update_from_snapshot(const Snapshot& snapshot);

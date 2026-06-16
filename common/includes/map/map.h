@@ -13,7 +13,7 @@ class Map {
 public:
     Map(const Map&) = default;
     Map& operator=(const Map&) = default;
-    
+
     Map(Map&&) = default;
     Map& operator=(Map&&) = default;
 

@@ -5,13 +5,13 @@
 #include <string>
 
 #include "server/includes/acceptor.h"
-
 #include "server/includes/gameloop.h"
 #include "server/print.h"
 
 Server::Server(const char* serverName, const char* config_path):
-        serverName(serverName),load_config(Path{config_path}),
-        acceptor(serverName,this->monitor,this->commands_queue) {}
+        serverName(serverName),
+        load_config(Path{config_path}),
+        acceptor(serverName, this->monitor, this->commands_queue) {}
 
 
 void Server::start() {
@@ -39,6 +39,4 @@ void Server::start() {
     this->acceptor.join();
 }
 
-Server::~Server() {
-    std::cout << "[Server] Apagado completo con éxito." << std::endl;
-}
+Server::~Server() { std::cout << "[Server] Apagado completo con éxito." << std::endl; }

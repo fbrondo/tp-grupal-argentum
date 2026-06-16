@@ -88,7 +88,7 @@ void DataStorage::savePlayer(const PlayerData& data) {
 }
 
 PlayerData DataStorage::loadPlayer(const std::string& username) {
-    PlayerData data;
+    PlayerData data{};
     // std::streampos offset = this->index.at(username)
     this->data_file.seekg(this->index.at(username));
     this->data_file.read(data.username, MAX_DATA);
@@ -123,7 +123,7 @@ void DataStorage::updateStatePlayer(const PlayerData& data) {
 
     this->data_file.write(data.username, MAX_DATA);
     this->data_file.write(data.password, MAX_DATA);
-    
+
     /* campos fijos */
     this->data_file.write(reinterpret_cast<const char*>(&data.position), sizeof(data.position));
     this->data_file.write(reinterpret_cast<const char*>(&data.direction), sizeof(data.direction));

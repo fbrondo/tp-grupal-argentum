@@ -53,4 +53,3 @@ void Persistence::run() {
     }
     std::clog << "[Persistence] Bucle principal terminado correctamente." << std::endl;
 }
-

@@ -174,6 +174,8 @@ void ClientProtocol::sendSignup(const std::string& user, const std::string& pass
     std::strncpy(msg.user, user.c_str(), sizeof(msg.user) - 1);
     std::strncpy(msg.password, password.c_str(), sizeof(msg.password) - 1);
     msg.traits = traits;
+    msg.traits.head = htons(msg.traits.head);
+    msg.traits.body = htons(msg.traits.body);
     try {
         socket.sendall(&msg, sizeof(MsgSignup));
     } catch (const std::exception& e) {
@@ -387,6 +389,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.hp = ntohs(p.hp);
                 p.mana = ntohs(p.mana);
                 p.max_mana = ntohs(p.max_mana);
+                p.body_id = ntohs(p.body_id);
+                p.head_id = ntohs(p.head_id);
                 out_event.world.players.push_back(p);
             }
 
@@ -456,14 +460,23 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             socket.recvall(&out_event.stats.hp, sizeof(out_event.stats.hp));
             out_event.stats.hp = ntohl(out_event.stats.hp);
 
+            socket.recvall(&out_event.stats.max_hp, sizeof(out_event.stats.max_hp));
+            out_event.stats.max_hp = ntohl(out_event.stats.max_hp);
+
             socket.recvall(&out_event.stats.mana, sizeof(out_event.stats.mana));
             out_event.stats.mana = ntohl(out_event.stats.mana);
+
+            socket.recvall(&out_event.stats.max_mana, sizeof(out_event.stats.max_mana));
+            out_event.stats.max_mana = ntohl(out_event.stats.max_mana);
 
             socket.recvall(&out_event.stats.gold, sizeof(out_event.stats.gold));
             out_event.stats.gold = ntohl(out_event.stats.gold);
 
             socket.recvall(&out_event.stats.exp, sizeof(out_event.stats.exp));
             out_event.stats.exp = ntohl(out_event.stats.exp);
+
+            socket.recvall(&out_event.stats.exp_next_level, sizeof(out_event.stats.exp_next_level));
+            out_event.stats.exp_next_level = ntohl(out_event.stats.exp_next_level);
 
             socket.recvall(&out_event.stats.level, sizeof(out_event.stats.level));
             break;
@@ -479,6 +492,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             len = ntohs(len);
             out_event.text_payload.resize(len);
             socket.recvall(out_event.text_payload.data(), len);
+            socket.recvall(&out_event.player_id, sizeof(out_event.player_id));
+            out_event.player_id = ntohl(out_event.player_id);
             break;
         }
         case CHANGE_MAP: {
