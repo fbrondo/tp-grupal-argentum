@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL_image.h>
 
+#include "client/includes/commands/command_chat.h"
 #include "client/includes/commands/command_move.h"
 
 Client::Client(const char* host, const char* port):
@@ -18,6 +19,7 @@ Client::Client(const char* host, const char* port):
 void Client::handle_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+        // Manejo de cierre de ventana y salida
         if (event.type == SDL_QUIT) {
             is_running = false;
             return;
@@ -26,10 +28,57 @@ void Client::handle_events() {
             is_running = false;
             return;
         }
+        if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+            uint32_t mouse_x = event.button.x;
+            uint32_t mouse_y = event.button.y;
+
+            // Le preguntamos al motor gráfico si el clic fue en el área correcta
+            if (world_renderer.is_point_inside_console(mouse_x, mouse_y)) {
+                // Clic ADENTRO: Hacemos foco
+                if (!chat.is_active()) {
+                    chat.set_active(true);
+                    world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+                }
+            } else {
+                // Clic AFUERA: Quitamos el foco
+                if (chat.is_active()) {
+                    chat.set_active(false);
+                    world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+                }
+            }
+        }
+        // 2. TECLA ENTER: Ahora SOLO sirve para enviar el mensaje
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN) {
+            if (chat.is_active()) {
+                std::string msg = chat.extract_message();
+                if (!msg.empty()) {
+                    // Enviamos al server
+                    cmd_queue.push(std::make_unique<ChatCommandClient>(msg));
+                }
+                // Apagamos el input después de enviar
+                chat.set_active(false);
+                world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+            }
+        }
+
+        // 3. Escribir texto (solo si el chat está activo)
+        if (chat.is_active() && event.type == SDL_TEXTINPUT) {
+            chat.append_text(event.text.text);
+            world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+        }
+
+        // 4. Borrar texto con Backspace
+        if (chat.is_active() && event.type == SDL_KEYDOWN &&
+            event.key.keysym.sym == SDLK_BACKSPACE) {
+            chat.remove_last_char();
+            world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+        }
     }
 }
 
 void Client::process_movement_input() {
+    if (chat.is_active())
+        return;
     const uint8_t* keys = SDL_GetKeyboardState(nullptr);
     Direction direction = DOWN;
     bool movement_key_down = true;
@@ -91,6 +140,10 @@ void Client::update_state_from_server() {
             }
             case TypeEventClient::OWN_STATS:
                 world_renderer.update_hud_stats(event.stats);
+                break;
+            case TypeEventClient::CHAT_MSG:
+                chat.add_message_to_log(event.text_payload);
+                world_renderer.add_chat_message(event.text_payload);
                 break;
             case TypeEventClient::DISCONNECTION:
                 is_running = false;

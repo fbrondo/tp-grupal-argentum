@@ -7,6 +7,7 @@
 #include <SDL2pp/SDLImage.hh>
 #include <SDL2pp/SDLTTF.hh>
 
+#include "client/includes/chat_manager.h"
 #include "client/includes/texture_manager.h"
 #include "client/includes/window/windowSDL.h"
 #include "client/includes/world_renderer.h"
@@ -51,6 +52,8 @@ private:
     bool is_running = true;
     bool movement_key_was_down = false;
     Direction last_move_direction = DOWN;
+
+    ChatManager chat;
 
     void update_state_from_server();
     void handle_events();

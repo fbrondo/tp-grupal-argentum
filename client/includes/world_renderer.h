@@ -45,6 +45,10 @@ public:
     void set_player_name(const std::string& name);
     void update_hud_stats(const MsgPlayerStats& stats);
     void load_map(Map&& new_map);
+
+    void add_chat_message(const std::string& msg);
+    void update_chat_input(const std::string& buffer, bool is_active);
+    bool is_point_inside_console(uint32_t x, uint32_t y) const;
     // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
     void update_from_snapshot(const Snapshot& snapshot);
 

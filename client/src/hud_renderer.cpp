@@ -91,14 +91,66 @@ void HudRenderer::render_progress_bar(int x, int y, int width, int height, uint3
                   SDL2pp::Rect(x, y, width, height));
 }
 
+bool HudRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) const {
+    return (x >= CONSOLE_X && x <= CONSOLE_X + CONSOLE_W && y >= CONSOLE_Y &&
+            y <= CONSOLE_Y + CONSOLE_H);
+}
+
+void HudRenderer::add_chat_message(const std::string& msg) {
+    if (msg.empty())
+        return;
+
+    // Creamos la textura una sola vez y la guardamos
+    chat_log_textures.push_back(create_text_texture(msg));
+
+    // Mantenemos el límite visual de 6 líneas
+    if (chat_log_textures.size() > 6) {
+        chat_log_textures.pop_front();
+    }
+}
+
+void HudRenderer::update_chat_input(const std::string& buffer, bool is_active) {
+    chat_is_active = is_active;
+    if (is_active) {
+        // Simulamos un cursor al final del texto
+        std::string prompt = "> " + buffer + "_";
+        chat_input_texture = create_text_texture(prompt);
+    } else {
+        // Si apagamos el chat, borramos la textura de la VRAM
+        chat_input_texture = nullptr;
+    }
+}
+
+void HudRenderer::render_chat() const {
+    int start_y = CONSOLE_Y + 5;  // Margen superior
+    int line_spacing = 18;        // Espaciado entre líneas
+
+    // 1. Dibujar el historial
+    for (const auto& tex: chat_log_textures) {
+        if (tex) {
+            renderer.Copy(*tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(CONSOLE_X + 10, start_y, tex->GetWidth(), tex->GetHeight()));
+            start_y += line_spacing;
+        }
+    }
+
+    // 2. Dibujar lo que el jugador está escribiendo ahora
+    if (chat_is_active && chat_input_texture) {
+        int input_y = CONSOLE_Y + CONSOLE_H - 22;  // Anclado al fondo de la consola
+        renderer.Copy(*chat_input_texture, SDL2pp::NullOpt,
+                      SDL2pp::Rect(CONSOLE_X + 10, input_y, chat_input_texture->GetWidth(),
+                                   chat_input_texture->GetHeight()));
+    }
+}
+
 void HudRenderer::render() const {
-    // Upper layer (full screen overlay)
-    renderer.Copy(texture_manager.get_texture("hud_upper_layer"), SDL2pp::NullOpt,
-                  SDL2pp::Rect(0, 0, w_width, w_height));
 
     // Consola (arriba izquierda)
     renderer.Copy(texture_manager.get_texture("hud_console_base"), SDL2pp::NullOpt,
                   SDL2pp::Rect(CONSOLE_X, CONSOLE_Y, CONSOLE_W, CONSOLE_H));
+    // Upper layer (full screen overlay)
+    renderer.Copy(texture_manager.get_texture("hud_upper_layer"), SDL2pp::NullOpt,
+                  SDL2pp::Rect(0, 0, w_width, w_height));
 
     // User info (arriba derecha)
     renderer.Copy(texture_manager.get_texture("hud_user_info_base"), SDL2pp::NullOpt,
@@ -124,6 +176,8 @@ void HudRenderer::render() const {
     render_centered_text(hp_texture, PROGRESS_BAR_X, HP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
     render_centered_text(mana_texture, PROGRESS_BAR_X, MANA_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
     render_centered_text(exp_texture, PROGRESS_BAR_X, EXP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
+
+    render_chat();
 
     SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 255);
 }

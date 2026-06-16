@@ -40,6 +40,16 @@ void WorldRenderer::load_map(Map&& new_map) {
               << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;*/
 }
 
+void WorldRenderer::add_chat_message(const std::string& msg) { hud_renderer.add_chat_message(msg); }
+
+void WorldRenderer::update_chat_input(const std::string& buffer, bool is_active) {
+    hud_renderer.update_chat_input(buffer, is_active);
+}
+
+bool WorldRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) const {
+    return hud_renderer.is_point_inside_console(x, y);
+}
+
 void WorldRenderer::center_camera_on_player() {
     if (!current_map)
         return;
