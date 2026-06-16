@@ -3,11 +3,11 @@
 #include <memory>
 #include <string>
 
-#include <SDL2pp/SDL2pp.hh>
 #include <SDL2pp/Font.hh>
+#include <SDL2pp/SDL2pp.hh>
 
-#include "common/includes/protocol.h"
 #include "client/includes/texture_manager.h"
+#include "common/includes/protocol.h"
 
 constexpr int PANEL_RIGHT_X = 686;
 constexpr int PANEL_RIGHT_Y = 7;

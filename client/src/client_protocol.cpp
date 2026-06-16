@@ -285,8 +285,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             socket.recvall(&out_event.stats.exp, sizeof(out_event.stats.exp));
             out_event.stats.exp = ntohl(out_event.stats.exp);
 
-            socket.recvall(&out_event.stats.exp_next_level,
-                           sizeof(out_event.stats.exp_next_level));
+            socket.recvall(&out_event.stats.exp_next_level, sizeof(out_event.stats.exp_next_level));
             out_event.stats.exp_next_level = ntohl(out_event.stats.exp_next_level);
 
             socket.recvall(&out_event.stats.level, sizeof(out_event.stats.level));

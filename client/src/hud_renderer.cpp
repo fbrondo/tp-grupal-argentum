@@ -33,8 +33,8 @@ void HudRenderer::render_centered_text(const std::unique_ptr<SDL2pp::Texture>& t
     }
 
     renderer.Copy(*texture, SDL2pp::NullOpt,
-                  SDL2pp::Rect(x + (width - render_width) / 2,
-                               y + (height - render_height) / 2, render_width, render_height));
+                  SDL2pp::Rect(x + (width - render_width) / 2, y + (height - render_height) / 2,
+                               render_width, render_height));
 }
 
 void HudRenderer::update_player_textures() {
@@ -43,10 +43,9 @@ void HudRenderer::update_player_textures() {
 
 void HudRenderer::update_stats_textures() {
     level_texture = create_text_texture(std::to_string(stats.level));
-    hp_texture =
-            create_text_texture(std::to_string(stats.hp) + "/" + std::to_string(stats.max_hp));
-    mana_texture = create_text_texture(std::to_string(stats.mana) + "/" +
-                                       std::to_string(stats.max_mana));
+    hp_texture = create_text_texture(std::to_string(stats.hp) + "/" + std::to_string(stats.max_hp));
+    mana_texture =
+            create_text_texture(std::to_string(stats.mana) + "/" + std::to_string(stats.max_mana));
     exp_texture = create_text_texture(std::to_string(stats.exp) + "/" +
                                       std::to_string(stats.exp_next_level));
 }
@@ -69,7 +68,8 @@ void HudRenderer::update_stats(const MsgPlayerStats& new_stats) {
 }
 
 float calculate_percentage(uint32_t current, uint32_t maximum) {
-    if (maximum == 0) return 0.0f;
+    if (maximum == 0)
+        return 0.0f;
 
     float ratio = static_cast<float>(current) / static_cast<float>(maximum);
     return std::clamp(ratio, 0.0f, 1.0f);
@@ -122,10 +122,8 @@ void HudRenderer::render() const {
     render_centered_text(player_name_texture, NAME_X, NAME_Y, NAME_W, NAME_H);
     render_centered_text(level_texture, LEVEL_X, LEVEL_Y, LEVEL_W, LEVEL_H);
     render_centered_text(hp_texture, PROGRESS_BAR_X, HP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
-    render_centered_text(mana_texture, PROGRESS_BAR_X, MANA_BAR_Y, PROGRESS_BAR_W,
-                         PROGRESS_BAR_H);
-    render_centered_text(exp_texture, PROGRESS_BAR_X, EXP_BAR_Y, PROGRESS_BAR_W,
-                         PROGRESS_BAR_H);
+    render_centered_text(mana_texture, PROGRESS_BAR_X, MANA_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
+    render_centered_text(exp_texture, PROGRESS_BAR_X, EXP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
 
     SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 255);
 }
