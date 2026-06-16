@@ -20,14 +20,14 @@ World::World(const std::filesystem::path& path, Id& next_item_id_):
 }
 
 void World::buildTilesWorld() {
-    this->map_tiles.resize(this->limit_height, std::vector<Tile>(this->limit_width));
+    this->map_tiles.resize(this->limit_width, std::vector<Tile>(this->limit_height));
     for (uint32_t y = 0; y < this->limit_height; y++) {
         for (uint32_t x = 0; x < this->limit_width; x++) {
             const Tile& obj = this->map.tile_at(x, y, Layer::Object);
             const Tile& bg = this->map.tile_at(x, y, Layer::Background);
             this->map_tiles[x][y].walkable = obj.walkable;
             this->map_tiles[x][y].region = bg.region;
-            if (!obj.walkable) {
+            if (!this->map_tiles[x][y].walkable) {
                 this->occupied_tiles[Position(x, y)] = true;
             }
         }

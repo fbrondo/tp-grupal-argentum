@@ -11,4 +11,4 @@ regions = "regions.toml"
 players = "data/players.dat"
 indx_players = "data/players.idx"
 world = "data/world.dat" #guardo el estado del mundo
-map = "data/mapa-pueblo.toml" #despues deberia ser data/mapa.toml
+map = "data/mapa-prueba.toml" #despues deberia ser data/mapa.toml

@@ -169,7 +169,11 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
             SDL2pp::Texture& head_texture = texture_manager.get_texture(head_tex_key);
             SDL_Rect dst_head = {dst_rect.x + (dst_rect.w - head_src.w) / 2, dst_rect.y, head_src.w,
                                  head_src.h};
-            dst_head.y -= 10;  // Offset hacia arriba para el cuello
+            if (is_short_race) {
+                dst_head.y -= 12;
+            } else {
+                dst_head.y -= 20;  // Offset hacia arriba para el cuello
+            }
             renderer.Copy(head_texture, SDL2pp::Rect(head_src), SDL2pp::Rect(dst_head));
         }
 
