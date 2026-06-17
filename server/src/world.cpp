@@ -2,11 +2,22 @@
 
 #include <ranges>
 #include <stack>
+#include <stdexcept>
 #include <unordered_set>
+#include <vector>
 
 #include "common/includes/map/layer.h"
 #include "common/includes/map/map_serializer.h"
+#include "common/includes/sprite_loader.h"
 #include "server/print.h"
+
+#ifndef CONFIG_PATH
+#define CONFIG_PATH "server/config"
+#endif
+
+static constexpr int TILE_SIZE = 32;
+static constexpr uint32_t TOP_ENTITY_VISUAL_MARGIN_TILES = 1;
+
 World::World(const std::filesystem::path& path, Id& next_item_id_):
         next_item_id(next_item_id_),
         map(MapSerializer::load(path)),
@@ -20,18 +31,80 @@ World::World(const std::filesystem::path& path, Id& next_item_id_):
 }
 
 void World::buildTilesWorld() {
-    this->map_tiles.resize(this->limit_height, std::vector<Tile>(this->limit_width));
+    const MatrizBool background_coverage = this->buildBackgroundVisualCoverage();
+    this->map_tiles.resize(this->limit_width, std::vector<Tile>(this->limit_height));
     for (uint32_t y = 0; y < this->limit_height; y++) {
         for (uint32_t x = 0; x < this->limit_width; x++) {
-            const Tile& obj = this->map.tile_at(x, y, Layer::Object);
             const Tile& bg = this->map.tile_at(x, y, Layer::Background);
-            this->map_tiles[x][y].walkable = obj.walkable;
+            const Tile& details = this->map.tile_at(x, y, Layer::Details);
+            const Tile& obj = this->map.tile_at(x, y, Layer::Object);
+            const Tile& roof = this->map.tile_at(x, y, Layer::Roof);
+            this->map_tiles[x][y].walkable = bg.walkable && details.walkable && obj.walkable &&
+                                             roof.walkable && background_coverage[x][y] &&
+                                             y >= TOP_ENTITY_VISUAL_MARGIN_TILES;
             this->map_tiles[x][y].region = bg.region;
-            if (!obj.walkable) {
-                this->occupied_tiles[Position(x, y)] = true;
+        }
+    }
+}
+
+// Calcula las tiles cubiertas por sprites de background y propaga su walkable visual.
+MatrizBool World::buildBackgroundVisualCoverage() const {
+    MatrizBool has_background(this->limit_width, std::vector<bool>(this->limit_height, false));
+    MatrizBool blocked_by_background(this->limit_width,
+                                     std::vector<bool>(this->limit_height, false));
+    const std::filesystem::path sprites_path =
+            std::filesystem::path(CONFIG_PATH).parent_path().parent_path() / "common" / "data" /
+            "background_sprites.toml";
+    const auto sprites = SpriteLoader::load(sprites_path);
+
+    for (uint32_t y = 0; y < this->limit_height; ++y) {
+        for (uint32_t x = 0; x < this->limit_width; ++x) {
+            const Tile& bg = this->map.tile_at(x, y, Layer::Background);
+            if (bg.sprite_id == 0) {
+                continue;
+            }
+
+            const auto sprite_it = sprites.find(bg.sprite_id);
+            if (sprite_it == sprites.end()) {
+                has_background[x][y] = true;
+                if (!bg.walkable) {
+                    blocked_by_background[x][y] = true;
+                }
+                continue;
+            }
+
+            const SpriteDefinition& sprite = sprite_it->second;
+            const int left_px = static_cast<int>(x) * TILE_SIZE;
+            const int top_px = static_cast<int>(y) * TILE_SIZE + TILE_SIZE - sprite.height;
+            const int right_px = left_px + sprite.width;
+            const int bottom_px = top_px + sprite.height;
+
+            const int start_x = std::max(0, left_px / TILE_SIZE);
+            const int start_y = std::max(0, top_px / TILE_SIZE);
+            const int end_x =
+                    std::min(static_cast<int>(this->limit_width) - 1, (right_px - 1) / TILE_SIZE);
+            const int end_y =
+                    std::min(static_cast<int>(this->limit_height) - 1, (bottom_px - 1) / TILE_SIZE);
+
+            for (int covered_y = start_y; covered_y <= end_y; ++covered_y) {
+                for (int covered_x = start_x; covered_x <= end_x; ++covered_x) {
+                    has_background[covered_x][covered_y] = true;
+                    if (!bg.walkable) {
+                        blocked_by_background[covered_x][covered_y] = true;
+                    }
+                }
             }
         }
     }
+
+    MatrizBool coverage(this->limit_width, std::vector<bool>(this->limit_height, false));
+    for (uint32_t y = 0; y < this->limit_height; ++y) {
+        for (uint32_t x = 0; x < this->limit_width; ++x) {
+            coverage[x][y] = has_background[x][y] && !blocked_by_background[x][y];
+        }
+    }
+
+    return coverage;
 }
 
 void World::floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone) {
@@ -71,7 +144,7 @@ void World::floodFill(const Position pos_start, Region region, MatrizBool& visit
 
 void World::saveIdsOfTheSafeZones() {
     for (auto& [id, zone]: this->zones) {
-        if (zone.region == Town || zone.region == City) {
+        if ((zone.region == Town || zone.region == City) && this->zoneHasFreePosition(zone)) {
             this->safe_zones.push_back(id);
         }
     }
@@ -105,7 +178,7 @@ Id World::calculateZoneSafeRandom() {
 }
 
 Position World::calculatePosition(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id].position;
+    const Position& pos = this->players_positions.at(player_id).position;
     Position new_pos;
     switch (dir) {
         case DOWN:
@@ -131,20 +204,58 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
 }
 
 Position World::calculatePositionRandom(const Id& zone_id) {
-    const std::vector<Position>& tiles = this->zones[zone_id].tiles;
-    std::uniform_int_distribution<size_t> distrib(0, tiles.size() - 1);
-    Position random_postion = tiles[distrib(this->gen)];
-    while (this->isOccupied(random_postion)) {
-        random_postion = tiles[distrib(this->gen)];
-        // Print::printPositionRandom(random_postion);
+    const auto zone_it = this->zones.find(zone_id);
+    if (zone_it == this->zones.end()) {
+        return this->findAnyFreePosition();
     }
-    return random_postion;
+
+    std::vector<Position> free_tiles;
+    for (const Position& pos: zone_it->second.tiles) {
+        if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
+            !this->isOccupied(pos)) {
+            free_tiles.push_back(pos);
+        }
+    }
+
+    if (free_tiles.empty()) {
+        return this->findAnyFreePosition();
+    }
+
+    std::uniform_int_distribution<size_t> distrib(0, free_tiles.size() - 1);
+    return free_tiles[distrib(this->gen)];
 }
 
 Position World::calculatePositionRandomSafeZone() {
+    if (this->safe_zones.empty()) {
+        return this->findAnyFreePosition();
+    }
+
     std::uniform_int_distribution<size_t> distrib_zone(0, this->safe_zones.size() - 1);
     Id zone_id = this->safe_zones[distrib_zone(this->gen)];
     return this->calculatePositionRandom(zone_id);
+}
+
+bool World::zoneHasFreePosition(const Zone& zone) {
+    for (const Position& pos: zone.tiles) {
+        if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
+            !this->isOccupied(pos)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Position World::findAnyFreePosition() {
+    for (uint32_t y = 0; y < this->limit_height; ++y) {
+        for (uint32_t x = 0; x < this->limit_width; ++x) {
+            Position pos(x, y);
+            if (this->map_tiles[x][y].walkable && !this->isOccupied(pos)) {
+                return pos;
+            }
+        }
+    }
+
+    throw std::runtime_error("No hay posiciones libres en el mapa para spawnear");
 }
 
 Position World::findNearbyFreePosition(const Position& center) {
@@ -158,7 +269,8 @@ Position World::findNearbyFreePosition(const Position& center) {
         Position pos = queue.front();
         queue.pop();
 
-        if (!this->isOccupied(pos) && this->isWithinLimits(pos)) {
+        if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
+            !this->isOccupied(pos)) {
             return pos;
         }
         std::vector<Position> neighbors = {
@@ -183,7 +295,7 @@ bool World::isWithinLimits(const Position& pos) const {
 }
 
 bool World::isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir) {
-    const Position& pos = this->players_positions[player_id].position;
+    const Position& pos = this->players_positions.at(player_id).position;
     switch (dir) {
         case DOWN:
             return (pos.y + 1 < this->limit_height);
@@ -207,14 +319,25 @@ const std::vector<std::tuple<Id, Region>> World::getZones() {
     return info_zones;
 }
 
-bool World::isOccupied(const Position& pos) { return this->occupied_tiles[pos]; }
+bool World::isOccupied(const Position& pos) const {
+    const auto it = this->occupied_tiles.find(pos);
+    return it != this->occupied_tiles.end() && it->second;
+}
+
+bool World::isFreePosition(const Position& pos) const {
+    return this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
+           !this->isOccupied(pos);
+}
 
 bool World::isWalkable(const Id& player_id, const Direction dir) {
+    if (!this->players_positions.contains(player_id)) {
+        return false;
+    }
     if (!this->isThisPlayerWithinTheLimits(player_id, dir)) {
         return false;
     }
     const Position pos = this->calculatePosition(player_id, dir);
-    if (this->isOccupied(pos)) {
+    if (!this->isFreePosition(pos)) {
         return false;
     }
     return true;
@@ -231,7 +354,13 @@ bool World::canDropItemAt(const Position& pos) {
 
 
 void World::addPlayerWorld(const Id& player_id, const Pose& pose) {
-    this->players_positions.emplace(player_id, pose);
+    auto it = this->players_positions.find(player_id);
+    if (it != this->players_positions.end()) {
+        this->occupied_tiles[it->second.position] = false;
+        it->second = pose;
+    } else {
+        this->players_positions.emplace(player_id, pose);
+    }
     this->occupied_tiles[pose.position] = true;
 }
 
@@ -302,16 +431,17 @@ void World::removeCreature(const Id& creature_id) {
 
 Pose World::movePlayer(const Id& player_id, Direction dir) {
     Position new_position = this->calculatePosition(player_id, dir);
-    Position previous_position = this->players_positions[player_id].position;
+    Position previous_position = this->players_positions.at(player_id).position;
     Pose pose_move(new_position, dir);
     this->occupied_tiles[previous_position] = false;
-    this->players_positions[player_id] = pose_move;
+    this->players_positions.at(player_id) = pose_move;
+    this->occupied_tiles[new_position] = true;
     Print::printPositionMovePlayer(player_id, pose_move, previous_position);
     return pose_move;
 }
 
 Position World::positionPlayerInTheWorld(const Id& player_id) {
-    return this->players_positions[player_id].position;
+    return this->players_positions.at(player_id).position;
 }
 
 Position World::positionEntityTheWorld(const Id& id) const {

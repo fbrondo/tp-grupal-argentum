@@ -68,6 +68,7 @@ void DataStorage::savePlayer(const PlayerData& data) {
     this->data_file.write(reinterpret_cast<const char*>(&data.direction), sizeof(data.direction));
     this->data_file.write(reinterpret_cast<const char*>(&data.charact_traits),
                           sizeof(data.charact_traits));
+    this->data_file.write(reinterpret_cast<const char*>(&data.exp), sizeof(data.exp));
     this->data_file.write(reinterpret_cast<const char*>(&data.level), sizeof(data.level));
     this->data_file.write(reinterpret_cast<const char*>(&data.hp), sizeof(data.hp));
     this->data_file.write(reinterpret_cast<const char*>(&data.mana), sizeof(data.mana));
@@ -101,6 +102,7 @@ PlayerData DataStorage::loadPlayer(const std::string& username) {
     this->data_file.read(reinterpret_cast<char*>(&data.direction), sizeof(data.direction));
     this->data_file.read(reinterpret_cast<char*>(&data.charact_traits),
                          sizeof(data.charact_traits));
+    this->data_file.read(reinterpret_cast<char*>(&data.exp), sizeof(data.exp));
     this->data_file.read(reinterpret_cast<char*>(&data.level), sizeof(data.level));
     this->data_file.read(reinterpret_cast<char*>(&data.hp), sizeof(data.hp));
     this->data_file.read(reinterpret_cast<char*>(&data.mana), sizeof(data.mana));
@@ -135,6 +137,7 @@ void DataStorage::updateStatePlayer(const PlayerData& data) {
     this->data_file.write(reinterpret_cast<const char*>(&data.direction), sizeof(data.direction));
     this->data_file.write(reinterpret_cast<const char*>(&data.charact_traits),
                           sizeof(data.charact_traits));
+    this->data_file.write(reinterpret_cast<const char*>(&data.exp), sizeof(data.exp));
     this->data_file.write(reinterpret_cast<const char*>(&data.level), sizeof(data.level));
     this->data_file.write(reinterpret_cast<const char*>(&data.hp), sizeof(data.hp));
     this->data_file.write(reinterpret_cast<const char*>(&data.mana), sizeof(data.mana));

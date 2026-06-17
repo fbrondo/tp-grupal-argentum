@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <memory>
 #include <string>
 
@@ -57,7 +58,11 @@ private:
     std::unique_ptr<SDL2pp::Texture> hp_texture;
     std::unique_ptr<SDL2pp::Texture> mana_texture;
     std::unique_ptr<SDL2pp::Texture> exp_texture;
+    std::deque<std::unique_ptr<SDL2pp::Texture>> chat_log_textures;
+    std::unique_ptr<SDL2pp::Texture> chat_input_texture;
+    bool chat_is_active = false;
 
+    void render_chat() const;
     void render_progress_bar(int x, int y, int width, int height, uint32_t current,
                              uint32_t maximum, SDL_Color color) const;
     std::unique_ptr<SDL2pp::Texture> create_text_texture(const std::string& text);
@@ -70,6 +75,9 @@ public:
     HudRenderer(SDL2pp::Renderer& r, TextureManager& tm, int width, int height);
     ~HudRenderer() = default;
     void set_player_name(const std::string& name);
+    void add_chat_message(const std::string& msg);
+    bool is_point_inside_console(uint32_t x, uint32_t y) const;
+    void update_chat_input(const std::string& buffer, bool is_active);
     void update_stats(const MsgPlayerStats& new_stats);
     void render() const;
 };
