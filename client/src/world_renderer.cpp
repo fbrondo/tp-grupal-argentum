@@ -35,9 +35,6 @@ void WorldRenderer::load_map(Map&& new_map) {
     current_map = std::move(new_map);
     camera.x = 0;
     camera.y = 0;
-    /*std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión:
-       "
-              << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;*/
 }
 
 void WorldRenderer::add_chat_message(const std::string& msg) { hud_renderer.add_chat_message(msg); }
@@ -149,10 +146,6 @@ void WorldRenderer::update_animations(float dt) {
 
 // Renderizamos con el Algoritmo de pintor (Z-Order por eje Y)
 void WorldRenderer::render() {
-    // HARCODEADO! centra la camara
-    // camera.x = 0;
-    // camera.y = 0;
-
     if (!current_map)
         return;
 

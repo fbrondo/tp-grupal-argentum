@@ -19,6 +19,8 @@ private:
     SDL2pp::Renderer& renderer;
     TextureManager& texture_manager;
     HudRenderer hud_renderer;
+    SDL2pp::Font font;
+    std::string local_player_name;
 
     // El diccionario central que guarda TODAS las entidades visibles en el cliente
     // La clave (key) es el 'id' único que envía el servidor
