@@ -50,7 +50,6 @@ private:
     uint32_t last_move_command_ticks = 0;
     uint32_t it = 0;
     bool is_running = true;
-    bool movement_key_was_down = false;
     Direction last_move_direction = DOWN;
 
     ChatManager chat;

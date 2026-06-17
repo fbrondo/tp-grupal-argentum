@@ -71,14 +71,17 @@ private:
     std::map<Id, GoldBagInstance> gold_on_floor;
 
     void buildTilesWorld();
+    MatrizBool buildBackgroundVisualCoverage() const;
     void identifyZones();
     void floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone);
     void saveIdsOfTheSafeZones();
 
 
-    bool isOccupied(const Position& pos);
+    bool isOccupied(const Position& pos) const;
     bool isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir);
     bool isWithinLimits(const Position& pos) const;
+    bool zoneHasFreePosition(const Zone& zone);
+    Position findAnyFreePosition();
 
     Position calculatePosition(const Id& player_id, const Direction dir);
 
@@ -97,6 +100,7 @@ public:
     const Map& getMap() const { return map; }
 
     bool isWalkable(const Id& id_player, const Direction dir);
+    bool isFreePosition(const Position& pos) const;
     bool isSafeZONE(const Position& /*pos*/);
     bool canDropItemAt(const Position& pos);
 

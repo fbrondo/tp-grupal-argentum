@@ -5,6 +5,33 @@
 #include "client/includes/commands/command_chat.h"
 #include "client/includes/commands/command_move.h"
 
+static bool get_pressed_movement_direction(Direction& direction) {
+    SDL_PumpEvents();
+    if (SDL_GetKeyboardFocus() == nullptr) {
+        return false;
+    }
+
+    const Uint8* keyboard_state = SDL_GetKeyboardState(nullptr);
+    if (keyboard_state[SDL_SCANCODE_UP] || keyboard_state[SDL_SCANCODE_W]) {
+        direction = UP;
+        return true;
+    }
+    if (keyboard_state[SDL_SCANCODE_LEFT] || keyboard_state[SDL_SCANCODE_A]) {
+        direction = LEFT;
+        return true;
+    }
+    if (keyboard_state[SDL_SCANCODE_RIGHT] || keyboard_state[SDL_SCANCODE_D]) {
+        direction = RIGHT;
+        return true;
+    }
+    if (keyboard_state[SDL_SCANCODE_DOWN] || keyboard_state[SDL_SCANCODE_S]) {
+        direction = DOWN;
+        return true;
+    }
+
+    return false;
+}
+
 Client::Client(const char* host, const char* port):
         skt(host, port),
         protocol(this->skt),
@@ -27,6 +54,9 @@ void Client::handle_events() {
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
             is_running = false;
             return;
+        }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+            last_move_command_ticks = 0;
         }
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
             uint32_t mouse_x = event.button.x;
@@ -77,39 +107,31 @@ void Client::handle_events() {
 }
 
 void Client::process_movement_input() {
-    if (chat.is_active())
+    if (chat.is_active()) {
+        last_move_command_ticks = 0;
         return;
-    const uint8_t* keys = SDL_GetKeyboardState(nullptr);
-    Direction direction = DOWN;
-    bool movement_key_down = true;
-
-    if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S]) {
-        direction = DOWN;
-    } else if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W]) {
-        direction = UP;
-    } else if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A]) {
-        direction = LEFT;
-    } else if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D]) {
-        direction = RIGHT;
-    } else {
-        movement_key_down = false;
     }
 
-    if (!movement_key_down) {
-        movement_key_was_down = false;
+    Direction direction = last_move_direction;
+    if (!get_pressed_movement_direction(direction)) {
+        last_move_command_ticks = 0;
         return;
     }
 
     const uint32_t now = SDL_GetTicks();
-    const bool direction_changed = movement_key_was_down && direction != last_move_direction;
+    const bool movement_started = last_move_command_ticks == 0;
+    const bool direction_changed = direction != last_move_direction;
     const bool repeat_due = now - last_move_command_ticks >= MOVE_REPEAT_MS;
 
-    if (!movement_key_was_down || direction_changed || repeat_due) {
+    if (world_renderer.is_local_player_moving()) {
+        return;
+    }
+
+    if (movement_started || direction_changed || repeat_due) {
         cmd_queue.push(std::make_unique<MoveCommandClient>(direction));
         last_move_command_ticks = now;
         last_move_direction = direction;
     }
-    movement_key_was_down = true;
 }
 
 void Client::clear_display() { window.clear(); }
@@ -179,6 +201,7 @@ void Client::close() {
 
 void Client::launch(const std::string& user, const std::string& pass) {
     try {
+        last_move_command_ticks = 0;
         if (!user.empty()) {
             world_renderer.set_player_name(user);
             protocol.sendLogin(user, pass);

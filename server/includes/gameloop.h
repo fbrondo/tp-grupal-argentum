@@ -71,7 +71,7 @@ private:
     // Equipment createEquipment(const std::vector<ItemInstanceData>& equip) const;
     Inventory loadingInventory(const PlayerData& player);
     void loadingPlayerData(const Id& player_id, const PlayerData& player_data);
-    void createNewPlayer(const Id& player_id, const User& user, const CharacterTraits& traits);
+    void createNewPlayer(const User& user, const CharacterTraits& traits);
 
 
     void executeBroacastSnapshot();
