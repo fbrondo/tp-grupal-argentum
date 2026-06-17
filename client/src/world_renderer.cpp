@@ -77,10 +77,11 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             it->second->move_to(p_data.pos_x, p_data.pos_y,
                                 static_cast<Direction>(p_data.direction));
         } else {
-            bool is_short = (p_data.raza == GNOME || p_data.raza == DWARF);
+            bool is_short = (p_data.ch_traits.race == GNOME || p_data.ch_traits.race == DWARF);
             entities[p_data.id] = std::make_unique<RenderableEntity>(
-                    p_data.id, EntityType::PLAYER, p_data.pos_x, p_data.pos_y, p_data.body_id,
-                    p_data.head_id, p_data.weapon_id, p_data.shield_id, is_short);
+                    p_data.id, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
+                    p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
+                    p_data.shield_id, is_short);
             entities[p_data.id]->move_to(p_data.pos_x, p_data.pos_y,
                                          static_cast<Direction>(p_data.direction));
         }
