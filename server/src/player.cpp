@@ -11,6 +11,7 @@
 
 Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerData& data):
         CombatEntity(pos, data), ch(std::move(ch_)) {
+    this->statics = this->ch.getStatistics();
     this->hp = data.hp;
     this->max_hp = this->hpMax();
     this->mana = data.mana;

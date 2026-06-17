@@ -1,9 +1,8 @@
 #include "client/includes/client.h"
 
-#include <iostream>
-
 #include <SDL2/SDL_image.h>
 
+#include "client/includes/commands/command_attack.h"
 #include "client/includes/commands/command_move.h"
 
 Client::Client(const char* host, const char* port):
@@ -37,13 +36,9 @@ void Client::handle_events() {
                 auto hit = world_renderer.get_entity_at_screen(mx, my);
                 if (hit) {
                     auto [entity_id, entity_type] = *hit;
-                    std::string type_str = (entity_type == EntityType::PLAYER) ? "PLAYER" :
-                                           (entity_type == EntityType::NPC)    ? "NPC" :
-                                                                                 "CITIZEN_NPC";
-                    std::cout << "[CLICK] entity_id=" << entity_id << " type=" << type_str
-                              << std::endl;
-                } else {
-                    std::cout << "[CLICK] no entity at (" << mx << "," << my << ")" << std::endl;
+                    if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
+                        cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
+                    }
                 }
             }
         }

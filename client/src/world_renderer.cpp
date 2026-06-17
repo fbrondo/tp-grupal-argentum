@@ -1,7 +1,6 @@
 #include "client/includes/world_renderer.h"
 
 #include <algorithm>
-#include <iostream>
 
 #include "common/includes/types.h"
 

@@ -23,6 +23,8 @@ public:
 
     const Position& getPosition() const;
     uint8_t getLevel() const;
+    uint16_t getHp() const { return hp; }
+    uint16_t getMaxHp() const { return max_hp; }
 
     virtual bool dodgeAttack() const;
     virtual void receiveDamage(uint16_t damage, World& world);

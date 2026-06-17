@@ -355,14 +355,13 @@ bool Gameloop::isItPossibleToAttack(const Id& player_id, const Id& victim_id, We
 }
 
 CombatEntity* Gameloop::inSearchOfTheVictimAttack(const Id& id_search) const {
-    CombatEntity* victim = nullptr;
     if (this->players.contains(id_search)) {
-        victim = this->players.at(id_search).get();
+        return this->players.at(id_search).get();
     }
-    if (this->npcs.contains(id_search)) {
-        victim = this->creatures.at(id_search).get();
+    if (this->creatures.contains(id_search)) {
+        return this->creatures.at(id_search).get();
     }
-    return victim;
+    return nullptr;
 }
 
 std::vector<Defense*> Gameloop::getPlayerDefensiveEquipment(const Id& player_id) {
@@ -376,7 +375,6 @@ std::vector<Defense*> Gameloop::getPlayerDefensiveEquipment(const Id& player_id)
 }
 
 void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
-
     Player* attacker = this->players.at(attacker_id).get();
     if (!attacker->isAlive())
         return;
@@ -386,32 +384,36 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         return;
 
     CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
-    if (!victim) /*Es un npc normal*/
+    if (!victim)
         return;
-    if (!attacker->isValidOpponent(dynamic_cast<Player*>(victim))) {
+
+    if (!attacker->isValidOpponent(dynamic_cast<Player*>(victim)))
         return;
-    }
+
     auto* weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
     if (!weapon)
         return;
-    if (!this->isItPossibleToAttack(attacker_id, victim_id, *weapon)) {
+
+    if (!this->isItPossibleToAttack(attacker_id, victim_id, *weapon))
         return;
-    }
+
     bool is_critical = false;
     uint16_t damage_by_attacker = attacker->calculateDamage(is_critical, *weapon);
-    if (!is_critical && victim->dodgeAttack()) {
-        return;  // Registrar sonido de esquivado
-    }
-    if (const auto player = dynamic_cast<Player*>(victim)) { /*Si la victima es un jugador*/
+    if (!is_critical && victim->dodgeAttack())
+        return;
+
+    if (const auto player = dynamic_cast<Player*>(victim)) {
         const std::vector<Defense*> equip_defensive = this->getPlayerDefensiveEquipment(victim_id);
         const uint16_t defense_victim = player->calculateDefense(equip_defensive);
         damage_by_attacker =
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
     }
     victim->receiveDamage(damage_by_attacker, this->world);
-    if (!victim->isAlive() && dynamic_cast<Creature*>(victim)) {
+    std::cout << "[ATTACK] " << attacker_id << " -> " << victim_id << " dmg=" << damage_by_attacker
+              << " hp=" << victim->getHp() << "/" << victim->getMaxHp() << std::endl;
+    if (!victim->isAlive() && dynamic_cast<Creature*>(victim))
         this->creatures.erase(victim_id);
-    }
+
     this->players[attacker_id]->breakMeditation();
 }
 
