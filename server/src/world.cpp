@@ -16,6 +16,7 @@
 #endif
 
 static constexpr int TILE_SIZE = 32;
+static constexpr uint32_t TOP_ENTITY_VISUAL_MARGIN_TILES = 1;
 
 World::World(const std::filesystem::path& path, Id& next_item_id_):
         next_item_id(next_item_id_),
@@ -34,17 +35,23 @@ void World::buildTilesWorld() {
     this->map_tiles.resize(this->limit_width, std::vector<Tile>(this->limit_height));
     for (uint32_t y = 0; y < this->limit_height; y++) {
         for (uint32_t x = 0; x < this->limit_width; x++) {
-            const Tile& obj = this->map.tile_at(x, y, Layer::Object);
             const Tile& bg = this->map.tile_at(x, y, Layer::Background);
-            this->map_tiles[x][y].walkable = obj.walkable && background_coverage[x][y];
+            const Tile& details = this->map.tile_at(x, y, Layer::Details);
+            const Tile& obj = this->map.tile_at(x, y, Layer::Object);
+            const Tile& roof = this->map.tile_at(x, y, Layer::Roof);
+            this->map_tiles[x][y].walkable = bg.walkable && details.walkable && obj.walkable &&
+                                             roof.walkable && background_coverage[x][y] &&
+                                             y >= TOP_ENTITY_VISUAL_MARGIN_TILES;
             this->map_tiles[x][y].region = bg.region;
         }
     }
 }
 
-//Calcula el alto y ancho que ocupa un tile y marca como cubierta la posicion de ese tile para evitar bordes negros
+// Calcula las tiles cubiertas por sprites de background y propaga su walkable visual.
 MatrizBool World::buildBackgroundVisualCoverage() const {
-    MatrizBool coverage(this->limit_width, std::vector<bool>(this->limit_height, false));
+    MatrizBool has_background(this->limit_width, std::vector<bool>(this->limit_height, false));
+    MatrizBool blocked_by_background(this->limit_width,
+                                     std::vector<bool>(this->limit_height, false));
     const std::filesystem::path sprites_path =
             std::filesystem::path(CONFIG_PATH).parent_path().parent_path() / "common" / "data" /
             "background_sprites.toml";
@@ -59,7 +66,10 @@ MatrizBool World::buildBackgroundVisualCoverage() const {
 
             const auto sprite_it = sprites.find(bg.sprite_id);
             if (sprite_it == sprites.end()) {
-                coverage[x][y] = true;
+                has_background[x][y] = true;
+                if (!bg.walkable) {
+                    blocked_by_background[x][y] = true;
+                }
                 continue;
             }
 
@@ -71,16 +81,26 @@ MatrizBool World::buildBackgroundVisualCoverage() const {
 
             const int start_x = std::max(0, left_px / TILE_SIZE);
             const int start_y = std::max(0, top_px / TILE_SIZE);
-            const int end_x = std::min(static_cast<int>(this->limit_width) - 1,
-                                       (right_px - 1) / TILE_SIZE);
-            const int end_y = std::min(static_cast<int>(this->limit_height) - 1,
-                                       (bottom_px - 1) / TILE_SIZE);
+            const int end_x =
+                    std::min(static_cast<int>(this->limit_width) - 1, (right_px - 1) / TILE_SIZE);
+            const int end_y =
+                    std::min(static_cast<int>(this->limit_height) - 1, (bottom_px - 1) / TILE_SIZE);
 
             for (int covered_y = start_y; covered_y <= end_y; ++covered_y) {
                 for (int covered_x = start_x; covered_x <= end_x; ++covered_x) {
-                    coverage[covered_x][covered_y] = true;
+                    has_background[covered_x][covered_y] = true;
+                    if (!bg.walkable) {
+                        blocked_by_background[covered_x][covered_y] = true;
+                    }
                 }
             }
+        }
+    }
+
+    MatrizBool coverage(this->limit_width, std::vector<bool>(this->limit_height, false));
+    for (uint32_t y = 0; y < this->limit_height; ++y) {
+        for (uint32_t x = 0; x < this->limit_width; ++x) {
+            coverage[x][y] = has_background[x][y] && !blocked_by_background[x][y];
         }
     }
 

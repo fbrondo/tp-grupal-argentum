@@ -428,8 +428,7 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
         Pose new_pose = this->world.movePlayer(player_id, dir);
         this->players[player_id]->updatePose(std::move(new_pose));
     } else {
-        std::cerr << "[MOVE] rejected player=" << player_id << " reason=not_walkable"
-                  << std::endl;
+        std::cerr << "[MOVE] rejected player=" << player_id << " reason=not_walkable" << std::endl;
     }
 }
 

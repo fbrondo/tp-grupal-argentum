@@ -1,7 +1,7 @@
 #include "client/includes/world_renderer.h"
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <unordered_set>
 
@@ -123,7 +123,7 @@ void WorldRenderer::update_visible_map_bounds() {
     min_y = std::max(0, min_y);
     max_x = std::min(current_map->width() * TILE_SIZE, max_x);
     max_y = std::min(current_map->height() * TILE_SIZE, max_y);
-    //La funcion para centrar la camara usa este rectangulo para saber hasta donde mostrar
+    // La funcion para centrar la camara usa este rectangulo para saber hasta donde mostrar
     visible_map_bounds = {min_x, min_y, max_x - min_x, max_y - min_y};
 }
 
@@ -303,6 +303,8 @@ void WorldRenderer::render() {
     }
 
     // 2. RENDERIZADO DE ENTIDADES (Jugadores/NPCs)
+    SDL_RenderSetClipRect(renderer.Get(), &view_rect);
+
     std::vector<RenderableEntity*> sorted_entities;
     sorted_entities.reserve(entities.size());
     for (const auto& [id, entity]: entities) {
@@ -324,6 +326,8 @@ void WorldRenderer::render() {
     }
 
     // 3. RENDERIZADO DE TECHOS (Roofs)
+    SDL_RenderSetClipRect(renderer.Get(), &view_rect);
+
     for (int y = start_tile_y; y <= end_tile_y; ++y) {
         for (int x = start_tile_x; x <= end_tile_x; ++x) {
             auto& tile_data = current_map->tile_at(x, y, Layer::Roof);

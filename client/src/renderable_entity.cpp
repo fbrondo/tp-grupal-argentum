@@ -133,10 +133,10 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         uint32_t frame_index = texture_manager.get_current_animation_frame(anim_state, body_clip);
         SDL_Rect src_rect = body_clip.frames[frame_index];
 
-        SDL_Rect dst_rect = {static_cast<int>(current_pixel_x) - cam_x + offset_x,
-                             static_cast<int>(current_pixel_y) - cam_y + offset_y, src_rect.w,
-                             src_rect.h};
-
+        SDL_Rect dst_rect = {
+                static_cast<int>(current_pixel_x) - cam_x + offset_x,
+                static_cast<int>(current_pixel_y) + TILE_SIZE - cam_y + offset_y - src_rect.h,
+                src_rect.w, src_rect.h};
         // A) Dibujar Cuerpo o Criatura
         SDL2pp::Texture& body_texture =
                 texture_manager.get_texture(prefix + std::to_string(body_id));
