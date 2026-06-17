@@ -12,17 +12,17 @@
 #include "common/includes/types.h"
 #include "server/includes/core/bank.h"
 #include "server/includes/core/config.h"
-#include "server/includes/inventory.h"
 #include "server/includes/core/item.h"
+#include "server/includes/definitions.h"
+#include "server/includes/inventory.h"
+#include "server/includes/monitor_queues.h"
 #include "server/includes/npc/citizen_npc.h"
 #include "server/includes/npc/creature.h"
-#include "server/includes/definitions.h"
-#include "server/includes/monitor_queues.h"
-#include "server/includes/spawn_manager.h"
 #include "server/includes/persistence.h"
 #include "server/includes/player.h"
-#include "server/includes/world.h"
 #include "server/includes/response_builder.h"
+#include "server/includes/spawn_manager.h"
+#include "server/includes/world.h"
 
 class Gameloop: public Thread {
 
@@ -61,8 +61,8 @@ private:
 
 
     Character createCharacter(const CharacterTraits& traits) const;
-    //Equipment createEquipment(const std::vector<ItemInstanceData>& equip) const;
-   // Inventory loadingInventory(const PlayerData& player);
+    // Equipment createEquipment(const std::vector<ItemInstanceData>& equip) const;
+    // Inventory loadingInventory(const PlayerData& player);
     void loadingPlayerData(const Id& player_id, const PlayerData& player_data);
     void createNewPlayer(const User& user, const CharacterTraits& traits);
 
@@ -86,22 +86,22 @@ public:
     void processMovePlayer(Id player_id, Direction dir);
     void processBuyItem(Id player_id, Id npc_id, TypeItem type_item); /*enviabas un ID item_id*/
     void processSellItem(Id player_id, Id npc_id, TypeItem type_item);
-    void processPlayerDropItem(Id player_id,  size_t index_slot);
+    void processPlayerDropItem(Id player_id, size_t index_slot);
     void processPlayerPickUp(Id player_id);
 
-    void processPlayerWithdrawItem(Id player_id,Id npc_id, TypeItem type_item);
+    void processPlayerWithdrawItem(Id player_id, Id npc_id, TypeItem type_item);
     void processPlayerDepositItem(Id player_id, Id npc_id, TypeItem type_item);
     void processPlayerDepositGold(Id player_id, uint32_t amount);
     void processPlayerWithdrawGold(Id player_id, uint32_t amount);
 
 
     void processPlayerMeditate(Id player_id);
-    void processPlayerHeal(Id player_id);
-    void processPlayerResurrect(Id player_id);
+    // void processPlayerHeal(Id player_id);
+    // void processPlayerResurrect(Id player_id);
     void processListItems(Id player_id, Id npc_id);
-    void processPlayerEquipItem(Id player_id, Id instance_id);
-    void processPlayerUnequipItem(Id player_id, Id instance_id);
-    void processPlayerUseItem(Id player_id, Id instance_id);
+    // void processPlayerEquipItem(Id player_id, Id instance_id);
+    // void processPlayerUnequipItem(Id player_id, Id instance_id);
+    // void processPlayerUseItem(Id player_id, Id instance_id);
 
     void respawnDeadNpcs();
     void updatePlayersAttributes();

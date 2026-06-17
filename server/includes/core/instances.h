@@ -1,6 +1,8 @@
 #ifndef INSTANCES_H
 #define INSTANCES_H
 
+#include <vector>
+
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
@@ -9,11 +11,11 @@ struct ItemInstance {
     Id id{0};
     Position position;
     const Item* item{nullptr};
-    //bool is_equipped{false};
+    // bool is_equipped{false};
 
     ItemInstance() = default;
-    ItemInstance(const Item* item_):item(item_) {}
-    ItemInstance(const Id id_, const  Item* item_): id(id_), item(item_) {}
+    explicit ItemInstance(const Item* item_): item(item_) {}
+    ItemInstance(const Id id_, const Item* item_): id(id_), item(item_) {}
 
     ItemInstance(ItemInstance&&) = default;
     ItemInstance& operator=(ItemInstance&&) = default;
@@ -23,7 +25,7 @@ struct ItemInstance {
 };
 
 struct GoldBagInstance {
-    Id id;
+    Id id{0};
     uint32_t amount{0};
     Position position;
 
@@ -38,11 +40,11 @@ struct GoldBagInstance {
 };
 
 struct TreasureInstance {
-    Id      id{0};
-    Id      zone_id{0};
+    Id id{0};
+    Id zone_id{0};
     Position position;
     uint32_t amount_golden{0};
-    std::vector<ItemInstance> items; // El tesoro contiene múltiples ítems adentro
+    std::vector<ItemInstance> items;  // El tesoro contiene múltiples ítems adentro
 
     TreasureInstance() = default;
     TreasureInstance(TreasureInstance&&) = default;
@@ -59,10 +61,7 @@ struct NpcInstance {
 
     NpcInstance() = default;
     NpcInstance(const Id& id_, const Id& zone_id_, TypeNPC type_, const Pose& pose):
-    id(id_),
-    zone_id(zone_id_),
-    type(type_),
-    pose(pose) {}
+            id(id_), zone_id(zone_id_), type(type_), pose(pose) {}
     NpcInstance(NpcInstance&&) = default;
     NpcInstance& operator=(NpcInstance&&) = default;
     NpcInstance(const NpcInstance&) = default;

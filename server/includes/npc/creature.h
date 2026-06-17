@@ -32,7 +32,8 @@ private:
 
 public:
     /*Tiempo de recuperacion al dar un ataque*/
-    Creature(const Id& id_, TypeNPC type, const Pose& pose_, const NpcAttributes& attrib, std::vector<ItemInstance>&& items_);
+    Creature(const Id& id_, TypeNPC type, const Pose& pose_, const NpcAttributes& attrib,
+             std::vector<ItemInstance>&& items_);
 
     void onDeath(World& world) override;
     CreatureData getCreatureData();

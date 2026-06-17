@@ -3,7 +3,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <map>
 
 #include "server/includes/core/item.h"
 #include "server/includes/npc/citizen_npc.h"
@@ -16,10 +15,8 @@ protected:
 public:
     TraderNPC(TypeNPC type, const std::string& name, std::map<TypeItem, Item*>&& items);
     ~TraderNPC() override = default;
-
-
     virtual void executeBuyItem(Player& player, TypeItem type_item_buy);
-    //const std::map<TypeItem, std::unique_ptr<Item>>& getStore() const;
-    //bool hasItem(TypeItem type) const;
-    InteractionResult interact() override;
+    // const std::map<TypeItem, std::unique_ptr<Item>>& getStore() const;
+    // bool hasItem(TypeItem type) const;
+    // InteractionResult interact() override;
 };

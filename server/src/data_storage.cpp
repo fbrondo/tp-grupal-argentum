@@ -65,7 +65,8 @@ void DataStorage::savePlayer(const PlayerData& data) {
     /* campos fijos */
     this->data_file.write(reinterpret_cast<const char*>(&data.position), sizeof(data.position));
     this->data_file.write(reinterpret_cast<const char*>(&data.direction), sizeof(data.direction));
-    this->data_file.write(reinterpret_cast<const char*>(&data.charact_traits), sizeof(data.charact_traits));
+    this->data_file.write(reinterpret_cast<const char*>(&data.charact_traits),
+                          sizeof(data.charact_traits));
     this->data_file.write(reinterpret_cast<const char*>(&data.exp), sizeof(data.exp));
     this->data_file.write(reinterpret_cast<const char*>(&data.level), sizeof(data.level));
     this->data_file.write(reinterpret_cast<const char*>(&data.hp), sizeof(data.hp));
@@ -75,12 +76,14 @@ void DataStorage::savePlayer(const PlayerData& data) {
     /*inventario — primero el tamaño, luego los elementos*/
     const auto inv_size = static_cast<uint32_t>(data.inventory.size());
     this->data_file.write(reinterpret_cast<const char*>(&inv_size), sizeof(inv_size));
-    this->data_file.write(reinterpret_cast<const char*>(data.inventory.data()), inv_size * sizeof(SlotData));
+    this->data_file.write(reinterpret_cast<const char*>(data.inventory.data()),
+                          inv_size * sizeof(SlotData));
 
     /*Equipo*/
     const auto equip_size = static_cast<uint32_t>(data.equipment.size());
     this->data_file.write(reinterpret_cast<const char*>(&equip_size), sizeof(equip_size));
-    this->data_file.write(reinterpret_cast<const char*>(data.equipment.data()), equip_size * sizeof(uint32_t));
+    this->data_file.write(reinterpret_cast<const char*>(data.equipment.data()),
+                          equip_size * sizeof(uint32_t));
 
     this->data_file.flush(); /*fuerza que los datos lleguen al disco*/
     this->index[data.username] = offset;
@@ -96,7 +99,8 @@ PlayerData DataStorage::loadPlayer(const std::string& username) {
     // campos fijos
     this->data_file.read(reinterpret_cast<char*>(&data.position), sizeof(data.position));
     this->data_file.read(reinterpret_cast<char*>(&data.direction), sizeof(data.direction));
-    this->data_file.read(reinterpret_cast<char*>(&data.charact_traits), sizeof(data.charact_traits));
+    this->data_file.read(reinterpret_cast<char*>(&data.charact_traits),
+                         sizeof(data.charact_traits));
     this->data_file.read(reinterpret_cast<char*>(&data.exp), sizeof(data.exp));
     this->data_file.read(reinterpret_cast<char*>(&data.level), sizeof(data.level));
     this->data_file.read(reinterpret_cast<char*>(&data.hp), sizeof(data.hp));
@@ -106,12 +110,14 @@ PlayerData DataStorage::loadPlayer(const std::string& username) {
     uint32_t inv_size;
     this->data_file.read(reinterpret_cast<char*>(&inv_size), sizeof(inv_size));
     data.inventory.resize(inv_size);
-    this->data_file.read(reinterpret_cast<char*>(data.inventory.data()), inv_size * sizeof(SlotData));
+    this->data_file.read(reinterpret_cast<char*>(data.inventory.data()),
+                         inv_size * sizeof(SlotData));
     // equipo
     uint32_t equip_size;
     this->data_file.read(reinterpret_cast<char*>(&equip_size), sizeof(equip_size));
     data.equipment.resize(equip_size);
-    this->data_file.read(reinterpret_cast<char*>(data.equipment.data()), equip_size * sizeof(uint32_t));
+    this->data_file.read(reinterpret_cast<char*>(data.equipment.data()),
+                         equip_size * sizeof(size_t));
     return data;
 }
 
@@ -127,7 +133,8 @@ void DataStorage::updateStatePlayer(const PlayerData& data) {
     /* campos fijos */
     this->data_file.write(reinterpret_cast<const char*>(&data.position), sizeof(data.position));
     this->data_file.write(reinterpret_cast<const char*>(&data.direction), sizeof(data.direction));
-    this->data_file.write(reinterpret_cast<const char*>(&data.charact_traits), sizeof(data.charact_traits));
+    this->data_file.write(reinterpret_cast<const char*>(&data.charact_traits),
+                          sizeof(data.charact_traits));
     this->data_file.write(reinterpret_cast<const char*>(&data.exp), sizeof(data.exp));
     this->data_file.write(reinterpret_cast<const char*>(&data.level), sizeof(data.level));
     this->data_file.write(reinterpret_cast<const char*>(&data.hp), sizeof(data.hp));
@@ -137,11 +144,13 @@ void DataStorage::updateStatePlayer(const PlayerData& data) {
     /*inventario — primero el tamaño, luego los elementos*/
     const uint32_t inv_size = static_cast<uint32_t>(data.inventory.size());
     this->data_file.write(reinterpret_cast<const char*>(&inv_size), sizeof(inv_size));
-    this->data_file.write(reinterpret_cast<const char*>(data.inventory.data()), inv_size * sizeof(SlotData));
+    this->data_file.write(reinterpret_cast<const char*>(data.inventory.data()),
+                          inv_size * sizeof(SlotData));
     /*Equipo*/
     const uint32_t equip_size = static_cast<uint32_t>(data.equipment.size());
     this->data_file.write(reinterpret_cast<const char*>(&equip_size), sizeof(equip_size));
-    this->data_file.write(reinterpret_cast<const char*>(data.equipment.data()), equip_size * sizeof(uint32_t));
+    this->data_file.write(reinterpret_cast<const char*>(data.equipment.data()),
+                          equip_size * sizeof(size_t));
 
     this->data_file.flush();
 }
@@ -192,7 +201,8 @@ WorldStateData DataStorage::loadWorldState() {
     uint32_t citizen_npc_size;
     world_file.read(reinterpret_cast<char*>(&citizen_npc_size), sizeof(citizen_npc_size));
     state.creatures.resize(citizen_npc_size);
-    world_file.read(reinterpret_cast<char*>(state.citizen_npcs.data()), citizen_npc_size * sizeof(CitizenNpcData));
+    world_file.read(reinterpret_cast<char*>(state.citizen_npcs.data()),
+                    citizen_npc_size * sizeof(CitizenNpcData));
 
     // criaturas
     uint32_t creatures_size;
@@ -212,7 +222,8 @@ WorldStateData DataStorage::loadWorldState() {
     uint32_t gold_bags;
     world_file.read(reinterpret_cast<char*>(&gold_bags), sizeof(gold_bags));
     state.treasures.resize(gold_bags);
-    world_file.read(reinterpret_cast<char*>(state.gold_bags.data()), gold_bags * sizeof(GoldBagsData));
+    world_file.read(reinterpret_cast<char*>(state.gold_bags.data()),
+                    gold_bags * sizeof(GoldBagsData));
 
     // items
     uint32_t items_size;

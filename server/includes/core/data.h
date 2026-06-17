@@ -9,21 +9,20 @@
 constexpr size_t MAX_DATA = 30;
 
 #pragma pack(push, 1)
-struct ItemData{
-    uint8_t type_item;
-};
-
 struct ItemInstanceData {
-    ItemData item;
+    uint8_t type_item;
     Position position;
-    //int32_t x;
-    //int32_t y;
+    // int32_t x;
+    // int32_t y;
 };
 
 struct SlotData {
-    ItemData item;
+    uint8_t type_item;
     uint32_t index;
     uint32_t quantity;
+    SlotData(): type_item(0), index(0), quantity(0){};
+    SlotData(uint8_t type_item_, uint32_t index_, uint32_t quantity_):
+            type_item(type_item_), index(index_), quantity(quantity_) {}
 };
 
 struct PlayerData {
@@ -31,8 +30,8 @@ struct PlayerData {
     char password[MAX_DATA];
     /*Pose del personaje*/
     Position position;
-    //int32_t x;
-    //int32_t y;
+    // int32_t x;
+    // int32_t y;
     uint8_t direction;
     /*Personaje*/
     CharacterTraits charact_traits;
@@ -44,21 +43,21 @@ struct PlayerData {
     /* inventario*/
     uint32_t golden;
     std::vector<SlotData> inventory;
-    std::vector<uint32_t> equipment; /*guarda el index del slot que esta euipado*/
+    std::vector<size_t> equipment; /*guarda el index del slot que esta euipado*/
 };
 
 struct CitizenNpcData {
     char name[MAX_DATA];
-    uint8_t  type;  // TypeNPC
+    uint8_t type;  // TypeNPC
     Position position;
     uint8_t direction;
 };
 
 struct CreatureData {
-    uint8_t  type;  // TypeNPC
+    uint8_t type;  // TypeNPC
     char name[MAX_DATA];
-    //uint32_t x;
-    //uint32_t y;
+    // uint32_t x;
+    // uint32_t y;
     Position position;
     uint8_t direction;
     NpcAttributes attributes;
@@ -70,14 +69,14 @@ struct CreatureData {
 struct TreasureStateData {
     uint32_t amount;
     Position position;
-    //uint32_t pos_x;
-    //uint32_t pos_y;
+    // uint32_t pos_x;
+    // uint32_t pos_y;
 };
 struct GoldBagsData {
     uint32_t amount;
     Position position;
-    //uint32_t pos_x;
-    //uint32_t pos_y;
+    // uint32_t pos_x;
+    // uint32_t pos_y;
 };
 struct WorldStateData {
     std::vector<CitizenNpcData> citizen_npcs;

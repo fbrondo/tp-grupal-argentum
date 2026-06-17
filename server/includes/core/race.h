@@ -23,7 +23,8 @@ struct Race {
     uint16_t mana_factor;     /*factor de mana - Para el limite de ManaMax*/
     Statistics statistics;
 
-    Race(TypeRace type, std::string&& name, uint16_t hp_f, uint16_t rec_f, uint16_t mana_f, const Statistics& st):
+    Race(TypeRace type, std::string&& name, uint16_t hp_f, uint16_t rec_f, uint16_t mana_f,
+         const Statistics& st):
             type(type),
             name(std::move(name)),
             hp_factor(hp_f),

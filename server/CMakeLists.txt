@@ -9,6 +9,7 @@ target_sources(taller_server
         src/commands/command_deposit_gold.cpp
         src/commands/command_disconnect.cpp
         src/commands/command_drop_item.cpp
+        src/commands/command_equip.cpp
         src/commands/command_heal.cpp
         src/commands/command_interact.cpp
         src/commands/command_list_items.cpp
@@ -19,6 +20,7 @@ target_sources(taller_server
         src/commands/command_sell_item.cpp
         src/commands/command_signup.cpp
         src/commands/command_take_item.cpp
+        src/commands/command_unequip.cpp
         src/commands/command_use_item.cpp
         src/commands/command_withdraw.cpp
         src/commands/command_withdraw_gold.cpp
@@ -80,6 +82,7 @@ target_sources(taller_server
         includes/commands/command_deposit_gold.h
         includes/commands/command_disconnect.h
         includes/commands/command_drop_item.h
+        includes/commands/command_equip.h
         includes/commands/command_heal.h
         includes/commands/command_interact.h
         includes/commands/command_login.h
@@ -90,6 +93,7 @@ target_sources(taller_server
         includes/commands/command_signup.h
         includes/commands/command_take_item.h
         includes/commands/command_use_item.h
+        includes/commands/command_unequip.h
         includes/commands/command_withdraw.h
         includes/commands/command_withdraw_gold.h
 
@@ -98,7 +102,6 @@ target_sources(taller_server
         includes/core/config.h
         includes/core/data.h
         includes/core/instances.h
-        includes/core/inventory.h
         includes/core/item.h
         includes/core/map.h
         includes/core/race.h

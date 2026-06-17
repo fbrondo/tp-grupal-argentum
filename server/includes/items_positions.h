@@ -1,9 +1,10 @@
 #ifndef ITEMS_POSITIONS_H
 #define ITEMS_POSITIONS_H
 
+#include <cstdint>
 #include <unordered_map>
 #include <variant>
-#include <cstdint>
+
 #include "common/includes/types.h"
 #include "server/includes/core/instances.h"
 #include "server/includes/player.h"
@@ -29,11 +30,8 @@ public:
 
     void removeItemTakeToPlayer(Player& player);
 
-    bool isOcupied(const Position& position) const ;
-
-
+    bool isOcupied(const Position& position) const;
 };
 
 
-
-#endif //TALLER_TP_ITEMS_POSITIONS_H
+#endif

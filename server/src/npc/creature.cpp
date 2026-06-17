@@ -9,15 +9,17 @@
 
 ItemInstance Creature::search_item_drop(TypeItem type) {
     ItemInstance drop_item;
-    auto it = std::find_if(this->items_to_drop.begin(), this->items_to_drop.end(),
-                           [&type](const ItemInstance& instance) { return instance.item->type == type; });
+    auto it = std::find_if(
+            this->items_to_drop.begin(), this->items_to_drop.end(),
+            [&type](const ItemInstance& instance) { return instance.item->type == type; });
     if (it != this->items_to_drop.end()) {
         drop_item = *it;
     }
     return drop_item;
 }
 
-Creature::Creature(const Id& id_, TypeNPC type, const Pose& pos, const NpcAttributes& attrib, std::vector<ItemInstance>&& items_):
+Creature::Creature(const Id& id_, TypeNPC type, const Pose& pos, const NpcAttributes& attrib,
+                   std::vector<ItemInstance>&& items_):
         CombatEntity(pos, attrib.max_hp, attrib.difficulty_level),
         id(id_),
         type_creature(type),
@@ -30,7 +32,7 @@ void Creature::onDeath(World& world) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::discrete_distribution<int> dist({80, 8, 1, 1});
-    switch (int result = dist(gen)) {
+    switch (dist(gen)) {
         case 0: /*nada*/
             break;
         case 1: { /*8% - oro*/
@@ -38,7 +40,7 @@ void Creature::onDeath(World& world) {
             GoldBagInstance gold;
             gold.amount = drop_gold;
             gold.position = world.findNearbyFreePosition(this->pose.position);
-            world.spawnGoldOnFloor(gold);
+            world.addGoldWorld(gold);
             break;
         }
         case 2: {  // 1% - pocion de vida o mana
@@ -46,7 +48,7 @@ void Creature::onDeath(World& world) {
             TypeItem potion = (potion_dist(gen) == 0) ? LIFE_POTION : MANA_POTION;
             ItemInstance drop_potion = this->search_item_drop(potion);
             drop_potion.position = world.findNearbyFreePosition(this->pose.position);
-            world.spawnItemOnFloor(drop_potion);
+            world.addItemWorld(drop_potion);
             break;
         }
         case 3: {  // 1% - cualquier otro objeto
@@ -54,9 +56,9 @@ void Creature::onDeath(World& world) {
             ItemInstance item_drop;
             do {
                 item_drop = this->items_to_drop[item_dist(gen)];
-            } while (item_drop.type == LIFE_POTION || item_drop.type == MANA_POTION);
+            } while (item_drop.item->type == LIFE_POTION || item_drop.item->type == MANA_POTION);
             item_drop.position = world.findNearbyFreePosition(this->pose.position);
-            world.spawnItemOnFloor(item_drop);
+            world.addItemWorld(item_drop);
             break;
         }
         default:
@@ -68,12 +70,11 @@ void Creature::onDeath(World& world) {
 CreatureData Creature::getCreatureData() {
     CreatureData creauture_npc;
     creauture_npc.type = this->type_creature;
-    creauture_npc.hp = this->hp;
-    creauture_npc.max_hp = this->max_hp;
-    creauture_npc.x = this->pose.position.x;
-    creauture_npc.y = this->pose.position.y;
+    creauture_npc.attributes.current_hp = this->hp;
+    creauture_npc.attributes.max_hp = this->max_hp;
+    creauture_npc.attributes.range_attack = this->range_attack;
+    creauture_npc.position = this->pose.position;
     creauture_npc.direction = this->pose.direct;
-    creauture_npc.range_attack = this->range_attack;
     return creauture_npc;
 }
 

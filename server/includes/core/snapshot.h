@@ -1,10 +1,10 @@
-#ifndef SNAPSHOT_H
-#define SNAPSHOT_H
+#pragma once
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
+#include "common/includes/types.h"
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
     uint32_t id;
@@ -53,16 +53,11 @@ struct GoldPileGroundSnapshotData {
     uint32_t pos_y;
 };
 
-
 struct SoundEffectSnapshotData {
     SoundEffectID effect_id;
     uint32_t pos_x;  // Coordenada X donde ocurrio (para audio posicional)
     uint32_t pos_y;  // Coordenada Y
 };
-
-#pragma pack(pop)
-
-#pragma pack(pop)
 struct Snapshot {
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;
@@ -70,6 +65,4 @@ struct Snapshot {
     std::vector<GoldPileGroundSnapshotData> gold_piles;
     std::vector<SoundEffectSnapshotData> sound_effects;
 };
-
-#endif
-
+#pragma pack(pop)

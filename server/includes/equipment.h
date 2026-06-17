@@ -23,7 +23,7 @@ public:
     Equipment(/* args */);
     ~Equipment();
 
-    ItemInstance* equipItem(ItemInstance* item_inst);
+    // ItemInstance* equipItem(ItemInstance* item_inst);
 
     /*Vendio, solto el item o lo quito del equipo*/
     ItemInstance* removeItem(Id id_inst_item);

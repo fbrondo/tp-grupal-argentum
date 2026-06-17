@@ -23,7 +23,8 @@ struct Item {
     // Item() = default;
 
     // virtual bool use(Player& user) {
-    //     throw std::runtime_error("Este objeto no se puede usar directamente desde el inventario.");
+    //     throw std::runtime_error("Este objeto no se puede usar directamente desde el
+    //     inventario.");
     // }
     virtual ~Item() = default;
 };
@@ -38,9 +39,8 @@ struct GoldPouche: Item {
 
 /*Un ShopItem es equipable y almacenable en un inventario/tienda */
 // consultar si es preferible usar una clase. Lo hice un struct porque no como tal no maneja logica.
-struct ShopItem: Item {
-    TypeItem type;/*quiero cambiar esto */
-    BodyPart body_part_use{NO_BODY};      //= NO_BODY;
+struct ShopItem: Item {                      /*quiero cambiar esto */
+    BodyPart body_part_use{NO_BODY};         //= NO_BODY;
     ItemClassification classif{NO_CLASSIF};  // = NO_CLASS;
     std::string name;
     uint32_t selling_price{0};

@@ -20,7 +20,7 @@ struct HostileRegion: RegionWorld {
     std::optional<uint16_t> min_treasure;
     std::optional<uint16_t> max_treasure;
     std::optional<uint16_t> number_items_treasure;
-    std::optional<uint32_t>amount_golden_treasure;
+    std::optional<uint32_t> amount_golden_treasure;
 };
 
 struct SafeRegion: RegionWorld {

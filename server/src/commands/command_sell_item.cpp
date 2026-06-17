@@ -7,4 +7,6 @@ SellItemCommand::SellItemCommand(Id id, Id npc_id, uint8_t type_item): Command(i
     this->type_item = static_cast<TypeItem>(type_item);
 }
 
-void SellItemCommand::execute(Gameloop& game) { game.processSellItem(client_id, npc_id, type_item); }
+void SellItemCommand::execute(Gameloop& game) {
+    game.processSellItem(client_id, npc_id, type_item);
+}

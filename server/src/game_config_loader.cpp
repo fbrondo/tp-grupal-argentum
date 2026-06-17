@@ -166,7 +166,7 @@ void GameConfigLoader::loadClases(std::map<TypeClase, Clase>& clases) {
 
             Table_array* stats_array = clase_table["statistics"].as_array();
             Statistics stats = this->loadTableStatistics(stats_array);
-            auto clase = Clase(type, std::move(name), hp_f, meditation_f, mana_f,stats);
+            auto clase = Clase(type, std::move(name), hp_f, meditation_f, mana_f, stats);
             clases.emplace(type, std::move(clase));
         }
     } catch (const toml::parse_error& err) {
@@ -205,27 +205,26 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& item
             auto range = static_cast<uint16_t>(item["range"].value_or(0));
 
             if (classif == ITEM_ATTACK) {
-                if (descp == "MELEE_WEAPON") {
-                    items[type] = std::make_unique<Weapon>(
-                            type, body, classif, std::move(name), sell_price, purch_price, min_dam,
-                            max_dam, range);
-                } else if (descp == "MAGICAL") {
+                if (descp == "MAGICAL") {
                     items[type] = std::make_unique<MagicWeapon>(
                             type, body, classif, std::move(name), sell_price, purch_price, min_dam,
                             max_dam, mana_cost, range);
+                } else if (descp == "WEAPON") {
+                    items[type] = std::make_unique<Weapon>(type, body, classif, std::move(name),
+                                                          sell_price, purch_price, min_dam,
+                                                          max_dam, range);
                 }
             } else if (classif == ITEM_DEFENSIVE) {
-                items[type] =
-                        std::make_unique<Defense>(type, body, classif, std::move(name), sell_price,
-                                                  purch_price, min_def, max_def);
+                items[type] = std::make_unique<Defense>(type, body, classif, std::move(name),
+                                                        sell_price, purch_price, min_def, max_def);
             } else if (classif == ITEM_HEALING) {
                 if (descp == "POTION") {
-                    items[type] = std::make_unique<ShopItem>(
-                            type, body, classif, std::move(name), sell_price, purch_price);
+                    items[type] = std::make_unique<ShopItem>(type, body, classif, std::move(name),
+                                                             sell_price, purch_price);
                 } else if (descp == "MAGICAL") {
                     items[type] = std::make_unique<ObjectMagic>(type, body, classif,
-                                                                     std::move(name), sell_price,
-                                                                     purch_price, mana_cost, range);
+                                                                std::move(name), sell_price,
+                                                                purch_price, mana_cost, range);
                 }
             }
         }
@@ -247,7 +246,8 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
             auto type = static_cast<Region>(region["id_type"].value_or(0));
             if (is_safe) {
                 auto r = std::make_unique<SafeRegion>();
-                r->type = type; r->is_safe = true;
+                r->type = type;
+                r->is_safe = true;
                 if (auto numbers_array = region["numbers_npcs"].as_array()) {
                     for (auto&& node: *numbers_array) {
                         uint16_t valor = static_cast<uint16_t>(node.value_or<int64_t>(1));
@@ -257,7 +257,8 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
                 }
             } else {
                 auto r = std::make_unique<HostileRegion>();
-                r->type = type; r->is_safe = false;
+                r->type = type;
+                r->is_safe = false;
                 r->max_creatures = region["max_criatures"].value_or(1);
 
                 if (auto node = region["min_treasure"])

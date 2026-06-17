@@ -29,7 +29,6 @@ protected:
 public:
     CitizenNPC(TypeNPC type, const std::string& name /*const Pose& pos*/);
     TypeNPC getTypeNPC();
-    virtual InteractionResult interact() = 0;  // Asi los npcs muestran su tienda/banco
     ~CitizenNPC() override = default;
     bool isAttackable() override { return false; }
 };

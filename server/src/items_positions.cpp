@@ -16,10 +16,12 @@ void ItemsPositions::add(const TreasureInstance& treasure) {
 }
 
 void ItemsPositions::remove(const ItemInstance& item) { items_on_floor.erase(item.id); }
-void ItemsPositions::remove(const GoldBagInstance& gold) { this->gold_bags_on_floor .erase(gold.id); }
+void ItemsPositions::remove(const GoldBagInstance& gold) {
+    this->gold_bags_on_floor.erase(gold.id);
+}
 void ItemsPositions::remove(const TreasureInstance& t) { treasures_on_floor.erase(t.id); }
 
-void ItemsPositions::removeItemTakeToPlayer(Player &player) {
+void ItemsPositions::removeItemTakeToPlayer(Player& player) {
     const Position& position = player.getPosition();
     if (!this->isOcupied(position)) {
         return; /*No hay nada que tomar*/
@@ -36,7 +38,7 @@ void ItemsPositions::removeItemTakeToPlayer(Player &player) {
 
     for (auto it = this->gold_bags_on_floor.begin(); it != this->gold_bags_on_floor.end(); ++it) {
         if (it->second.position == position) {
-            player.addItemToInventory(it->second); // El jugador procesa el oro
+            player.addItemToInventory(it->second);  // El jugador procesa el oro
             this->gold_bags_on_floor.erase(it);
             this->items_tiles.erase(position);
             return;
@@ -45,7 +47,7 @@ void ItemsPositions::removeItemTakeToPlayer(Player &player) {
 
     for (auto it = this->treasures_on_floor.begin(); it != this->treasures_on_floor.end(); ++it) {
         if (it->second.position == position) {
-            player.addItemToInventory(it->second); // El jugador procesa el oro
+            player.addItemToInventory(it->second);  // El jugador procesa el oro
             this->treasures_on_floor.erase(it);
             this->items_tiles.erase(position);
             return;
@@ -54,7 +56,7 @@ void ItemsPositions::removeItemTakeToPlayer(Player &player) {
 }
 
 
-bool ItemsPositions::isOcupied(const Position &position) const {
+bool ItemsPositions::isOcupied(const Position& position) const {
     return this->items_tiles.contains(position);
 }
 
@@ -74,4 +76,5 @@ bool ItemsPositions::isOcupied(const Position &position) const {
 
 // const std::unordered_map<Id, ItemInstance>& getItems() const { return items_on_floor; }
 // const std::unordered_map<Id, GoldBagInstance>& getGoldBags() const { return gold_bags_on_floor; }
-// const std::unordered_map<Id, TreasureInstance>& getTreasures() const { return treasures_on_floor; }
+// const std::unordered_map<Id, TreasureInstance>& getTreasures() const { return treasures_on_floor;
+// }

@@ -20,8 +20,6 @@
 */
 class Merchant: public TraderNPC {
 public:
-    // Merchant(TypeNPC type, const std::string& name, Pose&& pos,
-    //          std::map<TypeItem, std::unique_ptr<Item>>&& store);
     Merchant(TypeNPC type, const std::string& name, std::map<TypeItem, Item*>&& items_);
     ~Merchant() override = default;
     void executePlayerSellsItem(Player& player, TypeItem type_item);

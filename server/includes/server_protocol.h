@@ -41,7 +41,6 @@
 class ServerProtocol {
 private:
     Socket& socket;
-
     void sendSimpleResponse(uint8_t opcode, bool success, const std::string& msg) const;
 
 public:

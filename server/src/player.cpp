@@ -2,11 +2,12 @@
 
 #include <cstring>
 #include <vector>
+
 #include "common/includes/core/Statistics.h"
-#include "server/print.h"
-#include "server/includes/slot.h"
 #include "server/includes/game_formulas.h"
+#include "server/includes/slot.h"
 #include "server/includes/world.h"
+#include "server/print.h"
 
 Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerData& data):
         CombatEntity(pos, data), ch(std::move(ch_)), inv(std::move(inv_)) {
@@ -25,7 +26,8 @@ Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerD
 Player::Player(const User& user_, const Pose& pose_, Character&& ch_,
                const PlayerStateInit& state_init):
         CombatEntity(pose_, 0, state_init.level), user(user_), ch(std::move(ch_)) {
-    this->inv = Inventory(state_init.golden_init, state_init.max_inventory, state_init.max_inventory);
+    this->inv =
+            Inventory(state_init.golden_init, state_init.max_inventory, state_init.max_inventory);
     this->statics = ch.getStatistics();
     this->max_hp = this->hpMax();
     this->hp = this->hpMax();
@@ -70,59 +72,36 @@ bool Player::isValidOpponent(Player* other) const {
     return true;
 }
 
-
-
 bool Player::canBuy(uint16_t price_item) const {
     if (this->inv.getGolden() < price_item) {
         return false; /*TIRAR EXCEPCION NO POSIBLE COMPRA*/
     }
     if (this->inv.isInventoryFull()) {
-        return false;  /*TIRAR EXCEPCION INVENTARIO*/
+        return false; /*TIRAR EXCEPCION INVENTARIO*/
     }
     return true;
 }
 
-// std::optional<size_t> Player::itemIsInInventory(TypeItem type_item) const {
-//     for (size_t i = 0; i < this->inv.slots.size(); i++) {
-//         if (!this->inv.slots[i].isEmpty() && this->inv.slots[i]item->type == type_item) {
-//             return i;
-//         }
-//     }
-//     return std::nullopt;
-// }
-
-
-void Player::addItemToInventory(const ItemInstance &instance) {
+void Player::addItemToInventory(const ItemInstance& instance) {
     if (this->inv.isInventoryFull()) {
         return;
     }
-    auto index = this->inv.itemIsInInventory(instance.item->type);
-    if (index.has_value()) {
-        this->inv.incrementSlotInventory(index.value());
-    } else {
-        const auto item = dynamic_cast<const ShopItem*>(instance.item);
-        this->inv.setItemInInventory(item);
-    }
+    const auto item = dynamic_cast<const ShopItem*>(instance.item);
+    this->inv.addItemToInventory(item);
 }
 
-
-void Player::addItemToInventory(const GoldBagInstance &instance) {
+void Player::addItemToInventory(const GoldBagInstance& instance) {
     this->inv.incrementGolden(instance.amount);
 }
 
-void Player::addItemToInventory(const TreasureInstance &instance) {
+void Player::addItemToInventory(const TreasureInstance& instance) {
     this->inv.incrementGolden(instance.amount_golden);
-    for (auto& item_inst: instance.items) {
+    for (const auto& item_inst: instance.items) {
         if (this->inv.isInventoryFull()) {
             return;
         }
-        auto index = this->inv.itemIsInInventory(item_inst.item->type);
-        if (index.has_value()) {
-            this->inv.incrementSlotInventory(index.value());
-        } else {
-            const auto item = dynamic_cast<const ShopItem*>(item_inst.item);
-            this->inv.setItemInInventory(item);
-        }
+        const auto item = dynamic_cast<const ShopItem*>(item_inst.item);
+        this->inv.addItemToInventory(item);
     }
 }
 
@@ -132,22 +111,15 @@ void Player::buyItem(const ShopItem* item) {
         return;
     }
     this->inv.decrementGolden(price);
-    auto index = this->inv.itemIsInInventory(item->type);
-    if (index.has_value()) {
-        this->inv.incrementSlotInventory(index.value());
-    } else {
-        this->inv.setItemInInventory(item);
-    }
+    this->inv.addItemToInventory(item);
 }
 
 void Player::sellItem(TypeItem type_item, uint32_t sell_price) {
-    auto index = this->inv.itemIsInInventory(type_item);
-    if (!index.has_value()) {
+    if (!this->inv.itemInInventory(type_item)) {
         return;
     }
     this->inv.incrementGolden(sell_price);
-    this->inv.removeItemFromInventory(index.has_value());
-
+    this->inv.removeItemFromInventory(type_item);
 }
 
 void Player::dropItem(size_t index_slot, World& world) {
@@ -160,7 +132,6 @@ void Player::dropItem(size_t index_slot, World& world) {
     world.addItemWorld(instance);
     this->inv.removeItemFromInventory(index_slot);
 }
-
 
 PlayerData Player::getPlayerData() {
     PlayerData data{};
@@ -186,27 +157,9 @@ PlayerData Player::getPlayerData() {
     data.mana = this->mana;
     /*INVENTARIO*/
     data.golden = this->inv.getGolden();
-    const auto& slots = this->inv.getSlots();
-    for (uint32_t i = 0; i < slots.size(); i++) {
-        if (!slots[i].isEmpty()) {
-            SlotData slot{};
-            slot.index = i;
-            slot.item.type_item = static_cast<uint8_t>(slots[i].getTypeItem());
-            slot.quantity = slots[i].getQuantity();
-            data.inventory.push_back(slot);
-        }
-    }
+    data.inventory = this->inv.getSlotsData();
     /*EQUIPO*/
-    std::vector<TypeItem> equip = this->equipment.getEquipmentDefensive();
-    for (const auto& type: equip) {
-        ItemInstanceData item_data;
-        for (uint32_t idx = 0; idx < slots.size(); idx++) {
-            if (!slots[idx].isEmpty() &&  slots[idx].getTypeItem() == type) {
-                data.equipment.push_back(idx);
-                break;
-            }
-        }
-    }
+    data.equipment = this->inv.getSlotsEquipment();
     return data;
 }
 
@@ -236,32 +189,17 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.head_id = this->ch.getTypeHead();
     data.raza = this->ch.getTypeRace();
     data.clase = this->ch.getTypeClase();
-
     return data;
-    /*equipo*/
-    // uint8_t weapon_id;
-    // uint8_t shield_id; /*Debe ser none si no esta equipado*/
-    // uint8_t armor_id;
-    // uint8_t head;
-
-    // uint8_t raza;
-    // uint8_t clase;
-    // uint8_t flags;
 }
 
 TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
-// std::vector<TypeItem> Player::getEquipment() {
-//     /*Esto no cuesta nada, lo maximo que puedo llegar a tener en el equip son 4 elementos -> O(1)*/
-//     std::vector<std::tuple<Id, TypeItem>> equip = this->equipment.getEquipmentDefensive();
-//     std::vector<TypeItem> equipTypes;
-//     for (size_t j = 0; j < equip.size(); j++) {
-//         auto [_, type] = equip[j];
-//         equipTypes.push_back(type);
-//     }
-//     return equipTypes;
-// }
 
-Inventory& Player::getInventory() { return this->inv; }
+std::vector<TypeItem> Player::getEquipment() {
+    /*Esto no cuesta nada, lo maximo que puedo llegar a tener en el equip son 4 elementos -> O(1)*/
+    return this->equipment.getEquipmentDefensive();
+}
+
+//Inventory& Player::getInventory() { return this->inv; }
 //
 // ItemInstance* Player::getItemInstance(Id instance_id) {
 //     auto it_inv = this->inv.inventory.find(instance_id);
@@ -276,17 +214,17 @@ Inventory& Player::getInventory() { return this->inv; }
 //     return nullptr;
 // }
 
-//uint32_t Player::getInventorySize() const { return this->inv.inventory.size(); }
+// uint32_t Player::getInventorySize() const { return this->inv.inventory.size(); }
 
-//uint32_t Player::getMaxInventorySize() const { return this->inv.max_inventory; }
+// uint32_t Player::getMaxInventorySize() const { return this->inv.max_inventory; }
 
-//uint32_t Player::getInventoryGold() const { return this->inv.golden; }
+// uint32_t Player::getInventoryGold() const { return this->inv.golden; }
 
-//uint32_t Player::getBankGold() const { return this->bank_account.gold; }
+// uint32_t Player::getBankGold() const { return this->bank_account.gold; }
 
-//void Player::increaseInventoryGold(uint32_t amount) { this->inv.golden += amount; }
+// void Player::increaseInventoryGold(uint32_t amount) { this->inv.golden += amount; }
 
-//void Player::decreaseInventoryGold(uint32_t amount) { this->inv.golden -= amount; }
+// void Player::decreaseInventoryGold(uint32_t amount) { this->inv.golden -= amount; }
 
 // void Player::increaseBankGold(uint32_t amount) { this->bank_account.gold += amount; }
 //
@@ -322,21 +260,20 @@ Inventory& Player::getInventory() { return this->inv; }
 
 void Player::teleportTo(const Position& pos) { this->pose.position = pos; }
 
-std::string Player::getUsername() {
-    return this->user.username;
-}
+std::string Player::getUsername() { return this->user.username; }
 
-const Item * Player::removeItemInventory(TypeItem type_item) {
-    if (this->inv.isInventoryEmpty()) {
-        return nullptr;
-    }
-    const auto index = this->inv.itemIsInInventory(type_item);
-    if (index.has_value()) {
-        const Item* item = this->inv.getItemSlot(index.value());
-        this->inv.removeItemFromInventory(index.value());
-        return item;
-    }
-   return nullptr;
+const Item* Player::removeItemInventory(TypeItem type_item) {
+    return this->inv.removeItemFromInventory(type_item);
+    // if (this->inv.isInventoryEmpty()) {
+    //     return nullptr;
+    // }
+    // const auto index = this->inv.searchItemInInventory(type_item);
+    // if (index.has_value()) {
+    //     const Item* item = this->inv.getItemSlot(index.value());
+    //     this->inv.removeItemFromInventory(index.value());
+    //     return item;
+    // }
+    // return nullptr;
 }
 
 bool Player::isMeditating() const { return this->is_meditating; }
@@ -382,6 +319,7 @@ void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
         this->level += 1;
     }
 }
+
 
 void Player::restoreHp(uint16_t hp) {
     this->hp = std::min(static_cast<uint16_t>(this->hp + hp), this->hpMax());
@@ -451,24 +389,12 @@ void Player::restoreHp(uint16_t hp) {
 // }
 
 
-
-
 void Player::onDeath(World& world) {
-    auto& slots = this->inv.getSlots();
-    for (auto& slot : slots) {
-        while (!slot.isEmpty()) {
-            ItemInstance item_drop(slot.getItem());
-            item_drop.position = world.findNearbyFreePosition(this->pose.position);
-            world.addItemWorld(item_drop);
-            slot.decrease();
-        }
-    }
-    this->inv.reset();
-
+    this->inv.dropInventory(world, this->pose.position);
     /* Perdemos el oro */
     GoldBagInstance gold_pouche;
     gold_pouche.amount = this->inv.getGolden();
     gold_pouche.position = world.findNearbyFreePosition(this->pose.position);
-    world.spawnGoldOnFloor(gold_pouche);
+    world.addGoldWorld(gold_pouche);
     this->inv.decrementGolden(gold_pouche.amount);
 }

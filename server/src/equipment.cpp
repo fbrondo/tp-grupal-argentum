@@ -34,32 +34,32 @@ void Equipment::equipItemDefensive(ItemInstance* inst) {
             break;
     }
 }
-
-ItemInstance* Equipment::equipItem(ItemInstance* item_inst) {
-    size_t target_index = 0;
-
-    if (item_inst->classification == ITEM_ATTACK || item_inst->classification == ITEM_HEALING) {
-        target_index = INDEX_HAND;
-    } else if (item_inst->classification == ITEM_DEFENSIVE) {
-        switch (item_inst->body_part_use) {
-            case HEAD:
-                target_index = INDEX_HEAD;
-                break;
-            case BACK:
-                target_index = INDEX_BACK;
-                break;
-            case HAND:
-                target_index = INDEX_SHIELD;
-                break;
-            default:
-                throw std::runtime_error("Parte del cuerpo inválida para defensa.");
-        }
-    }
-
-    ItemInstance* viejo_item = this->equipment_container[target_index];
-    this->equipment_container[target_index] = item_inst;
-    return viejo_item;
-}
+//
+// ItemInstance* Equipment::equipItem(ItemInstance* item_inst) {
+//     size_t target_index = 0;
+//
+//     if (item_inst->classification == ITEM_ATTACK || item_inst->classification == ITEM_HEALING) {
+//         target_index = INDEX_HAND;
+//     } else if (item_inst->classification == ITEM_DEFENSIVE) {
+//         switch (item_inst->body_part_use) {
+//             case HEAD:
+//                 target_index = INDEX_HEAD;
+//                 break;
+//             case BACK:
+//                 target_index = INDEX_BACK;
+//                 break;
+//             case HAND:
+//                 target_index = INDEX_SHIELD;
+//                 break;
+//             default:
+//                 throw std::runtime_error("Parte del cuerpo inválida para defensa.");
+//         }
+//     }
+//
+//     ItemInstance* viejo_item = this->equipment_container[target_index];
+//     this->equipment_container[target_index] = item_inst;
+//     return viejo_item;
+// }
 
 ItemInstance* Equipment::removeItem(Id id_inst_item) {
     for (size_t i = 0; i < MAX_EQUIPMENT_SIZE; i++) {
@@ -75,7 +75,7 @@ ItemInstance* Equipment::removeItem(Id id_inst_item) {
 
 TypeItem Equipment::getHandItem() const {
     if (this->equipment_container[INDEX_HAND]) {
-        return this->equipment_container[INDEX_HAND]->type;
+        return this->equipment_container[INDEX_HAND]->item->type;
     }
     return NONE;
 }
