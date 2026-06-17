@@ -1,6 +1,7 @@
 #include "server/includes/inventory.h"
-#include "server/includes/world.h"
+
 #include "server/includes/core/instances.h"
+#include "server/includes/world.h"
 
 Inventory::Inventory(): golden(0), max_inventory(0), size_current(0) {}
 

@@ -14,7 +14,6 @@ enum class TypeEventClient {
     ERROR_ACTION,
     LOGIN_RESPONSE,
     MAP_CHANGE,
-    MAP_DATA
     MAP_DATA,
     OPEN_MERCHANT,
     OPEN_BANK,
@@ -28,12 +27,6 @@ struct MerchantEventData {
 struct BankEventData {
     uint32_t gold{0};
     std::vector<MsgItemInfo> items;
-};
-
-/*struct MapData {
-    uint32_t width{0};
-    uint32_t height{0};
-    std::vector<Tile> tiles;
 };
 
 struct InventoryUpdateEventData {

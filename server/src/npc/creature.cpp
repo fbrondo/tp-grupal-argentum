@@ -40,7 +40,7 @@ void Creature::onDeath(World& world) {
             GoldBagInstance gold;
             gold.amount = drop_gold;
             gold.position = world.findNearbyFreePosition(this->pose.position);
-            world.addGoldWorld(gold);
+            world.addItemWorld(gold);
             break;
         }
         case 2: {  // 1% - pocion de vida o mana

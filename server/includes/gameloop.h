@@ -89,6 +89,7 @@ public:
     void processPlayerDropItem(Id player_id, size_t index_slot);
     void processPlayerPickUp(Id player_id);
 
+
     void processPlayerWithdrawItem(Id player_id, Id npc_id, TypeItem type_item);
     void processPlayerDepositItem(Id player_id, Id npc_id, TypeItem type_item);
     void processPlayerDepositGold(Id player_id, uint32_t amount);

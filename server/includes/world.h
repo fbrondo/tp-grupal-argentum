@@ -43,7 +43,7 @@ private:
     const uint32_t limit_width;
     MatrizMap map_tiles;
     // std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
-    //std::unordered_map<Id, Zone> zones;
+    // std::unordered_map<Id, Zone> zones;
     std::unordered_map<Id, Zone> safe_zones;
     std::unordered_map<Id, Zone> hostile_zones;
     std::unordered_map<Position, bool, PositionHash> not_walkable_tiles;
@@ -98,8 +98,8 @@ public:
     void addNpcWorld(const NpcInstance& npc);
     void addItemWorld(const ItemInstance& item);
     void addItemWorld(const GoldBagInstance& gold);
-    void addTreasuresWorld(TreasureInstance& treasure);
-    void addGoldWorld(const GoldBagInstance& gold);
+    void addTreasuresWorld(const TreasureInstance& treasure);
+
     /*Inicializacion*/
     // void spawnTreasure(const Id& treasure_id, const Id& zone_id);
     // void spawnItemOnFloor(const ItemInstance& item);

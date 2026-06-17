@@ -22,9 +22,9 @@ SpawnManager::SpawnManager(const GameConfig& conf, World& world_):
             this->safe_regions.emplace(type, safe);
         }
     }
-   // Print::printNpcsSafeLoads(this->conf_citizens);
-   //Print::printCreatureLoads(this->conf_creatures);
-   //Print::printItems(this->items);
+    // Print::printNpcsSafeLoads(this->conf_citizens);
+    // Print::printCreatureLoads(this->conf_creatures);
+    // Print::printItems(this->items);
 }
 
 std::map<TypeItem, Item*> SpawnManager::items_store_citizen(const std::string& name_npc) {
@@ -69,12 +69,14 @@ std::tuple<TypeNPC, NpcAttributes, Pose> SpawnManager::prepareNpcSpawn(const Id&
     return {type_npc, attrib, pose_spawn};
 }
 
-std::unique_ptr<Creature> SpawnManager::createCreature(const Id& id, TypeNPC type, const Pose& pose, const NpcAttributes& attrib) {
+std::unique_ptr<Creature> SpawnManager::createCreature(const Id& id, TypeNPC type, const Pose& pose,
+                                                       const NpcAttributes& attrib) {
     std::vector<ItemInstance> items_ = this->items_drop_creature();
     return std::make_unique<Creature>(id, type, pose, attrib, std::move(items_));
 }
 
-void SpawnManager::spawnCreaturesZones(Id& next_id, std::map<Id, std::unique_ptr<Creature>>& creatures) {
+void SpawnManager::spawnCreaturesZones(Id& next_id,
+                                       std::map<Id, std::unique_ptr<Creature>>& creatures) {
     const std::unordered_map<Id, Zone> hostile_zones = this->world.getHostileZones();
     for (const auto& zone: hostile_zones | std::views::values) {
         const auto region = this->hostile_regions.at(zone.region);
@@ -96,7 +98,8 @@ void SpawnManager::spawnCreaturesZones(Id& next_id, std::map<Id, std::unique_ptr
     }
 }
 
-std::unique_ptr<CitizenNPC> SpawnManager::createCitizenNpc(const std::string& name_npc, Bank& bank) {
+std::unique_ptr<CitizenNPC> SpawnManager::createCitizenNpc(const std::string& name_npc,
+                                                           Bank& bank) {
     const auto type_npc = this->conf_citizens.at(name_npc).type;
     std::map<TypeItem, Item*> items_ = this->items_store_citizen(name_npc);
     switch (type_npc) {
@@ -108,14 +111,17 @@ std::unique_ptr<CitizenNPC> SpawnManager::createCitizenNpc(const std::string& na
             return std::make_unique<Banker>(type_npc, name_npc, bank);
     }
 }
-std::tuple<TypeNPC, Pose> SpawnManager::prepareCitizenNpcSpawn(const Id& zone_id, const std::string& name_npc) {
+std::tuple<TypeNPC, Pose> SpawnManager::prepareCitizenNpcSpawn(const Id& zone_id,
+                                                               const std::string& name_npc) {
     const auto type_npc = this->conf_citizens.at(name_npc).type;
     const auto position_spawn = this->world.calculatePositionRandom(zone_id);
     Pose pose_spawn(position_spawn, DOWN);
     return {type_npc, pose_spawn};
 }
 
-void SpawnManager::spawnCitizenNpcZones(Id& next_id,std::map<Id, std::unique_ptr<CitizenNPC>>& citizen_npcs, Bank& bank) {
+void SpawnManager::spawnCitizenNpcZones(Id& next_id,
+                                        std::map<Id, std::unique_ptr<CitizenNPC>>& citizen_npcs,
+                                        Bank& bank) {
     const std::unordered_map<Id, Zone> safe_zones = this->world.getSafeZones();
     for (const auto& zone: safe_zones | std::views::values) {
         auto region = this->safe_regions.at(zone.region);
@@ -126,7 +132,6 @@ void SpawnManager::spawnCitizenNpcZones(Id& next_id,std::map<Id, std::unique_ptr
                 auto new_npc = this->createCitizenNpc(name_npc, bank);
                 NpcInstance instance(next_id++, zone.id, type, pose);
                 citizen_npcs.emplace(instance.id, std::move(new_npc));
-                Print::prinNpc(instance);
                 this->world.addNpcWorld(instance);
             }
             j++;

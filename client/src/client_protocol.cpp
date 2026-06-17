@@ -385,12 +385,12 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.id = ntohl(p.id);
                 p.pos_x = ntohl(p.pos_x);
                 p.pos_y = ntohl(p.pos_y);
-                p.max_hp = ntohs(p.max_hp);
-                p.hp = ntohs(p.hp);
-                p.mana = ntohs(p.mana);
-                p.max_mana = ntohs(p.max_mana);
-                p.body_id = ntohs(p.body_id);
-                p.head_id = ntohs(p.head_id);
+                p.stats.max_hp = ntohs(p.stats.max_hp);
+                p.stats.current_hp = ntohs(p.stats.current_hp);
+                p.stats.current_mana = ntohs(p.stats.current_mana);
+                p.stats.max_mana = ntohs(p.stats.max_mana);
+                p.ch_traits.body = ntohs(p.ch_traits.body);
+                p.ch_traits.head = ntohs(p.ch_traits.head);
                 out_event.world.players.push_back(p);
             }
 
@@ -550,21 +550,21 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.map_data = std::move(map);
             break;
         }
-        case INVENTORY_UPDATE: {
-            out_event.type = TypeEventClient::INVENTORY_UPDATE;
-            MsgInventoryUpdate msg;
-            if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
-
-            msg.item_id = ntohs(msg.item_id);
-            msg.quantity = ntohs(msg.quantity);
-
-            out_event.inventory_update.slot_index = msg.slot_index;
-            out_event.inventory_update.item_id = msg.item_id;
-            out_event.inventory_update.quantity = msg.quantity;
-            out_event.inventory_update.is_equipped = msg.is_equipped;
-
-            break;
-        }
+        // case INVENTORY_UPDATE: {
+        //     out_event.type = TypeEventClient::INVENTORY_UPDATE;
+        //     MsgInventoryUpdate msg;
+        //     if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
+        //
+        //     msg.item_id = ntohs(msg.item_id);
+        //     msg.quantity = ntohs(msg.quantity);
+        //
+        //     out_event.inventory_update.slot_index = msg.slot_index;
+        //     out_event.inventory_update.item_id = msg.item_id;
+        //     out_event.inventory_update.quantity = msg.quantity;
+        //     out_event.inventory_update.is_equipped = msg.is_equipped;
+        //
+        //     break;
+        // }
         default:
             return true;
     }

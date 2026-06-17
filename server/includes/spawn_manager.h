@@ -38,7 +38,8 @@ private:
     std::tuple<TypeNPC, NpcAttributes, Pose> prepareNpcSpawn(const Id& zone_id,
                                                              const HostileRegion& region,
                                                              const size_t& index_random);
-    std::tuple<TypeNPC, Pose> prepareCitizenNpcSpawn(const Id& zone_id, const std::string& name_npc);
+    std::tuple<TypeNPC, Pose> prepareCitizenNpcSpawn(const Id& zone_id,
+                                                     const std::string& name_npc);
 
     void prepareNewTreasure(const Id& zone_id, const HostileRegion& region);
 

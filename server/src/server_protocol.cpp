@@ -29,20 +29,20 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
 
-    const uint16_t p_count_net = htons(static_cast<uint16_t>(state.players.size()));
-    std::memcpy(buffer.data() + offset, &p_count_net, sizeof(p_count_net));
-    offset += sizeof(p_count_net);
+    const uint16_t count_players = htons(static_cast<uint16_t>(state.players.size()));
+    std::memcpy(buffer.data() + offset, &count_players, sizeof(count_players));
+    offset += sizeof(count_players);
 
     for (auto p: state.players) {
         p.id = htonl(p.id);
         p.pos_x = htonl(p.pos_x);
         p.pos_y = htonl(p.pos_y);
-        p.max_hp = htons(p.max_hp);
-        p.hp = htons(p.hp);
-        p.mana = htons(p.mana);
-        p.max_mana = htons(p.max_mana);
-        p.body_id = htons(p.body_id);
-        p.head_id = htons(p.head_id);
+        p.stats.max_hp = htons(p.stats.max_hp);
+        p.stats.current_hp = htons(p.stats.current_hp);
+        p.stats.current_mana = htons(p.stats.current_mana);
+        p.stats.max_mana = htons(p.stats.max_mana);
+        p.ch_traits.body = htons(p.ch_traits.body);
+        p.ch_traits.head = htons(p.ch_traits.head);
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));
         offset += sizeof(PlayerSnapshotData);
     }

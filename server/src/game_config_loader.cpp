@@ -211,8 +211,8 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& item
                             max_dam, mana_cost, range);
                 } else if (descp == "WEAPON") {
                     items[type] = std::make_unique<Weapon>(type, body, classif, std::move(name),
-                                                          sell_price, purch_price, min_dam,
-                                                          max_dam, range);
+                                                           sell_price, purch_price, min_dam,
+                                                           max_dam, range);
                 }
             } else if (classif == ITEM_DEFENSIVE) {
                 items[type] = std::make_unique<Defense>(type, body, classif, std::move(name),

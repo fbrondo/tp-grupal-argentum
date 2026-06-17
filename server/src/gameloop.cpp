@@ -48,7 +48,7 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
         Print::printInitGameloop("INICIANDO WORLD");
         this->spawn.spawnCitizenNpcZones(this->next_npc_id, this->citizen_npcs, this->bank);
         this->spawn.spawnCreaturesZones(this->next_npc_id, this->creatures);
-        //this->spawn.spawnTreasuresZones();
+        // this->spawn.spawnTreasuresZones();
     }
     Print::printMessageConsole("FINAL CONSTRUCTOR GAMELOOP");
     // Print::printNpcsSafeLoads(this->conf.npcs);

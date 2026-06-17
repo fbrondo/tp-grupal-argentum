@@ -253,18 +253,42 @@ void printInitMatrizMap(const std::vector<std::vector<Tile>>& map, uint32_t heig
     }
 }
 
-void prinNpc(const NpcInstance &npc) {
+void printNpc(const NpcInstance& npc) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
         const int MARGEN = 2;  // Espacio en blanco a los lados del texto
 
         std::vector<std::string> lineas = {
-            " NPC: " + npcToString(npc.type),
-            "ID: " + std::to_string(npc.id),
-            " Posicion: (" + std::to_string(npc.pose.position.x) + ", " +
-                    std::to_string(npc.pose.position.y) + ")"
-        };
+                " NPC: " + npcToString(npc.type), "ID: " + std::to_string(npc.id),
+                " Posicion: (" + std::to_string(npc.pose.position.x) + ", " +
+                        std::to_string(npc.pose.position.y) + ")"};
+
+        size_t max_longitud = 0;
+        for (const auto& linea: lineas) {
+            max_longitud = std::max(max_longitud, linea.length());
+        }
+        size_t ancho_total = max_longitud + (MARGEN * 2) + 2;
+        std::cout << std::string(ancho_total, '*') << "\n";
+        for (const auto& linea: lineas) {
+            std::cout << "*";  // Borde izquierdo
+            std::cout << std::string(MARGEN, ' ') << std::left << std::setw(max_longitud) << linea
+                      << std::string(MARGEN, ' ') << "*\n";  // Borde derecho
+        }
+        std::cout << std::string(ancho_total, '*') << "\n";
+    }
+}
+
+void printItem(const TreasureInstance& instance) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        const int MARGEN = 2;  // Espacio en blanco a los lados del texto
+
+        std::vector<std::string> lineas = {" TESORO", "ID: " + std::to_string(instance.id),
+                                           " Posicion: (" + std::to_string(instance.position.x) +
+                                                   ", " + std::to_string(instance.position.y) +
+                                                   ")"};
 
         size_t max_longitud = 0;
         for (const auto& linea: lineas) {
@@ -600,13 +624,14 @@ void printClasesLoad(const std::map<TypeClase, Clase>& info_clases) {
 
 void draw_box(const std::string& title, const std::vector<std::string>& lines) {
     size_t max_len = title.length() + 4;
-    for (const auto& line : lines) {
-        if (line.length() > max_len) max_len = line.length();
+    for (const auto& line: lines) {
+        if (line.length() > max_len)
+            max_len = line.length();
     }
     max_len += 2;
 
     std::cout << "┌─ " << title << " " << std::string(max_len - title.length() - 4, '-') << "┐\n";
-    for (const auto& line : lines) {
+    for (const auto& line: lines) {
         std::cout << "│ " << std::left << std::setw(max_len - 2) << line << " │\n";
     }
     std::cout << "└" << std::string(max_len, '-') << "┘\n";
@@ -625,17 +650,18 @@ void printItems(const std::map<TypeItem, std::unique_ptr<Item>>& items) {
             if (auto shop_item = dynamic_cast<const ShopItem*>(item.get())) {
                 // Datos comunes de cualquier ShopItem
                 std::vector<std::string> lines = {
-                    " Nombre: " + shop_item->name,
-                    " Compra: " + std::to_string(shop_item->purchase_price) + "g",
-                    " Venta:  " + std::to_string(shop_item->selling_price) + "g"
-                };
+                        " Nombre: " + shop_item->name,
+                        " Compra: " + std::to_string(shop_item->purchase_price) + "g",
+                        " Venta:  " + std::to_string(shop_item->selling_price) + "g"};
                 if (auto magic_weapon = dynamic_cast<const MagicWeapon*>(shop_item)) {
-                    lines.push_back(" Danio:      " + std::to_string(magic_weapon->minimal_damage) + "-" + std::to_string(magic_weapon->maximun_damage));
+                    lines.push_back(" Danio:      " + std::to_string(magic_weapon->minimal_damage) +
+                                    "-" + std::to_string(magic_weapon->maximun_damage));
                     lines.push_back(" Costo Mana: " + std::to_string(magic_weapon->mana_cost));
                     lines.push_back(" Rango:      " + std::to_string(magic_weapon->range_attack));
                     draw_box("DEBUG: ARMA MAGICA", lines);
                 } else if (auto weapon = dynamic_cast<const Weapon*>(shop_item)) {
-                    lines.push_back(" Danio: " + std::to_string(weapon->minimal_damage) + "-" + std::to_string(weapon->maximun_damage));
+                    lines.push_back(" Danio: " + std::to_string(weapon->minimal_damage) + "-" +
+                                    std::to_string(weapon->maximun_damage));
                     lines.push_back(" Rango: " + std::to_string(weapon->range_attack));
                     draw_box("DEBUG: ARMA", lines);
                 } else if (auto defense = dynamic_cast<const Defense*>(shop_item)) {
@@ -651,11 +677,10 @@ void printItems(const std::map<TypeItem, std::unique_ptr<Item>>& items) {
                     draw_box("DEBUG: POCION", lines);
                 }
             } else {
-                draw_box("DEBUG: ITEM DESCONOCIDO", { "Tipo enum: " + std::to_string(item->type) });
+                draw_box("DEBUG: ITEM DESCONOCIDO", {"Tipo enum: " + std::to_string(item->type)});
             }
         }
     }
-
 }
 void printPositionRandom(const Position& pos) {
     const char* env_p = std::getenv("DEBUG");

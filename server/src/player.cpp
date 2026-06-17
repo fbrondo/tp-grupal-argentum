@@ -181,14 +181,14 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.pos_x = this->pose.position.x;
     data.pos_y = this->pose.position.y;
     data.direction = this->pose.direct;
-    data.hp = this->hp;
-    data.max_hp = this->hpMax();
-    data.mana = this->mana;
-    data.max_mana = this->manaMax();
-    data.body_id = this->ch.getTypeBody();
-    data.head_id = this->ch.getTypeHead();
-    data.raza = this->ch.getTypeRace();
-    data.clase = this->ch.getTypeClase();
+    data.stats.current_hp = this->hp;
+    data.stats.max_hp = this->hpMax();
+    data.stats.current_mana = this->mana;
+    data.stats.max_mana = this->manaMax();
+    data.ch_traits.body = this->ch.getTypeBody();
+    data.ch_traits.head = this->ch.getTypeHead();
+    data.ch_traits.race = this->ch.getTypeRace();
+    data.ch_traits.clase = this->ch.getTypeClase();
     return data;
 }
 
@@ -199,20 +199,20 @@ std::vector<TypeItem> Player::getEquipment() {
     return this->equipment.getEquipmentDefensive();
 }
 
-//Inventory& Player::getInventory() { return this->inv; }
+// Inventory& Player::getInventory() { return this->inv; }
 //
-// ItemInstance* Player::getItemInstance(Id instance_id) {
-//     auto it_inv = this->inv.inventory.find(instance_id);
-//     if (it_inv != this->inv.inventory.end()) {
-//         return it_inv->second.get();
-//     }
-//     // Si no esta en el inv busco en el banco
-//     auto it_bank = this->bank_account.safe_box.find(instance_id);
-//     if (it_bank != this->bank_account.safe_box.end()) {
-//         return it_bank->second.get();
-//     }
-//     return nullptr;
-// }
+//  ItemInstance* Player::getItemInstance(Id instance_id) {
+//      auto it_inv = this->inv.inventory.find(instance_id);
+//      if (it_inv != this->inv.inventory.end()) {
+//          return it_inv->second.get();
+//      }
+//      // Si no esta en el inv busco en el banco
+//      auto it_bank = this->bank_account.safe_box.find(instance_id);
+//      if (it_bank != this->bank_account.safe_box.end()) {
+//          return it_bank->second.get();
+//      }
+//      return nullptr;
+//  }
 
 // uint32_t Player::getInventorySize() const { return this->inv.inventory.size(); }
 
@@ -395,6 +395,6 @@ void Player::onDeath(World& world) {
     GoldBagInstance gold_pouche;
     gold_pouche.amount = this->inv.getGolden();
     gold_pouche.position = world.findNearbyFreePosition(this->pose.position);
-    world.addGoldWorld(gold_pouche);
+    world.addItemWorld(gold_pouche);
     this->inv.decrementGolden(gold_pouche.amount);
 }

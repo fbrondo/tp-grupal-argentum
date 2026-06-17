@@ -39,7 +39,7 @@ npcs = ["Esqueleto", "Golem infernal"]
 [[regions]]
 id_type = 5 #CAMPO
 is_safe_zone = false
-max_criatures = 2
+max_criatures = 8
 npcs = ["Goblin de campo"]
 #--------------------------------------------------------------------------------------------
 [[regions]]

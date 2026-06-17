@@ -30,14 +30,16 @@ std::string npcToString(TypeNPC typeC);
 void initServer();
 /*World*/
 void printInitMatrizMap(const std::vector<std::vector<Tile>>& map, uint32_t height, uint32_t width);
-void prinNpc(const NpcInstance& npc);
+void printNpc(const NpcInstance& npc);
+void printItem(const TreasureInstance& instance);
 void printPositionRandom(const Position& pos);
 
 
 void printPlayerData(std::string func, const PlayerData& player);
 
 /*GAMELOADCONFIG*/
-void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config, const FileData& file_data);
+void printLoadPathsAndFiles(const Path& path, const PathsConfig& paths_config,
+                            const FileData& file_data);
 void draw_box(const std::string& title, const std::vector<std::string>& lines);
 void printItems(const std::map<TypeItem, std::unique_ptr<Item>>& items);
 void printCreatureLoads(const std::map<std::string, CreatureConfig>& info_npcs);
@@ -59,7 +61,6 @@ void printPositionCreature(const Id& id, TypeNPC type, const Position& pos,
 void printPositionNPC(const Id& id, TypeNPC type, const Position& pos);
 void printPositionItem(const ItemInstance& item);
 void printPositionGold(const Id& id, GoldBagInstance);
-
 
 
 void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& prev);

@@ -3,6 +3,7 @@
 #include <ranges>
 #include <stack>
 #include <unordered_set>
+
 #include "common/includes/map/layer.h"
 #include "common/includes/map/map_serializer.h"
 #include "server/includes/core/map.h"
@@ -77,7 +78,8 @@ void World::identifyZones() {
             const Region region = this->map_tiles[y][x].region;
             Zone zone;
             zone.region = region;
-            zone.id = zone_id++;;
+            zone.id = zone_id++;
+            ;
             // this->zone_count[region]++;
             this->floodFill(Position{x, y}, region, visited, zone);
             if (region == Town || region == City) {
@@ -194,7 +196,7 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) {
 Position World::calculatePositionRandom(const Id& zone_id) {
     std::vector<Position> tiles;
     if (this->hostile_zones.contains(zone_id)) {
-       tiles = this->hostile_zones[zone_id].tiles;
+        tiles = this->hostile_zones[zone_id].tiles;
     } else {
         tiles = this->safe_zones[zone_id].tiles;
     }
@@ -205,7 +207,8 @@ Position World::calculatePositionRandom(const Id& zone_id) {
         random = tiles[dist(this->gen)];
         is_ocupied = this->player_tiles.contains(random) || this->npc_positions.isOcupied(random) ||
                      this->item_positions.isOcupied(random);
-    } while (this->positionNotWalkabled(random) || this->isInPlayerVisionRange(random) || is_ocupied);
+    } while (this->positionNotWalkabled(random) || this->isInPlayerVisionRange(random) ||
+             is_ocupied);
     return random;
 }
 
@@ -312,6 +315,7 @@ void World::addPlayerWorld(const Id& player_id, const Pose& pose) {
 }
 
 void World::addNpcWorld(const NpcInstance& npc) {
+    Print::printNpc(npc);
     this->npc_positions.add(npc);
     if (this->hostile_zones.contains(npc.zone_id)) {
         this->hostile_zones[npc.zone_id].creatures_count++;
@@ -325,21 +329,17 @@ void World::addItemWorld(const ItemInstance& item) {
 }
 
 void World::addItemWorld(const GoldBagInstance& gold) {
-    GoldBagInstance gold_instance = gold;
-    gold_instance.id = this->next_item_id;
+    GoldBagInstance gold_instance(gold);
+    gold_instance.id = this->next_item_id++;
     this->item_positions.add(gold_instance);
 }
 
-void World::addTreasuresWorld(TreasureInstance& treasure) {
-    treasure.id = this->next_item_id;
-    this->item_positions.add(treasure);
-    this->hostile_zones[treasure.zone_id].treasures_count++;
-}
-
-void World::addGoldWorld(const GoldBagInstance& gold) {
-    GoldBagInstance instance(gold);
-    instance.id = this->next_item_id;
+void World::addTreasuresWorld(const TreasureInstance& treasure) {
+    TreasureInstance instance(treasure);
+    instance.id = this->next_item_id++;
     this->item_positions.add(instance);
+    this->hostile_zones[instance.zone_id].treasures_count++;
+    Print::printItem(instance);
 }
 
 // void World::spawnItemOnFloor(const ItemInstance& item) {
