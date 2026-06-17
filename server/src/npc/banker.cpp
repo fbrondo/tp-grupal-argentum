@@ -54,7 +54,7 @@ void Banker::playerWithdrawItem(Player& player, TypeItem type) {
         return; /*Excepcion de item no encontrado en la cuenta*/
     }
     auto& slots = this->bank.accounts[username].safe_box;
-    auto& slot = slots[index.value()];
+    auto& slot = slots[index.value()];  // cppcheck-suppress syntaxError
     ItemInstance item(slot.getItem());
     player.addItemToInventory(item);
     slot.decrease();

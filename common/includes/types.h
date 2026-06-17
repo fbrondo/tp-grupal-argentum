@@ -411,16 +411,16 @@ enum class SoundEffectID : uint16_t {
     NOS_VEMOS_PRONTO_3 = 2205,
     CRONICA_TV = 9999,
 
-    //CASOS ESPECIALES
-    DADOS = 50001,              // cupdice.wav
-    FUEGO = 50002,              // fuego.wav
-    ARPA = 50003,               // harp3.wav
-    LLUVIA_EMPEZANDO = 50004,   // lluviain.wav
-    LLUVIA_TERMINANDO = 50005,  // lluviainend.wav
-    LLUVIA_EMPEZANDO_2 = 50006, // lluviainst.wav
-    LLUVIA_AFUERA = 50007,      // lluviaout.wav
-    LLUVIA_AFUERA_FIN = 50008,  // lluviaoutend.wav
-    LLUVIA_AFUERA_ST = 50009    // lluviaoutst.wav
+    // CASOS ESPECIALES
+    DADOS = 50001,               // cupdice.wav
+    FUEGO = 50002,               // fuego.wav
+    ARPA = 50003,                // harp3.wav
+    LLUVIA_EMPEZANDO = 50004,    // lluviain.wav
+    LLUVIA_TERMINANDO = 50005,   // lluviainend.wav
+    LLUVIA_EMPEZANDO_2 = 50006,  // lluviainst.wav
+    LLUVIA_AFUERA = 50007,       // lluviaout.wav
+    LLUVIA_AFUERA_FIN = 50008,   // lluviaoutend.wav
+    LLUVIA_AFUERA_ST = 50009     // lluviaoutst.wav
 };
 
 #endif
@@ -500,4 +500,3 @@ enum TypeGnomeHead : uint16_t {
 #endif
 
 #endif
-

@@ -423,7 +423,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             }
 
             uint16_t g_count;
-            if (socket.recvall(&g_count, 2) <= 0) return false;
+            if (socket.recvall(&g_count, 2) <= 0)
+                return false;
             g_count = ntohs(g_count);
             for (uint16_t i = 0; i < g_count; ++i) {
                 GoldPileGroundSnapshotData g;

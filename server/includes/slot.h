@@ -18,7 +18,7 @@ public:
     Slot(const Slot& other) = delete;
     Slot& operator=(const Slot& other) = delete;
 
-    Slot() = default;
+    Slot(): quantity(0), max_slot(0) {}
     Slot(Slot&&) = default;
     Slot& operator=(Slot&&) = default;
 

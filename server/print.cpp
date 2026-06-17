@@ -693,7 +693,7 @@ void printPositionRandom(const Position& pos) {
     }
 }
 
-void printInitGameloop(std::string mess) {
+void printInitGameloop(const std::string& mess) {
     const char* env_p = std::getenv("DEBUG");
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {

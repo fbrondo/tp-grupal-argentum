@@ -20,7 +20,7 @@ struct SlotData {
     uint8_t type_item;
     uint32_t index;
     uint32_t quantity;
-    SlotData(): type_item(0), index(0), quantity(0){};
+    SlotData(): type_item(0), index(0), quantity(0) {}
     SlotData(uint8_t type_item_, uint32_t index_, uint32_t quantity_):
             type_item(type_item_), index(index_), quantity(quantity_) {}
 };

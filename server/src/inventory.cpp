@@ -9,7 +9,7 @@ Inventory::Inventory(const uint32_t& golden, const uint32_t& max_inventory_,
                      const uint32_t& max_slot):
         golden(golden), max_inventory(max_inventory_), size_current(0) {
 
-    this->slots.reserve(this->max_inventory);
+    this->slots.reserve(this->max_inventory);  // cppcheck-suppress syntaxError
     for (uint32_t i = 0; i < this->max_inventory; ++i) {
         this->slots.emplace_back(max_slot);
     }

@@ -79,7 +79,6 @@ void World::identifyZones() {
             Zone zone;
             zone.region = region;
             zone.id = zone_id++;
-            ;
             // this->zone_count[region]++;
             this->floodFill(Position{x, y}, region, visited, zone);
             if (region == Town || region == City) {

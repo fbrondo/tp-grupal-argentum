@@ -2,6 +2,7 @@
 #define PRINT_H
 
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -65,7 +66,7 @@ void printPositionGold(const Id& id, GoldBagInstance);
 
 void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& prev);
 void imprimirCajaContenedora(const PlayerData& player);
-void printInitGameloop(std::string message);
+void printInitGameloop(const std::string& message);
 void imprimirTilesOcupadas(const std::unordered_map<Position, bool, PositionHash>& occupied_tiles);
 };  // namespace Print
 

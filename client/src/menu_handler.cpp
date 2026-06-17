@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "common/includes/protocol.h"
 #include "common/includes/core/character_traits.h"
 #include "common/includes/protocol.h"
 
