@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <string>
 #include <vector>
 
@@ -14,14 +15,27 @@ enum class TypeEventClient {
     ERROR_ACTION,
     LOGIN_RESPONSE,
     MAP_CHANGE,
-    MAP_DATA
+    MAP_DATA,
+    OPEN_MERCHANT,
+    OPEN_BANK,
+    INVENTORY_UPDATE
 };
 
-/*struct MapData {
-    uint32_t width{0};
-    uint32_t height{0};
-    std::vector<Tile> tiles;
-};*/
+struct MerchantEventData {
+    std::map<TypeItem, uint32_t> catalog;
+};
+
+struct BankEventData {
+    uint32_t gold{0};
+    std::vector<MsgItemInfo> items;
+};
+
+struct InventoryUpdateEventData {
+    uint8_t slot_index;
+    uint16_t item_id;
+    uint16_t quantity;
+    uint8_t is_equipped;
+};
 
 struct EventClient {
     TypeEventClient type{TypeEventClient::UPDATE_WORLD};
@@ -32,6 +46,7 @@ struct EventClient {
     uint32_t player_id{0};
     uint16_t map_id{0};  // Se usa para CAMBIO_MAPA
     Map map_data;        // Se usa para MAP_DATA
+    std::vector<CitizenNpcSnapshot> citizens;
     EventClient() = default;
     EventClient(EventClient&&) = default;
     EventClient& operator=(EventClient&&) = default;
@@ -59,10 +74,20 @@ public:
     void sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendDisconnect() const;
+    void sendListItems(Id npc_id);
+    void sendDepositItem(Id item_id);
+    void sendWithdrawItem(Id item_id);
+    void sendDepositGold(uint32_t amount);
+    void sendWithdrawGold(uint32_t amount);
+    void sendEquipItem(Id item_id);
+    void sendUnequipItem(Id item_id);
+    void sendResurrect();
+
 
     // Pre-game operations (signup, character)
     void sendSignup(const std::string& user, const std::string& password,
                     const CharacterTraits& traits) const;
+    void sendCharacterCreate(const std::string& name, uint8_t race, uint8_t clase) const;
 
     // Game loop receiver
     bool receiveMessage(EventClient& out_event) const;

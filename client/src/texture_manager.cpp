@@ -7,6 +7,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2pp/SDL2pp.hh>
 
+#include "client/includes/core/texture.h"
 #include "common/includes/direction.h"
 #include "common/includes/types.h"
 
@@ -185,6 +186,10 @@ void TextureManager::load_bodies_textures(
     load_texture(textures_aux, "body_" + std::to_string(HUNTER_FUR),
                  ARGENTUM_SHARE_PATH "/common/assets/units/bodies/gnomos/1861.png");
     register_spritesheet("body_" + std::to_string(HUNTER_FUR), 27, 47, 6);
+    // --- GHOST TEXTURE --- //
+    load_texture(textures_aux, "body_" + std::to_string(GHOST),
+                 ARGENTUM_SHARE_PATH "common/assets/units/bodies/2200.png");
+    register_spritesheet("body_" + std::to_string(GHOST), 29, 32, 3);
 }
 void TextureManager::load_npcs_textures(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {

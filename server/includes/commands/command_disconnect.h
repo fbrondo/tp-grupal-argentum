@@ -4,5 +4,5 @@
 class DisconnectCommand: public Command {
 public:
     explicit DisconnectCommand(Id id);
-    void execute(Gameloop& game) override;
+    void execute(Gameloop& /*game*/) override;
 };

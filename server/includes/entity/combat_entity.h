@@ -1,4 +1,5 @@
 #pragma once
+#include "common/includes/core/position.h"
 #include "server/includes/core/data.h"
 #include "server/includes/core/map.h"
 #include "server/includes/entity/entity.h"

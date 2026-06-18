@@ -23,7 +23,7 @@ struct Clase {
     Statistics statistics;
 
     Clase(TypeClase type, std::string&& name, uint16_t hp_f, uint16_t med_f, uint16_t mana_f,
-          Statistics&& st):
+          const Statistics& st):
             type(type),
             name(std::move(name)),
             hp_factor(hp_f),

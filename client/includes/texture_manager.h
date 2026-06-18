@@ -3,30 +3,12 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
-#include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
+#include "client/includes/core/animation.h"
+#include "client/includes/core/constants.h"
 #include "client/includes/window/windowSDL.h"
-
-static constexpr uint16_t DEFAULT_ANIMATION_SPEED_MS = 150;
-
-struct AnimationClip {
-    std::vector<SDL_Rect> frames;
-    uint32_t frame_rate_ms;
-};
-
-struct AnimationState {
-    std::string current_anim_id;
-    uint32_t start_time;
-    bool is_looping;
-};
-
-struct ItemTextureInfo {
-    uint32_t id;
-    std::string filename;
-};
 
 class TextureManager {
 private:

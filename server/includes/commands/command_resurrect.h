@@ -3,6 +3,6 @@
 
 class ResurrectCommand: public Command {
 public:
-    explicit ResurrectCommand(uint32_t id);
+    explicit ResurrectCommand(Id id);
     void execute(Gameloop& gameloop) override;
 };

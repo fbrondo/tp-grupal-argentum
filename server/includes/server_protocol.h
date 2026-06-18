@@ -12,6 +12,7 @@
 #include "commands/command_deposit_gold.h"
 #include "commands/command_disconnect.h"
 #include "commands/command_drop_item.h"
+#include "commands/command_equip.h"
 #include "commands/command_heal.h"
 #include "commands/command_interact.h"
 #include "commands/command_list_items.h"
@@ -22,15 +23,16 @@
 #include "commands/command_sell_item.h"
 #include "commands/command_signup.h"
 #include "commands/command_take_item.h"
+#include "commands/command_unequip.h"
 #include "commands/command_use_item.h"
 #include "commands/command_withdraw.h"
 #include "commands/command_withdraw_gold.h"
+#include "common/includes/core/snapshot.h"
 #include "common/includes/map/map.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
 #include "common/includes/types.h"
-#include "core/snapshot.h"
 
 #include "definitions.h"
 
@@ -39,7 +41,6 @@
 class ServerProtocol {
 private:
     Socket& socket;
-
     void sendSimpleResponse(uint8_t opcode, bool success, const std::string& msg) const;
 
 public:
@@ -54,7 +55,7 @@ public:
     void sendSignupResponse(bool success, const std::string& msg = "") const;
     void sendChangeMap(uint16_t map_id) const;
     void sendActionError(const std::string& error_msg) const;
-    void sendMap(const Map& map);
+    void sendMap(const Map& map, const std::vector<CitizenNpcSnapshot>& citizen);
     void sendTraderCatalog(const std::map<TypeItem, uint32_t>& catalog);
     void sendBankContent(const std::vector<MsgItemInfo>& items, uint32_t gold);
 

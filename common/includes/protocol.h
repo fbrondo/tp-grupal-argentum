@@ -25,7 +25,10 @@ enum ClientOpcode : uint8_t {
     WITHDRAW_ITEM = 17,
     DEPOSIT_GOLD = 18,
     WITHDRAW_GOLD = 19,
-    LIST_ITEMS = 20
+    LIST_ITEMS = 20,
+    EQUIP_ITEM = 21,
+    UNEQUIP_ITEM = 22,
+    RESURRECT = 23
 };
 
 enum ServerOpcode : uint8_t {
@@ -110,6 +113,7 @@ struct MsgSignup {
     char password[MAX_NAME_SIZE];
     CharacterTraits traits;
 };
+
 
 // struct MsgCharacterCreate {
 //     uint8_t opcode = CHARACTER_CREATE;

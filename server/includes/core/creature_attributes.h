@@ -5,8 +5,8 @@
 
 #pragma pack(push, 1)
 struct NpcAttributes {
-    uint16_t hp_max{0};
-    uint16_t hp_current{0};
+    uint16_t max_hp{0};
+    uint16_t current_hp{0};
     uint16_t difficulty_level{0};
     uint16_t range_attack{0};
     NpcAttributes() = default;

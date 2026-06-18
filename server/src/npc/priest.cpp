@@ -1,8 +1,5 @@
 #include "server/includes/npc/priest.h"
 
-// Priest::Priest(TypeNPC type, std::string&& name, Pose&& pose,
-//                std::map<TypeItem, std::unique_ptr<Item>>&& store_):
-//         TraderNPC(type, std::move(name), std::move(pose), std::move(store_)) {}
-
-Priest::Priest(TypeNPC type, const std::string& name, std::vector<TypeItem> items_):
-        TraderNPC(type, name, items_) {}
+Priest::Priest(TypeNPC type, const std::string& name, const Pose& pose_,
+               std::map<TypeItem, Item*>&& items_):
+        TraderNPC(type, name, pose_, std::move(items_)) {}
