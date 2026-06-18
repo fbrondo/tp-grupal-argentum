@@ -9,8 +9,9 @@
 
 ItemInstance Creature::search_item_drop(TypeItem type) {
     ItemInstance drop_item;
-    auto it = std::find_if(this->items_to_drop.begin(), this->items_to_drop.end(),
-                           [&type](const ItemInstance& item) { return item.type == type; });
+    auto it = std::find_if(
+            this->items_to_drop.begin(), this->items_to_drop.end(),
+            [&type](const ItemInstance& instance) { return instance.item->type == type; });
     if (it != this->items_to_drop.end()) {
         drop_item = *it;
     }
@@ -18,12 +19,12 @@ ItemInstance Creature::search_item_drop(TypeItem type) {
 }
 
 Creature::Creature(const Id& id_, TypeNPC type, const Pose& pos, const NpcAttributes& attrib,
-                   const std::vector<ItemInstance>& items_):
-        CombatEntity(pos, attrib.hp_max, attrib.difficulty_level),
+                   std::vector<ItemInstance>&& items_):
+        CombatEntity(pos, attrib.max_hp, attrib.difficulty_level),
         id(id_),
         type_creature(type),
         range_attack(attrib.range_attack),
-        items_to_drop(items_) {}
+        items_to_drop(std::move(items_)) {}
 
 // void Creature::updatePosition(Position&& new_pos) { this->pos = std::move(new_pos); }
 
@@ -31,24 +32,23 @@ void Creature::onDeath(World& world) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::discrete_distribution<int> dist({80, 8, 1, 1});
-    int result = dist(gen);
-    switch (result) {
+    switch (dist(gen)) {
         case 0: /*nada*/
             break;
         case 1: { /*8% - oro*/
-            uint32_t drop_gold = GameFormulas::calculationGoldenNpcKill(CombatEntity::max_hp);
-            GoldBagInstance gold_pouche;
-            gold_pouche.amount = drop_gold;
-            gold_pouche.pos = world.findNearbyFreePosition(this->pose.position);
-            world.spawnGoldOnFloor(gold_pouche);
+            const uint32_t drop_gold = GameFormulas::calculationGoldenNpcKill(this->max_hp);
+            GoldBagInstance gold;
+            gold.amount = drop_gold;
+            gold.position = world.findNearbyFreePosition(this->pose.position);
+            world.addItemWorld(gold);
             break;
         }
         case 2: {  // 1% - pocion de vida o mana
             std::uniform_int_distribution<int> potion_dist(0, 1);
             TypeItem potion = (potion_dist(gen) == 0) ? LIFE_POTION : MANA_POTION;
             ItemInstance drop_potion = this->search_item_drop(potion);
-            drop_potion.pos = world.findNearbyFreePosition(this->pose.position);
-            world.spawnItemOnFloor(drop_potion);
+            drop_potion.position = world.findNearbyFreePosition(this->pose.position);
+            world.addItemWorld(drop_potion);
             break;
         }
         case 3: {  // 1% - cualquier otro objeto
@@ -56,9 +56,9 @@ void Creature::onDeath(World& world) {
             ItemInstance item_drop;
             do {
                 item_drop = this->items_to_drop[item_dist(gen)];
-            } while (item_drop.type == LIFE_POTION || item_drop.type == MANA_POTION);
-            item_drop.pos = world.findNearbyFreePosition(this->pose.position);
-            world.spawnItemOnFloor(item_drop);
+            } while (item_drop.item->type == LIFE_POTION || item_drop.item->type == MANA_POTION);
+            item_drop.position = world.findNearbyFreePosition(this->pose.position);
+            world.addItemWorld(item_drop);
             break;
         }
         default:
@@ -70,12 +70,11 @@ void Creature::onDeath(World& world) {
 CreatureData Creature::getCreatureData() {
     CreatureData creauture_npc;
     creauture_npc.type = this->type_creature;
-    creauture_npc.hp = this->hp;
-    creauture_npc.max_hp = this->max_hp;
-    creauture_npc.x = this->pose.position.x;
-    creauture_npc.y = this->pose.position.y;
+    creauture_npc.attributes.current_hp = this->hp;
+    creauture_npc.attributes.max_hp = this->max_hp;
+    creauture_npc.attributes.range_attack = this->range_attack;
+    creauture_npc.position = this->pose.position;
     creauture_npc.direction = this->pose.direct;
-    creauture_npc.range_attack = this->range_attack;
     return creauture_npc;
 }
 

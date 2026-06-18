@@ -4,4 +4,6 @@
 
 HealCommand::HealCommand(Id id): Command(id) {}
 
-void HealCommand::execute(Gameloop& gameloop) { gameloop.processPlayerHeal(this->getIdPlayer()); }
+void HealCommand::execute(Gameloop& /*gameloop*/) {
+    // gameloop.processPlayerHeal(this->getIdPlayer());
+}

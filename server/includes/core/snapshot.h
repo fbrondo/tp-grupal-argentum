@@ -1,12 +1,12 @@
-#ifndef SNAPSHOT_H
-#define SNAPSHOT_H
+#pragma once
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
-// #include "cmake-build-linux/_deps/sdl2_mixer-src/src/codecs/stb_vorbis/stb_vorbis.h"
-
+#include "common/includes/core/character_traits.h"
+#include "common/includes/core/player_stats.h"
+#include "common/includes/types.h"
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
     uint32_t id;
@@ -15,21 +15,21 @@ struct PlayerSnapshotData {
     uint32_t pos_y;
     uint8_t direction;  // Hacia donde mira
 
-    uint16_t hp;
-    uint16_t max_hp;
-    uint16_t mana;
-    uint16_t max_mana;
-
-    uint16_t body_id;
-    uint16_t head_id;
+    PlayerStats stats;
+    // uint16_t hp;
+    // uint16_t max_hp;
+    // uint16_t mana;
+    // uint16_t max_mana;
+    CharacterTraits ch_traits;
+    // uint16_t body_id;
+    // uint16_t head_id;
+    // uint8_t raza;
+    // uint8_t clase;
     /*equipo*/
     uint8_t weapon_id;
     uint8_t shield_id; /*Debe ser none si no esta equipado*/
-    uint8_t armor_id;
-    uint8_t head;
+    uint8_t helmet_id;
 
-    uint8_t raza;
-    uint8_t clase;
     uint8_t flags;  // Estados especiales (por ej: bit 0 = invisible, bit 1 = meditando, etc.)
 };
 
@@ -55,20 +55,16 @@ struct GoldPileGroundSnapshotData {
     uint32_t pos_y;
 };
 
-// No estoy seguro aun como manejar los efectos visuales
-struct VisualEffect {
-    uint32_t pos_x;
-    uint32_t pos_y;
-    uint8_t effect_type;  // Sonido / Animación de explosión / etc
+struct SoundEffectSnapshotData {
+    SoundEffectID effect_id;
+    uint32_t pos_x;  // Coordenada X donde ocurrio (para audio posicional)
+    uint32_t pos_y;  // Coordenada Y
 };
-
-#pragma pack(pop)
 struct Snapshot {
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;
     std::vector<ItemGroundSnapshotData> items_on_floor;
     std::vector<GoldPileGroundSnapshotData> gold_piles;
-    std::vector<VisualEffect> effects;
+    std::vector<SoundEffectSnapshotData> sound_effects;
 };
-
-#endif
+#pragma pack(pop)

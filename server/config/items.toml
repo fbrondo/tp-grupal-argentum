@@ -2,7 +2,7 @@
 [[items]]
 id_type = 1 # Espada
 name = "Espada"
-description = "MELEE_WEAPON"
+description = "WEAPON"
 body_part = 3 #HAND
 classif = 2 #ATTACK
 minimal_damage = 2
@@ -14,7 +14,7 @@ purchase_price = 10
 [[items]]
 id_type = 2 # Hacha
 name = "Hacha"
-description = "MELEE_WEAPON"
+description = "WEAPON"
 body_part = 3 #HAND
 classif = 2 #ATTACK
 minimal_damage = 4
@@ -26,7 +26,7 @@ purchase_price = 12
 [[items]]
 id_type = 3 # Martillo
 name = "Martillo"
-description = "MELEE_WEAPON"
+description = "WEAPON"
 body_part = 3 #HAND
 classif = 2 #ATTACK
 minimal_damage = 1
@@ -90,7 +90,7 @@ purchase_price = 20
 [[items]]
 id_type = 8 # arco simple
 name = "Arco simple"
-description = "RANGED_WEAPON"
+description = "WEAPON"
 body_part = 3 #HAND
 classif = 2 #ATTACK
 minimal_damage = 1
@@ -102,7 +102,7 @@ purchase_price = 10
 [[items]]
 id_type = 9 # arco compuesto
 name = "Arco compuesto"
-description = "RANGED_WEAPON"
+description = "WEAPON"
 body_part = 3 #HAND
 classif = 2 #ATTACK
 minimal_damage = 4

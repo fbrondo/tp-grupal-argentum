@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -26,6 +27,7 @@ private:
     std::unordered_map<uint32_t, std::unique_ptr<RenderableEntity>> entities;
     uint32_t local_player_id;
     std::optional<Map> current_map;
+    SDL_Rect visible_map_bounds;
 
     // El rectángulo de la cámara (guarda x, y, w, h en píxeles del mundo)
     SDL_Rect camera;
@@ -34,6 +36,7 @@ private:
 
     // Para centrar la cámara en el jugador principal
     void center_camera_on_player();
+    void update_visible_map_bounds();
 
 public:
     WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_);
@@ -43,7 +46,14 @@ public:
     WorldRenderer& operator=(const WorldRenderer&) = delete;
 
     void set_local_player(uint32_t id);
+    void set_player_name(const std::string& name);
+    void update_hud_stats(const MsgPlayerStats& stats);
     void load_map(Map&& new_map);
+
+    void add_chat_message(const std::string& msg);
+    void update_chat_input(const std::string& buffer, bool is_active);
+    bool is_point_inside_console(uint32_t x, uint32_t y) const;
+    bool is_local_player_moving() const;
     // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
     void update_from_snapshot(const Snapshot& snapshot);
 

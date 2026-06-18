@@ -67,12 +67,10 @@ Statistics GameConfigLoader::loadTableStatistics(Table_array* stats_array) {
     Statistics stats;
     if (stats_array && !stats_array->empty()) {
         Table& stats_table = *(*stats_array)[0].as_table();
-        stats.intelligence = static_cast<uint16_t>(
-                stats_table["intelligence"].value_or(0));  // Ojo con la "s" en tu archivo
-        stats.constitution = static_cast<uint16_t>(
-                stats_table["constitution"].value_or(0));  // Ojo con la "i" intermedia
-        stats.strength = static_cast<uint16_t>(stats_table["strength"].value_or(0));
-        stats.agility = static_cast<uint16_t>(stats_table["agility"].value_or(0));
+        stats.intelligence = static_cast<uint16_t>(stats_table["intelligence"].value_or(1));
+        stats.constitution = static_cast<uint16_t>(stats_table["constitution"].value_or(1));
+        stats.strength = static_cast<uint16_t>(stats_table["strength"].value_or(1));
+        stats.agility = static_cast<uint16_t>(stats_table["agility"].value_or(1));
     }
     return stats;
 }
@@ -151,7 +149,7 @@ void GameConfigLoader::loadRaces(std::map<TypeRace, Race>& info_races) {
     }
 }
 
-void GameConfigLoader::loadClases(std::map<TypeClase, Clase>& info_clases) {
+void GameConfigLoader::loadClases(std::map<TypeClase, Clase>& clases) {
     try {
         Table config = toml::parse_file(paths.clases.string());
         Table_array* clases_array = config["clases"].as_array();
@@ -162,17 +160,14 @@ void GameConfigLoader::loadClases(std::map<TypeClase, Clase>& info_clases) {
             Table& clase_table = *node.as_table();
             auto type = static_cast<TypeClase>(clase_table["id_type"].value_or(0));
             auto name = clase_table["name"].value_or(std::string{});
-            auto hp_factor = static_cast<uint16_t>(clase_table["life_factor"].value_or(1));
-            auto meditation_factor =
-                    static_cast<uint16_t>(clase_table["metitation_factor"].value_or(1));
-            auto mana_factor = static_cast<uint16_t>(clase_table["mana_factor"].value_or(0));
+            auto hp_f = static_cast<uint16_t>(clase_table["life_factor"].value_or(1));
+            auto meditation_f = static_cast<uint16_t>(clase_table["metitation_factor"].value_or(1));
+            auto mana_f = static_cast<uint16_t>(clase_table["mana_factor"].value_or(1));
 
             Table_array* stats_array = clase_table["statistics"].as_array();
             Statistics stats = this->loadTableStatistics(stats_array);
-            Clase clase = Clase(type, std::move(name), hp_factor, meditation_factor, mana_factor,
-                                std::move(stats));
-
-            info_clases.emplace(type, std::move(clase));
+            auto clase = Clase(type, std::move(name), hp_f, meditation_f, mana_f, stats);
+            clases.emplace(type, std::move(clase));
         }
     } catch (const toml::parse_error& err) {
         std::string mssgErr(ERROR_LOAD_CLASES);
@@ -181,7 +176,7 @@ void GameConfigLoader::loadClases(std::map<TypeClase, Clase>& info_clases) {
     }
 }
 
-void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items) {
+void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& items) {
     try {
         Table config = toml::parse_file(paths.items.string());
         Table_array* items_array = config.get_as<toml::array>("items");
@@ -211,26 +206,29 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info
 
             if (classif == ITEM_ATTACK) {
                 if (descp == "MELEE_WEAPON" || descp == "RANGED_WEAPON") {
-                    info_items[type] = std::make_unique<Weapon>(
-                            type, body, classif, std::move(name), sell_price, purch_price, min_dam,
-                            max_dam, range);
+                    items[type] = std::make_unique<Weapon>(type, body, classif, std::move(name),
+                                                           sell_price, purch_price, min_dam,
+                                                           max_dam, range);
                 } else if (descp == "MAGICAL") {
-                    info_items[type] = std::make_unique<MagicWeapon>(
+                    items[type] = std::make_unique<MagicWeapon>(
                             type, body, classif, std::move(name), sell_price, purch_price, min_dam,
                             max_dam, mana_cost, range);
+                } else if (descp == "WEAPON") {
+                    items[type] = std::make_unique<Weapon>(type, body, classif, std::move(name),
+                                                           sell_price, purch_price, min_dam,
+                                                           max_dam, range);
                 }
             } else if (classif == ITEM_DEFENSIVE) {
-                info_items[type] =
-                        std::make_unique<Defense>(type, body, classif, std::move(name), sell_price,
-                                                  purch_price, min_def, max_def);
+                items[type] = std::make_unique<Defense>(type, body, classif, std::move(name),
+                                                        sell_price, purch_price, min_def, max_def);
             } else if (classif == ITEM_HEALING) {
                 if (descp == "POTION") {
-                    info_items[type] = std::make_unique<ShopItem>(
-                            type, body, classif, std::move(name), sell_price, purch_price);
+                    items[type] = std::make_unique<ShopItem>(type, body, classif, std::move(name),
+                                                             sell_price, purch_price);
                 } else if (descp == "MAGICAL") {
-                    info_items[type] = std::make_unique<ObjectMagic>(type, body, classif,
-                                                                     std::move(name), sell_price,
-                                                                     purch_price, mana_cost, range);
+                    items[type] = std::make_unique<ObjectMagic>(type, body, classif,
+                                                                std::move(name), sell_price,
+                                                                purch_price, mana_cost, range);
                 }
             }
         }
@@ -242,14 +240,14 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info
     }
 }
 
-void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>>& info_regions) {
+void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>>& regions) {
     try {
         Table config = toml::parse_file(paths.regions.string());
         Table_array* regions_array = config["regions"].as_array();
         for (const auto& region_node: *regions_array) {
             const Table& region = *region_node.as_table();
-            bool is_safe = region["is_safe_zone"].value_or(false);
-            Region type = static_cast<Region>(region["id_type"].value_or(0));
+            const bool is_safe = region["is_safe_zone"].value_or(false);
+            auto type = static_cast<Region>(region["id_type"].value_or(0));
             if (is_safe) {
                 auto r = std::make_unique<SafeRegion>();
                 r->type = type;
@@ -259,21 +257,28 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
                         uint16_t valor = static_cast<uint16_t>(node.value_or<int64_t>(1));
                         r->numbers_npc.push_back(valor);
                     }
-                    info_regions.emplace(type, std::move(r));
+                    regions.emplace(type, std::move(r));
                 }
             } else {
-                auto r = std::make_unique<WildRegion>();
+                auto r = std::make_unique<HostileRegion>();
                 r->type = type;
                 r->is_safe = false;
-                r->max_creatures = region["max_criatures"].value_or(0);
-                if (region["min_treasure"].value<int>())
-                    r->min_treasure = region["min_treasure"].value_or(0);
-                if (region["max_treasure"].value<int>())
-                    r->max_treasure = region["max_treasure"].value_or(0);
-                info_regions.emplace(type, std::move(r));
+                r->max_creatures = region["max_criatures"].value_or(1);
+
+                if (auto node = region["min_treasure"])
+                    r->min_treasure = node.value<uint16_t>();
+                if (auto node = region["max_treasure"])
+                    r->max_treasure = node.value<uint16_t>();
+                if (auto node = region["number_items_in_treasure"]) {
+                    r->number_items_treasure = node.value<uint16_t>();
+                }
+                if (auto node = region["amount_golden_in_treasure"]) {
+                    r->amount_golden_treasure = node.value<uint16_t>();
+                }
+                regions.emplace(type, std::move(r));
             }
-            auto& r = info_regions.at(type);
-            if (auto* npcs = region["id_types_npcs"].as_array()) {
+            auto& r = regions.at(type);
+            if (auto* npcs = region["npcs"].as_array()) {
                 npcs->for_each([&r](auto& npc) {
                     if (npc.is_string()) {
                         r->npc_types.push_back(npc.as_string()->get());
@@ -295,7 +300,7 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
         Table config = toml::parse_file(paths.game.string());
         /*Estado inicial del jugador*/
         auto player_init = config["player_state_init"];
-        player_state_init.level = static_cast<uint8_t>(player_init["level"].value_or(0));
+        player_state_init.level = static_cast<uint8_t>(player_init["level"].value_or(1));
         player_state_init.golden_init =
                 static_cast<uint32_t>(player_init["golden_init"].value_or(0));
         player_state_init.max_inventory =

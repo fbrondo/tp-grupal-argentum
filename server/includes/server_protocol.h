@@ -12,6 +12,7 @@
 #include "commands/command_deposit_gold.h"
 #include "commands/command_disconnect.h"
 #include "commands/command_drop_item.h"
+#include "commands/command_equip.h"
 #include "commands/command_heal.h"
 #include "commands/command_interact.h"
 #include "commands/command_list_items.h"
@@ -22,6 +23,7 @@
 #include "commands/command_sell_item.h"
 #include "commands/command_signup.h"
 #include "commands/command_take_item.h"
+#include "commands/command_unequip.h"
 #include "commands/command_use_item.h"
 #include "commands/command_withdraw.h"
 #include "commands/command_withdraw_gold.h"
@@ -39,7 +41,6 @@
 class ServerProtocol {
 private:
     Socket& socket;
-
     void sendSimpleResponse(uint8_t opcode, bool success, const std::string& msg) const;
 
 public:

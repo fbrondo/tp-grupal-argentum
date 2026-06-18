@@ -5,6 +5,7 @@
 
 #include "common/includes/direction.h"
 
+#pragma pack(push, 1)
 struct Position {
     uint32_t x;
     uint32_t y;
@@ -46,4 +47,5 @@ struct Pose {
     Pose(const Pose&) = default;
     Pose& operator=(const Pose&) = default;
 };
+#pragma pack(pop)
 #endif

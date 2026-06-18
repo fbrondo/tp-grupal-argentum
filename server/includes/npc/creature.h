@@ -12,15 +12,6 @@
 #include "server/includes/entity/combat_entity.h"
 #include "server/includes/world.h"
 
-/*Representa uba criatura
-    - Goblin
-    - Esqueleto
-    - Zombies
-    - Arana
-    - Orco
-    - Golem
-    Una criatura puede atacar si un jugador esta en su rango o puede ser atacada por un jugador
-*/
 class Creature: public CombatEntity {
 private:
     Id id;
@@ -33,7 +24,7 @@ private:
 public:
     /*Tiempo de recuperacion al dar un ataque*/
     Creature(const Id& id_, TypeNPC type, const Pose& pose_, const NpcAttributes& attrib,
-             const std::vector<ItemInstance>& items_);
+             std::vector<ItemInstance>&& items_);
 
     void onDeath(World& world) override;
     CreatureData getCreatureData();

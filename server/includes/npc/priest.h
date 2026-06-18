@@ -25,7 +25,7 @@ private:
 public:
     // Priest(TypeNPC type, std::string&& name, Pose&& pos,
     //        std::map<TypeItem, std::unique_ptr<Item>>&& store_);
-    Priest(TypeNPC type, const std::string& name, std::vector<TypeItem> items_);
+    Priest(TypeNPC type, const std::string& name, std::map<TypeItem, Item*>&& items_);
     ~Priest() override = default;
 };
 

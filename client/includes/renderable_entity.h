@@ -60,4 +60,5 @@ public:
     float get_pixel_y() const { return current_pixel_y; }
     uint32_t get_id() const { return id; }
     EntityType get_type() const { return type; }
+    bool is_currently_moving() const { return is_moving; }
 };
