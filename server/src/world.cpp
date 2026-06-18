@@ -8,8 +8,8 @@
 
 #include "common/includes/map/layer.h"
 #include "common/includes/map/map_serializer.h"
-#include "server/includes/core/map.h"
 #include "common/includes/sprite_loader.h"
+#include "server/includes/core/map.h"
 #include "server/print.h"
 
 #ifndef CONFIG_PATH
@@ -43,6 +43,7 @@ void World::buildTilesWorld() {
             this->map_tiles[x][y].region = bg.region;
             if (!obj.walkable) {
                 this->not_walkable_tiles[Position(x, y)] = true;
+            }
         }
     }
 }
@@ -355,7 +356,8 @@ Position World::findNearbyFreePosition(const Position& center) {
         queue.pop();
         bool is_ocupied = this->player_tiles.contains(pos) || this->npc_positions.isOcupied(pos) ||
                           this->item_positions.isOcupied(pos);
-        if (!is_ocupied && this->isWithinLimits(pos) && !this->positionNotWalkabled(pos) && this->map_tiles[pos.x][pos.y].walkable) {
+        if (!is_ocupied && this->isWithinLimits(pos) && !this->positionNotWalkabled(pos) &&
+            this->map_tiles[pos.x][pos.y].walkable) {
             return pos;
         }
         std::vector<Position> neighbors = {
@@ -383,9 +385,11 @@ Position World::findNearbyFreePosition(const Position& center) {
 //     for (const auto& npc: this->npc_positions | std::views::values) {
 //         if (npc.type == PRIEST) {
 //             uint32_t dist_x =
-//                     std::abs(static_cast<int>(center.x) - static_cast<int>(npc.pose.position.x));
+//                     std::abs(static_cast<int>(center.x) -
+//                     static_cast<int>(npc.pose.position.x));
 //             uint32_t dist_y =
-//                     std::abs(static_cast<int>(center.y) - static_cast<int>(npc.pose.position.y));
+//                     std::abs(static_cast<int>(center.y) -
+//                     static_cast<int>(npc.pose.position.y));
 //             uint32_t current_distance = dist_x + dist_y;
 //
 //             if (current_distance < min_distance) {

@@ -62,7 +62,7 @@ private:
 
     Character createCharacter(const CharacterTraits& traits) const;
     // Equipment createEquipment(const std::vector<ItemInstanceData>& equip) const;
-    // Inventory loadingInventory(const PlayerData& player);
+    Inventory loadingInventory(const PlayerData& player);
     void loadingPlayerData(const Id& player_id, const PlayerData& player_data);
     void createNewPlayer(const User& user, const CharacterTraits& traits);
 
