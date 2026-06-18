@@ -82,27 +82,32 @@ bool Player::canBuy(uint16_t price_item) const {
     return true;
 }
 
-void Player::addItemToInventory(const ItemInstance& instance) {
+bool Player::addItemToInventory(const ItemInstance& instance) {
     if (this->inv.isInventoryFull()) {
-        return;
+        return false;
     }
     const auto item = dynamic_cast<const ShopItem*>(instance.item);
     this->inv.addItemToInventory(item);
+    return true;
 }
 
 void Player::addItemToInventory(const GoldBagInstance& instance) {
     this->inv.incrementGolden(instance.amount);
 }
 
-void Player::addItemToInventory(const TreasureInstance& instance) {
+bool Player::addItemToInventory(const TreasureInstance& instance) {
     this->inv.incrementGolden(instance.amount_golden);
+    if (this->inv.isInventoryFull()) {
+        return false;
+    }
     for (const auto& item_inst: instance.items) {
         if (this->inv.isInventoryFull()) {
-            return;
+            break;
         }
         const auto item = dynamic_cast<const ShopItem*>(item_inst.item);
         this->inv.addItemToInventory(item);
     }
+    return true;
 }
 
 void Player::buyItem(const ShopItem* item) {
@@ -122,15 +127,23 @@ void Player::sellItem(TypeItem type_item, uint32_t sell_price) {
     this->inv.removeItemFromInventory(type_item);
 }
 
-void Player::dropItem(size_t index_slot, World& world) {
+bool Player::dropItem(size_t index_slot, World& world) {
     if (this->inv.slotEmpty(index_slot)) {
-        return;
+        return false;
     }
     const auto item = this->inv.getItemSlot(index_slot);
     ItemInstance instance(item);
     instance.position = world.findNearbyFreePosition(this->pose.position);
     world.addItemWorld(instance);
     this->inv.removeItemFromInventory(index_slot);
+    return true;
+}
+
+bool Player::equipItem(size_t slot_id) {
+    if (this->inv.isInventoryEmpty()) {
+        return false;
+    }
+    return this->inv.setItemInTheEquipment(this->equipment, slot_id);
 }
 
 PlayerData Player::getPlayerData() {
@@ -201,9 +214,24 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
 
 TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
 
+
 std::vector<TypeItem> Player::getEquipment() {
     /*Esto no cuesta nada, lo maximo que puedo llegar a tener en el equip son 4 elementos -> O(1)*/
     return this->equipment.getEquipmentDefensive();
+}
+
+std::vector<MsgSlot> Player::getSlotsInventory() const { return this->inv.getInventory(); }
+
+std::vector<MsgSlot> Player::getSlotsEquipment() const {
+    std::vector<MsgSlot> slots;
+    const auto equip = this->equipment.getEquipment();
+    for (size_t i = 0; i < equip.size(); i++) {
+        MsgSlot slot;
+        slot.type_item = static_cast<uint8_t>(equip[i]);
+        slot.slot_index = static_cast<uint8_t>(i);
+        slots.push_back(slot);  // cppcheck-suppress syntaxError
+    }
+    return slots;
 }
 
 // Inventory& Player::getInventory() { return this->inv; }
@@ -267,7 +295,11 @@ std::vector<TypeItem> Player::getEquipment() {
 
 void Player::teleportTo(const Position& pos) { this->pose.position = pos; }
 
-std::string Player::getUsername() { return this->user.username; }
+std::string Player::getUsername() const { return this->user.username; }
+
+const Item* Player::getItemInventory(const size_t& slot_id) {
+    return this->inv.getItemSlot(slot_id);
+}
 
 const Item* Player::removeItemInventory(TypeItem type_item) {
     return this->inv.removeItemFromInventory(type_item);

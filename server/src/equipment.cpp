@@ -34,43 +34,32 @@ void Equipment::equipItemDefensive(ItemInstance* inst) {
             break;
     }
 }
-//
-// ItemInstance* Equipment::equipItem(ItemInstance* item_inst) {
-//     size_t target_index = 0;
-//
-//     if (item_inst->classification == ITEM_ATTACK || item_inst->classification == ITEM_HEALING) {
-//         target_index = INDEX_HAND;
-//     } else if (item_inst->classification == ITEM_DEFENSIVE) {
-//         switch (item_inst->body_part_use) {
-//             case HEAD:
-//                 target_index = INDEX_HEAD;
-//                 break;
-//             case BACK:
-//                 target_index = INDEX_BACK;
-//                 break;
-//             case HAND:
-//                 target_index = INDEX_SHIELD;
-//                 break;
-//             default:
-//                 throw std::runtime_error("Parte del cuerpo inválida para defensa.");
-//         }
-//     }
-//
-//     ItemInstance* viejo_item = this->equipment_container[target_index];
-//     this->equipment_container[target_index] = item_inst;
-//     return viejo_item;
-// }
 
-ItemInstance* Equipment::removeItem(Id id_inst_item) {
-    for (size_t i = 0; i < MAX_EQUIPMENT_SIZE; i++) {
-        if (this->equipment_container[i] && this->equipment_container[i]->id == id_inst_item) {
-            ItemInstance* item_encontrado = this->equipment_container[i];
-
-            this->equipment_container[i] = nullptr;
-            return item_encontrado;
-        }
+void Equipment::equipItem(ItemInstance* instance) {
+    const auto item = dynamic_cast<const ShopItem*>(instance->item);
+    switch (item->classif) {
+        case ITEM_ATTACK:
+            this->equipHandItem(instance);
+            break;
+        case ITEM_DEFENSIVE:
+            this->equipItemDefensive(instance);
+            break;
+        case ITEM_HEALING:
+            this->equipHandItem(instance);
+            break;
+        default:
+            throw std::runtime_error("Parte del cuerpo inválida para defensa.");
     }
-    return nullptr;
+    // ItemInstance* viejo_item = this->equipment_container[target_index];
+    // this->equipment_container[target_index] = item_inst;
+    // return viejo_item;
+}
+
+void Equipment::removeItem(size_t slot_index) {
+    if (!this->equipment_container[slot_index]) {
+        return; /*TIRAR EXCEPCION*/
+    }
+    this->equipment_container[slot_index] = nullptr;
 }
 
 TypeItem Equipment::getHandItem() const {
@@ -80,12 +69,25 @@ TypeItem Equipment::getHandItem() const {
     return NONE;
 }
 
-std::vector<TypeItem> Equipment::getEquipmentDefensive() {
+std::vector<TypeItem> Equipment::getEquipmentDefensive() const {
     std::vector<TypeItem> equipment;
     for (size_t i = INDEX_HEAD; i <= INDEX_SHIELD; i++) {
         if (this->equipment_container[i]) {
             auto type = this->equipment_container[i]->item->type;
             equipment.push_back(type);
+        }
+    }
+    return equipment;
+}
+
+std::vector<TypeItem> Equipment::getEquipment() const {
+    std::vector<TypeItem> equipment;
+    for (size_t i = INDEX_HEAD; i <= INDEX_SHIELD; i++) {
+        if (this->equipment_container[i]) {
+            auto type = this->equipment_container[i]->item->type;
+            equipment.push_back(type);
+        } else {
+            equipment.push_back(NONE);
         }
     }
     return equipment;

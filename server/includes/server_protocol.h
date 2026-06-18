@@ -50,6 +50,7 @@ public:
     void sendSnapshot(const Snapshot& state) const;
     void sendPlayerStats(const MsgPlayerStats& stats) const;
     void sendInventoryUpdate(const MsgInventoryUpdate& inv) const;
+    void sendEquipmentUpdate(const MsgEquipmentUpdate& equip) const;
     void sendChatMsg(const std::string& msg) const;
     void sendLoginResponse(bool success, Id player_id, const std::string& msg = "") const;
     void sendSignupResponse(bool success, const std::string& msg = "") const;

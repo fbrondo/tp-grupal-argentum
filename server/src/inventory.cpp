@@ -47,6 +47,15 @@ void Inventory::addItemToInventory(const ShopItem* item) {
     }
 }
 
+bool Inventory::setItemInTheEquipment(Equipment& equipment, size_t slot_index) {
+    if (this->slotEmpty(slot_index)) {
+        return false; /*SLOT VACIO*/
+    }
+    const auto instance = this->slots[slot_index].getItemInstance();
+    equipment.equipItem(instance);
+    return true;
+}
+
 std::vector<SlotData> Inventory::getSlotsData() const {
     std::vector<SlotData> slots_data;
     for (size_t i = 0; i < this->slots.size(); i++) {
@@ -57,6 +66,18 @@ std::vector<SlotData> Inventory::getSlotsData() const {
         }
     }
     return slots_data;
+}
+
+std::vector<MsgSlot> Inventory::getInventory() const {
+    std::vector<MsgSlot> inventory;
+    for (size_t i = 0; i < this->slots.size(); i++) {
+        MsgSlot s;
+        s.type_item = static_cast<uint8_t>(this->slots[i].getTypeItem());
+        s.slot_index = static_cast<uint8_t>(i);
+        s.quantity = this->slots[i].getQuantity();
+        inventory.emplace_back(s);
+    }
+    return inventory;
 }
 
 std::vector<size_t> Inventory::getSlotsEquipment() { return this->indexs_slots_equipment; }
