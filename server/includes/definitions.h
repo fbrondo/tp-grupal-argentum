@@ -8,10 +8,10 @@
 #include <tuple>
 #include <vector>
 
+#include "../../common/includes/core/snapshot.h"
 #include "common/includes/queue.h"
 #include "common/includes/types.h"
 #include "server/includes/commands/command.h"
-#include "server/includes/core/snapshot.h"
 #include "server/includes/responses/response.h"
 
 /*Cola de comandos*/

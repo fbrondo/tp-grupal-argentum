@@ -33,6 +33,7 @@ target_sources(taller_client
         includes/window/windowSDL.h
         includes/renderable_entity.h
         includes/world_renderer.h
+        includes/sound_manager.h
         includes/hud_renderer.h
         includes/chat_manager.h
     )

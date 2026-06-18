@@ -23,13 +23,13 @@ public:
     Equipment(/* args */);
     ~Equipment();
 
-    void equipItem(ItemInstance* item_inst);
+    // ItemInstance* equipItem(ItemInstance* item_inst);
 
     /*Vendio, solto el item o lo quito del equipo*/
-    void removeItem(Id id_inst_item);
+    ItemInstance* removeItem(Id id_inst_item);
 
     /*Necesario para calcular los puntos de defensa*/
-    std::vector<std::tuple<Id, TypeItem>> getEquipmentDefensive();
+    std::vector<TypeItem> getEquipmentDefensive();
 
     /* Utilizo su arma para atacar o con un objeto magico lanzo algun hechizo, con el TypeItem el
      * server sabra que hacer */

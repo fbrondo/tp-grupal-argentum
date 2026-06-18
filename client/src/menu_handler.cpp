@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "common/includes/core/character_traits.h"
 #include "common/includes/protocol.h"
 
 MenuHandler::MenuHandler(const char* host, const char* port):

@@ -9,6 +9,7 @@ target_sources(taller_server
         src/commands/command_deposit_gold.cpp
         src/commands/command_disconnect.cpp
         src/commands/command_drop_item.cpp
+        src/commands/command_equip.cpp
         src/commands/command_heal.cpp
         src/commands/command_interact.cpp
         src/commands/command_list_items.cpp
@@ -19,6 +20,7 @@ target_sources(taller_server
         src/commands/command_sell_item.cpp
         src/commands/command_signup.cpp
         src/commands/command_take_item.cpp
+        src/commands/command_unequip.cpp
         src/commands/command_use_item.cpp
         src/commands/command_withdraw.cpp
         src/commands/command_withdraw_gold.cpp
@@ -53,14 +55,19 @@ target_sources(taller_server
         src/game_config_loader.cpp
         src/game_formulas.cpp
         src/gameloop.cpp
+        src/inventory.cpp
         src/main.cpp
+        src/items_positions.cpp
         src/monitor_queues.cpp
+        src/npcs_positions.cpp
         src/persistence.cpp
         src/data_storage.cpp
         src/player.cpp
         src/response_builder.cpp
         src/server_protocol.cpp
         src/server.cpp
+        src/slot.cpp
+        src/spawn_manager.cpp
         src/world.cpp
 
         print.cpp
@@ -75,6 +82,7 @@ target_sources(taller_server
         includes/commands/command_deposit_gold.h
         includes/commands/command_disconnect.h
         includes/commands/command_drop_item.h
+        includes/commands/command_equip.h
         includes/commands/command_heal.h
         includes/commands/command_interact.h
         includes/commands/command_login.h
@@ -85,19 +93,19 @@ target_sources(taller_server
         includes/commands/command_signup.h
         includes/commands/command_take_item.h
         includes/commands/command_use_item.h
+        includes/commands/command_unequip.h
         includes/commands/command_withdraw.h
         includes/commands/command_withdraw_gold.h
 
+        includes/core/bank.h
         includes/core/clase.h
         includes/core/config.h
         includes/core/data.h
         includes/core/instances.h
-        includes/core/inventory.h
         includes/core/item.h
         includes/core/map.h
         includes/core/race.h
         includes/core/region.h
-        includes/core/snapshot.h
         includes/core/treasure.h
 
         includes/entity/entity.h
@@ -133,13 +141,17 @@ target_sources(taller_server
         includes/game_config_loader.h
         includes/game_formulas.h
         includes/gameloop.h
+        includes/items_positions.h
         includes/monitor_queues.h
+        includes/npcs_positions.h
         includes/persistence.h
         includes/data_storage.h
         includes/player.h
         includes/response_builder.h
         includes/server.h
         includes/server_protocol.h
+        includes/slot.h
+        includes/spawn_manager.h
         includes/world.h
 
         print.h
