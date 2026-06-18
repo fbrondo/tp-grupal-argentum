@@ -188,7 +188,7 @@ void TextureManager::load_bodies_textures(
     register_spritesheet("body_" + std::to_string(HUNTER_FUR), 27, 47, 6);
     // --- GHOST TEXTURE --- //
     load_texture(textures_aux, "body_" + std::to_string(GHOST),
-                 ARGENTUM_SHARE_PATH "common/assets/units/bodies/2200.png");
+                 ARGENTUM_SHARE_PATH "/common/assets/units/bodies/2200.png");
     register_spritesheet("body_" + std::to_string(GHOST), 29, 32, 3);
 }
 void TextureManager::load_npcs_textures(

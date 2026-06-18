@@ -16,6 +16,7 @@ private:
     uint32_t id;
     EntityType type;
     bool is_short_race;
+    uint8_t level;
 
     int tile_x;
     int tile_y;
@@ -37,7 +38,7 @@ private:
 public:
     RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_, int start_tile_y_,
                      uint16_t body_id_, uint16_t head_id_, uint8_t weapon_id_, uint8_t shield_id_,
-                     bool is_short_race_ = false);
+                     uint8_t level_ = 0, bool is_short_race_ = false);
 
     virtual ~RenderableEntity() = default;
 
@@ -60,4 +61,6 @@ public:
     float get_pixel_y() const { return current_pixel_y; }
     uint32_t get_id() const { return id; }
     bool is_currently_moving() const { return is_moving; }
+    EntityType get_type() const { return type; }
+    uint8_t get_level() const { return level; }
 };

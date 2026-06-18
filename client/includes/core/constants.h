@@ -19,6 +19,14 @@ static constexpr int FRAME_MS = 1000 / TARGET_FPS;
 static constexpr uint32_t MOVE_REPEAT_MS = 264;
 static constexpr uint16_t DEFAULT_ANIMATION_SPEED_MS = 150;
 
+// --- RENDERER CONSTANTS --- //
+static constexpr int TILE_SIZE = 32;
+static constexpr int MAX_TILE_TEXTURE_SIZE = 1024;
+static constexpr int CULLING_MARGIN_TILES = MAX_TILE_TEXTURE_SIZE / TILE_SIZE + 2;
+static constexpr uint32_t PLAYER_ENTITY_OFFSET = 0;
+static constexpr uint32_t NPC_ENTITY_OFFSET = 1000000;
+static constexpr uint32_t ITEM_ENTITY_OFFSET = 2000000;
+
 // --- WINDOW CONFIG --- //
 static constexpr int WINDOW_W = 960;
 static constexpr int WINDOW_H = 540;

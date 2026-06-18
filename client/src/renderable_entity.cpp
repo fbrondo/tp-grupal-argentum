@@ -3,14 +3,14 @@
 #include <cmath>
 #include <iostream>
 
-static constexpr int TILE_SIZE = 32;
-
 RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_,
                                    int start_tile_y_, uint16_t body_id_, uint16_t head_id_,
-                                   uint8_t weapon_id_, uint8_t shield_id_, bool is_short_race_):
+                                   uint8_t weapon_id_, uint8_t shield_id_, uint8_t level_,
+                                   bool is_short_race_):
         id(id_),
         type(type_),
         is_short_race(is_short_race_),
+        level(level_),
         tile_x(start_tile_x_),
         tile_y(start_tile_y_),
         current_pixel_x(static_cast<float>(start_tile_x_ * TILE_SIZE)),

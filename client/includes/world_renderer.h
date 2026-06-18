@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <SDL2pp/Font.hh>
 #include <SDL2pp/SDL2pp.hh>
 
 #include "client/includes/client_protocol.h"
@@ -12,20 +13,19 @@
 #include "client/includes/renderable_entity.h"
 #include "client/includes/texture_manager.h"
 
-static constexpr int TILE_SIZE = 32;
-
 class WorldRenderer {
 private:
     SDL2pp::Renderer& renderer;
     TextureManager& texture_manager;
     HudRenderer hud_renderer;
-    SDL2pp::Font font;
+    SDL2pp::Font level_font;
+    SDL2pp::Font name_font;
     std::string local_player_name;
+    uint32_t local_player_id;
 
     // El diccionario central que guarda TODAS las entidades visibles en el cliente
     // La clave (key) es el 'id' único que envía el servidor
     std::unordered_map<uint32_t, std::unique_ptr<RenderableEntity>> entities;
-    uint32_t local_player_id;
     std::optional<Map> current_map;
     SDL_Rect visible_map_bounds;
 

@@ -6,13 +6,8 @@
 #include <iostream>
 #include <unordered_set>
 
+#include "client/includes/core/constants.h"
 #include "common/includes/types.h"
-
-static constexpr int MAX_TILE_TEXTURE_SIZE = 1024;
-static constexpr int CULLING_MARGIN_TILES = MAX_TILE_TEXTURE_SIZE / TILE_SIZE + 2;
-static constexpr uint32_t PLAYER_ENTITY_OFFSET = 0;
-static constexpr uint32_t NPC_ENTITY_OFFSET = 1000000;
-static constexpr uint32_t ITEM_ENTITY_OFFSET = 2000000;
 
 static uint32_t player_entity_key(uint32_t server_id) { return PLAYER_ENTITY_OFFSET + server_id; }
 
@@ -38,6 +33,8 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& textur
         renderer(renderer_),
         texture_manager(texture_manager_),
         hud_renderer(renderer, texture_manager, WINDOW_W, WINDOW_H),
+        level_font("client/assets/Fonts/DejaVuSans-Bold.ttf", 13),
+        name_font("client/assets/Fonts/Augusta.ttf", 21),
         local_player_id(0),
         current_map(std::nullopt),
         visible_map_bounds{0, 0, 0, 0} {
@@ -54,7 +51,10 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& textur
 
 void WorldRenderer::set_local_player(const uint32_t id) { local_player_id = id; }
 
-void WorldRenderer::set_player_name(const std::string& name) { hud_renderer.set_player_name(name); }
+void WorldRenderer::set_player_name(const std::string& name) {
+    local_player_name = name;
+    hud_renderer.set_player_name(name);
+}
 
 void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
     hud_renderer.update_stats(stats);
@@ -198,7 +198,7 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             entities[entity_key] = std::make_unique<RenderableEntity>(
                     entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
-                    p_data.shield_id, is_short);
+                    p_data.shield_id, p_data.stats.level, is_short);
         }
     }
 
@@ -315,24 +315,58 @@ void WorldRenderer::render() {
     // 2. RENDERIZADO DE ENTIDADES (Jugadores/NPCs)
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
 
-    std::vector<RenderableEntity*> sorted_entities;
+    std::vector<std::pair<uint32_t, RenderableEntity*>> sorted_entities;
     sorted_entities.reserve(entities.size());
     for (const auto& [id, entity]: entities) {
-        sorted_entities.push_back(entity.get());
+        sorted_entities.push_back({id, entity.get()});
     }
 
     std::sort(sorted_entities.begin(), sorted_entities.end(),
-              [](const RenderableEntity* a, const RenderableEntity* b) {
-                  if (a->get_pixel_y() != b->get_pixel_y())
-                      return a->get_pixel_y() < b->get_pixel_y();
-                  return a->get_id() < b->get_id();
+              [](const std::pair<uint32_t, RenderableEntity*>& a,
+                 const std::pair<uint32_t, RenderableEntity*>& b) {
+                  if (a.second->get_pixel_y() != b.second->get_pixel_y())
+                      return a.second->get_pixel_y() < b.second->get_pixel_y();
+                  return a.first < b.first;
               });
 
-    for (auto* entity: sorted_entities) {
-        // Le pasamos la posición de la cámara y los offsets de pantalla al método render de la
-        // entidad
+    for (auto& [entity_key, entity]: sorted_entities) {
         entity->render_with_camera(renderer, texture_manager, camera.x, camera.y,
                                    camera_screen_offset_x, camera_screen_offset_y);
+
+        if (entity->get_type() != EntityType::PLAYER)
+            continue;
+
+        const int entity_screen_x = static_cast<int>(entity->get_pixel_x()) - camera.x +
+                                    camera_screen_offset_x + TILE_SIZE / 2;
+        const int entity_top_y =
+                static_cast<int>(entity->get_pixel_y()) - camera.y + camera_screen_offset_y;
+
+        int text_y = entity_top_y - 30;
+
+        const uint8_t lvl = entity->get_level();
+        const bool is_local = (entity_key == player_entity_key(local_player_id));
+
+        if (lvl > 0) {
+            std::string lvl_str = "Nv. " + std::to_string(lvl);
+            SDL2pp::Texture lvl_tex(renderer, level_font.RenderUTF8_Blended(
+                                                      lvl_str, SDL_Color{200, 200, 200, 255}));
+            const int lw = lvl_tex.GetWidth();
+            const int lh = lvl_tex.GetHeight();
+            text_y -= lh;
+            renderer.Copy(lvl_tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(entity_screen_x - lw / 2, text_y, lw, lh));
+        }
+
+        if (is_local && !local_player_name.empty()) {
+            SDL_Color name_color = {210, 170, 45, 255};
+            SDL2pp::Texture name_tex(renderer,
+                                     name_font.RenderUTF8_Blended(local_player_name, name_color));
+            const int nw = name_tex.GetWidth();
+            const int nh = name_tex.GetHeight();
+            text_y -= nh;
+            renderer.Copy(name_tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
+        }
     }
 
     // 3. RENDERIZADO DE TECHOS (Roofs)
