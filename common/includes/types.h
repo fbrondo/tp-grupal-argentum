@@ -427,6 +427,8 @@ enum class SoundEffectID : uint16_t {
 #ifndef __ID_BODY__
 #define __ID_BODY__
 
+constexpr uint16_t GHOST = 2200;  // Fantasma
+
 enum TypeHumanBody : uint16_t {
     CITIZEN_LEATHER = 1036,  // Vestimenta de cuero marrón con verde y botas de caña alta
     CITIZEN_BLUE = 1056,     // Vestimenta de tela/básica azul con pantalones oscuros

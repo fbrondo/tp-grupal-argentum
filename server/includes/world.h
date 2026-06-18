@@ -54,6 +54,7 @@ private:
     ItemsPositions item_positions;
 
     void buildTilesWorld();
+    MatrizBool buildBackgroundVisualCoverage() const;
     void identifyZones();
     void floodFill(const Position pos_start, Region region, MatrizBool& visited, Zone& zone);
 
@@ -61,6 +62,8 @@ private:
     bool isInPlayerVisionRange(const Position& pos) const;
     bool isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir);
     bool isWithinLimits(const Position& pos) const;
+    bool zoneHasFreePosition(const Zone& zone);
+    Position findAnyFreePosition();
 
     Position calculatePosition(const Id& player_id, const Direction dir);
 

@@ -137,10 +137,16 @@ Character Gameloop::createCharacter(const CharacterTraits& traits) const {
 // }
 
 void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_data) {
-    Character ch = this->createCharacter(player_data.charact_traits);
-    Inventory inv;  // = this->loadingInventory(player_data);
-    Position position(player_data.position);
-    const auto dir = static_cast<Direction>(player_data.direction);
+    Character charact = this->createCharacter(player_data.charact_traits);
+    Inventory inv = this->loadingInventory(player_data);
+    Position position(player_data.x, player_data.y);
+    if (!this->world.isFreePosition(position)) {
+        position = this->world.findNearbyFreePosition(position);
+        if (!this->world.isFreePosition(position)) {
+            position = this->world.calculatePositionRandomSafeZone();
+        }
+    }
+    Direction dir = static_cast<Direction>(player_data.direction);
     Pose pose(position, dir);
     auto new_player = std::make_unique<Player>(pose, std::move(inv), std::move(ch), player_data);
     this->players.emplace(player_id, std::move(new_player));
@@ -148,6 +154,7 @@ void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_d
 }
 
 void Gameloop::createNewPlayer(const User& user, const CharacterTraits& traits) {
+
     Character ch = this->createCharacter(traits);
     const Position position_spawn = this->world.calculatePositionRandomSafeZone();
     Pose pose_spawn(position_spawn, DOWN);
@@ -275,10 +282,15 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
 }
 
 void Gameloop::processMovePlayer(Id player_id, Direction dir) {
+    if (!this->players.contains(player_id)) {
+        return;
+    }
     if (this->world.isWalkable(player_id, dir)) {
         this->players[player_id]->breakMeditation();
         Pose new_pose = this->world.movePlayer(player_id, dir);
         this->players[player_id]->updatePose(std::move(new_pose));
+    } else {
+        std::cerr << "[MOVE] rejected player=" << player_id << " reason=not_walkable" << std::endl;
     }
 }
 
