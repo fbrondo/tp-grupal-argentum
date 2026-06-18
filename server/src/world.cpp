@@ -142,13 +142,13 @@ void World::floodFill(const Position pos_start, Region region, MatrizBool& visit
     }
 }
 
-void World::saveIdsOfTheSafeZones() {
-    for (auto& [id, zone]: this->zones) {
-        if ((zone.region == Town || zone.region == City) && this->zoneHasFreePosition(zone)) {
-            this->safe_zones.push_back(id);
-        }
-    }
-}
+// void World::saveIdsOfTheSafeZones() {
+//     for (auto& [id, zone]: this->zones) {
+//         if ((zone.region == Town || zone.region == City) && this->zoneHasFreePosition(zone)) {
+//             this->safe_zones.push_back(id);
+//         }
+//     }
+// }
 
 void World::identifyZones() {
     MatrizBool visited(this->limit_height, std::vector<bool>(this->limit_width, false));
@@ -321,30 +321,30 @@ Position World::calculatePositionRandomSafeZone() {
     return this->calculatePositionRandom(zone_id);
 }
 
-bool World::zoneHasFreePosition(const Zone& zone) {
-    for (const Position& pos: zone.tiles) {
-        if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
-            !this->isOccupied(pos)) {
-            return true;
-        }
-    }
-    return false;
-}
+// bool World::zoneHasFreePosition(const Zone& zone) {
+//     for (const Position& pos: zone.tiles) {
+//         if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
+//             !this->isOccupied(pos)) {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
 
-Position World::findAnyFreePosition() {
-    for (uint32_t y = 0; y < this->limit_height; ++y) {
-        for (uint32_t x = 0; x < this->limit_width; ++x) {
-            Position pos(x, y);
-            if (this->map_tiles[x][y].walkable && !this->isOccupied(pos)) {
-                return pos;
-            }
-        }
-    }
+// Position World::findAnyFreePosition() {
+//     for (uint32_t y = 0; y < this->limit_height; ++y) {
+//         for (uint32_t x = 0; x < this->limit_width; ++x) {
+//             Position pos(x, y);
+//             if (this->map_tiles[x][y].walkable && !this->isOccupied(pos)) {
+//                 return pos;
+//             }
+//         }
+//     }
+//
+//     throw std::runtime_error("No hay posiciones libres en el mapa para spawnear");
+// }
 
-    throw std::runtime_error("No hay posiciones libres en el mapa para spawnear");
-}
-
-Position World::findNearbyFreePosition(const Position& center) {
+Position World::findNearbyFreePosition(const Position& center) const {
     std::queue<Position> queue;
     std::unordered_set<Position, PositionHash> visited;
 
