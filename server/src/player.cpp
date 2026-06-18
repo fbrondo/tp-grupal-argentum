@@ -195,6 +195,7 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.shield_id = 0;
     data.helmet_id = 0;
     data.flags = this->isAlive() ? 0 : PLAYER_FLAG_GHOST;
+    data.resurrection_time_left_ms = 0;
     return data;
 }
 

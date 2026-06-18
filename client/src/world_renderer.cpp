@@ -201,6 +201,7 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             stats.exp_next_level = exp_next_level(p_data.stats.level);
             stats.level = p_data.stats.level;
             hud_renderer.update_stats(stats);
+            hud_renderer.update_resurrection_timer(p_data.resurrection_time_left_ms);
         }
         auto it = entities.find(entity_key);
         if (it != entities.end()) {
@@ -385,4 +386,5 @@ void WorldRenderer::render() {
         }
     }
     SDL_RenderSetClipRect(renderer.Get(), nullptr);
+    hud_renderer.render_resurrection_notice();
 }

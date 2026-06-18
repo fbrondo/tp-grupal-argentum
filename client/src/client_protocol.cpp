@@ -379,6 +379,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.stats.xp = ntohs(p.stats.xp);
                 p.ch_traits.body = ntohs(p.ch_traits.body);
                 p.ch_traits.head = ntohs(p.ch_traits.head);
+                p.resurrection_time_left_ms = ntohs(p.resurrection_time_left_ms);
                 out_event.world.players.push_back(p);
             }
 

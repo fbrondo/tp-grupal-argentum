@@ -569,6 +569,13 @@ void Gameloop::execuetRequest() {
 void Gameloop::executeBroacastSnapshot() {
     Snapshot snap;
     snap.players = ResponseBuilder::buildPlayerSnapshot(this->players);
+    for (auto& player_snapshot: snap.players) {
+        const auto pending = this->pending_resurrects.find(player_snapshot.id);
+        if (pending != this->pending_resurrects.end()) {
+            player_snapshot.resurrection_time_left_ms = static_cast<uint16_t>(std::min<uint32_t>(
+                    pending->second.time_left_ms, std::numeric_limits<uint16_t>::max()));
+        }
+    }
     snap.npcs = ResponseBuilder::buildNpcSnapshot(this->creatures);
     snap.sound_effects = std::move(this->sounds_of_current_tick);
     this->sounds_of_current_tick.clear();
