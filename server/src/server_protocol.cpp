@@ -20,7 +20,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
             (state.npcs.size() * sizeof(NpcSnapshotData)) + sizeof(uint16_t) +
             (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData)) + sizeof(uint16_t) +
             (state.gold_piles.size() * sizeof(GoldPileGroundSnapshotData)) + sizeof(uint16_t) +
-            (state.sound_effects.size() * sizeof(SoundEffectSnapshotData));
+            (state.sound_effects.size() * sizeof(SoundEffectSnapshotData)) + sizeof(uint16_t) +
+            (state.visual_effects.size() * sizeof(VisualEffectSnapshotData));
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -105,6 +106,22 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
         std::memcpy(buffer.data() + offset, &s, sizeof(SoundEffectSnapshotData));
         offset += sizeof(SoundEffectSnapshotData);
+    }
+
+    // Efectos visuales
+    const uint16_t v_count_net = htons(static_cast<uint16_t>(state.visual_effects.size()));
+    std::memcpy(buffer.data() + offset, &v_count_net, sizeof(v_count_net));
+    offset += sizeof(v_count_net);
+
+    for (auto v: state.visual_effects) {
+        uint16_t id_numerico = htons(static_cast<uint16_t>(v.effect_id));
+        v.effect_id = static_cast<VisualEffectID>(id_numerico);
+
+        v.pos_x = htonl(v.pos_x);
+        v.pos_y = htonl(v.pos_y);
+
+        std::memcpy(buffer.data() + offset, &v, sizeof(VisualEffectSnapshotData));
+        offset += sizeof(VisualEffectSnapshotData);
     }
 
     try {

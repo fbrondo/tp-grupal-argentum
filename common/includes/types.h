@@ -113,6 +113,19 @@ enum TypeNPC : uint8_t {
 // };
 // #endif
 
+#ifndef __ID_VISUAL_EFFECT__
+#define __ID_VISUAL_EFFECT__
+enum class VisualEffectID : uint16_t {
+    EXPLOSION = 1,
+    FIRE = 2,
+    DEATH = 3,
+    LIGHTNING = 4,
+    BE_HEALED = 5,
+    BE_ATTACKED = 6,
+    DMG = 7,
+};
+#endif
+
 #ifndef __ID_SOUND_EFFECT__
 #define __ID_SOUND_EFFECT__
 enum class SoundEffectID : uint16_t {

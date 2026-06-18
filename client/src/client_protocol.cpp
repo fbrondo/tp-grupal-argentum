@@ -362,6 +362,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.world.items_on_floor.clear();
             out_event.world.gold_piles.clear();
             out_event.world.sound_effects.clear();
+            out_event.world.visual_effects.clear();
 
             uint16_t p_count;
             socket.recvall(&p_count, sizeof(p_count));
@@ -440,6 +441,22 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 e.pos_x = ntohl(e.pos_x);
                 e.pos_y = ntohl(e.pos_y);
                 out_event.world.sound_effects.push_back(e);
+            }
+
+            uint16_t visual_count;
+            socket.recvall(&visual_count, 2);
+            visual_count = ntohs(visual_count);
+
+            for (uint16_t i = 0; i < visual_count; ++i) {
+                VisualEffectSnapshotData e;
+                socket.recvall(&e, sizeof(VisualEffectSnapshotData));
+                uint16_t id_numerico;
+                std::memcpy(&id_numerico, &e.effect_id, sizeof(uint16_t));
+                id_numerico = ntohs(id_numerico);
+                e.effect_id = static_cast<VisualEffectID>(id_numerico);
+                e.pos_x = ntohl(e.pos_x);
+                e.pos_y = ntohl(e.pos_y);
+                out_event.world.visual_effects.push_back(e);
             }
 
             break;

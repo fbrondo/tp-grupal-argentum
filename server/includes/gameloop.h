@@ -47,6 +47,7 @@ private:
     std::map<Id, std::unique_ptr<Creature>> creatures;
 
     std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
+    std::vector<VisualEffectSnapshotData> visual_effects_of_current_tick;
     struct ResurrectPending {
         uint32_t time_left_ms;
         Id healer_id;
