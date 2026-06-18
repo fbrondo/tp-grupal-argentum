@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "common//includes/types.h"
+#include "common/includes/core/position.h"
 #include "server/includes/core/instances.h"
 #include "server/includes/core/map.h"
 
@@ -20,6 +21,7 @@ public:
     void add(const NpcInstance& npc);
     NpcInstance removeCreature(Id id);
     bool isOcupied(const Position& position) const;
+    NpcInstance findNearestPriest(const Position& position) const;
     // get(uint32_t id, uint8_t type);
 };
 

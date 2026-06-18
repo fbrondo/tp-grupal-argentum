@@ -31,6 +31,7 @@ private:
     uint16_t head_id;
     uint8_t weapon_id;
     uint8_t shield_id;
+    bool is_ghost;
 
     AnimationState anim_state;
 
@@ -53,6 +54,7 @@ public:
 
     // Método para cuando el servidor nos notifica una actualización de posición/dirección
     void move_to(int target_tile_x, int target_tile_y, Direction dir);
+    void set_ghost(bool ghost);
 
     // Getters limpios y constantes para el ordenamiento Z (Algoritmo del Pintor)
     int get_tile_y() const { return tile_y; }

@@ -99,19 +99,19 @@
 ##DESERT:4  #CAVERNA:1
 #------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 12
+id_type = 14
 name = "Comerciante"
 id_items_store = [1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]#Puede vender/comprar: cualquier item,menos baculos y varas (hechizos)
 #PUEBLO: 7, CITY:6
 #------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 13
+id_type = 12
 name = "Sacerdote"
 id_items_store = [4, 5, 6, 7, 18, 19]#Puede vender: baculos, varas, pociones
 #PUEBLO:7, CITY:6
 #----------------------------------------------------------------------------------------------------
 [[npcs]]
-id_type = 14
+id_type = 13
 name = "Banquero"
 #PUEBLO:7, CITY:6
 #------------------------------------------------------------------------------------------------

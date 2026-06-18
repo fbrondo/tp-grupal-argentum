@@ -3,10 +3,12 @@
 #include "server/includes/commands/command_heal.h"
 #include "server/includes/commands/command_meditate.h"
 #include "server/includes/commands/command_resurrect.h"
+#include "server/includes/gameloop.h"
 
 #define MEDITATE "/meditar"
 #define HEAL "/curar"
 #define RESURRECT "/resucitar"
+#define DEBUG_KILL "/debug_morir"
 
 ChatCommand::ChatCommand(Id id, std::string msg): Command(id), text(std::move(msg)) {}
 
@@ -27,5 +29,7 @@ void ChatCommand::execute(Gameloop& game) {
     } else if (this->text == RESURRECT) {
         std::unique_ptr<Command> cmd = std::make_unique<ResurrectCommand>(this->client_id);
         cmd->execute(game);
+    } else if (this->text == DEBUG_KILL) {
+        game.processPlayerDebugKill(this->client_id);
     }
 }

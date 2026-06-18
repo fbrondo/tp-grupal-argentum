@@ -27,12 +27,12 @@
 #include "commands/command_use_item.h"
 #include "commands/command_withdraw.h"
 #include "commands/command_withdraw_gold.h"
+#include "common/includes/core/snapshot.h"
 #include "common/includes/map/map.h"
 #include "common/includes/protocol.h"
 #include "common/includes/queue.h"
 #include "common/includes/socket.h"
 #include "common/includes/types.h"
-#include "core/snapshot.h"
 
 #include "definitions.h"
 
@@ -50,12 +50,13 @@ public:
     void sendSnapshot(const Snapshot& state) const;
     void sendPlayerStats(const MsgPlayerStats& stats) const;
     void sendInventoryUpdate(const MsgInventoryUpdate& inv) const;
+    void sendEquipmentUpdate(const MsgEquipmentUpdate& equip) const;
     void sendChatMsg(const std::string& msg) const;
     void sendLoginResponse(bool success, Id player_id, const std::string& msg = "") const;
     void sendSignupResponse(bool success, const std::string& msg = "") const;
     void sendChangeMap(uint16_t map_id) const;
     void sendActionError(const std::string& error_msg) const;
-    void sendMap(const Map& map);
+    void sendMap(const Map& map, const std::vector<CitizenNpcSnapshot>& citizen);
     void sendTraderCatalog(const std::map<TypeItem, uint32_t>& catalog);
     void sendBankContent(const std::vector<MsgItemInfo>& items, uint32_t gold);
 

@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common/includes/core/position.h"
 #include "common/includes/direction.h"
 #include "common/includes/map/map.h"
 #include "common/includes/map/tile.h"
@@ -62,7 +63,7 @@ private:
     bool isInPlayerVisionRange(const Position& pos) const;
     bool isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir);
     bool isWithinLimits(const Position& pos) const;
-    Position calculatePosition(const Id& player_id, const Direction dir);
+    Position calculatePosition(const Id& player_id, const Direction dir) const;
 
     Id calculateZoneSafeRandom();
 
@@ -75,13 +76,6 @@ public:
     std::unordered_map<Id, Zone> getHostileZones();
     std::unordered_map<Id, Zone> getSafeZones();
 
-    // const std::map<Id, Pose> get_players_positions();
-    //  const std::map<Id, NpcInstance> get_creatures_positions();
-    //  const std::map<Id, NpcInstance> get_npc_positions();
-    //  const std::map<Id, Position> get_treausures_positions();
-    //  const std::map<Id, ItemInstance> get_items_on_flor();
-    //  const std::map<Id, GoldBagInstance> get_gold_on_floor();
-
     /*Consultas para validar*/
     const Map& getMap() const { return map; }
 
@@ -92,7 +86,8 @@ public:
     Position calculatePositionRandom(const Id& zone_id);
     Position calculatePositionRandomSafeZone();
     Position findNearbyFreePosition(const Position& center) const;
-    // Position findNearbyHealerPosition(const Position& center);
+    NpcInstance findNearestHealer(const Position& center) const;
+    static uint32_t distanceBetweenPositions(const Position& from, const Position& to);
 
     void addPlayerWorld(const Id& player_id, const Pose& pose);
     void addNpcWorld(const NpcInstance& npc);
@@ -100,20 +95,16 @@ public:
     void addItemWorld(const GoldBagInstance& gold);
     void addTreasuresWorld(const TreasureInstance& treasure);
 
-    /*Inicializacion*/
-    // void spawnTreasure(const Id& treasure_id, const Id& zone_id);
-    // void spawnItemOnFloor(const ItemInstance& item);
-
     // void collectGoldAt(const Position& pos, Id& player_gold);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void removeCreature(const Id& creature_id);
     Pose movePlayer(const Id& player_id, Direction dir);
+    Pose teleportPlayer(const Id& player_id, const Position& position);
 
-    Position positionEntityTheWorld(const Id& id) const;
+    // Position positionEntityTheWorld(const Id& id) const;
     Position positionPlayerInTheWorld(const Id& player_id);
 
-    // NpcInstance* getNpcById(const Id& npc_id);
-    void playerTakeItemOnTheFloor(Player& player);
+    bool playerTakeItemOnTheFloor(Player& player);
 
     // std::unique_ptr<ItemInstance> pickUpItem(const Position& pos);
     //  void dropItem(const Position& pos, std::unique_ptr<ItemInstance> item);

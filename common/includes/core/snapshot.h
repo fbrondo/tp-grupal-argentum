@@ -6,7 +6,12 @@
 
 #include "common/includes/core/character_traits.h"
 #include "common/includes/core/player_stats.h"
+#include "common/includes/core/position.h"
+#include "common/includes/protocol.h"
 #include "common/includes/types.h"
+
+constexpr uint8_t PLAYER_FLAG_GHOST = 1 << 0;
+
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
     uint32_t id;
@@ -31,15 +36,24 @@ struct PlayerSnapshotData {
     uint8_t helmet_id;
 
     uint8_t flags;  // Estados especiales (por ej: bit 0 = invisible, bit 1 = meditando, etc.)
+    uint16_t resurrection_time_left_ms;
+};
+struct CitizenNpcSnapshot {
+    char name[MAX_NAME_SIZE];
+    uint32_t id;
+    uint8_t type;
+    Position position;
+    uint8_t direction;
 };
 
 struct NpcSnapshotData {
+    char name[MAX_NAME_SIZE];
     uint32_t id;
-    uint16_t type_id;
+    uint8_t type_id;
     uint32_t pos_x;
     uint32_t pos_y;
-    uint16_t hp_actual;
-    uint8_t is_alive;  // bool como uint8_t para serialización segura
+    uint16_t current_hp;
+    uint16_t max_hp;
 };
 
 struct ItemGroundSnapshotData {

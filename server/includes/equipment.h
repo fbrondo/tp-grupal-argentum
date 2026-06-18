@@ -1,9 +1,9 @@
 #ifndef EQUIPMENT_H
 #define EQUIPMENT_H
 
-#include <tuple>
 #include <vector>
 
+#include "common/includes/protocol.h"
 #include "server/includes/core/instances.h"
 
 class Equipment {
@@ -23,16 +23,15 @@ public:
     Equipment(/* args */);
     ~Equipment();
 
-    // ItemInstance* equipItem(ItemInstance* item_inst);
+    void equipItem(ItemInstance* instance);
 
     /*Vendio, solto el item o lo quito del equipo*/
-    ItemInstance* removeItem(Id id_inst_item);
+    void removeItem(size_t slot_index);
 
     /*Necesario para calcular los puntos de defensa*/
-    std::vector<TypeItem> getEquipmentDefensive();
+    std::vector<TypeItem> getEquipmentDefensive() const;
+    std::vector<TypeItem> getEquipment() const;
 
-    /* Utilizo su arma para atacar o con un objeto magico lanzo algun hechizo, con el TypeItem el
-     * server sabra que hacer */
     TypeItem getHandItem() const;
 };
 

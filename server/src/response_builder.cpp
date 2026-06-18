@@ -21,4 +21,14 @@ std::vector<NpcSnapshotData> buildNpcSnapshot(const std::map<Id, std::unique_ptr
     }
     return result;
 }
+
+std::vector<CitizenNpcSnapshot> buildCitizenNpcSnapshot(
+        const std::map<Id, std::unique_ptr<CitizenNPC>>& citizens) {
+    std::vector<CitizenNpcSnapshot> citizen_snapshot;
+    for (auto& [id, citizen]: citizens) {
+        const auto snapshot = citizen->getSnapshotCitizenNPC(id);
+        citizen_snapshot.emplace_back(snapshot);
+    }
+    return citizen_snapshot;
+}
 }  // namespace ResponseBuilder

@@ -4,7 +4,10 @@
 #include <optional>
 #include <vector>
 
+#include "common/includes/core/position.h"
+#include "common/includes/protocol.h"
 #include "server/includes/core/item.h"
+#include "server/includes/equipment.h"
 #include "server/includes/slot.h"
 // #include "server/includes/world.h"
 class World;
@@ -28,14 +31,17 @@ public:
     Inventory& operator=(Inventory&&) = default;
 
     Inventory(const uint32_t& golden, const uint32_t& max_inventory_, const uint32_t& max_slot);
-    bool itemInInventory(TypeItem type_item) const;
+    [[nodiscard]] bool itemInInventory(TypeItem type_item) const;
     [[nodiscard]] bool isInventoryFull() const;
     [[nodiscard]] bool isInventoryEmpty() const;
     [[nodiscard]] bool slotEmpty(const size_t& index) const;
 
     void addItemToInventory(const ShopItem* item);
+    bool setItemInTheEquipment(Equipment& equipment, size_t slot_index);
 
     std::vector<SlotData> getSlotsData() const;
+    std::vector<MsgSlot> getInventory() const;
+
     std::vector<size_t> getSlotsEquipment();
 
     void dropInventory(World& world, const Position& position);

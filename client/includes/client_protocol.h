@@ -46,6 +46,7 @@ struct EventClient {
     uint32_t player_id{0};
     uint16_t map_id{0};  // Se usa para CAMBIO_MAPA
     Map map_data;        // Se usa para MAP_DATA
+    std::vector<CitizenNpcSnapshot> citizens;
     EventClient() = default;
     EventClient(EventClient&&) = default;
     EventClient& operator=(EventClient&&) = default;

@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -25,6 +26,7 @@ private:
     // El diccionario central que guarda TODAS las entidades visibles en el cliente
     // La clave (key) es el 'id' único que envía el servidor
     std::unordered_map<uint32_t, std::unique_ptr<RenderableEntity>> entities;
+    std::unordered_set<uint32_t> static_entity_keys;
     uint32_t local_player_id;
     std::optional<Map> current_map;
     SDL_Rect visible_map_bounds;
@@ -48,7 +50,7 @@ public:
     void set_local_player(uint32_t id);
     void set_player_name(const std::string& name);
     void update_hud_stats(const MsgPlayerStats& stats);
-    void load_map(Map&& new_map);
+    void load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens);
 
     void add_chat_message(const std::string& msg);
     void update_chat_input(const std::string& buffer, bool is_active);

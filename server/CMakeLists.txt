@@ -37,6 +37,7 @@ target_sources(taller_server
         src/responses/response_bank_content.cpp
         src/responses/response_change_map.cpp
         src/responses/response_chat_msg.cpp
+        src/responses/response_equipment_update.cpp
         src/responses/response_inventory_update.cpp
         src/responses/response_login.cpp
         src/responses/response_map.cpp
@@ -106,7 +107,7 @@ target_sources(taller_server
         includes/core/map.h
         includes/core/race.h
         includes/core/region.h
-        includes/core/snapshot.h
+        includes/core/resurrect.h
         includes/core/treasure.h
 
         includes/entity/entity.h
@@ -124,6 +125,7 @@ target_sources(taller_server
         includes/responses/response_bank_content.h
         includes/responses/response_change_map.h
         includes/responses/response_chat_msg.h
+        includes/responses/response_equipment_update.h
         includes/responses/response_inventory_update.h
         includes/responses/response_login.h
         includes/responses/response_map.h

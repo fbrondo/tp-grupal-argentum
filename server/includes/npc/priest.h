@@ -12,20 +12,15 @@
 #include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
 
-/*SACERDOTE - Interaccion:
-    - resucitar jugador
-    - curar jugador (puede curar tanto mana como vida)
-    - puede vender baculos, varas, pociones.
-*/
+class World;
+
 class Priest: public TraderNPC {
 private:
-    /*Baculos, varas, pociones*/
-    // std::map<TypeItem, std::unique_ptr<Item>> store;
-
 public:
-    // Priest(TypeNPC type, std::string&& name, Pose&& pos,
-    //        std::map<TypeItem, std::unique_ptr<Item>>&& store_);
-    Priest(TypeNPC type, const std::string& name, std::map<TypeItem, Item*>&& items_);
+    Priest(TypeNPC type, const std::string& name, const Pose& pose_,
+           std::map<TypeItem, Item*>&& items_);
+    void heal(Player& player) const;
+    void resurrect(Player& player, World& world, Id player_id) const;
     ~Priest() override = default;
 };
 

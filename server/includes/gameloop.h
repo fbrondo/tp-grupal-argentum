@@ -13,6 +13,7 @@
 #include "server/includes/core/bank.h"
 #include "server/includes/core/config.h"
 #include "server/includes/core/item.h"
+#include "server/includes/core/resurrect.h"
 #include "server/includes/definitions.h"
 #include "server/includes/inventory.h"
 #include "server/includes/monitor_queues.h"
@@ -20,7 +21,6 @@
 #include "server/includes/npc/creature.h"
 #include "server/includes/persistence.h"
 #include "server/includes/player.h"
-#include "server/includes/response_builder.h"
 #include "server/includes/spawn_manager.h"
 #include "server/includes/world.h"
 
@@ -46,10 +46,6 @@ private:
     std::map<Id, std::unique_ptr<Creature>> creatures;
 
     std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
-    struct ResurrectPending {
-        uint32_t time_left_ms;
-        Position healer_pos;
-    };
     std::map<Id, ResurrectPending> pending_resurrects;
 
     // void loadWorld(const WorldStateData& data);
@@ -74,6 +70,8 @@ private:
     CombatEntity* inSearchOfTheVictimAttack(const Id& id_search) const;
     std::vector<Defense*> getPlayerDefensiveEquipment(const Id& player_id);
     void execuetRequest();
+    uint32_t calculateResurrectionDelayMs(const Position& from, const Position& to) const;
+    void resurrectPlayerAtHealer(Id player_id, Id healer_id);
 
 public:
     explicit Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_queue);
@@ -89,20 +87,23 @@ public:
     void processPlayerDropItem(Id player_id, size_t index_slot);
     void processPlayerPickUp(Id player_id);
 
-
     void processPlayerWithdrawItem(Id player_id, Id npc_id, TypeItem type_item);
     void processPlayerDepositItem(Id player_id, Id npc_id, TypeItem type_item);
     void processPlayerDepositGold(Id player_id, uint32_t amount);
     void processPlayerWithdrawGold(Id player_id, uint32_t amount);
+    void processPlayerEquipItem(Id player_id, size_t slot_id);
+
+    void processPlayerDisconnet(Id player_id);
+    // void processPlayerUnequipItem(Id player_id, size_t slot_id);
+    // void processPlayerUseItem(Id player_id, Id instance_id);
 
 
     void processPlayerMeditate(Id player_id);
-    // void processPlayerHeal(Id player_id);
-    // void processPlayerResurrect(Id player_id);
+    void processPlayerHeal(Id player_id);
+    void processPlayerResurrect(Id player_id);
+    void processPlayerDebugKill(Id player_id);
     void processListItems(Id player_id, Id npc_id);
-    // void processPlayerEquipItem(Id player_id, Id instance_id);
-    // void processPlayerUnequipItem(Id player_id, Id instance_id);
-    // void processPlayerUseItem(Id player_id, Id instance_id);
+
 
     void respawnDeadNpcs();
     void updatePlayersAttributes();

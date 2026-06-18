@@ -13,16 +13,12 @@
 #include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
 
-
-/*COMERCIANTE - Interaccion:
-    - comprar
-    - vender
-*/
 class Merchant: public TraderNPC {
 public:
-    Merchant(TypeNPC type, const std::string& name, std::map<TypeItem, Item*>&& items_);
+    Merchant(TypeNPC type, const std::string& name, const Pose& pose_,
+             std::map<TypeItem, Item*>&& items_);
     ~Merchant() override = default;
-    void executePlayerSellsItem(Player& player, TypeItem type_item);
+    void executePlayerSellsItem(Player& player, TypeItem type_item) const;
 };
 
 #endif

@@ -42,7 +42,9 @@ Client::Client(const char* host, const char* port):
         ttf(),
         window("Argentum Online"),
         texture_manager(window.get_renderer(), window),
-        world_renderer(window.get_renderer(), texture_manager) {}
+        world_renderer(window.get_renderer(), texture_manager) {
+    SoundManager::init();
+}
 
 void Client::handle_events() {
     SDL_Event event;
@@ -55,6 +57,14 @@ void Client::handle_events() {
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
             is_running = false;
             return;
+        }
+        if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
+            event.key.keysym.sym == SDLK_F5) {
+            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_morir"));
+        }
+        if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
+            event.key.keysym.sym == SDLK_F6) {
+            cmd_queue.push(std::make_unique<ChatCommandClient>("/resucitar"));
         }
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
             last_move_command_ticks = 0;
@@ -171,7 +181,7 @@ void Client::update_state_from_server() {
                 break;
             }
             case TypeEventClient::MAP_DATA: {
-                world_renderer.load_map(std::move(event.map_data));
+                world_renderer.load_map(std::move(event.map_data), event.citizens);
                 break;
             }
             case TypeEventClient::OWN_STATS:
@@ -228,7 +238,7 @@ void Client::launch(const std::string& user, const std::string& pass) {
                     break;
                 }
                 if (login_event.type == TypeEventClient::MAP_DATA) {
-                    world_renderer.load_map(std::move(login_event.map_data));
+                    world_renderer.load_map(std::move(login_event.map_data), login_event.citizens);
                 }
             }
         }

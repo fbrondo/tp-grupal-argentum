@@ -326,19 +326,6 @@ void ClientProtocol::sendResurrect() {
 }
 
 
-// void ClientProtocol::sendCharacterCreate(const std::string& name, uint8_t race,
-//                                          uint8_t clase) const {
-//     MsgCharacterCreate msg{};
-//     std::strncpy(msg.name, name.c_str(), sizeof(msg.name) - 1);
-//     msg.race = race;
-//     msg.clase = clase;
-//     try {
-//         socket.sendall(&msg, sizeof(MsgCharacterCreate));
-//     } catch (const std::exception& e) {
-//         throw std::runtime_error(std::string("ERROR IN sendCharacterCreate -- ") + e.what());
-//     }
-// }
-
 bool ClientProtocol::recvResponse(uint8_t expected_opcode, std::string& out_message) const {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0)
@@ -392,6 +379,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.stats.xp = ntohs(p.stats.xp);
                 p.ch_traits.body = ntohs(p.ch_traits.body);
                 p.ch_traits.head = ntohs(p.ch_traits.head);
+                p.resurrection_time_left_ms = ntohs(p.resurrection_time_left_ms);
                 out_event.world.players.push_back(p);
             }
 
@@ -407,7 +395,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 n.type_id = ntohs(n.type_id);
                 n.pos_x = ntohl(n.pos_x);
                 n.pos_y = ntohl(n.pos_y);
-                n.hp_actual = ntohs(n.hp_actual);
+                n.current_hp = ntohs(n.current_hp);
+                n.max_hp = ntohs(n.max_hp);
                 out_event.world.npcs.push_back(n);
             }
 
@@ -550,23 +539,70 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 }
             }
             out_event.map_data = std::move(map);
+
+            uint16_t count_citizen;
+            socket.recvall(&count_citizen, sizeof(count_citizen));
+            count_citizen = ntohs(count_citizen);
+
+            for (uint16_t i = 0; i < count_citizen; ++i) {
+                CitizenNpcSnapshot n;
+                socket.recvall(&n, sizeof(CitizenNpcSnapshot));
+                n.id = ntohl(n.id);
+                n.position.x = ntohl(n.position.x);
+                n.position.y = ntohl(n.position.y);
+                n.name[sizeof(n.name) - 1] = '\0';
+                out_event.citizens.push_back(n);
+            }
             break;
         }
-        // case INVENTORY_UPDATE: {
-        //     out_event.type = TypeEventClient::INVENTORY_UPDATE;
-        //     MsgInventoryUpdate msg;
-        //     if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
-        //
-        //     msg.item_id = ntohs(msg.item_id);
-        //     msg.quantity = ntohs(msg.quantity);
-        //
-        //     out_event.inventory_update.slot_index = msg.slot_index;
-        //     out_event.inventory_update.item_id = msg.item_id;
-        //     out_event.inventory_update.quantity = msg.quantity;
-        //     out_event.inventory_update.is_equipped = msg.is_equipped;
-        //
-        //     break;
-        // }
+        case INVENTORY_UPDATE: {
+            out_event.type = TypeEventClient::INVENTORY_UPDATE;
+            // MsgInventoryUpdate msg;
+            uint16_t size_net;
+            if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
+                return false;
+
+            const uint16_t count = ntohs(size_net);
+            // out_event.inventory_update.resize(count);
+            for (uint16_t i = 0; i < count; i++) {
+                MsgSlot slot;
+                socket.recvall(&slot, sizeof(slot));
+                slot.quantity = ntohs(slot.quantity);
+                // out_event.inventory_update[i] = slot;
+            }
+
+            // if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
+
+            // msg.item_id = ntohs(msg.item_id);
+            // msg.quantity = ntohs(msg.quantity);
+
+            // out_event.inventory_update.slot_index = msg.slot_index;
+            // out_event.inventory_update.item_id = msg.item_id;
+            // out_event.inventory_update.quantity = msg.quantity;
+            // out_event.inventory_update.is_equipped = msg.is_equipped;
+
+            break;
+        }
+        case EQUIPMENT_UPDATE: {
+            // out_event.type = TypeEventClient::EQUIPMENT_UPDATE;
+            // uint16_t size_net;
+            // if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
+            //     return false;
+            //
+            // const uint16_t count = ntohs(size_net);
+            // out_event.equipment_update.resize(count);
+            // for (uint16_t i = 0; i < count; i++) {
+            //     MsgSlot slot;
+            //     socket.recvall(&slot, sizeof(slot));
+            //     out_event.equipment_update[i] = slot;
+            // }
+            // MsgEquipmentUpdate msg;
+            // if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
+            //
+            // out_event.equip_update.slot_index = msg.slot_index;
+            // out_event.equip_update.item_id = msg.type_item;
+            break;
+        }
         default:
             return true;
     }

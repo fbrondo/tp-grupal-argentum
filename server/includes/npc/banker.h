@@ -31,7 +31,7 @@ private:
 
 
 public:
-    Banker(TypeNPC type, const std::string& name, Bank& bank /*,const Pose& pos*/);
+    Banker(TypeNPC type, const std::string& name, Bank& bank, const Pose& pos);
 
     void playerWithdrawItem(Player& player, TypeItem type);
     void playerDepositItem(Player& player, const ShopItem* item);
