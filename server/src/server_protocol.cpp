@@ -41,6 +41,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         p.stats.current_hp = htons(p.stats.current_hp);
         p.stats.current_mana = htons(p.stats.current_mana);
         p.stats.max_mana = htons(p.stats.max_mana);
+        p.stats.xp = htons(p.stats.xp);
         p.ch_traits.body = htons(p.ch_traits.body);
         p.ch_traits.head = htons(p.ch_traits.head);
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));
@@ -56,8 +57,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         n.id = htonl(n.id);
         n.pos_x = htonl(n.pos_x);
         n.pos_y = htonl(n.pos_y);
-        n.type_id = htons(n.type_id);
-        n.hp_actual = htons(n.hp_actual);
+        n.current_hp = htons(n.current_hp);
+        n.max_hp = htons(n.max_hp);
         std::memcpy(buffer.data() + offset, &n, sizeof(NpcSnapshotData));
         offset += sizeof(NpcSnapshotData);
     }
@@ -245,12 +246,13 @@ void ServerProtocol::sendActionError(const std::string& error_msg) const {
     }
 }
 
-void ServerProtocol::sendMap(const Map& map) {
-    std::cout << "[SERVER] sendMap: enviando mapa " << map.width() << "x" << map.height()
-              << " tiles." << std::endl;
+void ServerProtocol::sendMap(const Map& map, const std::vector<CitizenNpcSnapshot>& citizen) {
+    // std::cout << "[SERVER] sendMap: enviando mapa " << map.width() << "x" << map.height()
+    //           << " tiles." << std::endl;
     const size_t total_tiles = map.width() * map.height() * layer_count;
-    const size_t size_total =
-            sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) + (total_tiles * 6);
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t) +
+                              (total_tiles * 6) + sizeof(uint16_t) +
+                              (citizen.size() * sizeof(CitizenNpcSnapshot));
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -287,6 +289,16 @@ void ServerProtocol::sendMap(const Map& map) {
                 offset += sizeof(region_byte);
             }
         }
+    }
+    const uint16_t count_citizen = htons(static_cast<uint16_t>(citizen.size()));
+    std::memcpy(buffer.data() + offset, &count_citizen, sizeof(count_citizen));
+    offset += sizeof(count_citizen);
+    for (auto n: citizen) {
+        n.id = htonl(n.id);
+        n.position.x = htonl(n.position.x);
+        n.position.y = htonl(n.position.y);
+        std::memcpy(buffer.data() + offset, &n, sizeof(CitizenNpcSnapshot));
+        offset += sizeof(CitizenNpcSnapshot);
     }
     try {
         socket.sendall(buffer.data(), buffer.size());

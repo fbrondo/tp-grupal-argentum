@@ -99,16 +99,16 @@ void SpawnManager::spawnCreaturesZones(Id& next_id,
 }
 
 std::unique_ptr<CitizenNPC> SpawnManager::createCitizenNpc(const std::string& name_npc,
-                                                           Bank& bank) {
+                                                           const Pose& pose, Bank& bank) {
     const auto type_npc = this->conf_citizens.at(name_npc).type;
     std::map<TypeItem, Item*> items_ = this->items_store_citizen(name_npc);
     switch (type_npc) {
         case PRIEST:
-            return std::make_unique<Priest>(type_npc, name_npc, std::move(items_));
+            return std::make_unique<Priest>(type_npc, name_npc, pose, std::move(items_));
         case MERCHANT:
-            return std::make_unique<Merchant>(type_npc, name_npc, std::move(items_));
+            return std::make_unique<Merchant>(type_npc, name_npc, pose, std::move(items_));
         default:
-            return std::make_unique<Banker>(type_npc, name_npc, bank);
+            return std::make_unique<Banker>(type_npc, name_npc, bank, pose);
     }
 }
 std::tuple<TypeNPC, Pose> SpawnManager::prepareCitizenNpcSpawn(const Id& zone_id,
@@ -129,7 +129,7 @@ void SpawnManager::spawnCitizenNpcZones(Id& next_id,
             const uint16_t numbers_npc = region->numbers_npc[j];
             for (size_t i = 0; i < numbers_npc; i++) {
                 auto [type, pose] = this->prepareCitizenNpcSpawn(zone.id, name_npc);
-                auto new_npc = this->createCitizenNpc(name_npc, bank);
+                auto new_npc = this->createCitizenNpc(name_npc, pose, bank);
                 NpcInstance instance(next_id++, zone.id, type, pose);
                 citizen_npcs.emplace(instance.id, std::move(new_npc));
                 this->world.addNpcWorld(instance);

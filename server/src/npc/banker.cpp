@@ -1,7 +1,7 @@
 #include "server/includes/npc/banker.h"
 
-Banker::Banker(TypeNPC type, const std::string& name, Bank& bank_ /*, const Pose& pose_*/):
-        CitizenNPC(type, name /*, pose_*/), bank(bank_) {}
+Banker::Banker(TypeNPC type, const std::string& name, Bank& bank_, const Pose& pose_):
+        CitizenNPC(type, name, pose_), bank(bank_) {}
 
 
 void Banker::incrementSlotSafeBox(const std::string& username, TypeItem type_item) {

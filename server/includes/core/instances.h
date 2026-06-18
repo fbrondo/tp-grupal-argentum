@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "common/includes/core/position.h"
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"

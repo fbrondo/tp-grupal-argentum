@@ -13,10 +13,8 @@ protected:
     std::map<TypeItem, Item*> store;
 
 public:
-    TraderNPC(TypeNPC type, const std::string& name, std::map<TypeItem, Item*>&& items);
+    TraderNPC(TypeNPC type, const std::string& name, const Pose& pose_,
+              std::map<TypeItem, Item*>&& items);
     ~TraderNPC() override = default;
     virtual void executeBuyItem(Player& player, TypeItem type_item_buy);
-    // const std::map<TypeItem, std::unique_ptr<Item>>& getStore() const;
-    // bool hasItem(TypeItem type) const;
-    // InteractionResult interact() override;
 };

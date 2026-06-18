@@ -106,7 +106,6 @@ target_sources(taller_server
         includes/core/map.h
         includes/core/race.h
         includes/core/region.h
-        includes/core/snapshot.h
         includes/core/treasure.h
 
         includes/entity/entity.h

@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "common//includes/types.h"
+#include "common/includes/core/position.h"
 #include "server/includes/core/instances.h"
 #include "server/includes/core/map.h"
 

@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 
+#include "common/includes/core/position.h"
 #include "server/includes/core/item.h"
 #include "server/includes/slot.h"
 // #include "server/includes/world.h"

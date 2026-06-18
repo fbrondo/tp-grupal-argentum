@@ -7,12 +7,12 @@
 #include <utility>
 #include <vector>
 
+#include "../../common/includes/core/snapshot.h"
 #include "common/includes/core/user.h"
 #include "common/includes/protocol.h"
 #include "common/includes/types.h"
 #include "entity/combat_entity.h"
 #include "server/includes/character.h"
-#include "server/includes/core//snapshot.h"
 #include "server/includes/core/config.h"
 #include "server/includes/core/data.h"
 #include "server/includes/core/instances.h"

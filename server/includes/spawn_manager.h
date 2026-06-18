@@ -33,7 +33,8 @@ private:
 
     std::unique_ptr<Creature> createCreature(const Id& id, TypeNPC type, const Pose& pose,
                                              const NpcAttributes& attrib);
-    std::unique_ptr<CitizenNPC> createCitizenNpc(const std::string& name_npc, Bank& bank);
+    std::unique_ptr<CitizenNPC> createCitizenNpc(const std::string& name_npc, const Pose& pose,
+                                                 Bank& bank);
 
     std::tuple<TypeNPC, NpcAttributes, Pose> prepareNpcSpawn(const Id& zone_id,
                                                              const HostileRegion& region,

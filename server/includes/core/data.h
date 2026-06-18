@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "common/includes/core/character_traits.h"
+#include "common/includes/core/position.h"
 #include "server/includes/core/creature_attributes.h"
 #include "server/includes/core/map.h"
 constexpr size_t MAX_DATA = 30;

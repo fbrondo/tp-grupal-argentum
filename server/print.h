@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common/includes/core/position.h"
 #include "common/includes/core/user.h"
 #include "common/includes/map/tile.h"
 #include "common/includes/types.h"

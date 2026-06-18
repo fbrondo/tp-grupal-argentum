@@ -79,14 +79,16 @@ CreatureData Creature::getCreatureData() {
 }
 
 NpcSnapshotData Creature::getNpcSnapshotData() {
-    NpcSnapshotData npc_snapshot;
-    npc_snapshot.id = this->id;
-    npc_snapshot.type_id = this->type_creature;
-    npc_snapshot.hp_actual = this->hp;
-    npc_snapshot.pos_x = this->pose.position.x;
-    npc_snapshot.pos_y = this->pose.position.y;
-    npc_snapshot.is_alive = this->isAlive();
-    return npc_snapshot;
+    NpcSnapshotData napshot;
+    // std::memset(snapshot.name, 0, MAX_NAME_SIZE);
+    // this->name.copy(snapshot.name, MAX_NAME_SIZE - 1);
+    napshot.id = this->id;
+    napshot.type_id = this->type_creature;
+    napshot.current_hp = this->hp;
+    napshot.max_hp = this->max_hp;
+    napshot.pos_x = this->pose.position.x;
+    napshot.pos_y = this->pose.position.y;
+    return napshot;
 }
 
 

@@ -326,19 +326,6 @@ void ClientProtocol::sendResurrect() {
 }
 
 
-// void ClientProtocol::sendCharacterCreate(const std::string& name, uint8_t race,
-//                                          uint8_t clase) const {
-//     MsgCharacterCreate msg{};
-//     std::strncpy(msg.name, name.c_str(), sizeof(msg.name) - 1);
-//     msg.race = race;
-//     msg.clase = clase;
-//     try {
-//         socket.sendall(&msg, sizeof(MsgCharacterCreate));
-//     } catch (const std::exception& e) {
-//         throw std::runtime_error(std::string("ERROR IN sendCharacterCreate -- ") + e.what());
-//     }
-// }
-
 bool ClientProtocol::recvResponse(uint8_t expected_opcode, std::string& out_message) const {
     uint8_t opcode;
     if (socket.recvall(&opcode, 1) <= 0)
@@ -389,6 +376,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.stats.current_hp = ntohs(p.stats.current_hp);
                 p.stats.current_mana = ntohs(p.stats.current_mana);
                 p.stats.max_mana = ntohs(p.stats.max_mana);
+                p.stats.xp = ntohs(p.stats.xp);
                 p.ch_traits.body = ntohs(p.ch_traits.body);
                 p.ch_traits.head = ntohs(p.ch_traits.head);
                 out_event.world.players.push_back(p);
@@ -406,7 +394,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 n.type_id = ntohs(n.type_id);
                 n.pos_x = ntohl(n.pos_x);
                 n.pos_y = ntohl(n.pos_y);
-                n.hp_actual = ntohs(n.hp_actual);
+                n.current_hp = ntohs(n.current_hp);
+                n.max_hp = ntohs(n.max_hp);
                 out_event.world.npcs.push_back(n);
             }
 
