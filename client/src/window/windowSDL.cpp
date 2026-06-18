@@ -2,11 +2,18 @@
 
 #include <SDL2/SDL.h>
 
+#include "client/includes/core/constants.h"
+
 WindowSDL::WindowSDL(const char* title):
         window(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                WINDOW_W,  // Ancho inicial
                WINDOW_H,  // Alto inicial
                SDL_WINDOW_RESIZABLE),
+        renderer(window, DRIVER_RENDERER, SDL_RENDERER_ACCELERATED) {}
+
+WindowSDL::WindowSDL(const char* title, int width, int height, bool fullscreen):
+        window(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
+               SDL_WINDOW_RESIZABLE | (fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)),
         renderer(window, DRIVER_RENDERER, SDL_RENDERER_ACCELERATED) {}
 
 WindowSDL::~WindowSDL() = default;

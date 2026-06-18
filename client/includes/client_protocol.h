@@ -17,12 +17,6 @@ enum class TypeEventClient {
     MAP_DATA
 };
 
-/*struct MapData {
-    uint32_t width{0};
-    uint32_t height{0};
-    std::vector<Tile> tiles;
-};*/
-
 struct EventClient {
     TypeEventClient type{TypeEventClient::UPDATE_WORLD};
     Snapshot world;

@@ -4,6 +4,8 @@
 
 #include "client/includes/commands/command_chat.h"
 #include "client/includes/commands/command_move.h"
+#include "client/includes/core/constants.h"
+#include "common/includes/toml_config.h"
 
 static bool get_pressed_movement_direction(Direction& direction) {
     SDL_PumpEvents();
@@ -32,6 +34,20 @@ static bool get_pressed_movement_direction(Direction& direction) {
     return false;
 }
 
+WindowConfig Client::loadWindowConfig() {
+    WindowConfig cfg;
+    try {
+        TomlConfig toml_cfg("client/config.toml");
+        cfg.fullscreen = toml_cfg.get_or<bool>("window.fullscreen", false);
+        cfg.width = toml_cfg.get_or<int>("window.width", WINDOW_W);
+        cfg.height = toml_cfg.get_or<int>("window.height", WINDOW_H);
+    } catch (const std::exception& e) {
+        std::cerr << "No se pudo cargar client/config.toml, usando valores por defecto: "
+                  << e.what() << std::endl;
+    }
+    return cfg;
+}
+
 Client::Client(const char* host, const char* port):
         skt(host, port),
         protocol(this->skt),
@@ -39,7 +55,10 @@ Client::Client(const char* host, const char* port):
         receiver(protocol, events_queue),
         img(IMG_INIT_JPG | IMG_INIT_PNG),
         ttf(),
-        window("Argentum Online"),
+        window([] {
+            const WindowConfig cfg = loadWindowConfig();
+            return WindowSDL("Argentum Online", cfg.width, cfg.height, cfg.fullscreen);
+        }()),
         texture_manager(window.get_renderer(), window),
         world_renderer(window.get_renderer(), texture_manager) {}
 

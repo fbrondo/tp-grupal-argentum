@@ -5,10 +5,6 @@
 
 #include "client/includes/window/window.h"
 
-#define DRIVER_RENDERER -1
-static constexpr int WINDOW_W = 960;
-static constexpr int WINDOW_H = 540;
-
 class WindowSDL: public Window {
 private:
     SDL2pp::Window window;
@@ -16,6 +12,7 @@ private:
 
 public:
     explicit WindowSDL(const char* title);
+    WindowSDL(const char* title, int width, int height, bool fullscreen);
     ~WindowSDL() override;
 
     void clear() override;
