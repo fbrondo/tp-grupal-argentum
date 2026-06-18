@@ -104,7 +104,7 @@ public:
     // Position positionEntityTheWorld(const Id& id) const;
     Position positionPlayerInTheWorld(const Id& player_id);
 
-    void playerTakeItemOnTheFloor(Player& player);
+    bool playerTakeItemOnTheFloor(Player& player);
 
     // std::unique_ptr<ItemInstance> pickUpItem(const Position& pos);
     //  void dropItem(const Position& pos, std::unique_ptr<ItemInstance> item);

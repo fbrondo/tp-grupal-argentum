@@ -1,6 +1,5 @@
 #ifndef CRIATURE_H
 #define CRIATURE_H
-
 #include <vector>
 
 #include "common/includes/core/snapshot.h"

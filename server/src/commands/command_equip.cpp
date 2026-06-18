@@ -2,8 +2,8 @@
 
 #include "server/includes/gameloop.h"
 
-EquipCommand::EquipCommand(Id id, Id instance_id): Command(id), instance_id(instance_id) {}
+EquipCommand::EquipCommand(Id id, uint32_t slot_id_): Command(id), slot_id(slot_id_) {}
 
-void EquipCommand::execute(Gameloop& /*game*/) {
-    // game.processPlayerEquipItem(this->client_id, this->instance_id);
+void EquipCommand::execute(Gameloop& game) {
+    game.processPlayerEquipItem(this->client_id, this->slot_id);
 }

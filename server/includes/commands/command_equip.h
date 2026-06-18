@@ -3,9 +3,9 @@
 
 class EquipCommand: public Command {
 private:
-    Id instance_id;
+    size_t slot_id;
 
 public:
-    EquipCommand(Id id, Id instance_id);
+    EquipCommand(Id id, uint32_t slot_id);
     void execute(Gameloop& gameloop) override;
 };
