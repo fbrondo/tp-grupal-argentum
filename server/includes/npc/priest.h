@@ -12,11 +12,15 @@
 #include "server/includes/npc/trader.h"
 #include "server/includes/player.h"
 
+class World;
+
 class Priest: public TraderNPC {
 private:
 public:
     Priest(TypeNPC type, const std::string& name, const Pose& pose_,
            std::map<TypeItem, Item*>&& items_);
+    void heal(Player& player) const;
+    void resurrect(Player& player, World& world, Id player_id) const;
     ~Priest() override = default;
 };
 

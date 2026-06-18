@@ -27,6 +27,7 @@ protected:
 public:
     CitizenNPC(TypeNPC type, const std::string& name, const Pose& pos);
     TypeNPC getTypeNPC() const;
+    const Position& getPosition() const;
     ~CitizenNPC() override = default;
     bool isAttackable() override { return false; }
     virtual CitizenNpcSnapshot getSnapshotCitizenNPC(const Id& npc_id);

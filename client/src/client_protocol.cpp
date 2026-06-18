@@ -546,7 +546,6 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             for (uint16_t i = 0; i < count_citizen; ++i) {
                 CitizenNpcSnapshot n;
                 socket.recvall(&n, sizeof(CitizenNpcSnapshot));
-                socket.recvall(n.name, sizeof(n.name));
                 n.id = ntohl(n.id);
                 n.position.x = ntohl(n.position.x);
                 n.position.y = ntohl(n.position.y);

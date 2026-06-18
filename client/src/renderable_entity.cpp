@@ -21,7 +21,8 @@ RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_til
         body_id(body_id_),
         head_id(head_id_),
         weapon_id(weapon_id_),
-        shield_id(shield_id_) {
+        shield_id(shield_id_),
+        is_ghost(false) {
 
     // Inicializamos el estado de animación local
     anim_state.current_anim_id = "";
@@ -35,8 +36,20 @@ void RenderableEntity::move_to(int target_tile_x, int target_tile_y, Direction d
 
     current_dir = dir;
     if (tile_x != target_tile_x || tile_y != target_tile_y) {
+        const int distance_tiles =
+                std::abs(tile_x - target_tile_x) + std::abs(tile_y - target_tile_y);
         tile_x = target_tile_x;
         tile_y = target_tile_y;
+        if (distance_tiles > 1) {
+            current_pixel_x = static_cast<float>(tile_x * TILE_SIZE);
+            current_pixel_y = static_cast<float>(tile_y * TILE_SIZE);
+            is_moving = false;
+            std::string prefix = (type == EntityType::NPC) ? "npc_" : "body_";
+            anim_state.current_anim_id =
+                    prefix + std::to_string(body_id) + "_idle_" + std::to_string(dir);
+            anim_state.start_time = SDL_GetTicks();
+            return;
+        }
         is_moving = true;
 
         std::string prefix = (type == EntityType::NPC) ? "npc_" : "body_";
@@ -100,6 +113,8 @@ void RenderableEntity::update(float dt) {
     }
 }
 
+void RenderableEntity::set_ghost(bool ghost) { this->is_ghost = ghost; }
+
 void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                                           TextureManager& texture_manager, int cam_x, int cam_y,
                                           int offset_x, int offset_y) {
@@ -129,9 +144,24 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         std::string anim_id =
                 prefix + std::to_string(body_id) + action + std::to_string(current_dir);
 
-        const AnimationClip& body_clip = texture_manager.get_animation(anim_id);
-        uint32_t frame_index = texture_manager.get_current_animation_frame(anim_state, body_clip);
-        SDL_Rect src_rect = body_clip.frames[frame_index];
+        const AnimationClip* body_clip = nullptr;
+        try {
+            body_clip = &texture_manager.get_animation(anim_id);
+        } catch (const std::exception&) {
+            if (type != EntityType::NPC) {
+                throw;
+            }
+            SDL2pp::Texture& npc_texture =
+                    texture_manager.get_texture(prefix + std::to_string(body_id));
+            SDL_Rect dst_rect = {static_cast<int>(current_pixel_x) - cam_x + offset_x,
+                                 static_cast<int>(current_pixel_y) + TILE_SIZE - cam_y + offset_y -
+                                         npc_texture.GetHeight(),
+                                 npc_texture.GetWidth(), npc_texture.GetHeight()};
+            renderer.Copy(npc_texture, SDL2pp::NullOpt, SDL2pp::Rect(dst_rect));
+            return;
+        }
+        uint32_t frame_index = texture_manager.get_current_animation_frame(anim_state, *body_clip);
+        SDL_Rect src_rect = body_clip->frames[frame_index];
 
         SDL_Rect dst_rect = {
                 static_cast<int>(current_pixel_x) - cam_x + offset_x,
@@ -140,7 +170,10 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         // A) Dibujar Cuerpo o Criatura
         SDL2pp::Texture& body_texture =
                 texture_manager.get_texture(prefix + std::to_string(body_id));
+        const uint8_t alpha = is_ghost ? 120 : 255;
+        body_texture.SetAlphaMod(alpha);
         renderer.Copy(body_texture, SDL2pp::Rect(src_rect), SDL2pp::Rect(dst_rect));
+        body_texture.SetAlphaMod(255);
 
         // Si es NPC, termina acá (no usan armas ni cascos sueltos)
         if (type == EntityType::NPC)
@@ -156,8 +189,10 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
             const AnimationClip& wpn_clip = texture_manager.get_animation(wpn_anim);
             SDL2pp::Texture& wpn_tex =
                     texture_manager.get_texture(race_prefix + std::to_string(weapon_id));
+            wpn_tex.SetAlphaMod(alpha);
             renderer.Copy(wpn_tex, SDL2pp::Rect(wpn_clip.frames[frame_index]),
                           SDL2pp::Rect(dst_rect));
+            wpn_tex.SetAlphaMod(255);
         }
 
         // Cabeza
@@ -174,7 +209,9 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
             } else {
                 dst_head.y -= 20;  // Offset hacia arriba para el cuello
             }
+            head_texture.SetAlphaMod(alpha);
             renderer.Copy(head_texture, SDL2pp::Rect(head_src), SDL2pp::Rect(dst_head));
+            head_texture.SetAlphaMod(255);
         }
 
         // Escudo (Suele ir en la capa más alta para tapar parte del cuerpo)
@@ -184,8 +221,10 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
             const AnimationClip& shd_clip = texture_manager.get_animation(shd_anim);
             SDL2pp::Texture& shd_tex =
                     texture_manager.get_texture(race_prefix + std::to_string(shield_id));
+            shd_tex.SetAlphaMod(alpha);
             renderer.Copy(shd_tex, SDL2pp::Rect(shd_clip.frames[frame_index]),
                           SDL2pp::Rect(dst_rect));
+            shd_tex.SetAlphaMod(255);
         }
 
     } catch (const std::exception& e) {

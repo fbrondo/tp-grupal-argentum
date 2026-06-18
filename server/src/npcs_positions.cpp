@@ -1,5 +1,17 @@
 #include "server/includes/npcs_positions.h"
 
+#include <limits>
+#include <ranges>
+#include <stdexcept>
+
+namespace {
+uint32_t distanceBetweenPositions(const Position& a, const Position& b) {
+    const uint32_t dx = a.x > b.x ? a.x - b.x : b.x - a.x;
+    const uint32_t dy = a.y > b.y ? a.y - b.y : b.y - a.y;
+    return dx + dy;
+}
+}  // namespace
+
 void NpcPositions::add(const NpcInstance& npc) {
     switch (npc.type) {
         case MERCHANT:
@@ -28,6 +40,23 @@ NpcInstance NpcPositions::removeCreature(
 
 bool NpcPositions::isOcupied(const Position& position) const {
     return this->npc_tiles.contains(position);
+}
+
+NpcInstance NpcPositions::findNearestPriest(const Position& position) const {
+    if (this->priests.empty()) {
+        throw std::runtime_error("No hay sanadores configurados en el mapa");
+    }
+
+    NpcInstance closest_priest;
+    uint32_t min_distance = std::numeric_limits<uint32_t>::max();
+    for (const auto& priest: this->priests | std::views::values) {
+        const uint32_t current_distance = distanceBetweenPositions(position, priest.pose.position);
+        if (current_distance < min_distance) {
+            min_distance = current_distance;
+            closest_priest = priest;
+        }
+    }
+    return closest_priest;
 }
 
 // void removeByIdOnly(uint32_t id) {

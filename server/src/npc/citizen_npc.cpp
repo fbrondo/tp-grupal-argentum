@@ -8,6 +8,8 @@ CitizenNPC::CitizenNPC(TypeNPC type, const std::string& name, const Pose& pose):
 
 TypeNPC CitizenNPC::getTypeNPC() const { return this->type_npc; }
 
+const Position& CitizenNPC::getPosition() const { return this->pose.position; }
+
 CitizenNpcSnapshot CitizenNPC::getSnapshotCitizenNPC(const Id& npc_id) {
     CitizenNpcSnapshot snapshot;
     std::memset(snapshot.name, 0, MAX_NAME_SIZE);

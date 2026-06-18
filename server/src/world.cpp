@@ -392,31 +392,16 @@ Position World::findNearbyFreePosition(const Position& center) const {
     }
     return center;
 }
-//
-// Position World::findNearbyHealerPosition(const Position& center) {
-//     Position closest_position;
-//     uint32_t min_distance = std::numeric_limits<uint32_t>::max();
-//
-//     // Mantenemos tu bucle con pipes intacto
-//     for (const auto& npc: this->npc_positions | std::views::values) {
-//         if (npc.type == PRIEST) {
-//             uint32_t dist_x =
-//                     std::abs(static_cast<int>(center.x) -
-//                     static_cast<int>(npc.pose.position.x));
-//             uint32_t dist_y =
-//                     std::abs(static_cast<int>(center.y) -
-//                     static_cast<int>(npc.pose.position.y));
-//             uint32_t current_distance = dist_x + dist_y;
-//
-//             if (current_distance < min_distance) {
-//                 min_distance = current_distance;
-//                 closest_position = npc.pose.position;
-//             }
-//         }
-//     }
-//
-//     return closest_position;
-// }
+
+NpcInstance World::findNearestHealer(const Position& center) const {
+    return this->npc_positions.findNearestPriest(center);
+}
+
+uint32_t World::distanceBetweenPositions(const Position& from, const Position& to) {
+    const uint32_t dx = from.x > to.x ? from.x - to.x : to.x - from.x;
+    const uint32_t dy = from.y > to.y ? from.y - to.y : to.y - from.y;
+    return dx + dy;
+}
 
 // const std::map<Id, Pose> World::get_players_positions(){
 //     return this->players_positions;
@@ -509,6 +494,16 @@ Pose World::movePlayer(const Id& player_id, Direction dir) {
     this->occupied_tiles[new_position] = true;*/
     Print::printPositionMovePlayer(player_id, pose_move, previous_position);
     return pose_move;
+}
+
+Pose World::teleportPlayer(const Id& player_id, const Position& position) {
+    Pose previous_pose = this->players_positions.at(player_id);
+    this->player_tiles.erase(previous_pose.position);
+    Position destination = this->findNearbyFreePosition(position);
+    this->player_tiles.emplace(destination, true);
+    Pose new_pose(destination, previous_pose.direct);
+    this->players_positions[player_id] = new_pose;
+    return new_pose;
 }
 
 Position World::positionPlayerInTheWorld(const Id& player_id) {

@@ -10,6 +10,7 @@
 #include "common/includes/protocol.h"
 #include "common/includes/types.h"
 
+constexpr uint8_t PLAYER_FLAG_GHOST = 1 << 0;
 
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
