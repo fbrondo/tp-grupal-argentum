@@ -41,7 +41,9 @@ Client::Client(const char* host, const char* port):
         ttf(),
         window("Argentum Online"),
         texture_manager(window.get_renderer(), window),
-        world_renderer(window.get_renderer(), texture_manager) {}
+        world_renderer(window.get_renderer(), texture_manager) {
+    SoundManager::init();
+}
 
 void Client::handle_events() {
     SDL_Event event;

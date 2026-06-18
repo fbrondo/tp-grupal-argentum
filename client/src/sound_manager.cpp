@@ -37,13 +37,15 @@ void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t 
 
     if (it == sound_bank.end()) {
         // No esta en RAM asi que lo cargamos por primera vez
-        std::string filepath =
-                "assets/audio/" + std::to_string(static_cast<uint16_t>(effect_id)) + ".wav";
+        std::string filepath = ARGENTUM_SHARE_PATH "/client/assets/Sounds/" +
+                               std::to_string(static_cast<uint16_t>(effect_id)) + ".wav";
 
         chunk_a_reproducir = Mix_LoadWAV(filepath.c_str());
 
         if (!chunk_a_reproducir) {
             // Si el archivo no existe en el disco no hacemos nada
+            std::cerr << "No se pudo cargar el sonido [" << filepath << "]: " << Mix_GetError()
+                      << std::endl;
             return;
         }
 

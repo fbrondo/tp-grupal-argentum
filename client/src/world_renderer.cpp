@@ -6,6 +6,7 @@
 #include <iostream>
 #include <unordered_set>
 
+#include "client/includes/sound_manager.h"
 #include "common/includes/types.h"
 
 static constexpr int MAX_TILE_TEXTURE_SIZE = 1024;
@@ -259,6 +260,18 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             it = entities.erase(it);
         } else {
             ++it;
+        }
+    }
+
+    const auto local_player = entities.find(player_entity_key(local_player_id));
+    if (local_player != entities.end()) {
+        const uint32_t player_x =
+                static_cast<uint32_t>(local_player->second->get_pixel_x() / TILE_SIZE);
+        const uint32_t player_y =
+                static_cast<uint32_t>(local_player->second->get_pixel_y() / TILE_SIZE);
+        for (const auto& sound_effect: snapshot.sound_effects) {
+            SoundManager::play_effect(sound_effect.effect_id, sound_effect.pos_x,
+                                      sound_effect.pos_y, player_x, player_y);
         }
     }
 }
