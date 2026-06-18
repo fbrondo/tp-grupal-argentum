@@ -1,6 +1,8 @@
 #include "server/includes/gameloop.h"
 
+#include <algorithm>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <ranges>
 #include <string>
@@ -30,6 +32,11 @@
 #define INVALID_REGISTER "Username already taken."
 #define INVALID_LOGIN "El usuario o la contraseña son incorrectos."
 #define INVALID_PASSWORD "Wrong password."
+
+namespace {
+constexpr uint32_t RESURRECTION_MS_PER_TILE = 250;
+constexpr uint32_t MIN_RESURRECTION_DELAY_MS = 1000;
+}  // namespace
 
 using RespSnapshot = std::shared_ptr<ResponseSnapshot>;
 
@@ -248,6 +255,8 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
     if (!victim) /*Es un npc normal*/
         return;
+    if (!victim->isAlive())
+        return;
     if (!attacker->isValidOpponent(dynamic_cast<Player*>(victim))) {
         return;
     }
@@ -284,6 +293,9 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
 
 void Gameloop::processMovePlayer(Id player_id, Direction dir) {
     if (!this->players.contains(player_id)) {
+        return;
+    }
+    if (this->pending_resurrects.contains(player_id)) {
         return;
     }
     if (this->world.isWalkable(player_id, dir)) {
@@ -434,21 +446,49 @@ void Gameloop::processPlayerMeditate(Id player_id) {
     player->toggleMeditation();
 }
 
-// void Gameloop::processPlayerHeal(Id player_id) {
-//     Player* player = this->players.at(player_id).get();
-//     if (!player->isAlive()) {
-//         return;
-//     }
-//     player->restoreAllHp();
-//     player->restoreAllMana();
-//
-//     SoundEffectSnapshotData sound_effect;
-//     sound_effect.effect_id = SoundEffectID::CURAR;
-//     Position position = player->getPosition();
-//     sound_effect.pos_x = position.x;
-//     sound_effect.pos_y = position.y;
-//     this->sounds_of_current_tick.push_back(std::move(sound_effect));
-// }
+uint32_t Gameloop::calculateResurrectionDelayMs(const Position& from, const Position& to) const {
+    const uint32_t distance = World::distanceBetweenPositions(from, to);
+    return std::max(MIN_RESURRECTION_DELAY_MS, distance * RESURRECTION_MS_PER_TILE);
+}
+
+void Gameloop::resurrectPlayerAtHealer(Id player_id, Id healer_id) {
+    Player* player = this->players.at(player_id).get();
+    auto* healer = dynamic_cast<Priest*>(this->citizen_npcs.at(healer_id).get());
+    if (healer == nullptr) {
+        return;
+    }
+    healer->resurrect(*player, this->world, player_id);
+
+    SoundEffectSnapshotData sound_effect;
+    sound_effect.effect_id = SoundEffectID::CURAR;
+    Position position = player->getPosition();
+    sound_effect.pos_x = position.x;
+    sound_effect.pos_y = position.y;
+    this->sounds_of_current_tick.push_back(std::move(sound_effect));
+}
+
+void Gameloop::processPlayerHeal(Id player_id) {
+    if (!this->players.contains(player_id)) {
+        return;
+    }
+    Player* player = this->players.at(player_id).get();
+    if (!player->isAlive()) {
+        return;
+    }
+    NpcInstance healer = this->world.findNearestHealer(player->getPosition());
+    auto* priest = dynamic_cast<Priest*>(this->citizen_npcs.at(healer.id).get());
+    if (priest == nullptr) {
+        return;
+    }
+    priest->heal(*player);
+
+    SoundEffectSnapshotData sound_effect;
+    sound_effect.effect_id = SoundEffectID::CURAR;
+    Position position = player->getPosition();
+    sound_effect.pos_x = position.x;
+    sound_effect.pos_y = position.y;
+    this->sounds_of_current_tick.push_back(std::move(sound_effect));
+}
 //
 // void Gameloop::processPlayerEquipItem(Id player_id, Id instance_id) {
 //     Player* player = this->players.at(player_id).get();
@@ -485,19 +525,35 @@ void Gameloop::processPlayerMeditate(Id player_id) {
 //     this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 // }
 //
-// void Gameloop::processPlayerResurrect(Id player_id) {
-//     Player* player = this->players.at(player_id).get();
-//     if (!player || player->isAlive())
-//         return;
-//
-//     if (this->pending_resurrects.count(player_id) > 0)
-//         return;
-//
-//     Position healer_pos = this->world.findNearbyHealerPosition(player->getPose().position);
-//
-//     this->pending_resurrects[player_id] = {5000, healer_pos};
-// }
+void Gameloop::processPlayerResurrect(Id player_id) {
+    if (!this->players.contains(player_id)) {
+        return;
+    }
+    Player* player = this->players.at(player_id).get();
+    if (player->isAlive() || player->isResurrecting()) {
+        return;
+    }
+    if (this->pending_resurrects.contains(player_id)) {
+        return;
+    }
 
+    NpcInstance healer = this->world.findNearestHealer(player->getPosition());
+    uint32_t delay_ms =
+            this->calculateResurrectionDelayMs(player->getPosition(), healer.pose.position);
+    player->startResurrection();
+    this->pending_resurrects[player_id] = {delay_ms, healer.id};
+}
+
+void Gameloop::processPlayerDebugKill(Id player_id) {
+    if (!this->players.contains(player_id)) {
+        return;
+    }
+    Player* player = this->players.at(player_id).get();
+    if (!player->isAlive()) {
+        return;
+    }
+    player->receiveDamage(std::numeric_limits<uint16_t>::max(), this->world);
+}
 
 void Gameloop::execuetRequest() {
     std::unique_ptr<Command> cmd;
@@ -513,7 +569,16 @@ void Gameloop::execuetRequest() {
 void Gameloop::executeBroacastSnapshot() {
     Snapshot snap;
     snap.players = ResponseBuilder::buildPlayerSnapshot(this->players);
+    for (auto& player_snapshot: snap.players) {
+        const auto pending = this->pending_resurrects.find(player_snapshot.id);
+        if (pending != this->pending_resurrects.end()) {
+            player_snapshot.resurrection_time_left_ms = static_cast<uint16_t>(std::min<uint32_t>(
+                    pending->second.time_left_ms, std::numeric_limits<uint16_t>::max()));
+        }
+    }
     snap.npcs = ResponseBuilder::buildNpcSnapshot(this->creatures);
+    snap.sound_effects = std::move(this->sounds_of_current_tick);
+    this->sounds_of_current_tick.clear();
     RespSnapshot resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
 }
@@ -569,9 +634,7 @@ void Gameloop::run() {
                     Player* player = this->players.at(p_id).get();
 
                     if (player) {
-                        player->teleportTo(it->second.healer_pos);
-                        player->restoreAllHp();
-                        player->restoreAllMana();
+                        this->resurrectPlayerAtHealer(p_id, it->second.healer_id);
                     }
                     it = this->pending_resurrects.erase(it);
                 } else {

@@ -21,6 +21,7 @@ public:
     void add(const NpcInstance& npc);
     NpcInstance removeCreature(Id id);
     bool isOcupied(const Position& position) const;
+    NpcInstance findNearestPriest(const Position& position) const;
     // get(uint32_t id, uint8_t type);
 };
 

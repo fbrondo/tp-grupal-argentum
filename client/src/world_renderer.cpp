@@ -6,6 +6,7 @@
 #include <iostream>
 #include <unordered_set>
 
+#include "client/includes/sound_manager.h"
 #include "common/includes/types.h"
 
 static constexpr int MAX_TILE_TEXTURE_SIZE = 1024;
@@ -60,12 +61,22 @@ void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
     hud_renderer.update_stats(stats);
 }
 
-void WorldRenderer::load_map(Map&& new_map) {
+void WorldRenderer::load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens) {
     entities.clear();
+    static_entity_keys.clear();
     current_map = std::move(new_map);
     camera.x = 0;
     camera.y = 0;
     update_visible_map_bounds();
+    for (const auto& citizen: citizens) {
+        const uint32_t entity_key = npc_entity_key(citizen.id);
+        entities[entity_key] =
+                std::make_unique<RenderableEntity>(entity_key, EntityType::NPC, citizen.position.x,
+                                                   citizen.position.y, citizen.type, 0, 0, 0);
+        entities[entity_key]->move_to(citizen.position.x, citizen.position.y,
+                                      static_cast<Direction>(citizen.direction));
+        static_entity_keys.insert(entity_key);
+    }
     /*std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión:
        "
               << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;*/
@@ -191,17 +202,20 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             stats.exp_next_level = exp_next_level(p_data.stats.level);
             stats.level = p_data.stats.level;
             hud_renderer.update_stats(stats);
+            hud_renderer.update_resurrection_timer(p_data.resurrection_time_left_ms);
         }
         auto it = entities.find(entity_key);
         if (it != entities.end()) {
             it->second->move_to(p_data.pos_x, p_data.pos_y,
                                 static_cast<Direction>(p_data.direction));
+            it->second->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         } else {
             bool is_short = (p_data.ch_traits.race == GNOME || p_data.ch_traits.race == DWARF);
             entities[entity_key] = std::make_unique<RenderableEntity>(
                     entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
                     p_data.shield_id, is_short);
+            entities[entity_key]->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         }
     }
 
@@ -242,10 +256,22 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         const bool sigue_viva = (std::find(ids_en_snapshot.begin(), ids_en_snapshot.end(),
                                            entity_id) != ids_en_snapshot.end());
 
-        if (!sigue_viva) {
+        if (!sigue_viva && !static_entity_keys.contains(entity_id)) {
             it = entities.erase(it);
         } else {
             ++it;
+        }
+    }
+
+    const auto local_player = entities.find(player_entity_key(local_player_id));
+    if (local_player != entities.end()) {
+        const uint32_t player_x =
+                static_cast<uint32_t>(local_player->second->get_pixel_x() / TILE_SIZE);
+        const uint32_t player_y =
+                static_cast<uint32_t>(local_player->second->get_pixel_y() / TILE_SIZE);
+        for (const auto& sound_effect: snapshot.sound_effects) {
+            SoundManager::play_effect(sound_effect.effect_id, sound_effect.pos_x,
+                                      sound_effect.pos_y, player_x, player_y);
         }
     }
 }
@@ -373,4 +399,5 @@ void WorldRenderer::render() {
         }
     }
     SDL_RenderSetClipRect(renderer.Get(), nullptr);
+    hud_renderer.render_resurrection_notice();
 }

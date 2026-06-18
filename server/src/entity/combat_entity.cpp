@@ -21,6 +21,9 @@ uint8_t CombatEntity::getLevel() const { return this->level; }
 
 void CombatEntity::updatePose(Pose&& new_pose) { this->pose = std::move(new_pose); }
 void CombatEntity::receiveDamage(uint16_t damage, World& world) {
+    if (!this->isAlive()) {
+        return;
+    }
     if (damage >= this->hp) {
         this->hp = 0;
         this->onDeath(world);

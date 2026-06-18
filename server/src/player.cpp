@@ -191,6 +191,11 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.ch_traits.head = this->ch.getTypeHead();
     data.ch_traits.race = this->ch.getTypeRace();
     data.ch_traits.clase = this->ch.getTypeClase();
+    data.weapon_id = 0;
+    data.shield_id = 0;
+    data.helmet_id = 0;
+    data.flags = this->isAlive() ? 0 : PLAYER_FLAG_GHOST;
+    data.resurrection_time_left_ms = 0;
     return data;
 }
 
@@ -280,11 +285,16 @@ const Item* Player::removeItemInventory(TypeItem type_item) {
 
 bool Player::isMeditating() const { return this->is_meditating; }
 
+bool Player::isResurrecting() const { return this->is_resurrecting; }
+
 void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
 
 void Player::breakMeditation() { this->is_meditating = false; }
 
 void Player::updateHp(float delta) {
+    if (!this->isAlive()) {
+        return;
+    }
     if (this->hp >= this->hpMax()) {
         return;
     }
@@ -313,6 +323,13 @@ void Player::meditating(float delta) {
 void Player::restoreAllHp() { this->hp = this->hpMax(); }
 
 void Player::restoreAllMana() { this->mana = this->manaMax(); }
+
+void Player::startResurrection() {
+    this->is_resurrecting = true;
+    this->breakMeditation();
+}
+
+void Player::finishResurrection() { this->is_resurrecting = false; }
 
 void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
     this->exp += GameFormulas::calculationPointsExpAttack(damage, victim->getLevel(), this->level);

@@ -44,6 +44,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         p.stats.xp = htons(p.stats.xp);
         p.ch_traits.body = htons(p.ch_traits.body);
         p.ch_traits.head = htons(p.ch_traits.head);
+        p.resurrection_time_left_ms = htons(p.resurrection_time_left_ms);
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));
         offset += sizeof(PlayerSnapshotData);
     }

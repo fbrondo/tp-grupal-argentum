@@ -76,6 +76,7 @@ public:
     bool isNewbie() const;
     bool isValidOpponent(Player* other) const;
     bool isMeditating() const;
+    bool isResurrecting() const;
     bool hasEnoughMana(uint16_t mana_cost) const;
 
     void addItemToInventory(const ItemInstance& instance);
@@ -91,6 +92,8 @@ public:
     // void restoreMana(uint16_t amount);
     void restoreAllHp();
     void restoreHp(uint16_t amount);
+    void startResurrection();
+    void finishResurrection();
     void earnExperiencePoints(CombatEntity* victim, uint16_t damage);
 
     void buyItem(const ShopItem* item);
