@@ -2,9 +2,11 @@
 
 #include "server/includes/gameloop.h"
 
-DepositItemCommand::DepositItemCommand(Id id, Id instance_id):
-        Command(id), instance_id(instance_id) {}
+DepositItemCommand::DepositItemCommand(Id id, Id npc_id, uint8_t type_item):
+        Command(id), npc_id(npc_id) {
+    this->type_item = static_cast<TypeItem>(type_item);
+}
 
 void DepositItemCommand::execute(Gameloop& gameloop) {
-    gameloop.processPlayerDepositItem(this->client_id, this->instance_id);
+    gameloop.processPlayerDepositItem(this->client_id, this->npc_id, this->type_item);
 }
