@@ -538,6 +538,21 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 }
             }
             out_event.map_data = std::move(map);
+
+            uint16_t count_citizen;
+            socket.recvall(&count_citizen, sizeof(count_citizen));
+            count_citizen = ntohs(count_citizen);
+
+            for (uint16_t i = 0; i < count_citizen; ++i) {
+                CitizenNpcSnapshot n;
+                socket.recvall(&n, sizeof(CitizenNpcSnapshot));
+                socket.recvall(n.name, sizeof(n.name));
+                n.id = ntohl(n.id);
+                n.position.x = ntohl(n.position.x);
+                n.position.y = ntohl(n.position.y);
+                n.name[sizeof(n.name) - 1] = '\0';
+                out_event.citizens.push_back(n);
+            }
             break;
         }
         // case INVENTORY_UPDATE: {
