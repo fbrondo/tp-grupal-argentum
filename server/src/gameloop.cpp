@@ -124,31 +124,30 @@ Character Gameloop::createCharacter(const CharacterTraits& traits) const {
     return Character(race, clase, traits.head, traits.body);
 }
 
-// Inventory Gameloop::loadingInventory(const PlayerData& player) {
-//     Inventory result;
-//     result.golden = player.golden;
-//     for (const auto& item_data: player.inventory) {
-//         auto type = static_cast<TypeItem>(item_data.type_item);
-//         auto item = dynamic_cast<ShopItem*>(this->conf.items.at(type).get());
-//         auto item_instance = std::make_unique<ItemInstance>(item);
-//        // result.inventory.emplace_back(std::move(item_instance));
-//     }
-//     return result;
-// }
+Inventory Gameloop::loadingInventory(const PlayerData& player) {
+    Inventory result(player.golden, this->conf.player_init.max_inventory,
+                     this->conf.player_init.max_inventory);
+    for (const auto& item_data: player.inventory) {
+        const auto type = static_cast<TypeItem>(item_data.type_item);
+        const auto* item = dynamic_cast<ShopItem*>(this->conf.items.at(type).get());
+        if (item == nullptr) {
+            continue;
+        }
+        for (uint32_t i = 0; i < item_data.quantity; ++i) {
+            result.addItemToInventory(item);
+        }
+    }
+    return result;
+}
 
 void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_data) {
     Character charact = this->createCharacter(player_data.charact_traits);
     Inventory inv = this->loadingInventory(player_data);
-    Position position(player_data.x, player_data.y);
-    if (!this->world.isFreePosition(position)) {
-        position = this->world.findNearbyFreePosition(position);
-        if (!this->world.isFreePosition(position)) {
-            position = this->world.calculatePositionRandomSafeZone();
-        }
-    }
+    Position position = this->world.findNearbyFreePosition(player_data.position);
     Direction dir = static_cast<Direction>(player_data.direction);
     Pose pose(position, dir);
-    auto new_player = std::make_unique<Player>(pose, std::move(inv), std::move(ch), player_data);
+    auto new_player =
+            std::make_unique<Player>(pose, std::move(inv), std::move(charact), player_data);
     this->players.emplace(player_id, std::move(new_player));
     this->world.addPlayerWorld(player_id, pose);
 }

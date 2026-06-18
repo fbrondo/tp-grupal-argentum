@@ -62,9 +62,6 @@ private:
     bool isInPlayerVisionRange(const Position& pos) const;
     bool isThisPlayerWithinTheLimits(const Id& player_id, const Direction dir);
     bool isWithinLimits(const Position& pos) const;
-    bool zoneHasFreePosition(const Zone& zone);
-    Position findAnyFreePosition();
-
     Position calculatePosition(const Id& player_id, const Direction dir);
 
     Id calculateZoneSafeRandom();

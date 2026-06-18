@@ -11,12 +11,12 @@
 
 Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerData& data):
         CombatEntity(pos, data), ch(std::move(ch_)), inv(std::move(inv_)) {
-    this->hp = data.hp;
+    this->statics = this->ch.getStatistics();
+    this->level = data.level == 0 ? 1 : data.level;
     this->max_hp = this->hpMax();
-    this->mana = data.mana;
+    this->hp = data.hp == 0 ? this->max_hp : std::min(data.hp, this->max_hp);
+    this->mana = data.mana == 0 ? this->manaMax() : std::min(data.mana, this->manaMax());
     this->exp = data.exp;
-    this->inv = std::move(inv_);
-    this->level = data.level;
     this->user.username = data.username;
     this->user.password = data.password;
     Print::imprimirCajaContenedora(data);
@@ -148,8 +148,8 @@ PlayerData Player::getPlayerData() {
     /*PERSONAJE*/
     data.charact_traits.race = static_cast<uint8_t>(this->ch.getTypeRace());
     data.charact_traits.clase = static_cast<uint8_t>(this->ch.getTypeClase());
-    data.charact_traits.head = static_cast<uint8_t>(this->ch.getTypeHead());
-    data.charact_traits.body = static_cast<uint8_t>(this->ch.getTypeBody());
+    data.charact_traits.head = this->ch.getTypeHead();
+    data.charact_traits.body = this->ch.getTypeBody();
     /*Atributos actuales*/
     data.exp = this->exp;
     data.level = this->level;
@@ -185,6 +185,8 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.stats.max_hp = this->hpMax();
     data.stats.current_mana = this->mana;
     data.stats.max_mana = this->manaMax();
+    data.stats.level = this->level;
+    data.stats.xp = this->exp;
     data.ch_traits.body = this->ch.getTypeBody();
     data.ch_traits.head = this->ch.getTypeHead();
     data.ch_traits.race = this->ch.getTypeRace();

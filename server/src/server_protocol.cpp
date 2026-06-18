@@ -41,6 +41,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         p.stats.current_hp = htons(p.stats.current_hp);
         p.stats.current_mana = htons(p.stats.current_mana);
         p.stats.max_mana = htons(p.stats.max_mana);
+        p.stats.xp = htons(p.stats.xp);
         p.ch_traits.body = htons(p.ch_traits.body);
         p.ch_traits.head = htons(p.ch_traits.head);
         std::memcpy(buffer.data() + offset, &p, sizeof(PlayerSnapshotData));

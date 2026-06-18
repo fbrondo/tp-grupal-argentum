@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <iostream>
 #include <unordered_set>
 
@@ -19,6 +20,10 @@ static uint32_t npc_entity_key(uint32_t server_id) { return NPC_ENTITY_OFFSET + 
 
 static uint32_t item_entity_key(uint32_t pos_x, uint32_t pos_y) {
     return ITEM_ENTITY_OFFSET + (pos_x * 1000) + pos_y;
+}
+
+static uint32_t exp_next_level(uint8_t level) {
+    return static_cast<uint32_t>(1000 * std::pow(level, 1.8));
 }
 
 static void log_render_error_once(const std::string& texture_key, const std::exception& e) {
@@ -176,15 +181,27 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
     for (const auto& p_data: snapshot.players) {
         const uint32_t entity_key = player_entity_key(p_data.id);
         ids_en_snapshot.push_back(entity_key);
+        if (p_data.id == local_player_id) {
+            MsgPlayerStats stats;
+            stats.hp = p_data.stats.current_hp;
+            stats.max_hp = p_data.stats.max_hp;
+            stats.mana = p_data.stats.current_mana;
+            stats.max_mana = p_data.stats.max_mana;
+            stats.exp = p_data.stats.xp;
+            stats.exp_next_level = exp_next_level(p_data.stats.level);
+            stats.level = p_data.stats.level;
+            hud_renderer.update_stats(stats);
+        }
         auto it = entities.find(entity_key);
         if (it != entities.end()) {
             it->second->move_to(p_data.pos_x, p_data.pos_y,
                                 static_cast<Direction>(p_data.direction));
         } else {
-            bool is_short = (p_data.raza == GNOME || p_data.raza == DWARF);
+            bool is_short = (p_data.ch_traits.race == GNOME || p_data.ch_traits.race == DWARF);
             entities[entity_key] = std::make_unique<RenderableEntity>(
-                    entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y, p_data.body_id,
-                    p_data.head_id, p_data.weapon_id, p_data.shield_id, is_short);
+                    entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
+                    p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
+                    p_data.shield_id, is_short);
         }
     }
 
