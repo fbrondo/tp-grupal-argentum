@@ -28,7 +28,7 @@ public:
     void remove(const GoldBagInstance& gold);
     void remove(const TreasureInstance& t);
 
-    void removeItemTakeToPlayer(Player& player);
+    bool removeItemTakeToPlayer(Player& player);
 
     bool isOcupied(const Position& position) const;
 };

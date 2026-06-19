@@ -17,6 +17,7 @@ target_sources(taller_client
         src/world_renderer.cpp
         src/hud_renderer.cpp
         src/chat_manager.cpp
+        src/sound_manager.cpp
     PUBLIC
     # .h files
         includes/client_protocol.h

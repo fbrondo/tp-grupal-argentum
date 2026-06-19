@@ -24,8 +24,10 @@ private:
     std::unique_ptr<SDL2pp::Texture> hp_texture;
     std::unique_ptr<SDL2pp::Texture> mana_texture;
     std::unique_ptr<SDL2pp::Texture> exp_texture;
+    std::unique_ptr<SDL2pp::Texture> resurrection_texture;
     std::deque<std::unique_ptr<SDL2pp::Texture>> chat_log_textures;
     std::unique_ptr<SDL2pp::Texture> chat_input_texture;
+    uint16_t resurrection_time_left_ms = 0;
     bool chat_is_active = false;
 
     void render_chat() const;
@@ -45,5 +47,7 @@ public:
     bool is_point_inside_console(uint32_t x, uint32_t y) const;
     void update_chat_input(const std::string& buffer, bool is_active);
     void update_stats(const MsgPlayerStats& new_stats);
+    void update_resurrection_timer(uint16_t time_left_ms);
+    void render_resurrection_notice() const;
     void render() const;
 };

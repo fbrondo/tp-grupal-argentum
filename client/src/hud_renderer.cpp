@@ -121,6 +121,40 @@ void HudRenderer::update_chat_input(const std::string& buffer, bool is_active) {
     }
 }
 
+void HudRenderer::update_resurrection_timer(uint16_t time_left_ms) {
+    if (resurrection_time_left_ms == time_left_ms) {
+        return;
+    }
+    resurrection_time_left_ms = time_left_ms;
+    if (resurrection_time_left_ms == 0) {
+        resurrection_texture = nullptr;
+        return;
+    }
+
+    const uint16_t seconds_left = static_cast<uint16_t>((resurrection_time_left_ms + 999) / 1000);
+    resurrection_texture =
+            create_text_texture("Estas resucitando... " + std::to_string(seconds_left) + "s");
+}
+
+void HudRenderer::render_resurrection_notice() const {
+    if (!resurrection_texture) {
+        return;
+    }
+
+    constexpr int NOTICE_W = 300;
+    constexpr int NOTICE_H = 48;
+    constexpr int NOTICE_X = CONSOLE_X + (CONSOLE_W - NOTICE_W) / 2;
+    constexpr int NOTICE_Y = 170;
+
+    SDL_Rect background = {NOTICE_X, NOTICE_Y, NOTICE_W, NOTICE_H};
+    SDL_SetRenderDrawColor(renderer.Get(), 12, 12, 16, 220);
+    SDL_RenderFillRect(renderer.Get(), &background);
+    SDL_SetRenderDrawColor(renderer.Get(), 210, 190, 120, 255);
+    SDL_RenderDrawRect(renderer.Get(), &background);
+    render_centered_text(resurrection_texture, NOTICE_X, NOTICE_Y, NOTICE_W, NOTICE_H);
+    SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 255);
+}
+
 void HudRenderer::render_chat() const {
     int start_y = CONSOLE_Y + 5;  // Margen superior
     int line_spacing = 18;        // Espaciado entre líneas
