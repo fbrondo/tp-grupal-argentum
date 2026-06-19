@@ -452,6 +452,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 std::memcpy(&id_numerico, &e.effect_id, sizeof(uint16_t));
                 id_numerico = ntohs(id_numerico);
                 e.effect_id = static_cast<VisualEffectID>(id_numerico);
+                e.recipient_id = ntohl(e.recipient_id);
                 e.pos_x = ntohl(e.pos_x);
                 e.pos_y = ntohl(e.pos_y);
                 out_event.world.visual_effects.push_back(e);

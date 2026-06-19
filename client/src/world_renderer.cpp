@@ -298,6 +298,9 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
 
     const uint32_t now = SDL_GetTicks();
     for (const auto& visual_effect: snapshot.visual_effects) {
+        if (visual_effect.recipient_id != 0 && visual_effect.recipient_id != local_player_id) {
+            continue;
+        }
         active_visual_effects.push_back(
                 {visual_effect.effect_id, visual_effect.pos_x, visual_effect.pos_y, now});
     }

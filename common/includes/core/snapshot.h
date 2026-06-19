@@ -77,6 +77,7 @@ struct SoundEffectSnapshotData {
 
 struct VisualEffectSnapshotData {
     VisualEffectID effect_id;
+    uint32_t recipient_id;  // 0 para broadcast; de otro modo, id del jugador destinatario
     uint32_t pos_x;
     uint32_t pos_y;
 };

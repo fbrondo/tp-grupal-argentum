@@ -337,12 +337,15 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     golpe_sound.pos_y = attacker_pos.y;
     this->sounds_of_current_tick.push_back(std::move(golpe_sound));
 
-    VisualEffectSnapshotData golpe_visual{};
-    golpe_visual.effect_id = VisualEffectID::BE_ATTACKED;
-    Position victim_position = victim->getPosition();
-    golpe_visual.pos_x = victim_position.x;
-    golpe_visual.pos_y = victim_position.y;
-    this->visual_effects_of_current_tick.push_back(std::move(golpe_visual));
+    if (dynamic_cast<Player*>(victim)) {
+        VisualEffectSnapshotData golpe_visual{};
+        golpe_visual.effect_id = VisualEffectID::BE_ATTACKED;
+        golpe_visual.recipient_id = victim_id;
+        Position victim_position = victim->getPosition();
+        golpe_visual.pos_x = victim_position.x;
+        golpe_visual.pos_y = victim_position.y;
+        this->visual_effects_of_current_tick.push_back(std::move(golpe_visual));
+    }
 
     std::cerr << "[ATTACK] HIT attacker=" << attacker_id << " -> victim=" << victim_id
               << " dmg=" << damage_by_attacker << " critical=" << is_critical
@@ -553,8 +556,9 @@ void Gameloop::resurrectPlayerAtHealer(Id player_id, Id healer_id) {
     sound_effect.pos_y = position.y;
     this->sounds_of_current_tick.push_back(std::move(sound_effect));
 
-    VisualEffectSnapshotData visual_effect;
+    VisualEffectSnapshotData visual_effect{};
     visual_effect.effect_id = VisualEffectID::BE_HEALED;
+    visual_effect.recipient_id = player_id;
     visual_effect.pos_x = position.x;
     visual_effect.pos_y = position.y;
     this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
@@ -582,8 +586,9 @@ void Gameloop::processPlayerHeal(Id player_id) {
     sound_effect.pos_y = position.y;
     this->sounds_of_current_tick.push_back(std::move(sound_effect));
 
-    VisualEffectSnapshotData visual_effect;
+    VisualEffectSnapshotData visual_effect{};
     visual_effect.effect_id = VisualEffectID::BE_HEALED;
+    visual_effect.recipient_id = player_id;
     visual_effect.pos_x = position.x;
     visual_effect.pos_y = position.y;
     this->visual_effects_of_current_tick.push_back(std::move(visual_effect));

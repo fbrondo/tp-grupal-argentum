@@ -117,6 +117,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
         uint16_t id_numerico = htons(static_cast<uint16_t>(v.effect_id));
         v.effect_id = static_cast<VisualEffectID>(id_numerico);
 
+        v.recipient_id = htonl(v.recipient_id);
         v.pos_x = htonl(v.pos_x);
         v.pos_y = htonl(v.pos_y);
 
