@@ -46,6 +46,11 @@ private:
     std::map<Id, std::unique_ptr<Creature>> creatures;
 
     std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
+    std::vector<VisualEffectSnapshotData> visual_effects_of_current_tick;
+    struct ResurrectPending {
+        uint32_t time_left_ms;
+        Id healer_id;
+    };
     std::map<Id, ResurrectPending> pending_resurrects;
 
     // void loadWorld(const WorldStateData& data);
@@ -66,7 +71,7 @@ private:
     void executeBroacastSnapshot();
 
     /*Metodos del Comando Attack*/
-    bool isItPossibleToAttack(const Id& player_id, const Id& victim, Weapon& weapon);
+    bool isItPossibleToAttack(const Id& player_id, const CombatEntity& victim, Weapon& weapon);
     CombatEntity* inSearchOfTheVictimAttack(const Id& id_search) const;
     std::vector<Defense*> getPlayerDefensiveEquipment(const Id& player_id);
     void execuetRequest();

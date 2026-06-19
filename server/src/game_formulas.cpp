@@ -49,12 +49,13 @@ uint16_t calculationDamage(const uint16_t& strength, const uint16_t& minDamage,
     return final_damage;
 }
 
-uint16_t calculationPointsExpAttack(const uint16_t& damage, const uint8_t& opponentsLevel,
+uint32_t calculationPointsExpAttack(const uint16_t& damage, const uint8_t& opponentsLevel,
                                     const uint8_t& level) {
-    return damage * std::max(static_cast<int>(opponentsLevel) - static_cast<int>(level) + 10, 0);
+    return static_cast<uint32_t>(damage) *
+           std::max(static_cast<int>(opponentsLevel) - static_cast<int>(level) + 10, 0);
 }
 
-uint16_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint8_t& opponentsLevel,
+uint32_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint8_t& opponentsLevel,
                                   const uint8_t& level) {
     // std::random_device rd;
     // std::mt19937 rng(rd());
@@ -62,13 +63,15 @@ uint16_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint8_
     double rand = dist(getRng() /*rng*/);
     int result = rand * opponentsLifeMax *
                  std::max(static_cast<int>(opponentsLevel) - static_cast<int>(level) + 10, 0);
-    return static_cast<uint16_t>(result);
+    return static_cast<uint32_t>(result);
     // return dist(this->rng) * opponentsLifeMax * std::max(opponentsLevel - level + 10, 0);
 }
 
-uint16_t limitMoveUpToNextLevel(const uint8_t& level) { return 1000 * std::pow(level, 1.8); }
+uint32_t limitMoveUpToNextLevel(const uint8_t& level) {
+    return static_cast<uint32_t>(1000 * std::pow(level, 1.8));
+}
 
-uint16_t calculationGoldenMax(const uint16_t& levelPlayer) {
+uint16_t calculationGoldenMax(const uint8_t& levelPlayer) {
     return 100 * std::pow(levelPlayer, EXP);
 }
 

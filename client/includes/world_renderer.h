@@ -1,9 +1,11 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <SDL2pp/Font.hh>
@@ -13,9 +15,17 @@
 #include "client/includes/hud_renderer.h"
 #include "client/includes/renderable_entity.h"
 #include "client/includes/texture_manager.h"
+#include "common/includes/types.h"
 
 class WorldRenderer {
 private:
+    struct ActiveVisualEffect {
+        VisualEffectID effect_id;
+        uint32_t pos_x;
+        uint32_t pos_y;
+        uint32_t start_time;
+    };
+
     SDL2pp::Renderer& renderer;
     TextureManager& texture_manager;
     HudRenderer hud_renderer;
@@ -28,6 +38,7 @@ private:
     // La clave (key) es el 'id' único que envía el servidor
     std::unordered_map<uint32_t, std::unique_ptr<RenderableEntity>> entities;
     std::unordered_set<uint32_t> static_entity_keys;
+    std::vector<ActiveVisualEffect> active_visual_effects;
     std::optional<Map> current_map;
     SDL_Rect visible_map_bounds;
 
@@ -65,4 +76,9 @@ public:
 
     // Dibuja todo el mundo aplicando el Algoritmo del Pintor (Z-order por eje Y)
     void render();
+
+    // Dado un punto de pantalla, retorna el ID y tipo de la entidad que ocupa ese pixel.
+    // Retorna nullopt si el punto no coincide con ninguna entidad (excluye items y jugador local).
+    std::optional<std::pair<uint32_t, EntityType>> get_entity_at_screen(int screen_x,
+                                                                        int screen_y) const;
 };

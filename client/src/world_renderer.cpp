@@ -30,6 +30,26 @@ static void log_render_error_once(const std::string& texture_key, const std::exc
     }
 }
 
+static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, uint32_t pos_x,
+                                            uint32_t pos_y, const SDL_Rect& camera, int offset_x,
+                                            int offset_y) {
+    int dst_w = texture.GetWidth();
+    int dst_h = texture.GetHeight();
+
+    // Si el efecto visual ocupa toda la camara
+    if (dst_w >= camera.w && dst_h >= camera.h) {
+        return SDL_Rect{offset_x, offset_y, camera.w, camera.h};
+    }
+
+    // Si el efecto visual pasa en una parte especifica del mapa
+    SDL_Rect dst;
+    dst.w = dst_w;
+    dst.h = dst_h;
+    dst.x = static_cast<int>(pos_x * TILE_SIZE) + (TILE_SIZE - dst.w) / 2 - camera.x + offset_x;
+    dst.y = static_cast<int>(pos_y * TILE_SIZE) + TILE_SIZE - dst.h - camera.y + offset_y;
+    return dst;
+}
+
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_):
         renderer(renderer_),
         texture_manager(texture_manager_),
@@ -72,6 +92,7 @@ void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
 void WorldRenderer::load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens) {
     entities.clear();
     static_entity_keys.clear();
+    active_visual_effects.clear();
     current_map = std::move(new_map);
     camera.x = 0;
     camera.y = 0;
@@ -283,11 +304,43 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
                                       sound_effect.pos_y, player_x, player_y);
         }
     }
+
+    const uint32_t now = SDL_GetTicks();
+    for (const auto& visual_effect: snapshot.visual_effects) {
+        if (visual_effect.recipient_id != 0 && visual_effect.recipient_id != local_player_id) {
+            continue;
+        }
+        active_visual_effects.push_back(
+                {visual_effect.effect_id, visual_effect.pos_x, visual_effect.pos_y, now});
+    }
 }
 
 void WorldRenderer::update_animations(float dt) {
     for (auto& [id, entity]: entities) {
         entity->update(dt);
+    }
+
+    const uint32_t now = SDL_GetTicks();
+    for (auto it = active_visual_effects.begin(); it != active_visual_effects.end();) {
+        try {
+            // Si el efecto esta mal definido lo borro
+            const VisualEffectClip& clip = texture_manager.get_visual_effect(it->effect_id);
+            if (clip.frame_texture_ids.empty() || clip.frame_rate_ms == 0) {
+                it = active_visual_effects.erase(it);
+                continue;
+            }
+            const uint32_t elapsed = now - it->start_time;
+            const uint32_t frame_index = elapsed / clip.frame_rate_ms;
+            if (frame_index >= clip.frame_texture_ids.size()) {
+                it = active_visual_effects.erase(it);
+                continue;
+            }
+            ++it;
+        } catch (const std::exception& e) {
+            log_render_error_once("effect_" + std::to_string(static_cast<uint16_t>(it->effect_id)),
+                                  e);
+            it = active_visual_effects.erase(it);
+        }
     }
 }
 
@@ -434,6 +487,29 @@ void WorldRenderer::render() {
         }
     }
 
+    for (const auto& effect: active_visual_effects) {
+        try {
+            const VisualEffectClip& clip = texture_manager.get_visual_effect(effect.effect_id);
+            if (clip.frame_texture_ids.empty() || clip.frame_rate_ms == 0)
+                continue;
+            const uint32_t elapsed = SDL_GetTicks() - effect.start_time;
+            const uint32_t frame_index = elapsed / clip.frame_rate_ms;
+            if (frame_index >= clip.frame_texture_ids.size())
+                continue;
+
+            SDL2pp::Texture& texture =
+                    texture_manager.get_texture(clip.frame_texture_ids.at(frame_index));
+            SDL_Rect dst =
+                    calculate_visual_effect_dst(texture, effect.pos_x, effect.pos_y, camera,
+                                                camera_screen_offset_x, camera_screen_offset_y);
+
+            renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
+        } catch (const std::exception& e) {
+            log_render_error_once(
+                    "effect_" + std::to_string(static_cast<uint16_t>(effect.effect_id)), e);
+        }
+    }
+
     // 3. RENDERIZADO DE TECHOS (Roofs)
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
 
@@ -466,4 +542,27 @@ void WorldRenderer::render() {
     }
     SDL_RenderSetClipRect(renderer.Get(), nullptr);
     hud_renderer.render_resurrection_notice();
+}
+
+std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_screen(
+        int screen_x, int screen_y) const {
+    for (const auto& [id, entity]: entities) {
+        if (entity->get_type() == EntityType::ITEM)
+            continue;
+        if (id == local_player_id)
+            continue;
+        int ex = static_cast<int>(entity->get_pixel_x()) - camera.x + camera_screen_offset_x;
+        int ey = static_cast<int>(entity->get_pixel_y()) - camera.y + camera_screen_offset_y;
+        if (screen_x >= ex && screen_x < ex + TILE_SIZE && screen_y >= ey &&
+            screen_y < ey + TILE_SIZE) {
+            EntityType type = entity->get_type();
+            uint32_t server_id = id;
+            if (type == EntityType::NPC)
+                server_id = id - NPC_ENTITY_OFFSET;
+            else if (type == EntityType::PLAYER)
+                server_id = id - PLAYER_ENTITY_OFFSET;
+            return std::make_pair(server_id, type);
+        }
+    }
+    return std::nullopt;
 }

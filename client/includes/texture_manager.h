@@ -9,6 +9,12 @@
 #include "client/includes/core/animation.h"
 #include "client/includes/core/constants.h"
 #include "client/includes/window/windowSDL.h"
+#include "common/includes/types.h"
+
+struct VisualEffectClip {
+    std::vector<std::string> frame_texture_ids;
+    uint32_t frame_rate_ms;
+};
 
 class TextureManager {
 private:
@@ -17,6 +23,7 @@ private:
 
     std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>> textures;
     std::unordered_map<std::string, AnimationClip> animations;
+    std::unordered_map<VisualEffectID, VisualEffectClip> visual_effects;
 
     bool load_texture(std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_,
                       const std::string& id, const std::string& filename);
@@ -41,6 +48,8 @@ private:
             std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux);
     void load_tile_textures(
             std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux);
+    void load_effect_textures(
+            std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux);
     void load_HUD_textures(
             std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux);
 
@@ -55,5 +64,6 @@ public:
 
     SDL2pp::Texture& get_texture(const std::string& id) const;
     const AnimationClip& get_animation(const std::string& anim_id) const;
+    const VisualEffectClip& get_visual_effect(VisualEffectID effect_id) const;
     uint32_t get_current_animation_frame(const AnimationState& state, const AnimationClip& clip);
 };
