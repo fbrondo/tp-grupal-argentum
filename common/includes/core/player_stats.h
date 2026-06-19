@@ -6,7 +6,7 @@
 #pragma pack(push, 1)
 struct PlayerStats {
     uint8_t level;
-    uint16_t xp;  // o experience
+    uint32_t xp;  // o experience
 
     uint16_t current_hp;  // o simplemente hp
     uint16_t max_hp;

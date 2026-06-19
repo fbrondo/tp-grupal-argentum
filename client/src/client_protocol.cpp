@@ -362,6 +362,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.world.items_on_floor.clear();
             out_event.world.gold_piles.clear();
             out_event.world.sound_effects.clear();
+            out_event.world.visual_effects.clear();
 
             uint16_t p_count;
             socket.recvall(&p_count, sizeof(p_count));
@@ -376,7 +377,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.stats.current_hp = ntohs(p.stats.current_hp);
                 p.stats.current_mana = ntohs(p.stats.current_mana);
                 p.stats.max_mana = ntohs(p.stats.max_mana);
-                p.stats.xp = ntohs(p.stats.xp);
+                p.stats.xp = ntohl(p.stats.xp);
                 p.ch_traits.body = ntohs(p.ch_traits.body);
                 p.ch_traits.head = ntohs(p.ch_traits.head);
                 p.name[sizeof(p.name) - 1] = '\0';
@@ -393,7 +394,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 n.id = ntohl(n.id);
                 n.pos_x = ntohl(n.pos_x);
                 n.pos_y = ntohl(n.pos_y);
-                n.type_id = ntohs(n.type_id);
+                // type_id es uint8_t: no tiene endianness, no se convierte
                 n.current_hp = ntohs(n.current_hp);
                 n.max_hp = ntohs(n.max_hp);
                 out_event.world.npcs.push_back(n);
@@ -439,6 +440,23 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 e.pos_x = ntohl(e.pos_x);
                 e.pos_y = ntohl(e.pos_y);
                 out_event.world.sound_effects.push_back(e);
+            }
+
+            uint16_t visual_count;
+            socket.recvall(&visual_count, 2);
+            visual_count = ntohs(visual_count);
+
+            for (uint16_t i = 0; i < visual_count; ++i) {
+                VisualEffectSnapshotData e;
+                socket.recvall(&e, sizeof(VisualEffectSnapshotData));
+                uint16_t id_numerico;
+                std::memcpy(&id_numerico, &e.effect_id, sizeof(uint16_t));
+                id_numerico = ntohs(id_numerico);
+                e.effect_id = static_cast<VisualEffectID>(id_numerico);
+                e.recipient_id = ntohl(e.recipient_id);
+                e.pos_x = ntohl(e.pos_x);
+                e.pos_y = ntohl(e.pos_y);
+                out_event.world.visual_effects.push_back(e);
             }
 
             break;

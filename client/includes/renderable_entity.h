@@ -74,6 +74,7 @@ public:
     float get_pixel_x() const { return current_pixel_x; }
     float get_pixel_y() const { return current_pixel_y; }
     uint32_t get_id() const { return id; }
+    EntityType get_type() const { return type; }
     bool is_currently_moving() const { return is_moving; }
     EntityType get_type() const { return type; }
     uint8_t get_level() const { return level; }

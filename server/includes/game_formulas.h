@@ -32,15 +32,15 @@ uint16_t calculationDamage(const uint16_t& strength, const uint16_t& minDamage,
                            const uint16_t& maxDamage, bool& is_critical);
 
 /* (7) Puntos de experiencia por ataque*/
-uint16_t calculationPointsExpAttack(const uint16_t& damage, const uint8_t& opponentsLevel,
+uint32_t calculationPointsExpAttack(const uint16_t& damage, const uint8_t& opponentsLevel,
                                     const uint8_t& level);
 
 /* (8) Puntos de experiencia por muerte de un rival*/
-uint16_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint8_t& opponentsLevel,
+uint32_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint8_t& opponentsLevel,
                                   const uint8_t& level);
 
 /* (9) Limite para pasar al siguiente nivel*/
-uint16_t limitMoveUpToNextLevel(const uint8_t& level);
+uint32_t limitMoveUpToNextLevel(const uint8_t& level);
 
 /* (10) El Oro maximo en mano que tiene un jugador*/
 uint16_t calculationGoldenMax(const uint8_t& levelPlayer);

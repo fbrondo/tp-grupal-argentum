@@ -53,6 +53,7 @@ bool Inventory::setItemInTheEquipment(Equipment& equipment, size_t slot_index) {
     }
     const auto instance = this->slots[slot_index].getItemInstance();
     equipment.equipItem(instance);
+    this->indexs_slots_equipment.push_back(slot_index);
     return true;
 }
 
