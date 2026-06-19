@@ -33,7 +33,7 @@ private:
 public:
     Banker(TypeNPC type, const std::string& name, Bank& bank, const Pose& pos);
 
-    void playerWithdrawItem(Player& player, TypeItem type);
+    bool playerWithdrawItem(Player& player, TypeItem type);
     void playerDepositItem(Player& player, const ShopItem* item);
     // void playerDepositGold(Player& player, uint32_t amount);
     // void playerWithdrawGold(Player& player, uint32_t amount);

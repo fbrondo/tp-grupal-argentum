@@ -371,11 +371,14 @@ void Gameloop::processPlayerEquipItem(Id player_id, size_t slot_id) {
     }
 }
 
-void Gameloop::processPlayerDisconnet(Id player_id) { this->players.erase(player_id); }
+void Gameloop::processPlayerDisconnet(Id player_id) {
+    this->players.erase(player_id);
+    this->world.removePlayer(player_id);
+}
 
 void Gameloop::processPlayerWithdrawItem(Id player_id, Id npc_id, TypeItem type_item) {
     const auto banker = dynamic_cast<Banker*>(this->citizen_npcs.at(npc_id).get());
-    if (!banker) {  // Enviar error como "Este NPC no compra nada."
+    if (!banker) {
         return;
     }
     Player* player = this->players.at(player_id).get();
@@ -483,9 +486,6 @@ void Gameloop::resurrectPlayerAtHealer(Id player_id, Id healer_id) {
 }
 
 void Gameloop::processPlayerHeal(Id player_id) {
-    // if (!this->players.contains(player_id)) {
-    //     return;
-    // }
     Player* player = this->players.at(player_id).get();
     if (!player->isAlive()) {
         return;
@@ -531,9 +531,6 @@ void Gameloop::processPlayerHeal(Id player_id) {
 // }
 //
 void Gameloop::processPlayerResurrect(Id player_id) {
-    if (!this->players.contains(player_id)) {
-        return;
-    }
     Player* player = this->players.at(player_id).get();
     if (player->isAlive() || player->isResurrecting()) {
         return;

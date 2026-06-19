@@ -43,15 +43,15 @@ bool Banker::thePlayerHasAnAccount(const std::string& username) {
     return this->bank.accounts.contains(username);
 }
 
-void Banker::playerWithdrawItem(Player& player, TypeItem type) {
+bool Banker::playerWithdrawItem(Player& player, TypeItem type) {
     const auto username = player.getUsername();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
-        return; /*Si se esta creando, obvio no lo va a tener*/
+        return false;
     }
     std::optional<size_t> index = this->hasItemInAccountPlayer(username, type);
     if (!index.has_value()) {
-        return; /*Excepcion de item no encontrado en la cuenta*/
+        return false;
     }
     auto& slots = this->bank.accounts[username].safe_box;
     auto& slot = slots[index.value()];  // cppcheck-suppress syntaxError

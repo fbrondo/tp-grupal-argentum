@@ -403,27 +403,6 @@ uint32_t World::distanceBetweenPositions(const Position& from, const Position& t
     return dx + dy;
 }
 
-// const std::map<Id, Pose> World::get_players_positions(){
-//     return this->players_positions;
-// }
-
-// const std::map<Id, NpcInstance> World::get_creatures_positions(){
-//     return this->creatures_positions;
-// }
-//
-// const std::map<Id, NpcInstance> World::get_npc_positions(){
-//     return this->npc_positions;
-// }
-//
-// const std::map<Id, ItemInstance> World::get_items_on_flor(){
-//     return this->items_on_flor;
-// }
-//
-// const std::map<Id, GoldBagInstance> World::get_gold_on_floor(){
-//     return this->gold_on_floor;
-// }
-
-
 std::unordered_map<Id, Zone> World::getHostileZones() { return this->hostile_zones; }
 std::unordered_map<Id, Zone> World::getSafeZones() { return this->safe_zones; }
 

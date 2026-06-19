@@ -58,7 +58,7 @@ uint16_t Player::manaMax() {
 bool Player::isNewbie() const { return this->hp <= 12; }
 
 bool Player::isValidOpponent(Player* other) const {
-    if (other == nullptr) {
+    if (!other) {
         return true; /*Mi oponente es un creature*/
     }
     if (other->isNewbie() || this->isNewbie()) {
