@@ -2,7 +2,6 @@
 
 #include <string>
 
-#include "client/includes/client.h"
 #include "client/includes/commands/command_client.h"
 
 class ChatCommandClient: public ClientCommand {

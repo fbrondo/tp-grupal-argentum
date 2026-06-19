@@ -222,7 +222,7 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
                     entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
                     p_data.shield_id, p_data.stats.level, is_short);
-            entities[entity_key]->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
+            entity->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
             entity->set_name(player_name);
             entities[entity_key] = std::move(entity);
         }

@@ -3,9 +3,10 @@
 #include <string>
 #include <vector>
 
+#include "./common/includes/core/snapshot.h"
+#include "./common/includes/map/map.h"
 #include "./common/includes/protocol.h"
 #include "./common/includes/socket.h"
-#include "server/includes/server_protocol.h"
 
 enum class TypeEventClient {
     UPDATE_WORLD,
@@ -52,8 +53,6 @@ struct EventClient {
     EventClient& operator=(EventClient&&) = default;
 };
 
-#pragma pack(push, 1)
-
 class ClientProtocol {
 private:
     Socket& socket;
@@ -74,20 +73,19 @@ public:
     void sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendDisconnect() const;
-    void sendListItems(Id npc_id);
-    void sendDepositItem(Id item_id);
-    void sendWithdrawItem(Id item_id);
-    void sendDepositGold(uint32_t amount);
-    void sendWithdrawGold(uint32_t amount);
-    void sendEquipItem(Id item_id);
-    void sendUnequipItem(Id item_id);
-    void sendResurrect();
+    void sendListItems(Id npc_id) const;
+    void sendDepositItem(Id item_id) const;
+    void sendWithdrawItem(Id item_id) const;
+    void sendDepositGold(uint32_t amount) const;
+    void sendWithdrawGold(uint32_t amount) const;
+    void sendEquipItem(Id item_id) const;
+    void sendUnequipItem(Id item_id) const;
+    void sendResurrect() const;
 
 
     // Pre-game operations (signup, character)
     void sendSignup(const std::string& user, const std::string& password,
                     const CharacterTraits& traits) const;
-    void sendCharacterCreate(const std::string& name, uint8_t race, uint8_t clase) const;
 
     // Game loop receiver
     bool receiveMessage(EventClient& out_event) const;
@@ -95,5 +93,3 @@ public:
     // Synchronous pre-game receiver
     bool recvResponse(uint8_t expected_opcode, std::string& out_message) const;
 };
-
-#pragma pack(pop)

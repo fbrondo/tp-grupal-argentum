@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "client/includes/client.h"
 #include "client/includes/commands/command_client.h"
+#include "common/includes/direction.h"
 
 class MoveCommandClient: public ClientCommand {
 private:

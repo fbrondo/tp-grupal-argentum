@@ -183,7 +183,7 @@ void ClientProtocol::sendSignup(const std::string& user, const std::string& pass
     }
 }
 
-void ClientProtocol::sendListItems(Id npc_id) {
+void ClientProtocol::sendListItems(Id npc_id) const {
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -202,7 +202,7 @@ void ClientProtocol::sendListItems(Id npc_id) {
     }
 }
 
-void ClientProtocol::sendDepositItem(Id item_id) {
+void ClientProtocol::sendDepositItem(Id item_id) const {
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -221,7 +221,7 @@ void ClientProtocol::sendDepositItem(Id item_id) {
     }
 }
 
-void ClientProtocol::sendWithdrawItem(Id item_id) {
+void ClientProtocol::sendWithdrawItem(Id item_id) const {
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -240,7 +240,7 @@ void ClientProtocol::sendWithdrawItem(Id item_id) {
     }
 }
 
-void ClientProtocol::sendDepositGold(uint32_t amount) {
+void ClientProtocol::sendDepositGold(uint32_t amount) const {
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -259,7 +259,7 @@ void ClientProtocol::sendDepositGold(uint32_t amount) {
     }
 }
 
-void ClientProtocol::sendWithdrawGold(uint32_t amount) {
+void ClientProtocol::sendWithdrawGold(uint32_t amount) const {
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -278,7 +278,7 @@ void ClientProtocol::sendWithdrawGold(uint32_t amount) {
     }
 }
 
-void ClientProtocol::sendEquipItem(Id item_id) {
+void ClientProtocol::sendEquipItem(Id item_id) const {
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -297,7 +297,7 @@ void ClientProtocol::sendEquipItem(Id item_id) {
     }
 }
 
-void ClientProtocol::sendUnequipItem(Id item_id) {
+void ClientProtocol::sendUnequipItem(Id item_id) const {
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -316,7 +316,7 @@ void ClientProtocol::sendUnequipItem(Id item_id) {
     }
 }
 
-void ClientProtocol::sendResurrect() {
+void ClientProtocol::sendResurrect() const {
     constexpr uint8_t opcode = RESURRECT;
     try {
         socket.sendall(&opcode, 1);
@@ -512,8 +512,6 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             // TODO: Revisar si hace falta ntohl y borrar prints
             int width = static_cast<int>(ntohl(w_net));
             int height = static_cast<int>(ntohl(h_net));
-            std::cout << "[CLIENT] MAP_DATA recibido: " << width << "x" << height << " tiles."
-                      << std::endl;
             Map map("Map", width, height);
 
             std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details,
@@ -555,51 +553,25 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             break;
         }
         case INVENTORY_UPDATE: {
-            out_event.type = TypeEventClient::INVENTORY_UPDATE;
-            // MsgInventoryUpdate msg;
-            uint16_t size_net;
-            if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
+            uint16_t count;
+            if (socket.recvall(&count, sizeof(count)) <= 0)
                 return false;
-
-            const uint16_t count = ntohs(size_net);
-            // out_event.inventory_update.resize(count);
+            count = ntohs(count);
             for (uint16_t i = 0; i < count; i++) {
                 MsgSlot slot;
                 socket.recvall(&slot, sizeof(slot));
-                slot.quantity = ntohs(slot.quantity);
-                // out_event.inventory_update[i] = slot;
             }
-
-            // if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
-
-            // msg.item_id = ntohs(msg.item_id);
-            // msg.quantity = ntohs(msg.quantity);
-
-            // out_event.inventory_update.slot_index = msg.slot_index;
-            // out_event.inventory_update.item_id = msg.item_id;
-            // out_event.inventory_update.quantity = msg.quantity;
-            // out_event.inventory_update.is_equipped = msg.is_equipped;
-
             break;
         }
         case EQUIPMENT_UPDATE: {
-            // out_event.type = TypeEventClient::EQUIPMENT_UPDATE;
-            // uint16_t size_net;
-            // if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
-            //     return false;
-            //
-            // const uint16_t count = ntohs(size_net);
-            // out_event.equipment_update.resize(count);
-            // for (uint16_t i = 0; i < count; i++) {
-            //     MsgSlot slot;
-            //     socket.recvall(&slot, sizeof(slot));
-            //     out_event.equipment_update[i] = slot;
-            // }
-            // MsgEquipmentUpdate msg;
-            // if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
-            //
-            // out_event.equip_update.slot_index = msg.slot_index;
-            // out_event.equip_update.item_id = msg.type_item;
+            uint16_t count;
+            if (socket.recvall(&count, sizeof(count)) <= 0)
+                return false;
+            count = ntohs(count);
+            for (uint16_t i = 0; i < count; i++) {
+                MsgSlot slot;
+                socket.recvall(&slot, sizeof(slot));
+            }
             break;
         }
         default:

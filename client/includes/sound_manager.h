@@ -17,7 +17,7 @@ private:
 public:
     static void init();
 
-    static void load_sound(SoundEffectID effect_id, const std::string& filepath);
+    // static void load_sound(SoundEffectID effect_id, const std::string& filepath);
 
     // Reproduce el sonido calculando el audio posicional
     static void play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t fx_y,
