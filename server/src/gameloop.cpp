@@ -337,6 +337,16 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     golpe_sound.pos_y = attacker_pos.y;
     this->sounds_of_current_tick.push_back(std::move(golpe_sound));
 
+    if (dynamic_cast<Player*>(victim)) {
+        VisualEffectSnapshotData golpe_visual{};
+        golpe_visual.effect_id = VisualEffectID::BE_ATTACKED;
+        golpe_visual.recipient_id = victim_id;
+        Position victim_position = victim->getPosition();
+        golpe_visual.pos_x = victim_position.x;
+        golpe_visual.pos_y = victim_position.y;
+        this->visual_effects_of_current_tick.push_back(std::move(golpe_visual));
+    }
+
     std::cerr << "[ATTACK] HIT attacker=" << attacker_id << " -> victim=" << victim_id
               << " dmg=" << damage_by_attacker << " critical=" << is_critical
               << " hp=" << victim->getHp() - damage_by_attacker << "/" << victim->getMaxHp()
@@ -545,6 +555,13 @@ void Gameloop::resurrectPlayerAtHealer(Id player_id, Id healer_id) {
     sound_effect.pos_x = position.x;
     sound_effect.pos_y = position.y;
     this->sounds_of_current_tick.push_back(std::move(sound_effect));
+
+    VisualEffectSnapshotData visual_effect{};
+    visual_effect.effect_id = VisualEffectID::BE_HEALED;
+    visual_effect.recipient_id = player_id;
+    visual_effect.pos_x = position.x;
+    visual_effect.pos_y = position.y;
+    this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
 }
 
 void Gameloop::processPlayerHeal(Id player_id) {
@@ -568,6 +585,13 @@ void Gameloop::processPlayerHeal(Id player_id) {
     sound_effect.pos_x = position.x;
     sound_effect.pos_y = position.y;
     this->sounds_of_current_tick.push_back(std::move(sound_effect));
+
+    VisualEffectSnapshotData visual_effect{};
+    visual_effect.effect_id = VisualEffectID::BE_HEALED;
+    visual_effect.recipient_id = player_id;
+    visual_effect.pos_x = position.x;
+    visual_effect.pos_y = position.y;
+    this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
 }
 //
 
@@ -649,6 +673,8 @@ void Gameloop::executeBroacastSnapshot() {
     snap.npcs = ResponseBuilder::buildNpcSnapshot(this->creatures);
     snap.sound_effects = std::move(this->sounds_of_current_tick);
     this->sounds_of_current_tick.clear();
+    snap.visual_effects = std::move(this->visual_effects_of_current_tick);
+    this->visual_effects_of_current_tick.clear();
     RespSnapshot resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
 }
