@@ -149,14 +149,46 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
 
 void ServerProtocol::sendInventoryUpdate(const MsgInventoryUpdate& inv) const {
     MsgInventoryUpdate temp = inv;
+    uint16_t size_inventory = htonl(static_cast<uint8_t>(temp.inventory.size()));
+    size_t size_buffer = sizeof(size_inventory) + (temp.inventory.size() * sizeof(MsgSlot));
+    std::vector<char> buffer(size_buffer);
+    size_t offset = 0;
 
-    temp.item_id = htons(inv.item_id);
-    temp.quantity = htons(inv.quantity);
-
+    std::memcpy(buffer.data() + offset, &size_inventory, sizeof(size_inventory));
+    offset += sizeof(size_inventory);
+    for (auto& slot: temp.inventory) {
+        slot.quantity = htons(slot.quantity);
+        std::memcpy(buffer.data() + offset, &slot, sizeof(slot));
+        offset += sizeof(slot);
+    }
+    // temp.item_id = htons(inv.item_id);
+    // temp.quantity = htons(inv.quantity);
     try {
-        socket.sendall(&temp, sizeof(MsgInventoryUpdate));
+        // socket.sendall(&temp, sizeof(MsgInventoryUpdate));
+        socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
         throw std::runtime_error(std::string("ERROR IN sendInventoryUpdate -- ") + e.what());
+    }
+}
+
+void ServerProtocol::sendEquipmentUpdate(const MsgEquipmentUpdate& equip) const {
+    // MsgEquipmentUpdate temp = equip;
+    uint16_t equipment = htonl(static_cast<uint8_t>(equip.equipment.size()));
+    size_t size_buffer = sizeof(equipment) + (equip.equipment.size() * sizeof(MsgSlot));
+    std::vector<char> buffer(size_buffer);
+    size_t offset = 0;
+
+    std::memcpy(buffer.data() + offset, &equipment, sizeof(equipment));
+    offset += sizeof(equipment);
+    for (const auto slot: equip.equipment) {
+        std::memcpy(buffer.data() + offset, &slot, sizeof(slot));
+        offset += sizeof(slot);
+    }
+    try {
+        // socket.sendall(&temp, sizeof(MsgEquipmentUpdate));
+        socket.sendall(buffer.data(), buffer.size());
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("ERROR IN sendEquipmentUpdate -- ") + e.what());
     }
 }
 

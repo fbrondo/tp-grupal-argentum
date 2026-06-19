@@ -68,7 +68,7 @@ uint16_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint8_
 
 uint16_t limitMoveUpToNextLevel(const uint8_t& level) { return 1000 * std::pow(level, 1.8); }
 
-uint16_t calculationGoldenMax(const uint16_t& levelPlayer) {
+uint16_t calculationGoldenMax(const uint8_t& levelPlayer) {
     return 100 * std::pow(levelPlayer, EXP);
 }
 

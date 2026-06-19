@@ -82,27 +82,32 @@ bool Player::canBuy(uint16_t price_item) const {
     return true;
 }
 
-void Player::addItemToInventory(const ItemInstance& instance) {
+bool Player::addItemToInventory(const ItemInstance& instance) {
     if (this->inv.isInventoryFull()) {
-        return;
+        return false;
     }
     const auto item = dynamic_cast<const ShopItem*>(instance.item);
     this->inv.addItemToInventory(item);
+    return true;
 }
 
 void Player::addItemToInventory(const GoldBagInstance& instance) {
     this->inv.incrementGolden(instance.amount);
 }
 
-void Player::addItemToInventory(const TreasureInstance& instance) {
+bool Player::addItemToInventory(const TreasureInstance& instance) {
     this->inv.incrementGolden(instance.amount_golden);
+    if (this->inv.isInventoryFull()) {
+        return false;
+    }
     for (const auto& item_inst: instance.items) {
         if (this->inv.isInventoryFull()) {
-            return;
+            break;
         }
         const auto item = dynamic_cast<const ShopItem*>(item_inst.item);
         this->inv.addItemToInventory(item);
     }
+    return true;
 }
 
 void Player::buyItem(const ShopItem* item) {
@@ -122,15 +127,23 @@ void Player::sellItem(TypeItem type_item, uint32_t sell_price) {
     this->inv.removeItemFromInventory(type_item);
 }
 
-void Player::dropItem(size_t index_slot, World& world) {
+bool Player::dropItem(size_t index_slot, World& world) {
     if (this->inv.slotEmpty(index_slot)) {
-        return;
+        return false;
     }
     const auto item = this->inv.getItemSlot(index_slot);
     ItemInstance instance(item);
     instance.position = world.findNearbyFreePosition(this->pose.position);
     world.addItemWorld(instance);
     this->inv.removeItemFromInventory(index_slot);
+    return true;
+}
+
+bool Player::equipItem(size_t slot_id) {
+    if (this->inv.slotEmpty(slot_id)) {
+        return false;
+    }
+    return this->inv.setItemInTheEquipment(this->equipment, slot_id);
 }
 
 PlayerData Player::getPlayerData() {
@@ -201,9 +214,24 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
 
 TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
 
+
 std::vector<TypeItem> Player::getEquipment() {
     /*Esto no cuesta nada, lo maximo que puedo llegar a tener en el equip son 4 elementos -> O(1)*/
     return this->equipment.getEquipmentDefensive();
+}
+
+std::vector<MsgSlot> Player::getSlotsInventory() const { return this->inv.getInventory(); }
+
+std::vector<MsgSlot> Player::getSlotsEquipment() const {
+    std::vector<MsgSlot> slots;
+    const auto equip = this->equipment.getEquipment();
+    for (size_t i = 0; i < equip.size(); i++) {
+        MsgSlot slot;
+        slot.type_item = static_cast<uint8_t>(equip[i]);
+        slot.slot_index = static_cast<uint8_t>(i);
+        slots.push_back(slot);  // cppcheck-suppress syntaxError
+    }
+    return slots;
 }
 
 // Inventory& Player::getInventory() { return this->inv; }
@@ -267,7 +295,11 @@ std::vector<TypeItem> Player::getEquipment() {
 
 void Player::teleportTo(const Position& pos) { this->pose.position = pos; }
 
-std::string Player::getUsername() { return this->user.username; }
+std::string Player::getUsername() const { return this->user.username; }
+
+const Item* Player::getItemInventory(const size_t& slot_id) {
+    return this->inv.getItemSlot(slot_id);
+}
 
 const Item* Player::removeItemInventory(TypeItem type_item) {
     return this->inv.removeItemFromInventory(type_item);
@@ -337,6 +369,19 @@ void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
     if (this->exp >= limit) {
         this->level += 1;
     }
+}
+
+void Player::earnKillExp(CombatEntity* victim) {
+    this->exp += GameFormulas::calculationPointsExpKill(victim->getMaxHp(), victim->getLevel(),
+                                                        this->level);
+    const uint16_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
+    if (this->exp >= limit) {
+        this->level += 1;
+    }
+}
+
+void Player::consumeMana(uint16_t amount) {
+    this->mana = (this->mana >= amount) ? (this->mana - amount) : 0;
 }
 
 
@@ -410,10 +455,14 @@ void Player::restoreHp(uint16_t hp) {
 
 void Player::onDeath(World& world) {
     this->inv.dropInventory(world, this->pose.position);
-    /* Perdemos el oro */
-    GoldBagInstance gold_pouche;
-    gold_pouche.amount = this->inv.getGolden();
-    gold_pouche.position = world.findNearbyFreePosition(this->pose.position);
-    world.addItemWorld(gold_pouche);
-    this->inv.decrementGolden(gold_pouche.amount);
+    const uint16_t oro_max = GameFormulas::calculationGoldenMax(this->level);
+    const uint16_t golden = this->inv.getGolden();
+    if (golden > oro_max) {
+        const uint16_t exceso = golden - oro_max;
+        GoldBagInstance gold_pouche;
+        gold_pouche.amount = exceso;
+        gold_pouche.position = world.findNearbyFreePosition(this->pose.position);
+        world.addItemWorld(gold_pouche);
+        this->inv.decrementGolden(exceso);
+    }
 }

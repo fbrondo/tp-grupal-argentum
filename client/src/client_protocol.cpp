@@ -393,9 +393,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 n.id = ntohl(n.id);
                 n.pos_x = ntohl(n.pos_x);
                 n.pos_y = ntohl(n.pos_y);
-                n.type_id = ntohs(n.type_id);
-                n.pos_x = ntohl(n.pos_x);
-                n.pos_y = ntohl(n.pos_y);
+                // type_id es uint8_t: no tiene endianness, no se convierte
                 n.current_hp = ntohs(n.current_hp);
                 n.max_hp = ntohs(n.max_hp);
                 out_event.world.npcs.push_back(n);
@@ -572,21 +570,54 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             }
             break;
         }
-        // case INVENTORY_UPDATE: {
-        //     out_event.type = TypeEventClient::INVENTORY_UPDATE;
-        //     MsgInventoryUpdate msg;
-        //     if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
-        //
-        //     msg.item_id = ntohs(msg.item_id);
-        //     msg.quantity = ntohs(msg.quantity);
-        //
-        //     out_event.inventory_update.slot_index = msg.slot_index;
-        //     out_event.inventory_update.item_id = msg.item_id;
-        //     out_event.inventory_update.quantity = msg.quantity;
-        //     out_event.inventory_update.is_equipped = msg.is_equipped;
-        //
-        //     break;
-        // }
+        case INVENTORY_UPDATE: {
+            out_event.type = TypeEventClient::INVENTORY_UPDATE;
+            // MsgInventoryUpdate msg;
+            uint16_t size_net;
+            if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
+                return false;
+
+            const uint16_t count = ntohs(size_net);
+            // out_event.inventory_update.resize(count);
+            for (uint16_t i = 0; i < count; i++) {
+                MsgSlot slot;
+                socket.recvall(&slot, sizeof(slot));
+                slot.quantity = ntohs(slot.quantity);
+                // out_event.inventory_update[i] = slot;
+            }
+
+            // if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
+
+            // msg.item_id = ntohs(msg.item_id);
+            // msg.quantity = ntohs(msg.quantity);
+
+            // out_event.inventory_update.slot_index = msg.slot_index;
+            // out_event.inventory_update.item_id = msg.item_id;
+            // out_event.inventory_update.quantity = msg.quantity;
+            // out_event.inventory_update.is_equipped = msg.is_equipped;
+
+            break;
+        }
+        case EQUIPMENT_UPDATE: {
+            // out_event.type = TypeEventClient::EQUIPMENT_UPDATE;
+            // uint16_t size_net;
+            // if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
+            //     return false;
+            //
+            // const uint16_t count = ntohs(size_net);
+            // out_event.equipment_update.resize(count);
+            // for (uint16_t i = 0; i < count; i++) {
+            //     MsgSlot slot;
+            //     socket.recvall(&slot, sizeof(slot));
+            //     out_event.equipment_update[i] = slot;
+            // }
+            // MsgEquipmentUpdate msg;
+            // if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
+            //
+            // out_event.equip_update.slot_index = msg.slot_index;
+            // out_event.equip_update.item_id = msg.type_item;
+            break;
+        }
         default:
             return true;
     }

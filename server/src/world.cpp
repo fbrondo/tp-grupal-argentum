@@ -518,6 +518,10 @@ int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const I
     return distance;
 }
 
+bool World::playerTakeItemOnTheFloor(Player& player) {
+    return this->item_positions.removeItemTakeToPlayer(player);
+}
+
 WorldStateData World::buildWorldState() {
     WorldStateData world_data;
     // for (const auto& npc: this->npc_positions | std::views::values) {
@@ -568,9 +572,6 @@ WorldStateData World::buildWorldState() {
 //     }
 // }
 
-void World::playerTakeItemOnTheFloor(Player& player) {
-    this->item_positions.removeItemTakeToPlayer(player);
-}
 
 // std::unique_ptr<ItemInstance> World::pickUpItem(const Position& pos) {
 //     auto it = this->items_on_flor.begin();

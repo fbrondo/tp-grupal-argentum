@@ -83,7 +83,7 @@ void DataStorage::savePlayer(const PlayerData& data) {
     const auto equip_size = static_cast<uint32_t>(data.equipment.size());
     this->data_file.write(reinterpret_cast<const char*>(&equip_size), sizeof(equip_size));
     this->data_file.write(reinterpret_cast<const char*>(data.equipment.data()),
-                          equip_size * sizeof(uint32_t));
+                          equip_size * sizeof(size_t));
 
     this->data_file.flush(); /*fuerza que los datos lleguen al disco*/
     this->index[data.username] = offset;
@@ -92,7 +92,7 @@ void DataStorage::savePlayer(const PlayerData& data) {
 
 PlayerData DataStorage::loadPlayer(const std::string& username) {
     PlayerData data{};
-    // std::streampos offset = this->index.at(username)
+    this->data_file.clear();  // seekg no reposiciona si failbit/eofbit estan activos
     this->data_file.seekg(this->index.at(username));
     this->data_file.read(data.username, MAX_DATA);
     this->data_file.read(data.password, MAX_DATA);

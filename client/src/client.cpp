@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL_image.h>
 
+#include "client/includes/commands/command_attack.h"
 #include "client/includes/commands/command_chat.h"
 #include "client/includes/commands/command_move.h"
 
@@ -71,6 +72,19 @@ void Client::handle_events() {
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
             uint32_t mouse_x = event.button.x;
             uint32_t mouse_y = event.button.y;
+
+            // TODO: revisar este hardcodeo. Lo estoy tomando de worldrenderer
+            constexpr SDL_Rect world_view = {7, 149, 672, 384};
+            if (mouse_x >= world_view.x && mouse_x < world_view.x + world_view.w &&
+                mouse_y >= world_view.y && mouse_y < world_view.y + world_view.h) {
+                auto hit = world_renderer.get_entity_at_screen(mouse_x, mouse_y);
+                if (hit) {
+                    auto [entity_id, entity_type] = *hit;
+                    if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
+                        cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
+                    }
+                }
+            }
 
             // Le preguntamos al motor gráfico si el clic fue en el área correcta
             if (world_renderer.is_point_inside_console(mouse_x, mouse_y)) {

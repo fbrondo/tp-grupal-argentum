@@ -23,10 +23,19 @@ void Slot::setItem(std::unique_ptr<ItemInstance>&& instance_) {
     this->instance = std::move(instance_);
 }
 
-uint32_t Slot::getQuantity() const { return this->quantity; }
+ItemInstance* Slot::getItemInstance() { return instance.get(); }
 
+uint32_t Slot::getQuantity() const {
+    if (this->isEmpty()) {
+        return 0;
+    }
+    return this->quantity;
+}
 
 TypeItem Slot::getTypeItem() const {
+    if (this->isEmpty()) {
+        return NONE;
+    }
     auto inst = this->instance.get();
     return inst->item->type;
 }

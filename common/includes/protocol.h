@@ -3,9 +3,10 @@
 #include <vector>
 
 #include "common//includes/core/character_traits.h"
+#include "server/includes/slot.h"
 
 constexpr size_t MAX_NAME_SIZE = 30;
-
+constexpr size_t MAX_ITEM_SIZE = 100;
 enum ClientOpcode : uint8_t {
     LOGIN = 1,
     MOVE = 2,
@@ -43,7 +44,8 @@ enum ServerOpcode : uint8_t {
     CHARACTER_CREATE_RESPONSE = 59,
     MAP_DATA = 61,
     TRADER_CATALOG = 62,
-    BANK_CONTENT = 63
+    BANK_CONTENT = 63,
+    EQUIPMENT_UPDATE = 64,
 };
 
 #pragma pack(push, 1)
@@ -99,12 +101,28 @@ struct MsgPlayerStats {
     uint8_t level;
 };
 
+struct MsgSlot {
+    uint8_t slot_index;
+    uint8_t type_item;
+    uint16_t quantity;
+    // uint8_t is_equipped;
+};
+
 struct MsgInventoryUpdate {
     uint8_t opcode = INVENTORY_UPDATE;
-    uint8_t slot_index;
-    uint16_t item_id;
-    uint16_t quantity;
-    uint8_t is_equipped;
+    std::vector<MsgSlot> inventory;
+    // MsgSlot slots[MAX_ITEM_SIZE];
+    // uint8_t slot_index;
+    // uint8_t item_id;
+    //  uint16_t quantity;
+    // uint8_t is_equipped;
+};
+
+struct MsgEquipmentUpdate {
+    uint8_t opcode = EQUIPMENT_UPDATE;
+    std::vector<MsgSlot> equipment;
+    // uint8_t slot_index;
+    // uint8_t type_item;
 };
 
 struct MsgSignup {

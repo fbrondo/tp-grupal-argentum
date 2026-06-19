@@ -1,9 +1,11 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <SDL2pp/SDL2pp.hh>
@@ -71,4 +73,9 @@ public:
 
     // Dibuja todo el mundo aplicando el Algoritmo del Pintor (Z-order por eje Y)
     void render();
+
+    // Dado un punto de pantalla, retorna el ID y tipo de la entidad que ocupa ese pixel.
+    // Retorna nullopt si el punto no coincide con ninguna entidad (excluye items y jugador local).
+    std::optional<std::pair<uint32_t, EntityType>> get_entity_at_screen(int screen_x,
+                                                                        int screen_y) const;
 };
