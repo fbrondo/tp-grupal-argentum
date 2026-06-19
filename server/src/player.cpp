@@ -140,7 +140,7 @@ bool Player::dropItem(size_t index_slot, World& world) {
 }
 
 bool Player::equipItem(size_t slot_id) {
-    if (this->inv.isInventoryEmpty()) {
+    if (this->inv.slotEmpty(slot_id)) {
         return false;
     }
     return this->inv.setItemInTheEquipment(this->equipment, slot_id);
@@ -371,6 +371,19 @@ void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
     }
 }
 
+void Player::earnKillExp(CombatEntity* victim) {
+    this->exp += GameFormulas::calculationPointsExpKill(victim->getMaxHp(), victim->getLevel(),
+                                                        this->level);
+    const uint16_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
+    if (this->exp >= limit) {
+        this->level += 1;
+    }
+}
+
+void Player::consumeMana(uint16_t amount) {
+    this->mana = (this->mana >= amount) ? (this->mana - amount) : 0;
+}
+
 
 void Player::restoreHp(uint16_t hp) {
     this->hp = std::min(static_cast<uint16_t>(this->hp + hp), this->hpMax());
@@ -442,10 +455,14 @@ void Player::restoreHp(uint16_t hp) {
 
 void Player::onDeath(World& world) {
     this->inv.dropInventory(world, this->pose.position);
-    /* Perdemos el oro */
-    GoldBagInstance gold_pouche;
-    gold_pouche.amount = this->inv.getGolden();
-    gold_pouche.position = world.findNearbyFreePosition(this->pose.position);
-    world.addItemWorld(gold_pouche);
-    this->inv.decrementGolden(gold_pouche.amount);
+    const uint16_t oro_max = GameFormulas::calculationGoldenMax(this->level);
+    const uint16_t golden = this->inv.getGolden();
+    if (golden > oro_max) {
+        const uint16_t exceso = golden - oro_max;
+        GoldBagInstance gold_pouche;
+        gold_pouche.amount = exceso;
+        gold_pouche.position = world.findNearbyFreePosition(this->pose.position);
+        world.addItemWorld(gold_pouche);
+        this->inv.decrementGolden(exceso);
+    }
 }
