@@ -37,7 +37,7 @@ struct PlayerData {
     /*Personaje*/
     CharacterTraits charact_traits;
     /*Atributos*/
-    uint16_t exp;
+    uint32_t exp;
     uint8_t level;
     uint16_t hp;
     uint16_t mana;

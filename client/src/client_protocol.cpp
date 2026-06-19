@@ -377,7 +377,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.stats.current_hp = ntohs(p.stats.current_hp);
                 p.stats.current_mana = ntohs(p.stats.current_mana);
                 p.stats.max_mana = ntohs(p.stats.max_mana);
-                p.stats.xp = ntohs(p.stats.xp);
+                p.stats.xp = ntohl(p.stats.xp);
                 p.ch_traits.body = ntohs(p.ch_traits.body);
                 p.ch_traits.head = ntohs(p.ch_traits.head);
                 p.resurrection_time_left_ms = ntohs(p.resurrection_time_left_ms);

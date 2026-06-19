@@ -27,7 +27,7 @@ private:
     bool is_resurrecting = false;
 
     uint16_t mana;
-    uint16_t exp;
+    uint32_t exp;
 
     User user;
     Equipment equipment;

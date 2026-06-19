@@ -365,7 +365,7 @@ void Player::finishResurrection() { this->is_resurrecting = false; }
 
 void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
     this->exp += GameFormulas::calculationPointsExpAttack(damage, victim->getLevel(), this->level);
-    uint16_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
+    uint32_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
     if (this->exp >= limit) {
         this->level += 1;
     }
@@ -374,7 +374,7 @@ void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
 void Player::earnKillExp(CombatEntity* victim) {
     this->exp += GameFormulas::calculationPointsExpKill(victim->getMaxHp(), victim->getLevel(),
                                                         this->level);
-    const uint16_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
+    const uint32_t limit = GameFormulas::limitMoveUpToNextLevel(this->level);
     if (this->exp >= limit) {
         this->level += 1;
     }
