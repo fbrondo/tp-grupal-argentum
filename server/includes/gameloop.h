@@ -66,7 +66,7 @@ private:
     void executeBroacastSnapshot();
 
     /*Metodos del Comando Attack*/
-    bool isItPossibleToAttack(const Id& player_id, const Id& victim, Weapon& weapon);
+    bool isItPossibleToAttack(const Id& player_id, const CombatEntity& victim, Weapon& weapon);
     CombatEntity* inSearchOfTheVictimAttack(const Id& id_search) const;
     std::vector<Defense*> getPlayerDefensiveEquipment(const Id& player_id);
     void execuetRequest();
