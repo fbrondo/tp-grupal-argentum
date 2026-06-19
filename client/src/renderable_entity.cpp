@@ -192,3 +192,15 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         std::cerr << "[RenderableEntity] " << e.what() << std::endl;
     }
 }
+
+void RenderableEntity::set_chat_bubble(const std::string& text) {
+    chat_bubble_text = text;
+    chat_bubble_start_ticks = SDL_GetTicks();
+}
+
+bool RenderableEntity::has_active_chat_bubble() const {
+    if (chat_bubble_text.empty())
+        return false;
+    const uint32_t elapsed = SDL_GetTicks() - chat_bubble_start_ticks;
+    return elapsed < 5000;
+}

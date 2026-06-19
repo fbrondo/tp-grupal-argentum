@@ -177,8 +177,8 @@ uint16_t Player::calculateDefense(std::vector<Defense*> info_defense) {
 
 PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     PlayerSnapshotData data;
-    // std::memset(data.name, 0, MAX_NAME_SIZE);
-    // user.username.copy(data.name, MAX_NAME_SIZE - 1);
+    std::memset(data.name, 0, MAX_NAME_SIZE);
+    user.username.copy(data.name, MAX_NAME_SIZE - 1);
     data.id = player_id;
     data.pos_x = this->pose.position.x;
     data.pos_y = this->pose.position.y;
@@ -193,6 +193,10 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.ch_traits.head = this->ch.getTypeHead();
     data.ch_traits.race = this->ch.getTypeRace();
     data.ch_traits.clase = this->ch.getTypeClase();
+    data.weapon_id = 0;
+    data.shield_id = 0;
+    data.helmet_id = 0;
+    data.flags = 0;
     return data;
 }
 

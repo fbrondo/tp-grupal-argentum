@@ -379,7 +379,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.stats.xp = ntohs(p.stats.xp);
                 p.ch_traits.body = ntohs(p.ch_traits.body);
                 p.ch_traits.head = ntohs(p.ch_traits.head);
-                // p.name[sizeof(p.name) - 1] = '\0';
+                p.name[sizeof(p.name) - 1] = '\0';
                 out_event.world.players.push_back(p);
             }
 

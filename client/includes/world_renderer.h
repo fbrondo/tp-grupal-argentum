@@ -47,6 +47,7 @@ public:
 
     void set_local_player(uint32_t id);
     void set_player_name(const std::string& name);
+    void set_chat_bubble_on_local(const std::string& text);
     void update_hud_stats(const MsgPlayerStats& stats);
     void load_map(Map&& new_map);
 

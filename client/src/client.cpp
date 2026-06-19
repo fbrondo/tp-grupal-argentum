@@ -101,8 +101,8 @@ void Client::handle_events() {
             if (chat.is_active()) {
                 std::string msg = chat.extract_message();
                 if (!msg.empty()) {
-                    // Enviamos al server
                     cmd_queue.push(std::make_unique<ChatCommandClient>(msg));
+                    world_renderer.set_chat_bubble_on_local(msg);
                 }
                 // Apagamos el input después de enviar
                 chat.set_active(false);

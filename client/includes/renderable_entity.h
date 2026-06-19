@@ -33,6 +33,11 @@ private:
     uint8_t weapon_id;
     uint8_t shield_id;
 
+    std::string name;
+
+    std::string chat_bubble_text;
+    uint32_t chat_bubble_start_ticks = 0;
+
     AnimationState anim_state;
 
 public:
@@ -55,6 +60,13 @@ public:
     // Método para cuando el servidor nos notifica una actualización de posición/dirección
     void move_to(int target_tile_x, int target_tile_y, Direction dir);
 
+    void set_name(const std::string& name_) { name = name_; }
+
+    void set_chat_bubble(const std::string& text);
+    bool has_active_chat_bubble() const;
+    const std::string& get_chat_bubble_text() const { return chat_bubble_text; }
+    uint32_t get_chat_bubble_start_ticks() const { return chat_bubble_start_ticks; }
+
     // Getters limpios y constantes para el ordenamiento Z (Algoritmo del Pintor)
     int get_tile_y() const { return tile_y; }
     float get_pixel_x() const { return current_pixel_x; }
@@ -63,4 +75,5 @@ public:
     bool is_currently_moving() const { return is_moving; }
     EntityType get_type() const { return type; }
     uint8_t get_level() const { return level; }
+    const std::string& get_name() const { return name; }
 };

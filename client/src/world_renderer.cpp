@@ -56,6 +56,14 @@ void WorldRenderer::set_player_name(const std::string& name) {
     hud_renderer.set_player_name(name);
 }
 
+void WorldRenderer::set_chat_bubble_on_local(const std::string& text) {
+    const uint32_t key = player_entity_key(local_player_id);
+    auto it = entities.find(key);
+    if (it != entities.end()) {
+        it->second->set_chat_bubble(text);
+    }
+}
+
 void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
     hud_renderer.update_stats(stats);
 }
@@ -190,15 +198,19 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             hud_renderer.update_stats(stats);
         }
         auto it = entities.find(entity_key);
+        std::string player_name(p_data.name);
         if (it != entities.end()) {
             it->second->move_to(p_data.pos_x, p_data.pos_y,
                                 static_cast<Direction>(p_data.direction));
+            it->second->set_name(player_name);
         } else {
             bool is_short = (p_data.ch_traits.race == GNOME || p_data.ch_traits.race == DWARF);
-            entities[entity_key] = std::make_unique<RenderableEntity>(
+            auto entity = std::make_unique<RenderableEntity>(
                     entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
                     p_data.shield_id, p_data.stats.level, is_short);
+            entity->set_name(player_name);
+            entities[entity_key] = std::move(entity);
         }
     }
 
@@ -366,6 +378,33 @@ void WorldRenderer::render() {
             text_y -= nh;
             renderer.Copy(name_tex, SDL2pp::NullOpt,
                           SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
+        } else if (!is_local && !entity->get_name().empty()) {
+            SDL_Color other_name_color = {255, 255, 255, 255};
+            SDL2pp::Texture name_tex(
+                    renderer, name_font.RenderUTF8_Blended(entity->get_name(), other_name_color));
+            const int nw = name_tex.GetWidth();
+            const int nh = name_tex.GetHeight();
+            text_y -= nh;
+            renderer.Copy(name_tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
+        }
+
+        if (entity->has_active_chat_bubble()) {
+            const uint32_t elapsed = SDL_GetTicks() - entity->get_chat_bubble_start_ticks();
+            uint8_t alpha = 255;
+            if (elapsed > 4000) {
+                const uint32_t fade_elapsed = elapsed - 4000;
+                alpha = static_cast<uint8_t>(255 - (255 * fade_elapsed / 1000));
+            }
+            SDL_Color bubble_color = {255, 255, 255, alpha};
+            SDL2pp::Texture bubble_tex(
+                    renderer,
+                    level_font.RenderUTF8_Blended(entity->get_chat_bubble_text(), bubble_color));
+            const int bw = bubble_tex.GetWidth();
+            const int bh = bubble_tex.GetHeight();
+            text_y -= bh;
+            renderer.Copy(bubble_tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(entity_screen_x - bw / 2, text_y, bw, bh));
         }
     }
 
