@@ -21,18 +21,18 @@ void ItemsPositions::remove(const GoldBagInstance& gold) {
 }
 void ItemsPositions::remove(const TreasureInstance& t) { treasures_on_floor.erase(t.id); }
 
-void ItemsPositions::removeItemTakeToPlayer(Player& player) {
+bool ItemsPositions::removeItemTakeToPlayer(Player& player) {
+    bool item_take = false;
     const Position& position = player.getPosition();
     if (!this->isOcupied(position)) {
-        return; /*No hay nada que tomar*/
+        return item_take;
     }
-
     for (auto it = this->items_on_floor.begin(); it != this->items_on_floor.end(); ++it) {
         if (it->second.position == position) {
-            player.addItemToInventory(it->second);
+            item_take = player.addItemToInventory(it->second);
             this->items_on_floor.erase(it);
             this->items_tiles.erase(position);
-            return;
+            break;
         }
     }
 
@@ -41,18 +41,20 @@ void ItemsPositions::removeItemTakeToPlayer(Player& player) {
             player.addItemToInventory(it->second);  // El jugador procesa el oro
             this->gold_bags_on_floor.erase(it);
             this->items_tiles.erase(position);
-            return;
+            item_take = true;
+            break;
         }
     }
 
     for (auto it = this->treasures_on_floor.begin(); it != this->treasures_on_floor.end(); ++it) {
         if (it->second.position == position) {
-            player.addItemToInventory(it->second);  // El jugador procesa el oro
+            item_take = player.addItemToInventory(it->second);  // El jugador procesa el oro
             this->treasures_on_floor.erase(it);
             this->items_tiles.erase(position);
-            return;
+            break;
         }
     }
+    return item_take;
 }
 
 

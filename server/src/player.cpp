@@ -82,27 +82,32 @@ bool Player::canBuy(uint16_t price_item) const {
     return true;
 }
 
-void Player::addItemToInventory(const ItemInstance& instance) {
+bool Player::addItemToInventory(const ItemInstance& instance) {
     if (this->inv.isInventoryFull()) {
-        return;
+        return false;
     }
     const auto item = dynamic_cast<const ShopItem*>(instance.item);
     this->inv.addItemToInventory(item);
+    return true;
 }
 
 void Player::addItemToInventory(const GoldBagInstance& instance) {
     this->inv.incrementGolden(instance.amount);
 }
 
-void Player::addItemToInventory(const TreasureInstance& instance) {
+bool Player::addItemToInventory(const TreasureInstance& instance) {
     this->inv.incrementGolden(instance.amount_golden);
+    if (this->inv.isInventoryFull()) {
+        return false;
+    }
     for (const auto& item_inst: instance.items) {
         if (this->inv.isInventoryFull()) {
-            return;
+            break;
         }
         const auto item = dynamic_cast<const ShopItem*>(item_inst.item);
         this->inv.addItemToInventory(item);
     }
+    return true;
 }
 
 void Player::buyItem(const ShopItem* item) {
@@ -122,15 +127,23 @@ void Player::sellItem(TypeItem type_item, uint32_t sell_price) {
     this->inv.removeItemFromInventory(type_item);
 }
 
-void Player::dropItem(size_t index_slot, World& world) {
+bool Player::dropItem(size_t index_slot, World& world) {
     if (this->inv.slotEmpty(index_slot)) {
-        return;
+        return false;
     }
     const auto item = this->inv.getItemSlot(index_slot);
     ItemInstance instance(item);
     instance.position = world.findNearbyFreePosition(this->pose.position);
     world.addItemWorld(instance);
     this->inv.removeItemFromInventory(index_slot);
+    return true;
+}
+
+bool Player::equipItem(size_t slot_id) {
+    if (this->inv.isInventoryEmpty()) {
+        return false;
+    }
+    return this->inv.setItemInTheEquipment(this->equipment, slot_id);
 }
 
 PlayerData Player::getPlayerData() {
@@ -196,15 +209,31 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.weapon_id = 0;
     data.shield_id = 0;
     data.helmet_id = 0;
-    data.flags = 0;
+    data.flags = this->isAlive() ? 0 : PLAYER_FLAG_GHOST;
+    data.resurrection_time_left_ms = 0;
     return data;
 }
 
 TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
 
+
 std::vector<TypeItem> Player::getEquipment() {
     /*Esto no cuesta nada, lo maximo que puedo llegar a tener en el equip son 4 elementos -> O(1)*/
     return this->equipment.getEquipmentDefensive();
+}
+
+std::vector<MsgSlot> Player::getSlotsInventory() const { return this->inv.getInventory(); }
+
+std::vector<MsgSlot> Player::getSlotsEquipment() const {
+    std::vector<MsgSlot> slots;
+    const auto equip = this->equipment.getEquipment();
+    for (size_t i = 0; i < equip.size(); i++) {
+        MsgSlot slot;
+        slot.type_item = static_cast<uint8_t>(equip[i]);
+        slot.slot_index = static_cast<uint8_t>(i);
+        slots.push_back(slot);  // cppcheck-suppress syntaxError
+    }
+    return slots;
 }
 
 // Inventory& Player::getInventory() { return this->inv; }
@@ -268,7 +297,11 @@ std::vector<TypeItem> Player::getEquipment() {
 
 void Player::teleportTo(const Position& pos) { this->pose.position = pos; }
 
-std::string Player::getUsername() { return this->user.username; }
+std::string Player::getUsername() const { return this->user.username; }
+
+const Item* Player::getItemInventory(const size_t& slot_id) {
+    return this->inv.getItemSlot(slot_id);
+}
 
 const Item* Player::removeItemInventory(TypeItem type_item) {
     return this->inv.removeItemFromInventory(type_item);
@@ -286,11 +319,16 @@ const Item* Player::removeItemInventory(TypeItem type_item) {
 
 bool Player::isMeditating() const { return this->is_meditating; }
 
+bool Player::isResurrecting() const { return this->is_resurrecting; }
+
 void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
 
 void Player::breakMeditation() { this->is_meditating = false; }
 
 void Player::updateHp(float delta) {
+    if (!this->isAlive()) {
+        return;
+    }
     if (this->hp >= this->hpMax()) {
         return;
     }
@@ -319,6 +357,13 @@ void Player::meditating(float delta) {
 void Player::restoreAllHp() { this->hp = this->hpMax(); }
 
 void Player::restoreAllMana() { this->mana = this->manaMax(); }
+
+void Player::startResurrection() {
+    this->is_resurrecting = true;
+    this->breakMeditation();
+}
+
+void Player::finishResurrection() { this->is_resurrecting = false; }
 
 void Player::earnExperiencePoints(CombatEntity* victim, uint16_t damage) {
     this->exp += GameFormulas::calculationPointsExpAttack(damage, victim->getLevel(), this->level);

@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include "../../common/includes/core/snapshot.h"
+#include "common/includes/core/snapshot.h"
 #include "common/includes/core/user.h"
 #include "common/includes/protocol.h"
 #include "common/includes/types.h"
@@ -55,11 +55,16 @@ public:
 
     TypeItem getHandItem();
     std::vector<TypeItem> getEquipment();
+    std::vector<MsgSlot> getSlotsInventory() const;
+    std::vector<MsgSlot> getSlotsEquipment() const;
+
+    std::string getUsername() const;
+    const Item* getItemInventory(const size_t& slot_id);
     // Inventory& getInventory();
     // ItemInstance* getItemInstance(Id instance_id);
     void teleportTo(const Position& pos);
 
-    std::string getUsername();
+
     const Item* removeItemInventory(TypeItem type_item);
 
 
@@ -76,11 +81,12 @@ public:
     bool isNewbie() const;
     bool isValidOpponent(Player* other) const;
     bool isMeditating() const;
+    bool isResurrecting() const;
     bool hasEnoughMana(uint16_t mana_cost) const;
 
-    void addItemToInventory(const ItemInstance& instance);
+    bool addItemToInventory(const ItemInstance& instance);
     void addItemToInventory(const GoldBagInstance& instance);
-    void addItemToInventory(const TreasureInstance& instance);
+    bool addItemToInventory(const TreasureInstance& instance);
 
     void toggleMeditation();
     void breakMeditation();
@@ -91,18 +97,21 @@ public:
     // void restoreMana(uint16_t amount);
     void restoreAllHp();
     void restoreHp(uint16_t amount);
+    void startResurrection();
+    void finishResurrection();
     void earnExperiencePoints(CombatEntity* victim, uint16_t damage);
 
     void buyItem(const ShopItem* item);
     void sellItem(TypeItem type_item, uint32_t sell_price);
-    void dropItem(size_t index, World& world);
+    bool dropItem(size_t index, World& world);
+    bool equipItem(size_t slot_id);
 
     // void addItemToInventory(std::unique_ptr<ItemInstance> item);
     // std::unique_ptr<ItemInstance> removeItemFromInventory(Id instance_id);
     // void addItemToBank(std::unique_ptr<ItemInstance> item);
     // std::unique_ptr<ItemInstance> removeItemFromBank(Id instance_id);
 
-    // void equipItem(Id instance_id);
+
     // void unequipItem(Id instance_id);
     // void useItem(Id instance_id);
 

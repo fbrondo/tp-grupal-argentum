@@ -32,6 +32,7 @@ private:
     uint16_t head_id;
     uint8_t weapon_id;
     uint8_t shield_id;
+    bool is_ghost;
 
     std::string name;
 
@@ -59,6 +60,7 @@ public:
 
     // Método para cuando el servidor nos notifica una actualización de posición/dirección
     void move_to(int target_tile_x, int target_tile_y, Direction dir);
+    void set_ghost(bool ghost);
 
     void set_name(const std::string& name_) { name = name_; }
 

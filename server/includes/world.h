@@ -86,7 +86,8 @@ public:
     Position calculatePositionRandom(const Id& zone_id);
     Position calculatePositionRandomSafeZone();
     Position findNearbyFreePosition(const Position& center) const;
-    // Position findNearbyHealerPosition(const Position& center);
+    NpcInstance findNearestHealer(const Position& center) const;
+    static uint32_t distanceBetweenPositions(const Position& from, const Position& to);
 
     void addPlayerWorld(const Id& player_id, const Pose& pose);
     void addNpcWorld(const NpcInstance& npc);
@@ -98,11 +99,12 @@ public:
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void removeCreature(const Id& creature_id);
     Pose movePlayer(const Id& player_id, Direction dir);
+    Pose teleportPlayer(const Id& player_id, const Position& position);
 
     // Position positionEntityTheWorld(const Id& id) const;
     Position positionPlayerInTheWorld(const Id& player_id);
 
-    void playerTakeItemOnTheFloor(Player& player);
+    bool playerTakeItemOnTheFloor(Player& player);
 
     // std::unique_ptr<ItemInstance> pickUpItem(const Position& pos);
     //  void dropItem(const Position& pos, std::unique_ptr<ItemInstance> item);
