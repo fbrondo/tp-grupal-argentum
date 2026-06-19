@@ -100,6 +100,8 @@ public:
     void startResurrection();
     void finishResurrection();
     void earnExperiencePoints(CombatEntity* victim, uint16_t damage);
+    void earnKillExp(CombatEntity* victim);
+    void consumeMana(uint16_t amount);
 
     void buyItem(const ShopItem* item);
     void sellItem(TypeItem type_item, uint32_t sell_price);
