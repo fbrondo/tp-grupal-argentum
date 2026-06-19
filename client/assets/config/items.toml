@@ -1,0 +1,28 @@
+# Static item texture catalog
+# Items are single-frame textures (no spritesheet animation).
+# Entries: id = enum value, file = PNG filename (relative to dir).
+
+[items]
+dir = "client/assets/Sprites/Items"
+entries = [
+    { id = 1, file = "1000.png" },
+    { id = 2, file = "1001.png" },
+    { id = 3, file = "1002.png" },
+    { id = 4, file = "1100.png" },
+    { id = 5, file = "1101.png" },
+    { id = 6, file = "1102.png" },
+    { id = 7, file = "1103.png" },
+    { id = 8, file = "1003.png" },
+    { id = 9, file = "1004.png" },
+    { id = 10, file = "1400.png" },
+    { id = 11, file = "1401.png" },
+    { id = 12, file = "1402.png" },
+    { id = 13, file = "1300.png" },
+    { id = 14, file = "1301.png" },
+    { id = 15, file = "1500.png" },
+    { id = 16, file = "1501.png" },
+    { id = 17, file = "1302.png" },
+    { id = 18, file = "1600.png" },
+    { id = 19, file = "1601.png" },
+    { id = 20, file = "2000.png" },
+]

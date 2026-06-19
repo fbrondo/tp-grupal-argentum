@@ -474,19 +474,12 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         case WITHDRAW_ITEM: {
             Id item_id;
             socket.recvall(&item_id, sizeof(item_id));
-            item_id = ntohs(item_id);
-
-            Id npc_id;
-            socket.recvall(&item_id, sizeof(npc_id));
-            item_id = ntohs(item_id);
-
-            uint8_t type_item;
-            socket.recvall(&type_item, sizeof(type_item));
+            item_id = ntohl(item_id);
 
             if (opcode == DEPOSIT_ITEM) {
-                queue.push(std::make_unique<DepositItemCommand>(player_id, npc_id, type_item));
+                queue.push(std::make_unique<DepositItemCommand>(player_id, item_id, 0));
             } else {
-                queue.push(std::make_unique<WithdrawItemCommand>(player_id, npc_id, type_item));
+                queue.push(std::make_unique<WithdrawItemCommand>(player_id, item_id, 0));
             }
             break;
         }
@@ -514,8 +507,8 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         case EQUIP_ITEM:
         case UNEQUIP_ITEM: {
             Id item_id;
-            socket.recvall(&item_id, 2);
-            item_id = ntohs(item_id);
+            socket.recvall(&item_id, sizeof(item_id));
+            item_id = ntohl(item_id);
 
             if (opcode == EQUIP_ITEM) {
                 queue.push(std::make_unique<EquipCommand>(player_id, item_id));

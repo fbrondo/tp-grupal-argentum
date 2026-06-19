@@ -1,0 +1,60 @@
+# Head texture catalog
+# Each section defines a race group with shared spritesheet dimensions.
+# Entries: id = enum value, file = PNG filename (relative to dir).
+
+[human]
+dir = "common/assets/units/heads/humanos"
+frame_width = 27
+frame_height = 64
+frames_per_row = 1
+entries = [
+    { id = 3060, file = "3060.png" },
+    { id = 3061, file = "3061.png" },
+    { id = 3062, file = "3062.png" },
+    { id = 3063, file = "3063.png" },
+    { id = 3064, file = "3064.png" },
+    { id = 3065, file = "3065.png" },
+    { id = 3066, file = "3066.png" },
+]
+
+[elf]
+dir = "common/assets/units/heads/elfos"
+frame_width = 27
+frame_height = 64
+frames_per_row = 1
+entries = [
+    { id = 3000, file = "3000.png" },
+    { id = 3001, file = "3001.png" },
+    { id = 3002, file = "3002.png" },
+    { id = 3003, file = "3003.png" },
+    { id = 3004, file = "3004.png" },
+    { id = 3005, file = "3005.png" },
+]
+
+[dwarf]
+dir = "common/assets/units/heads/enanos"
+frame_width = 27
+frame_height = 64
+frames_per_row = 1
+entries = [
+    { id = 3020, file = "3020.png" },
+    { id = 3021, file = "3021.png" },
+    { id = 3022, file = "3022.png" },
+    { id = 3023, file = "3023.png" },
+    { id = 3024, file = "3024.png" },
+    { id = 3025, file = "3025.png" },
+]
+
+[gnome]
+dir = "common/assets/units/heads/gnomos"
+frame_width = 27
+frame_height = 64
+frames_per_row = 1
+entries = [
+    { id = 3040, file = "3040.png" },
+    { id = 3041, file = "3041.png" },
+    { id = 3042, file = "3042.png" },
+    { id = 3043, file = "3043.png" },
+    { id = 3044, file = "3044.png" },
+    { id = 3045, file = "3045.png" },
+]

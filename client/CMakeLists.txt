@@ -11,6 +11,7 @@ target_sources(taller_client
         src/menu_handler.cpp
         src/command_processor.cpp
         src/texture_manager.cpp
+        src/asset_catalog_loader.cpp
         src/window/windowSDL.cpp
         src/renderable_entity.cpp
         src/world_renderer.cpp
@@ -29,6 +30,7 @@ target_sources(taller_client
         includes/commands/command_create_character.h
         includes/commands/command_chat.h
         includes/texture_manager.h
+        includes/asset_catalog_loader.h
         includes/window/window.h
         includes/window/windowSDL.h
         includes/renderable_entity.h

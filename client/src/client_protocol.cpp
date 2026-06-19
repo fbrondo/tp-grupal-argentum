@@ -203,7 +203,7 @@ void ClientProtocol::sendListItems(Id npc_id) {
 }
 
 void ClientProtocol::sendDepositItem(Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t);
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
@@ -211,7 +211,7 @@ void ClientProtocol::sendDepositItem(Id item_id) {
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
 
-    uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
+    uint32_t item_id_net = htonl(item_id);
     std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
 
     try {
@@ -222,7 +222,7 @@ void ClientProtocol::sendDepositItem(Id item_id) {
 }
 
 void ClientProtocol::sendWithdrawItem(Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t);
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
@@ -230,7 +230,7 @@ void ClientProtocol::sendWithdrawItem(Id item_id) {
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
 
-    uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
+    uint32_t item_id_net = htonl(item_id);
     std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
 
     try {
@@ -390,9 +390,6 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 NpcSnapshotData n;
                 socket.recvall(&n, sizeof(NpcSnapshotData));
                 n.id = ntohl(n.id);
-                n.pos_x = ntohl(n.pos_x);
-                n.pos_y = ntohl(n.pos_y);
-                n.type_id = ntohs(n.type_id);
                 n.pos_x = ntohl(n.pos_x);
                 n.pos_y = ntohl(n.pos_y);
                 n.current_hp = ntohs(n.current_hp);
