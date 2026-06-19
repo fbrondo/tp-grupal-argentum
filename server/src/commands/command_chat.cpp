@@ -17,7 +17,7 @@ void ChatCommand::execute(Gameloop& game) {
         return;
     // Chat común
     if (this->text.rfind("/", 0) != 0) {
-        // game.processBroadcastChat(this->client_id, this->text); A implementar
+        game.processBroadcastChat(this->client_id, this->text);
         return;
     }
     if (this->text == MEDITATE) {

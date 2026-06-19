@@ -8,7 +8,7 @@ HudRenderer::HudRenderer(SDL2pp::Renderer& r, TextureManager& tm, int width, int
         texture_manager(tm),
         w_width(width),
         w_height(height),
-        font("client/assets/Fonts/DejaVuSans-Bold.ttf", 14) {}
+        font("client/assets/Fonts/CinzelBold.ttf", 14) {}
 
 std::unique_ptr<SDL2pp::Texture> HudRenderer::create_text_texture(const std::string& text) {
     if (text.empty()) {
@@ -131,7 +131,7 @@ void HudRenderer::update_resurrection_timer(uint16_t time_left_ms) {
         return;
     }
 
-    const uint16_t seconds_left = static_cast<uint16_t>((resurrection_time_left_ms + 999) / 1000);
+    const auto seconds_left = static_cast<uint16_t>((resurrection_time_left_ms + 999) / 1000);
     resurrection_texture =
             create_text_texture("Estas resucitando... " + std::to_string(seconds_left) + "s");
 }

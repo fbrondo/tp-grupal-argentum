@@ -80,6 +80,7 @@ public:
     void processHandleLogin(const Id& player_id, const User& user);
     void sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response);
     void executeAttackPlayer(const Id& player_id, const Id& victim_id);
+    void sendCombatMessage(Id target_id, const std::string& msg);
 
     void processMovePlayer(Id player_id, Direction dir);
     void processBuyItem(Id player_id, Id npc_id, TypeItem type_item); /*enviabas un ID item_id*/
@@ -103,6 +104,7 @@ public:
     void processPlayerResurrect(Id player_id);
     void processPlayerDebugKill(Id player_id);
     void processListItems(Id player_id, Id npc_id);
+    void processBroadcastChat(Id sender_id, const std::string& text);
 
 
     void respawnDeadNpcs();

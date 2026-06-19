@@ -65,6 +65,16 @@ void WorldRenderer::set_chat_bubble_on_local(const std::string& text) {
     }
 }
 
+void WorldRenderer::set_chat_bubble_on_player(const std::string& player_name,
+                                              const std::string& text) {
+    for (auto& [key, entity]: entities) {
+        if (entity->get_name() == player_name) {
+            entity->set_chat_bubble(text);
+            return;
+        }
+    }
+}
+
 void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
     hud_renderer.update_stats(stats);
 }

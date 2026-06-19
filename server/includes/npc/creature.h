@@ -28,6 +28,7 @@ public:
     void onDeath(World& world) override;
     CreatureData getCreatureData();
     NpcSnapshotData getNpcSnapshotData();
+    TypeNPC getTypeNPC() const { return type_creature; }
 };
 
 

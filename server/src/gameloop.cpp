@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 #include <ranges>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -21,6 +22,7 @@
 #include "server/includes/npc/priest.h"
 #include "server/includes/response_builder.h"
 #include "server/includes/responses/response_bank_content.h"
+#include "server/includes/responses/response_chat_msg.h"
 #include "server/includes/responses/response_equipment_update.h"
 #include "server/includes/responses/response_inventory_update.h"
 #include "server/includes/responses/response_login.h"
@@ -209,6 +211,12 @@ void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> resp
     this->monitor.queueTheServerResponse(player_id, std::move(response));
 }
 
+void Gameloop::sendCombatMessage(Id target_id, const std::string& msg) {
+    if (this->players.contains(target_id)) {
+        this->sendResponseToPlayer(target_id, std::make_shared<ResponseChatMsg>(msg));
+    }
+}
+
 bool Gameloop::isItPossibleToAttack(const Id& player_id, const Id& victim_id, Weapon& weapon) {
     auto magic_weapon = dynamic_cast<MagicWeapon*>(&weapon);
     if (magic_weapon && !this->players[player_id]->hasEnoughMana(magic_weapon->range_attack)) {
@@ -267,10 +275,29 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     if (!this->isItPossibleToAttack(attacker_id, victim_id, *weapon)) {
         return;
     }
+
+    // Obtener nombre del victim para mensajes
+    std::string victim_name;
+    if (auto* victim_player = dynamic_cast<Player*>(victim)) {
+        victim_name = victim_player->getUsername();
+    } else if (auto* creature = dynamic_cast<Creature*>(victim)) {
+        victim_name = Print::npcToString(creature->getTypeNPC());
+    }
+
     bool is_critical = false;
     uint16_t damage_by_attacker = attacker->calculateDamage(is_critical, *weapon);
     if (!is_critical && victim->dodgeAttack()) {
-        return;  // Registrar sonido de esquivado
+        // Mensaje al victim (si es jugador): esquivó el ataque
+        if (dynamic_cast<Player*>(victim)) {
+            this->sendCombatMessage(victim_id, "Has esquivado el ataque.");
+        }
+        // Mensaje al attacker: su objetivo esquivó
+        {
+            std::ostringstream oss;
+            oss << victim_name << " esquivó tu ataque.";
+            this->sendCombatMessage(attacker_id, oss.str());
+        }
+        return;
     }
     if (const auto player = dynamic_cast<Player*>(victim)) { /*Si la victima es un jugador*/
         const std::vector<Defense*> equip_defensive = this->getPlayerDefensiveEquipment(victim_id);
@@ -286,9 +313,37 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     golpe_sound.pos_y = position.y;
     this->sounds_of_current_tick.push_back(std::move(golpe_sound));
     victim->receiveDamage(damage_by_attacker, this->world);
-    if (!victim->isAlive() && dynamic_cast<Creature*>(victim)) {
+
+    // Determinar si el victim murió
+    const bool victim_died = !victim->isAlive();
+
+    if (victim_died && dynamic_cast<Creature*>(victim)) {
         this->creatures.erase(victim_id);
     }
+
+    // Mensajes de combate
+    const std::string attacker_name = attacker->getUsername();
+
+    // Mensaje al attacker
+    {
+        std::ostringstream oss;
+        oss << "Infligiste " << damage_by_attacker << " de daño a " << victim_name << ".";
+        if (victim_died) {
+            oss << " " << victim_name << " ha muerto.";
+        }
+        this->sendCombatMessage(attacker_id, oss.str());
+    }
+
+    // Mensaje al victim (si es jugador)
+    if (dynamic_cast<Player*>(victim)) {
+        std::ostringstream oss;
+        oss << "Recibiste " << damage_by_attacker << " de daño de " << attacker_name << ".";
+        if (victim_died) {
+            oss << " Has muerto.";
+        }
+        this->sendCombatMessage(victim_id, oss.str());
+    }
+
     this->players[attacker_id]->breakMeditation();
 }
 
@@ -558,6 +613,19 @@ void Gameloop::processPlayerDebugKill(Id player_id) {
         return;
     }
     player->receiveDamage(std::numeric_limits<uint16_t>::max(), this->world);
+}
+
+void Gameloop::processBroadcastChat(Id sender_id, const std::string& text) {
+    if (!this->players.contains(sender_id)) {
+        return;
+    }
+    const std::string sender_name = this->players.at(sender_id)->getUsername();
+    std::ostringstream oss;
+    oss << sender_name << ": " << text;
+    const std::string formatted = oss.str();
+    for (auto& [id, player]: this->players) {
+        this->sendResponseToPlayer(id, std::make_shared<ResponseChatMsg>(formatted));
+    }
 }
 
 void Gameloop::execuetRequest() {

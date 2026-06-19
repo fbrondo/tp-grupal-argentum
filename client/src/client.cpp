@@ -192,10 +192,21 @@ void Client::update_state_from_server() {
             case TypeEventClient::OWN_STATS:
                 world_renderer.update_hud_stats(event.stats);
                 break;
-            case TypeEventClient::CHAT_MSG:
-                chat.add_message_to_log(event.text_payload);
-                world_renderer.add_chat_message(event.text_payload);
+            case TypeEventClient::CHAT_MSG: {
+                // Check if it's a player chat message (format: "Name: text")
+                const auto colon_pos = event.text_payload.find(": ");
+                if (colon_pos != std::string::npos) {
+                    const std::string sender_name = event.text_payload.substr(0, colon_pos);
+                    const std::string message_text = event.text_payload.substr(colon_pos + 2);
+                    // Show as bubble above sender's head
+                    world_renderer.set_chat_bubble_on_player(sender_name, message_text);
+                } else {
+                    // System/combat message: show in console
+                    chat.add_message_to_log(event.text_payload);
+                    world_renderer.add_chat_message(event.text_payload);
+                }
                 break;
+            }
             case TypeEventClient::DISCONNECTION:
                 is_running = false;
                 break;

@@ -14,6 +14,7 @@ QueueResp& MonitorQueues::addQueuePlayer(const Id& player_id) {
 }
 void MonitorQueues::queueTheServerResponse(const Id& player_id,
                                            std::shared_ptr<Response>&& response_server) {
+    std::lock_guard lock(this->mut);
     this->queues_players[player_id].try_push(std::move(response_server));
 }
 
