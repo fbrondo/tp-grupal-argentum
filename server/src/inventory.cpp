@@ -1,5 +1,7 @@
 #include "server/includes/inventory.h"
 
+#include <algorithm>
+
 #include "server/includes/core/instances.h"
 #include "server/includes/world.h"
 
@@ -25,6 +27,9 @@ bool Inventory::isInventoryFull() const { return this->size_current == this->max
 bool Inventory::isInventoryEmpty() const { return this->size_current == 0; }
 
 bool Inventory::slotEmpty(const size_t& index) const {
+    if (index >= this->slots.size()) {
+        return true;
+    }
     const auto& slot = this->slots[index];
     return slot.isEmpty();
 }
@@ -51,8 +56,34 @@ bool Inventory::setItemInTheEquipment(Equipment& equipment, size_t slot_index) {
     if (this->slotEmpty(slot_index)) {
         return false; /*SLOT VACIO*/
     }
-    const auto instance = this->slots[slot_index].getItemInstance();
-    equipment.equipItem(instance);
+    const auto* target_item = dynamic_cast<const ShopItem*>(this->slots[slot_index].getItem());
+    if (target_item == nullptr) {
+        return false;
+    }
+
+    std::unique_ptr<ItemInstance> instance = this->slots[slot_index].takeOneItem();
+    if (this->slots[slot_index].isEmpty()) {
+        this->size_current -= 1;
+    }
+
+    std::unique_ptr<ItemInstance> replaced_item = equipment.equipItem(std::move(instance));
+    if (replaced_item && !this->setItemInstanceInInventory(replaced_item)) {
+        std::unique_ptr<ItemInstance> equipped_item = equipment.equipItem(std::move(replaced_item));
+        this->setItemInstanceInInventory(equipped_item);
+        return false;
+    }
+    return true;
+}
+
+bool Inventory::removeItemFromEquipment(Equipment& equipment, size_t equipment_slot_index) {
+    std::unique_ptr<ItemInstance> instance = equipment.removeItem(equipment_slot_index);
+    if (!instance) {
+        return false;
+    }
+    if (!this->setItemInstanceInInventory(instance)) {
+        equipment.equipItem(std::move(instance));
+        return false;
+    }
     return true;
 }
 
@@ -80,8 +111,6 @@ std::vector<MsgSlot> Inventory::getInventory() const {
     return inventory;
 }
 
-std::vector<size_t> Inventory::getSlotsEquipment() { return this->indexs_slots_equipment; }
-
 void Inventory::dropInventory(World& world, const Position& position) {
     for (auto& slot: slots) {
         while (!slot.isEmpty()) {
@@ -96,9 +125,8 @@ void Inventory::dropInventory(World& world, const Position& position) {
 
 void Inventory::incrementSlotInventory(const size_t& index) {
     auto& slot = this->slots[index];
-    slot.increase();
-    if (slot.isFull()) {
-        this->size_current += 1;
+    if (!slot.isFull()) {
+        slot.increase();
     }
 }
 
@@ -107,9 +135,29 @@ void Inventory::setItemInInventory(const ShopItem* item) {
         if (slot.isEmpty()) {
             slot.setItem(std::make_unique<ItemInstance>(item));
             slot.increase();
+            this->size_current += 1;
             break;
         }
     }
+}
+
+bool Inventory::setItemInstanceInInventory(std::unique_ptr<ItemInstance>& instance) {
+    const auto existing_slot = this->searchItemInInventory(instance->item->type);
+    if (existing_slot.has_value() && !this->slots[existing_slot.value()].isFull()) {
+        this->slots[existing_slot.value()].increase();
+        instance.reset();
+        return true;
+    }
+
+    for (auto& slot: this->slots) {
+        if (slot.isEmpty()) {
+            slot.setItem(std::move(instance));
+            slot.increase();
+            this->size_current += 1;
+            return true;
+        }
+    }
+    return false;
 }
 
 void Inventory::removeItemFromInventory(size_t index) {

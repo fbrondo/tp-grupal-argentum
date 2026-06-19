@@ -132,11 +132,15 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
 
 void ServerProtocol::sendInventoryUpdate(const MsgInventoryUpdate& inv) const {
     MsgInventoryUpdate temp = inv;
-    uint16_t size_inventory = htonl(static_cast<uint8_t>(temp.inventory.size()));
-    size_t size_buffer = sizeof(size_inventory) + (temp.inventory.size() * sizeof(MsgSlot));
+    constexpr uint8_t opcode = INVENTORY_UPDATE;
+    uint16_t size_inventory = htons(static_cast<uint16_t>(temp.inventory.size()));
+    size_t size_buffer =
+            sizeof(opcode) + sizeof(size_inventory) + (temp.inventory.size() * sizeof(MsgSlot));
     std::vector<char> buffer(size_buffer);
     size_t offset = 0;
 
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
     std::memcpy(buffer.data() + offset, &size_inventory, sizeof(size_inventory));
     offset += sizeof(size_inventory);
     for (auto& slot: temp.inventory) {
@@ -156,14 +160,19 @@ void ServerProtocol::sendInventoryUpdate(const MsgInventoryUpdate& inv) const {
 
 void ServerProtocol::sendEquipmentUpdate(const MsgEquipmentUpdate& equip) const {
     // MsgEquipmentUpdate temp = equip;
-    uint16_t equipment = htonl(static_cast<uint8_t>(equip.equipment.size()));
-    size_t size_buffer = sizeof(equipment) + (equip.equipment.size() * sizeof(MsgSlot));
+    constexpr uint8_t opcode = EQUIPMENT_UPDATE;
+    uint16_t equipment = htons(static_cast<uint16_t>(equip.equipment.size()));
+    size_t size_buffer =
+            sizeof(opcode) + sizeof(equipment) + (equip.equipment.size() * sizeof(MsgSlot));
     std::vector<char> buffer(size_buffer);
     size_t offset = 0;
 
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
     std::memcpy(buffer.data() + offset, &equipment, sizeof(equipment));
     offset += sizeof(equipment);
-    for (const auto slot: equip.equipment) {
+    for (auto slot: equip.equipment) {
+        slot.quantity = htons(slot.quantity);
         std::memcpy(buffer.data() + offset, &slot, sizeof(slot));
         offset += sizeof(slot);
     }
@@ -547,8 +556,8 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         case EQUIP_ITEM:
         case UNEQUIP_ITEM: {
             Id item_id;
-            socket.recvall(&item_id, 2);
-            item_id = ntohs(item_id);
+            socket.recvall(&item_id, sizeof(item_id));
+            item_id = ntohl(item_id);
 
             if (opcode == EQUIP_ITEM) {
                 queue.push(std::make_unique<EquipCommand>(player_id, item_id));

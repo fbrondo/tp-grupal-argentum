@@ -92,9 +92,9 @@ public:
     void processPlayerDepositGold(Id player_id, uint32_t amount);
     void processPlayerWithdrawGold(Id player_id, uint32_t amount);
     void processPlayerEquipItem(Id player_id, size_t slot_id);
+    void processPlayerUnequipItem(Id player_id, size_t slot_id);
 
     void processPlayerDisconnet(Id player_id);
-    // void processPlayerUnequipItem(Id player_id, size_t slot_id);
     // void processPlayerUseItem(Id player_id, Id instance_id);
 
 

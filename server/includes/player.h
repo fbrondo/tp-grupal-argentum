@@ -54,6 +54,8 @@ public:
                     const PlayerStateInit& state_init);
 
     TypeItem getHandItem();
+    TypeItem getShieldItem() const;
+    TypeItem getHelmetItem() const;
     std::vector<TypeItem> getEquipment();
     std::vector<MsgSlot> getSlotsInventory() const;
     std::vector<MsgSlot> getSlotsEquipment() const;
@@ -105,6 +107,7 @@ public:
     void sellItem(TypeItem type_item, uint32_t sell_price);
     bool dropItem(size_t index, World& world);
     bool equipItem(size_t slot_id);
+    bool unequipItem(size_t slot_id);
 
     // void addItemToInventory(std::unique_ptr<ItemInstance> item);
     // std::unique_ptr<ItemInstance> removeItemFromInventory(Id instance_id);

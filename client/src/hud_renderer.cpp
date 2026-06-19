@@ -3,6 +3,53 @@
 #include <algorithm>
 #include <string>
 
+namespace {
+constexpr int INVENTORY_SLOT_SIZE = 32;
+constexpr int INVENTORY_SLOT_GAP_X = 7;
+constexpr int INVENTORY_SLOT_GAP_Y = 8;
+constexpr int INVENTORY_SLOT_COLUMNS = 6;
+constexpr int INVENTORY_GRID_X = PANEL_RIGHT_X + 20;
+constexpr int INVENTORY_GRID_Y = INVENTORY_Y + 122;
+constexpr int EQUIPMENT_SLOT_SIZE = 32;
+constexpr int EQUIPMENT_GRID_Y = INVENTORY_Y + 40;
+constexpr int EQUIPMENT_WEAPON_X = PANEL_RIGHT_X + 36;
+constexpr int EQUIPMENT_HELMET_X = PANEL_RIGHT_X + 112;
+constexpr int EQUIPMENT_ARMOR_X = PANEL_RIGHT_X + 156;
+constexpr int EQUIPMENT_SHIELD_X = PANEL_RIGHT_X + 205;
+
+std::optional<SDL_Rect> equipment_rect_for_item(uint8_t type_item) {
+    switch (static_cast<TypeItem>(type_item)) {
+        case SWORD:
+        case AXE:
+        case HAMMER:
+        case ASH_STAFF:
+        case ELVEN_FLUTE:
+        case KNOTTED_STAFF:
+        case INLAID_STAFF:
+        case SIMPLE_BOW:
+        case COMPOUND_BOW:
+            return SDL_Rect{EQUIPMENT_WEAPON_X, EQUIPMENT_GRID_Y, EQUIPMENT_SLOT_SIZE,
+                            EQUIPMENT_SLOT_SIZE};
+        case HOOD:
+        case IRON_HELMET:
+        case MAGIC_HAT:
+            return SDL_Rect{EQUIPMENT_HELMET_X, EQUIPMENT_GRID_Y, EQUIPMENT_SLOT_SIZE,
+                            EQUIPMENT_SLOT_SIZE};
+        case LEATHER_ARMOR:
+        case PLATE_AMOR:
+        case BLUE_TUNIC:
+            return SDL_Rect{EQUIPMENT_ARMOR_X, EQUIPMENT_GRID_Y, EQUIPMENT_SLOT_SIZE,
+                            EQUIPMENT_SLOT_SIZE};
+        case TORTOISE_SHIELD:
+        case IRON_SHIELD:
+            return SDL_Rect{EQUIPMENT_SHIELD_X, EQUIPMENT_GRID_Y, EQUIPMENT_SLOT_SIZE,
+                            EQUIPMENT_SLOT_SIZE};
+        default:
+            return std::nullopt;
+    }
+}
+}  // namespace
+
 HudRenderer::HudRenderer(SDL2pp::Renderer& r, TextureManager& tm, int width, int height):
         renderer(r),
         texture_manager(tm),
@@ -67,6 +114,26 @@ void HudRenderer::update_stats(const MsgPlayerStats& new_stats) {
     }
 }
 
+void HudRenderer::update_inventory(const std::vector<MsgSlot>& slots) {
+    inventory_slots.clear();
+    for (const auto& slot: slots) {
+        if (slot.type_item == NONE || slot.quantity == 0) {
+            continue;
+        }
+        inventory_slots[slot.slot_index] = slot;
+    }
+}
+
+void HudRenderer::update_equipment(const std::vector<MsgSlot>& slots) {
+    equipped_inventory_slots.clear();
+    for (const auto& slot: slots) {
+        if (slot.type_item == NONE || slot.quantity == 0) {
+            continue;
+        }
+        equipped_inventory_slots[slot.slot_index] = slot;
+    }
+}
+
 float calculate_percentage(uint32_t current, uint32_t maximum) {
     if (maximum == 0)
         return 0.0f;
@@ -94,6 +161,44 @@ void HudRenderer::render_progress_bar(int x, int y, int width, int height, uint3
 bool HudRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) const {
     return (x >= CONSOLE_X && x <= CONSOLE_X + CONSOLE_W && y >= CONSOLE_Y &&
             y <= CONSOLE_Y + CONSOLE_H);
+}
+
+std::optional<uint8_t> HudRenderer::inventory_slot_at(const uint32_t x, const uint32_t y) const {
+    if (x < INVENTORY_GRID_X || y < INVENTORY_GRID_Y) {
+        return std::nullopt;
+    }
+
+    const uint32_t local_x = x - INVENTORY_GRID_X;
+    const uint32_t local_y = y - INVENTORY_GRID_Y;
+    const uint32_t cell_w = INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X;
+    const uint32_t cell_h = INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y;
+    const uint32_t col = local_x / cell_w;
+    const uint32_t row = local_y / cell_h;
+
+    if (col >= INVENTORY_SLOT_COLUMNS || local_x % cell_w >= INVENTORY_SLOT_SIZE ||
+        local_y % cell_h >= INVENTORY_SLOT_SIZE) {
+        return std::nullopt;
+    }
+
+    const auto slot_index = static_cast<uint8_t>(row * INVENTORY_SLOT_COLUMNS + col);
+    if (!inventory_slots.contains(slot_index) || equipped_inventory_slots.contains(slot_index)) {
+        return std::nullopt;
+    }
+    return slot_index;
+}
+
+std::optional<uint8_t> HudRenderer::equipment_slot_at(const uint32_t x, const uint32_t y) const {
+    for (const auto& [inventory_slot, slot]: equipped_inventory_slots) {
+        const auto rect = equipment_rect_for_item(slot.type_item);
+        if (!rect.has_value()) {
+            continue;
+        }
+        if (x >= static_cast<uint32_t>(rect->x) && x < static_cast<uint32_t>(rect->x + rect->w) &&
+            y >= static_cast<uint32_t>(rect->y) && y < static_cast<uint32_t>(rect->y + rect->h)) {
+            return inventory_slot;
+        }
+    }
+    return std::nullopt;
 }
 
 void HudRenderer::add_chat_message(const std::string& msg) {
@@ -177,6 +282,62 @@ void HudRenderer::render_chat() const {
     }
 }
 
+void HudRenderer::render_inventory() const {
+    for (const auto& [slot_index, slot]: inventory_slots) {
+        if (equipped_inventory_slots.contains(slot_index)) {
+            continue;
+        }
+
+        const int col = slot_index % INVENTORY_SLOT_COLUMNS;
+        const int row = slot_index / INVENTORY_SLOT_COLUMNS;
+        const int x = INVENTORY_GRID_X + col * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X);
+        const int y = INVENTORY_GRID_Y + row * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y);
+
+        try {
+            SDL2pp::Texture& item_texture =
+                    texture_manager.get_texture("item_" + std::to_string(slot.type_item));
+            const int tex_w = item_texture.GetWidth();
+            const int tex_h = item_texture.GetHeight();
+            const int scale = std::max(tex_w, tex_h);
+            int dst_w = tex_w;
+            int dst_h = tex_h;
+            if (scale > INVENTORY_SLOT_SIZE) {
+                dst_w = tex_w * INVENTORY_SLOT_SIZE / scale;
+                dst_h = tex_h * INVENTORY_SLOT_SIZE / scale;
+            }
+            renderer.Copy(item_texture, SDL2pp::NullOpt,
+                          SDL2pp::Rect(x + (INVENTORY_SLOT_SIZE - dst_w) / 2,
+                                       y + (INVENTORY_SLOT_SIZE - dst_h) / 2, dst_w, dst_h));
+        } catch (...) {}
+    }
+
+    for (const auto& [slot_index, slot]: equipped_inventory_slots) {
+        const auto rect = equipment_rect_for_item(slot.type_item);
+        if (!rect.has_value()) {
+            continue;
+        }
+
+        try {
+            renderer.Copy(texture_manager.get_texture("hud_inventory_selected"), SDL2pp::NullOpt,
+                          SDL2pp::Rect(*rect));
+            SDL2pp::Texture& item_texture =
+                    texture_manager.get_texture("item_" + std::to_string(slot.type_item));
+            const int tex_w = item_texture.GetWidth();
+            const int tex_h = item_texture.GetHeight();
+            const int scale = std::max(tex_w, tex_h);
+            int dst_w = tex_w;
+            int dst_h = tex_h;
+            if (scale > EQUIPMENT_SLOT_SIZE) {
+                dst_w = tex_w * EQUIPMENT_SLOT_SIZE / scale;
+                dst_h = tex_h * EQUIPMENT_SLOT_SIZE / scale;
+            }
+            renderer.Copy(item_texture, SDL2pp::NullOpt,
+                          SDL2pp::Rect(rect->x + (EQUIPMENT_SLOT_SIZE - dst_w) / 2,
+                                       rect->y + (EQUIPMENT_SLOT_SIZE - dst_h) / 2, dst_w, dst_h));
+        } catch (...) {}
+    }
+}
+
 void HudRenderer::render() const {
 
     // Consola (arriba izquierda)
@@ -193,6 +354,7 @@ void HudRenderer::render() const {
     // Inventario
     renderer.Copy(texture_manager.get_texture("hud_inventory_base"), SDL2pp::NullOpt,
                   SDL2pp::Rect(PANEL_RIGHT_X, INVENTORY_Y, INVENTORY_W, INVENTORY_H));
+    render_inventory();
 
     // Stats (vida/mana)
     renderer.Copy(texture_manager.get_texture("hud_stats_base"), SDL2pp::NullOpt,

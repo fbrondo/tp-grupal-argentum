@@ -31,6 +31,7 @@ private:
     uint16_t head_id;
     uint8_t weapon_id;
     uint8_t shield_id;
+    uint8_t helmet_id;
     bool is_ghost;
 
     AnimationState anim_state;
@@ -38,7 +39,7 @@ private:
 public:
     RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_, int start_tile_y_,
                      uint16_t body_id_, uint16_t head_id_, uint8_t weapon_id_, uint8_t shield_id_,
-                     bool is_short_race_ = false);
+                     uint8_t helmet_id_ = 0, bool is_short_race_ = false);
 
     virtual ~RenderableEntity() = default;
 
@@ -54,6 +55,7 @@ public:
 
     // Método para cuando el servidor nos notifica una actualización de posición/dirección
     void move_to(int target_tile_x, int target_tile_y, Direction dir);
+    void set_equipment(uint8_t weapon_id_, uint8_t shield_id_, uint8_t helmet_id_);
     void set_ghost(bool ghost);
 
     // Getters limpios y constantes para el ordenamiento Z (Algoritmo del Pintor)

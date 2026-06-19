@@ -3,9 +3,9 @@
 
 class CommandUnequip: public Command {
 private:
-    Id instance_id;
+    size_t slot_id;
 
 public:
-    CommandUnequip(Id id, Id instance_id);
+    CommandUnequip(Id id, size_t slot_id_);
     void execute(Gameloop& gameloop) override;
 };

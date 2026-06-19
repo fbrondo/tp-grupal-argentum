@@ -37,6 +37,7 @@
 namespace {
 constexpr uint32_t RESURRECTION_MS_PER_TILE = 250;
 constexpr uint32_t MIN_RESURRECTION_DELAY_MS = 1000;
+constexpr TypeItem DEBUG_EQUIPMENT_ITEM = SWORD;  // prueba inventario
 }  // namespace
 
 using RespSnapshot = std::shared_ptr<ResponseSnapshot>;
@@ -145,12 +146,18 @@ Inventory Gameloop::loadingInventory(const PlayerData& player) {
             result.addItemToInventory(item);
         }
     }
+    if (!result.itemInInventory(DEBUG_EQUIPMENT_ITEM)) {  // prueba inventario
+        const auto* item = dynamic_cast<ShopItem*>(this->conf.items.at(DEBUG_EQUIPMENT_ITEM).get());
+        if (item != nullptr) {
+            result.addItemToInventory(item);
+        }
+    }
     return result;
 }
 
 void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_data) {
     Character charact = this->createCharacter(player_data.charact_traits);
-    Inventory inv;  // this->loadingInventory(player_data);
+    Inventory inv = this->loadingInventory(player_data);
     Position position = this->world.findNearbyFreePosition(player_data.position);
     Direction dir = static_cast<Direction>(player_data.direction);
     Pose pose(position, dir);
@@ -203,6 +210,9 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     auto citizen_snapshot = ResponseBuilder::buildCitizenNpcSnapshot(this->citizen_npcs);
     this->monitor.queueTheServerResponse(
             player_id, std::make_unique<ResponseMap>(std::move(map), std::move(citizen_snapshot)));
+    const auto inv = this->players.at(player_id)->getSlotsInventory();
+    MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
 }
 
 void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
@@ -368,6 +378,23 @@ void Gameloop::processPlayerEquipItem(Id player_id, size_t slot_id) {
         const auto slots = player->getSlotsEquipment();
         MsgEquipmentUpdate msg{EQUIPMENT_UPDATE, slots};
         this->sendResponseToPlayer(player_id, std::make_shared<ResponseEquipmentUpdate>(msg));
+        const auto inv = player->getSlotsInventory();
+        MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+    }
+}
+
+void Gameloop::processPlayerUnequipItem(Id player_id, size_t slot_id) {
+    Player* player = this->players.at(player_id).get();
+    if (!player->isAlive())
+        return;
+    if (player->unequipItem(slot_id)) {
+        const auto slots = player->getSlotsEquipment();
+        MsgEquipmentUpdate msg{EQUIPMENT_UPDATE, slots};
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseEquipmentUpdate>(msg));
+        const auto inv = player->getSlotsInventory();
+        MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
     }
 }
 

@@ -349,7 +349,7 @@ void TextureManager::load_animation_items(
     register_spritesheet("anim_hum_elf_" + std::to_string(TORTOISE_SHIELD), 25, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(IRON_SHIELD),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/humanos-elfos/1501.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_HELMET), 27, 63, 1);
+    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_SHIELD), 25, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(MAGIC_HAT),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/humanos-elfos/1302.png");
     register_spritesheet("anim_hum_elf_" + std::to_string(MAGIC_HAT), 27, 63, 1);

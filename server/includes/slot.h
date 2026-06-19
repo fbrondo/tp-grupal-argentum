@@ -28,7 +28,7 @@ public:
     void increase();
     void decrease();
     void setItem(std::unique_ptr<ItemInstance>&& instance_);
-    ItemInstance* getItemInstance();
+    std::unique_ptr<ItemInstance> takeOneItem();
 
     uint32_t getQuantity() const;
     TypeItem getTypeItem() const;

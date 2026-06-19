@@ -7,7 +7,8 @@ static constexpr int TILE_SIZE = 32;
 
 RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_,
                                    int start_tile_y_, uint16_t body_id_, uint16_t head_id_,
-                                   uint8_t weapon_id_, uint8_t shield_id_, bool is_short_race_):
+                                   uint8_t weapon_id_, uint8_t shield_id_, uint8_t helmet_id_,
+                                   bool is_short_race_):
         id(id_),
         type(type_),
         is_short_race(is_short_race_),
@@ -22,6 +23,7 @@ RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_til
         head_id(head_id_),
         weapon_id(weapon_id_),
         shield_id(shield_id_),
+        helmet_id(helmet_id_),
         is_ghost(false) {
 
     // Inicializamos el estado de animación local
@@ -114,6 +116,12 @@ void RenderableEntity::update(float dt) {
 }
 
 void RenderableEntity::set_ghost(bool ghost) { this->is_ghost = ghost; }
+
+void RenderableEntity::set_equipment(uint8_t weapon_id_, uint8_t shield_id_, uint8_t helmet_id_) {
+    this->weapon_id = weapon_id_;
+    this->shield_id = shield_id_;
+    this->helmet_id = helmet_id_;
+}
 
 void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                                           TextureManager& texture_manager, int cam_x, int cam_y,
@@ -212,6 +220,18 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
             head_texture.SetAlphaMod(alpha);
             renderer.Copy(head_texture, SDL2pp::Rect(head_src), SDL2pp::Rect(dst_head));
             head_texture.SetAlphaMod(255);
+        }
+
+        if (helmet_id != 0) {
+            std::string helm_anim =
+                    race_prefix + std::to_string(helmet_id) + action + std::to_string(current_dir);
+            const AnimationClip& helm_clip = texture_manager.get_animation(helm_anim);
+            SDL2pp::Texture& helm_tex =
+                    texture_manager.get_texture(race_prefix + std::to_string(helmet_id));
+            helm_tex.SetAlphaMod(alpha);
+            renderer.Copy(helm_tex, SDL2pp::Rect(helm_clip.frames[frame_index]),
+                          SDL2pp::Rect(dst_rect));
+            helm_tex.SetAlphaMod(255);
         }
 
         // Escudo (Suele ir en la capa más alta para tapar parte del cuerpo)

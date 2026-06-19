@@ -2,8 +2,8 @@
 
 #include "server/includes/gameloop.h"
 
-CommandUnequip::CommandUnequip(Id id, Id instance_id): Command(id), instance_id(instance_id) {}
+CommandUnequip::CommandUnequip(Id id, size_t slot_id_): Command(id), slot_id(slot_id_) {}
 
-void CommandUnequip::execute(Gameloop& /*gameloop*/) {
-    // gameloop.processPlayerUnequipItem(this->client_id, this->instance_id);
+void CommandUnequip::execute(Gameloop& gameloop) {
+    gameloop.processPlayerUnequipItem(this->client_id, this->slot_id);
 }
