@@ -392,9 +392,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 n.id = ntohl(n.id);
                 n.pos_x = ntohl(n.pos_x);
                 n.pos_y = ntohl(n.pos_y);
-                n.type_id = ntohs(n.type_id);
-                n.pos_x = ntohl(n.pos_x);
-                n.pos_y = ntohl(n.pos_y);
+                // type_id es uint8_t: no tiene endianness, no se convierte
                 n.current_hp = ntohs(n.current_hp);
                 n.max_hp = ntohs(n.max_hp);
                 out_event.world.npcs.push_back(n);
