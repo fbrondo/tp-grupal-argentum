@@ -84,11 +84,39 @@ NpcSnapshotData Creature::getNpcSnapshotData() {
     // this->name.copy(snapshot.name, MAX_NAME_SIZE - 1);
     napshot.id = this->id;
     napshot.type_id = this->type_creature;
+    napshot.direction = this->pose.direct;
     napshot.current_hp = this->hp;
     napshot.max_hp = this->max_hp;
     napshot.pos_x = this->pose.position.x;
     napshot.pos_y = this->pose.position.y;
     return napshot;
+}
+
+uint16_t Creature::getAggroRange() const { return this->range_attack; }
+
+bool Creature::canAttack() const { return this->attack_cooldown_current == 0; }
+
+bool Creature::canMove() const { return this->movement_cooldown_current == 0; }
+
+void Creature::resetAttackCooldown(uint32_t cooldown_ms) {
+    this->attack_cooldown_current = cooldown_ms;
+}
+
+void Creature::resetMovementCooldown(uint32_t cooldown_ms) {
+    this->movement_cooldown_current = cooldown_ms;
+}
+
+void Creature::updateCooldowns(uint32_t delta_ms) {
+    this->attack_cooldown_current = delta_ms >= this->attack_cooldown_current ?
+                                            0 :
+                                            this->attack_cooldown_current - delta_ms;
+    this->movement_cooldown_current = delta_ms >= this->movement_cooldown_current ?
+                                              0 :
+                                              this->movement_cooldown_current - delta_ms;
+}
+
+uint16_t Creature::calculateDamage(bool& is_critical) const {
+    return GameFormulas::calculationDamage(std::max<uint16_t>(1, this->level), 1, 2, is_critical);
 }
 
 

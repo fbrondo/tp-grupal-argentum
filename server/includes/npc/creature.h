@@ -17,6 +17,7 @@ private:
     TypeNPC type_creature;
     uint16_t range_attack;
     uint32_t attack_cooldown_current{0};
+    uint32_t movement_cooldown_current{0};
     std::vector<ItemInstance> items_to_drop;
     ItemInstance search_item_drop(TypeItem type);
 
@@ -28,6 +29,13 @@ public:
     void onDeath(World& world) override;
     CreatureData getCreatureData();
     NpcSnapshotData getNpcSnapshotData();
+    uint16_t getAggroRange() const;
+    bool canAttack() const;
+    bool canMove() const;
+    void resetAttackCooldown(uint32_t cooldown_ms);
+    void resetMovementCooldown(uint32_t cooldown_ms);
+    void updateCooldowns(uint32_t delta_ms);
+    uint16_t calculateDamage(bool& is_critical) const;
 };
 
 

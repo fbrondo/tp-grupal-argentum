@@ -77,6 +77,10 @@ private:
     void execuetRequest();
     uint32_t calculateResurrectionDelayMs(const Position& from, const Position& to) const;
     void resurrectPlayerAtHealer(Id player_id, Id healer_id);
+    Player* findNearestPlayer(const Creature& creature, Id& player_id);
+    void moveCreatureTowards(Id creature_id, Creature& creature, const Position& target);
+    void executeCreatureAttack(Creature& creature, Id player_id);
+    void updateCreatures(uint32_t delta_ms);
 
 public:
     explicit Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_queue);
