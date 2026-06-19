@@ -413,7 +413,13 @@ std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_scre
         int ey = static_cast<int>(entity->get_pixel_y()) - camera.y + camera_screen_offset_y;
         if (screen_x >= ex && screen_x < ex + TILE_SIZE && screen_y >= ey &&
             screen_y < ey + TILE_SIZE) {
-            return std::make_pair(id, entity->get_type());
+            EntityType type = entity->get_type();
+            uint32_t server_id = id;
+            if (type == EntityType::NPC)
+                server_id = id - NPC_ENTITY_OFFSET;
+            else if (type == EntityType::PLAYER)
+                server_id = id - PLAYER_ENTITY_OFFSET;
+            return std::make_pair(server_id, type);
         }
     }
     return std::nullopt;
