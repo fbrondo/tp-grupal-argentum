@@ -1,6 +1,7 @@
 #ifndef INVENTORY_H
 #define INVENTORY_H
 
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -17,10 +18,10 @@ private:
     uint32_t max_inventory;
     uint32_t size_current;
     std::vector<Slot> slots;
-    std::vector<size_t> indexs_slots_equipment;
 
     void incrementSlotInventory(const size_t& index);
     void setItemInInventory(const ShopItem* item);
+    bool setItemInstanceInInventory(std::unique_ptr<ItemInstance>& instance);
     std::optional<size_t> searchItemInInventory(TypeItem type_item) const;
 
 public:
@@ -38,11 +39,10 @@ public:
 
     void addItemToInventory(const ShopItem* item);
     bool setItemInTheEquipment(Equipment& equipment, size_t slot_index);
+    bool removeItemFromEquipment(Equipment& equipment, size_t slot_index);
 
     std::vector<SlotData> getSlotsData() const;
     std::vector<MsgSlot> getInventory() const;
-
-    std::vector<size_t> getSlotsEquipment();
 
     void dropInventory(World& world, const Position& position);
     const Item* getItemSlot(const size_t& index);

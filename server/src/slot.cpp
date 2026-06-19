@@ -11,7 +11,7 @@ void Slot::increase() { this->quantity += 1; }
 void Slot::decrease() {
     if (isEmpty())
         return;
-    if (1 > quantity) {
+    if (quantity <= 1) {
         quantity = 0;
         instance.reset();
     } else {
@@ -23,7 +23,18 @@ void Slot::setItem(std::unique_ptr<ItemInstance>&& instance_) {
     this->instance = std::move(instance_);
 }
 
-ItemInstance* Slot::getItemInstance() { return instance.get(); }
+std::unique_ptr<ItemInstance> Slot::takeOneItem() {
+    if (isEmpty()) {
+        return nullptr;
+    }
+    if (quantity > 1) {
+        quantity -= 1;
+        return std::make_unique<ItemInstance>(instance->item);
+    }
+
+    quantity = 0;
+    return std::move(instance);
+}
 
 uint32_t Slot::getQuantity() const {
     if (this->isEmpty()) {

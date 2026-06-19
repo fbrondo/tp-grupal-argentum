@@ -146,6 +146,10 @@ bool Player::equipItem(size_t slot_id) {
     return this->inv.setItemInTheEquipment(this->equipment, slot_id);
 }
 
+bool Player::unequipItem(size_t slot_id) {
+    return this->inv.removeItemFromEquipment(this->equipment, slot_id);
+}
+
 PlayerData Player::getPlayerData() {
     PlayerData data{};
     std::memset(data.username, 0, MAX_DATA);
@@ -172,7 +176,9 @@ PlayerData Player::getPlayerData() {
     data.golden = this->inv.getGolden();
     data.inventory = this->inv.getSlotsData();
     /*EQUIPO*/
-    data.equipment = this->inv.getSlotsEquipment();
+    for (const auto& slot: this->equipment.getEquipmentSlots()) {
+        data.inventory.emplace_back(slot.type_item, data.inventory.size(), slot.quantity);
+    }
     return data;
 }
 
@@ -204,15 +210,19 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.ch_traits.head = this->ch.getTypeHead();
     data.ch_traits.race = this->ch.getTypeRace();
     data.ch_traits.clase = this->ch.getTypeClase();
-    data.weapon_id = 0;
-    data.shield_id = 0;
-    data.helmet_id = 0;
+    data.weapon_id = static_cast<uint8_t>(this->getHandItem());
+    data.shield_id = static_cast<uint8_t>(this->getShieldItem());
+    data.helmet_id = static_cast<uint8_t>(this->getHelmetItem());
     data.flags = this->isAlive() ? 0 : PLAYER_FLAG_GHOST;
     data.resurrection_time_left_ms = 0;
     return data;
 }
 
 TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
+
+TypeItem Player::getShieldItem() const { return this->equipment.getShieldItem(); }
+
+TypeItem Player::getHelmetItem() const { return this->equipment.getHelmetItem(); }
 
 
 std::vector<TypeItem> Player::getEquipment() {
@@ -223,15 +233,7 @@ std::vector<TypeItem> Player::getEquipment() {
 std::vector<MsgSlot> Player::getSlotsInventory() const { return this->inv.getInventory(); }
 
 std::vector<MsgSlot> Player::getSlotsEquipment() const {
-    std::vector<MsgSlot> slots;
-    const auto equip = this->equipment.getEquipment();
-    for (size_t i = 0; i < equip.size(); i++) {
-        MsgSlot slot;
-        slot.type_item = static_cast<uint8_t>(equip[i]);
-        slot.slot_index = static_cast<uint8_t>(i);
-        slots.push_back(slot);  // cppcheck-suppress syntaxError
-    }
-    return slots;
+    return this->equipment.getEquipmentSlots();
 }
 
 // Inventory& Player::getInventory() { return this->inv; }

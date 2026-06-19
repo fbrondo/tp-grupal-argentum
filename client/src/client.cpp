@@ -3,7 +3,9 @@
 #include <SDL2/SDL_image.h>
 
 #include "client/includes/commands/command_chat.h"
+#include "client/includes/commands/command_equip.h"
 #include "client/includes/commands/command_move.h"
+#include "client/includes/commands/command_unequip.h"
 
 static bool get_pressed_movement_direction(Direction& direction) {
     SDL_PumpEvents();
@@ -71,6 +73,21 @@ void Client::handle_events() {
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
             uint32_t mouse_x = event.button.x;
             uint32_t mouse_y = event.button.y;
+
+            if (event.button.clicks >= 2) {
+                const auto equipped_slot_index = world_renderer.equipment_slot_at(mouse_x, mouse_y);
+                if (equipped_slot_index.has_value()) {
+                    cmd_queue.push(
+                            std::make_unique<UnequipCommandClient>(equipped_slot_index.value()));
+                    continue;
+                }
+
+                const auto slot_index = world_renderer.inventory_slot_at(mouse_x, mouse_y);
+                if (slot_index.has_value()) {
+                    cmd_queue.push(std::make_unique<EquipCommandClient>(slot_index.value()));
+                    continue;
+                }
+            }
 
             // Le preguntamos al motor gráfico si el clic fue en el área correcta
             if (world_renderer.is_point_inside_console(mouse_x, mouse_y)) {
@@ -173,6 +190,12 @@ void Client::update_state_from_server() {
             case TypeEventClient::OWN_STATS:
                 world_renderer.update_hud_stats(event.stats);
                 break;
+            case TypeEventClient::INVENTORY_UPDATE:
+                world_renderer.update_hud_inventory(event.inventory);
+                break;
+            case TypeEventClient::EQUIPMENT_UPDATE:
+                world_renderer.update_hud_equipment(event.equipment);
+                break;
             case TypeEventClient::CHAT_MSG:
                 chat.add_message_to_log(event.text_payload);
                 world_renderer.add_chat_message(event.text_payload);
@@ -225,6 +248,9 @@ void Client::launch(const std::string& user, const std::string& pass) {
                 }
                 if (login_event.type == TypeEventClient::MAP_DATA) {
                     world_renderer.load_map(std::move(login_event.map_data), login_event.citizens);
+                }
+                if (login_event.type == TypeEventClient::INVENTORY_UPDATE) {
+                    world_renderer.update_hud_inventory(login_event.inventory);
                 }
             }
         }

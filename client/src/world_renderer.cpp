@@ -61,6 +61,14 @@ void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
     hud_renderer.update_stats(stats);
 }
 
+void WorldRenderer::update_hud_inventory(const std::vector<MsgSlot>& inventory) {
+    hud_renderer.update_inventory(inventory);
+}
+
+void WorldRenderer::update_hud_equipment(const std::vector<MsgSlot>& equipment) {
+    hud_renderer.update_equipment(equipment);
+}
+
 void WorldRenderer::load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens) {
     entities.clear();
     static_entity_keys.clear();
@@ -153,6 +161,14 @@ bool WorldRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) 
     return hud_renderer.is_point_inside_console(x, y);
 }
 
+std::optional<uint8_t> WorldRenderer::inventory_slot_at(const uint32_t x, const uint32_t y) const {
+    return hud_renderer.inventory_slot_at(x, y);
+}
+
+std::optional<uint8_t> WorldRenderer::equipment_slot_at(const uint32_t x, const uint32_t y) const {
+    return hud_renderer.equipment_slot_at(x, y);
+}
+
 bool WorldRenderer::is_local_player_moving() const {
     const auto it = entities.find(player_entity_key(local_player_id));
     return it != entities.end() && it->second->is_currently_moving();
@@ -208,13 +224,14 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         if (it != entities.end()) {
             it->second->move_to(p_data.pos_x, p_data.pos_y,
                                 static_cast<Direction>(p_data.direction));
+            it->second->set_equipment(p_data.weapon_id, p_data.shield_id, p_data.helmet_id);
             it->second->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         } else {
             bool is_short = (p_data.ch_traits.race == GNOME || p_data.ch_traits.race == DWARF);
             entities[entity_key] = std::make_unique<RenderableEntity>(
                     entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
-                    p_data.shield_id, is_short);
+                    p_data.shield_id, p_data.helmet_id, is_short);
             entities[entity_key]->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         }
     }

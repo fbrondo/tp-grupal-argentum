@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -48,11 +49,15 @@ public:
     void set_local_player(uint32_t id);
     void set_player_name(const std::string& name);
     void update_hud_stats(const MsgPlayerStats& stats);
+    void update_hud_inventory(const std::vector<MsgSlot>& inventory);
+    void update_hud_equipment(const std::vector<MsgSlot>& equipment);
     void load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens);
 
     void add_chat_message(const std::string& msg);
     void update_chat_input(const std::string& buffer, bool is_active);
     bool is_point_inside_console(uint32_t x, uint32_t y) const;
+    std::optional<uint8_t> inventory_slot_at(uint32_t x, uint32_t y) const;
+    std::optional<uint8_t> equipment_slot_at(uint32_t x, uint32_t y) const;
     bool is_local_player_moving() const;
     // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
     void update_from_snapshot(const Snapshot& snapshot);

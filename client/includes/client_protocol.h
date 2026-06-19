@@ -18,7 +18,8 @@ enum class TypeEventClient {
     MAP_DATA,
     OPEN_MERCHANT,
     OPEN_BANK,
-    INVENTORY_UPDATE
+    INVENTORY_UPDATE,
+    EQUIPMENT_UPDATE
 };
 
 struct MerchantEventData {
@@ -47,6 +48,8 @@ struct EventClient {
     uint16_t map_id{0};  // Se usa para CAMBIO_MAPA
     Map map_data;        // Se usa para MAP_DATA
     std::vector<CitizenNpcSnapshot> citizens;
+    std::vector<MsgSlot> inventory;
+    std::vector<MsgSlot> equipment;
     EventClient() = default;
     EventClient(EventClient&&) = default;
     EventClient& operator=(EventClient&&) = default;
