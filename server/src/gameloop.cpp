@@ -976,7 +976,8 @@ void Gameloop::sendClanOpResult(Id caller_id, const ClanOpResult& result) {
 uint16_t Gameloop::calcClanProximityBonus(const std::string& username, const Position& pos) const {
     std::map<std::string, Position> online_positions;
     for (const auto& [id, p]: this->players) {
-        online_positions[p->getUsername()] = p->getPosition();
+        if (p->isAlive())
+            online_positions[p->getUsername()] = p->getPosition();
     }
     const uint8_t nearby = this->clan_manager.countNearbyMembers(username, pos, online_positions,
                                                                  this->conf.clan.proximity_range);
