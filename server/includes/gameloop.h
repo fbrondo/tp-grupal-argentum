@@ -80,6 +80,7 @@ private:
     void execuetRequest();
     std::optional<Id> findPlayerIdByUsername(const std::string& username) const;
     void sendClanOpResult(Id caller_id, const ClanOpResult& result);
+    uint16_t calcClanProximityBonus(const std::string& username, const Position& pos) const;
     uint32_t calculateResurrectionDelayMs(const Position& from, const Position& to) const;
     void resurrectPlayerAtHealer(Id player_id, Id healer_id);
     Player* findNearestPlayer(const Creature& creature, Id& player_id);

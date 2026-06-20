@@ -352,26 +352,15 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         return;
     }
 
-    std::map<std::string, Position> online_positions;
-    for (const auto& [id, p]: this->players) {
-        online_positions[p->getUsername()] = p->getPosition();
-    }
-    const uint8_t nearby_atk = this->clan_manager.countNearbyMembers(
-            attacker->getUsername(), attacker_pos, online_positions,
-            this->conf.clan.proximity_range);
-    damage_by_attacker +=
-            static_cast<uint16_t>(nearby_atk) * this->conf.clan.proximity_bonus_per_member;
+    damage_by_attacker += this->calcClanProximityBonus(attacker->getUsername(), attacker_pos);
 
     if (const auto player = dynamic_cast<Player*>(victim)) {
         const std::vector<Defense*> equip_defensive = this->getPlayerDefensiveEquipment(victim_id);
         const uint16_t defense_victim = player->calculateDefense(equip_defensive);
         damage_by_attacker =
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
-        const uint8_t nearby_def = this->clan_manager.countNearbyMembers(
-                player->getUsername(), victim->getPosition(), online_positions,
-                this->conf.clan.proximity_range);
         const uint16_t clan_def_bonus =
-                static_cast<uint16_t>(nearby_def) * this->conf.clan.proximity_bonus_per_member;
+                this->calcClanProximityBonus(player->getUsername(), victim->getPosition());
         damage_by_attacker =
                 (damage_by_attacker > clan_def_bonus) ? (damage_by_attacker - clan_def_bonus) : 0;
     }
@@ -500,6 +489,9 @@ void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
     const std::vector<Defense*> equipment = this->getPlayerDefensiveEquipment(player_id);
     const uint16_t defense = victim->calculateDefense(equipment);
     damage = damage > defense ? damage - defense : 0;
+    const uint16_t clan_def_bonus =
+            this->calcClanProximityBonus(victim->getUsername(), victim->getPosition());
+    damage = (damage > clan_def_bonus) ? (damage - clan_def_bonus) : 0;
 
     SoundEffectSnapshotData sound{};
     sound.effect_id = SoundEffectID::GOLPE_RECIBIDO;
@@ -979,6 +971,16 @@ void Gameloop::sendClanOpResult(Id caller_id, const ClanOpResult& result) {
                     *target_id, std::make_shared<ResponseChatMsg>(result.target_msg));
         }
     }
+}
+
+uint16_t Gameloop::calcClanProximityBonus(const std::string& username, const Position& pos) const {
+    std::map<std::string, Position> online_positions;
+    for (const auto& [id, p]: this->players) {
+        online_positions[p->getUsername()] = p->getPosition();
+    }
+    const uint8_t nearby = this->clan_manager.countNearbyMembers(username, pos, online_positions,
+                                                                 this->conf.clan.proximity_range);
+    return static_cast<uint16_t>(nearby) * this->conf.clan.proximity_bonus_per_member;
 }
 
 // ---------------------------------------------------------------------------
