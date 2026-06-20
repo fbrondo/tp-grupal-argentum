@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 #include <ranges>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -21,6 +22,7 @@
 #include "server/includes/npc/priest.h"
 #include "server/includes/response_builder.h"
 #include "server/includes/responses/response_bank_content.h"
+#include "server/includes/responses/response_chat_msg.h"
 #include "server/includes/responses/response_equipment_update.h"
 #include "server/includes/responses/response_inventory_update.h"
 #include "server/includes/responses/response_login.h"
@@ -46,9 +48,11 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
         monitor(monitor),
         commands_queue(cmmds_queue),
         conf(std::move(conf_)),
+        clan_manager(this->conf.paths.clans),
         world(this->conf.paths.map),
         persistence(this->conf.paths),
         spawn(this->conf, this->world) {
+    this->clan_manager.load();
 
     if (persistence.worldStateExists()) {
         Print::printInitGameloop("CARGANDO WORLD");
@@ -220,12 +224,29 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
         return;
     }
     this->loadingPlayerData(player_id, data);
+    const std::string login_clan = this->clan_manager.getClanOf(data.username);
+    if (!login_clan.empty()) {
+        const std::string notif = std::string(data.username) + " entró al juego.";
+        for (const auto& [id, p]: this->players) {
+            if (id != player_id &&
+                this->clan_manager.areInSameClan(p->getUsername(), data.username)) {
+                this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
+            }
+        }
+    }
     this->monitor.queueTheServerResponse(player_id,
                                          std::make_unique<ResponseLogin>(true, player_id));
     Map map = this->world.getMap();
     auto citizen_snapshot = ResponseBuilder::buildCitizenNpcSnapshot(this->citizen_npcs);
     this->monitor.queueTheServerResponse(
             player_id, std::make_unique<ResponseMap>(std::move(map), std::move(citizen_snapshot)));
+    const auto pending_it = this->pending_clan_msgs.find(std::string(data.username));
+    if (pending_it != this->pending_clan_msgs.end()) {
+        for (const auto& msg: pending_it->second) {
+            this->monitor.queueTheServerResponse(player_id, std::make_shared<ResponseChatMsg>(msg));
+        }
+        this->pending_clan_msgs.erase(pending_it);
+    }
 }
 
 void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
@@ -298,6 +319,14 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         return;
     }
 
+    if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
+        if (this->clan_manager.areInSameClan(attacker->getUsername(),
+                                             victim_player->getUsername())) {
+            std::cerr << "[ATTACK] blocked: same clan\n";
+            return;
+        }
+    }
+
     auto* weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
     if (!weapon) {
         std::cerr << "[ATTACK] blocked: equipped item is not a weapon\n";
@@ -330,11 +359,17 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         return;
     }
 
+    damage_by_attacker += this->calcClanProximityBonus(attacker->getUsername(), attacker_pos);
+
     if (const auto player = dynamic_cast<Player*>(victim)) {
         const std::vector<Defense*> equip_defensive = this->getPlayerDefensiveEquipment(victim_id);
         const uint16_t defense_victim = player->calculateDefense(equip_defensive);
         damage_by_attacker =
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
+        const uint16_t clan_def_bonus =
+                this->calcClanProximityBonus(player->getUsername(), victim->getPosition());
+        damage_by_attacker =
+                (damage_by_attacker > clan_def_bonus) ? (damage_by_attacker - clan_def_bonus) : 0;
     }
 
     SoundEffectSnapshotData golpe_sound{};
@@ -359,6 +394,21 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
               << std::endl;
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
+
+    if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
+        const std::string victim_clan = this->clan_manager.getClanOf(victim_player->getUsername());
+        if (!victim_clan.empty()) {
+            const std::string notif = victim_player->getUsername() + " está siendo atacado!";
+            for (const auto& [id, p]: this->players) {
+                if (p->getUsername() != victim_player->getUsername() &&
+                    this->clan_manager.areInSameClan(p->getUsername(),
+                                                     victim_player->getUsername())) {
+                    this->monitor.queueTheServerResponse(id,
+                                                         std::make_shared<ResponseChatMsg>(notif));
+                }
+            }
+        }
+    }
 
     if (!victim->isAlive()) {
         attacker->earnKillExp(victim);
@@ -446,6 +496,9 @@ void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
     const std::vector<Defense*> equipment = this->getPlayerDefensiveEquipment(player_id);
     const uint16_t defense = victim->calculateDefense(equipment);
     damage = damage > defense ? damage - defense : 0;
+    const uint16_t clan_def_bonus =
+            this->calcClanProximityBonus(victim->getUsername(), victim->getPosition());
+    damage = (damage > clan_def_bonus) ? (damage - clan_def_bonus) : 0;
 
     SoundEffectSnapshotData sound{};
     sound.effect_id = SoundEffectID::GOLPE_RECIBIDO;
@@ -557,6 +610,17 @@ void Gameloop::processPlayerEquipItem(Id player_id, size_t slot_id) {
 void Gameloop::processPlayerDisconnet(Id player_id) {
     if (!this->players.contains(player_id)) {
         return;
+    }
+    const std::string logout_username = this->players.at(player_id)->getUsername();
+    const std::string logout_clan = this->clan_manager.getClanOf(logout_username);
+    if (!logout_clan.empty()) {
+        const std::string notif = logout_username + " salió del juego.";
+        for (const auto& [id, p]: this->players) {
+            if (id != player_id &&
+                this->clan_manager.areInSameClan(p->getUsername(), logout_username)) {
+                this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
+            }
+        }
     }
     this->world.removePlayer(player_id);
     this->pending_resurrects.erase(player_id);
@@ -891,5 +955,102 @@ void Gameloop::stop() {
     Thread::stop();  // Cambia el should_keep_running del Gameloop a false
     this->persistence
             .stop();  // <-- IMPORTANTE: Cambia el should_keep_running de la persistencia a false
+}
+
+// ---------------------------------------------------------------------------
+// Helpers de clan
+// ---------------------------------------------------------------------------
+
+std::optional<Id> Gameloop::findPlayerIdByUsername(const std::string& username) const {
+    for (const auto& [id, player]: this->players) {
+        if (player->getUsername() == username)
+            return id;
+    }
+    return std::nullopt;
+}
+
+void Gameloop::sendClanOpResult(Id caller_id, const ClanOpResult& result) {
+    this->monitor.queueTheServerResponse(caller_id, std::make_shared<ResponseChatMsg>(result.msg));
+    if (!result.target_nick.empty()) {
+        auto target_id = this->findPlayerIdByUsername(result.target_nick);
+        if (target_id.has_value()) {
+            this->monitor.queueTheServerResponse(
+                    *target_id, std::make_shared<ResponseChatMsg>(result.target_msg));
+        } else {
+            this->pending_clan_msgs[result.target_nick].push_back(result.target_msg);
+        }
+    }
+}
+
+uint16_t Gameloop::calcClanProximityBonus(const std::string& username, const Position& pos) const {
+    std::map<std::string, Position> online_positions;
+    for (const auto& [id, p]: this->players) {
+        if (p->isAlive())
+            online_positions[p->getUsername()] = p->getPosition();
+    }
+    const uint8_t nearby = this->clan_manager.countNearbyMembers(username, pos, online_positions,
+                                                                 this->conf.clan.proximity_range);
+    return static_cast<uint16_t>(nearby) * this->conf.clan.proximity_bonus_per_member;
+}
+
+// ---------------------------------------------------------------------------
+// Comandos de clan
+// ---------------------------------------------------------------------------
+
+void Gameloop::processClanFound(Id player_id, const std::string& clan_name) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    const uint8_t level = static_cast<uint8_t>(this->players.at(player_id)->getLevel());
+    ClanOpResult result = this->clan_manager.foundClan(username, clan_name, level,
+                                                       this->conf.clan.min_level_to_found);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanJoin(Id player_id, const std::string& clan_name) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.requestJoin(username, clan_name);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanReview(Id player_id) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.reviewClan(username);
+    std::istringstream ss(result.msg);
+    std::string line;
+    while (std::getline(ss, line)) {
+        if (!line.empty())
+            this->monitor.queueTheServerResponse(player_id,
+                                                 std::make_shared<ResponseChatMsg>(line));
+    }
+}
+
+void Gameloop::processClanAccept(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result =
+            this->clan_manager.acceptMember(username, nick, this->conf.clan.max_members);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanReject(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.rejectMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanBan(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.banMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanKick(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.kickMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanLeave(Id player_id) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.leaveClan(username);
+    this->sendClanOpResult(player_id, result);
 }
 Gameloop::~Gameloop() {}

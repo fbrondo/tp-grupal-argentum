@@ -4,6 +4,14 @@ target_sources(taller_server
         src/commands/command_attack.cpp
         src/commands/command_buy_item.cpp
         src/commands/command_chat.cpp
+        src/commands/command_clan_accept.cpp
+        src/commands/command_clan_ban.cpp
+        src/commands/command_clan_found.cpp
+        src/commands/command_clan_join.cpp
+        src/commands/command_clan_kick.cpp
+        src/commands/command_clan_leave.cpp
+        src/commands/command_clan_reject.cpp
+        src/commands/command_clan_review.cpp
         src/commands/command_chat.cpp
         src/commands/command_deposit.cpp
         src/commands/command_deposit_gold.cpp
@@ -47,6 +55,7 @@ target_sources(taller_server
         src/responses/response_snapshot.cpp
         src/responses/response_trader_catalog.cpp
 
+        src/clan_manager.cpp
         src/acceptor.cpp
         src/character.cpp
         src/client_handler.cpp
