@@ -47,6 +47,7 @@ target_sources(taller_server
         src/responses/response_snapshot.cpp
         src/responses/response_trader_catalog.cpp
 
+        src/clan_manager.cpp
         src/acceptor.cpp
         src/character.cpp
         src/client_handler.cpp
