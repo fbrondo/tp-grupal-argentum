@@ -206,6 +206,8 @@ ClanOpResult ClanManager::banMember(const std::string& founder, const std::strin
     ClanEntry& entry = clans.at(clan_name);
     if (entry.founder != founder)
         return {"Solo el fundador puede banear jugadores.", "", ""};
+    if (nick == founder)
+        return {"No puedes banearte a ti mismo.", "", ""};
 
     const auto pit = std::find(entry.pending.begin(), entry.pending.end(), nick);
     if (pit != entry.pending.end())
