@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 #include <ranges>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -1001,7 +1002,13 @@ void Gameloop::processClanJoin(Id player_id, const std::string& clan_name) {
 void Gameloop::processClanReview(Id player_id) {
     const std::string username = this->players.at(player_id)->getUsername();
     ClanOpResult result = this->clan_manager.reviewClan(username);
-    this->sendClanOpResult(player_id, result);
+    std::istringstream ss(result.msg);
+    std::string line;
+    while (std::getline(ss, line)) {
+        if (!line.empty())
+            this->monitor.queueTheServerResponse(player_id,
+                                                 std::make_shared<ResponseChatMsg>(line));
+    }
 }
 
 void Gameloop::processClanAccept(Id player_id, const std::string& nick) {
