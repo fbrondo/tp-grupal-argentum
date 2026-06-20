@@ -8,7 +8,8 @@ class ResponseTraderCatalog: public Response {
 private:
     std::map<TypeItem, uint32_t> catalog;
 
+
 public:
-    explicit ResponseTraderCatalog(const std::map<TypeItem, uint32_t>& catalog);
+    explicit ResponseTraderCatalog(std::map<TypeItem, uint32_t>&& catalog);
     void execute(ServerProtocol& protocol) override;
 };

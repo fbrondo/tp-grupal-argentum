@@ -12,6 +12,7 @@
 
 #include "client/includes/texture_manager.h"
 #include "common/includes/protocol.h"
+#include "common/includes/types.h"
 
 constexpr int PANEL_RIGHT_X = 686;
 constexpr int PANEL_RIGHT_Y = 7;

@@ -81,7 +81,6 @@ public:
 
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isSafeZONE(const Position& pos);
-    // bool canDropItemAt(const Position& pos);
 
     Position calculatePositionRandom(const Id& zone_id);
     Position calculatePositionRandomSafeZone();
@@ -95,23 +94,18 @@ public:
     void addItemWorld(const GoldBagInstance& gold);
     void addTreasuresWorld(const TreasureInstance& treasure);
 
-    // void collectGoldAt(const Position& pos, Id& player_gold);
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void removeCreature(const Id& creature_id);
     Pose movePlayer(const Id& player_id, Direction dir);
     Pose teleportPlayer(const Id& player_id, const Position& position);
 
-    // Position positionEntityTheWorld(const Id& id) const;
     Position positionPlayerInTheWorld(const Id& player_id);
-
     bool playerTakeItemOnTheFloor(Player& player);
-
-    // std::unique_ptr<ItemInstance> pickUpItem(const Position& pos);
-    //  void dropItem(const Position& pos, std::unique_ptr<ItemInstance> item);
 
     int distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id);
 
     WorldStateData buildWorldState();
+    std::vector<ItemGroundSnapshotData> itemsOnTheFloor();
 };
 
 #endif

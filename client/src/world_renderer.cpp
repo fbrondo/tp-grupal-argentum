@@ -222,14 +222,14 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         }
         auto it = entities.find(entity_key);
         if (it != entities.end()) {
-            it->second->move_to(p_data.pos_x, p_data.pos_y,
+            it->second->move_to(p_data.position.x, p_data.position.y,
                                 static_cast<Direction>(p_data.direction));
             it->second->set_equipment(p_data.weapon_id, p_data.shield_id, p_data.helmet_id);
             it->second->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         } else {
             bool is_short = (p_data.ch_traits.race == GNOME || p_data.ch_traits.race == DWARF);
             entities[entity_key] = std::make_unique<RenderableEntity>(
-                    entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
+                    entity_key, EntityType::PLAYER, p_data.position.x, p_data.position.y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
                     p_data.shield_id, p_data.helmet_id, is_short);
             entities[entity_key]->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
@@ -242,11 +242,11 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         ids_en_snapshot.push_back(entity_key);
         auto it = entities.find(entity_key);
         if (it != entities.end()) {
-            it->second->move_to(n_data.pos_x, n_data.pos_y,
+            it->second->move_to(n_data.position.x, n_data.position.y,
                                 DOWN);  // Ojo: cuando tengas dirección de NPC, ponla aquí
         } else {
             entities[entity_key] = std::make_unique<RenderableEntity>(
-                    entity_key, EntityType::NPC, n_data.pos_x, n_data.pos_y,
+                    entity_key, EntityType::NPC, n_data.position.x, n_data.position.y,
                     static_cast<uint8_t>(n_data.type_id), 0, 0, 0);
         }
     }
@@ -256,12 +256,12 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         // Generamos un ID único espacial (Spatial Hash).
         // Asumiendo que el mapa no mide más de 1000x1000 baldosas:
         // Ej: pos_x = 50, pos_y = 30 -> ID = 2000000 + 50000 + 30 = 2050030
-        uint32_t item_client_id = item_entity_key(i_data.pos_x, i_data.pos_y);
+        uint32_t item_client_id = item_entity_key(i_data.position.x, i_data.position.y);
         ids_en_snapshot.push_back(item_client_id);
         auto it = entities.find(item_client_id);
         if (it == entities.end()) {
             entities[item_client_id] = std::make_unique<RenderableEntity>(
-                    item_client_id, EntityType::ITEM, i_data.pos_x, i_data.pos_y,
+                    item_client_id, EntityType::ITEM, i_data.position.x, i_data.position.y,
                     static_cast<uint8_t>(i_data.item_id), 0, 0, 0);
         }
     }

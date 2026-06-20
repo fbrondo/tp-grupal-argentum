@@ -12,17 +12,17 @@ class Slot {
 private:
     std::unique_ptr<ItemInstance> instance;  // "Slot Vacío"
     uint32_t quantity;                       // Cuántos ítems de este tipo hay apilados;
-    uint32_t max_slot;
+    uint32_t capacity_slot;
 
 public:
     Slot(const Slot& other) = delete;
     Slot& operator=(const Slot& other) = delete;
 
-    Slot(): quantity(0), max_slot(0) {}
+    Slot(): quantity(0), capacity_slot(0) {}
     Slot(Slot&&) = default;
     Slot& operator=(Slot&&) = default;
 
-    explicit Slot(const uint32_t& max_slot);
+    explicit Slot(const uint32_t& capacity_slot);
     [[nodiscard]] bool isFull() const;
     [[nodiscard]] bool isEmpty() const;
     void increase();

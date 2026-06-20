@@ -360,7 +360,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.world.players.clear();
             out_event.world.npcs.clear();
             out_event.world.items_on_floor.clear();
-            out_event.world.gold_piles.clear();
+            // out_event.world.gold_piles.clear();
             out_event.world.sound_effects.clear();
 
             uint16_t p_count;
@@ -370,8 +370,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 PlayerSnapshotData p;
                 socket.recvall(&p, sizeof(PlayerSnapshotData));
                 p.id = ntohl(p.id);
-                p.pos_x = ntohl(p.pos_x);
-                p.pos_y = ntohl(p.pos_y);
+                p.position.x = ntohl(p.position.x);
+                p.position.y = ntohl(p.position.y);
                 p.stats.max_hp = ntohs(p.stats.max_hp);
                 p.stats.current_hp = ntohs(p.stats.current_hp);
                 p.stats.current_mana = ntohs(p.stats.current_mana);
@@ -390,8 +390,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 NpcSnapshotData n;
                 socket.recvall(&n, sizeof(NpcSnapshotData));
                 n.id = ntohl(n.id);
-                n.pos_x = ntohl(n.pos_x);
-                n.pos_y = ntohl(n.pos_y);
+                n.position.x = ntohl(n.position.x);
+                n.position.y = ntohl(n.position.y);
                 n.current_hp = ntohs(n.current_hp);
                 n.max_hp = ntohs(n.max_hp);
                 out_event.world.npcs.push_back(n);
@@ -404,23 +404,23 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 ItemGroundSnapshotData it;
                 socket.recvall(&it, sizeof(ItemGroundSnapshotData));
                 it.item_id = ntohs(it.item_id);
-                it.pos_x = ntohl(it.pos_x);
-                it.pos_y = ntohl(it.pos_y);
+                it.position.x = ntohl(it.position.x);
+                it.position.y = ntohl(it.position.y);
                 out_event.world.items_on_floor.push_back(it);
             }
 
-            uint16_t g_count;
-            if (socket.recvall(&g_count, 2) <= 0)
-                return false;
-            g_count = ntohs(g_count);
-            for (uint16_t i = 0; i < g_count; ++i) {
-                GoldPileGroundSnapshotData g;
-                socket.recvall(&g, sizeof(GoldPileGroundSnapshotData));
-                g.amount = ntohl(g.amount);
-                g.pos_x = ntohl(g.pos_x);
-                g.pos_y = ntohl(g.pos_y);
-                out_event.world.gold_piles.push_back(g);
-            }
+            // uint16_t g_count;
+            // if (socket.recvall(&g_count, 2) <= 0)
+            //     return false;
+            // g_count = ntohs(g_count);
+            // for (uint16_t i = 0; i < g_count; ++i) {
+            //     GoldPileGroundSnapshotData g;
+            //     socket.recvall(&g, sizeof(GoldPileGroundSnapshotData));
+            //     g.amount = ntohl(g.amount);
+            //     g.pos_x = ntohl(g.pos_x);
+            //     g.pos_y = ntohl(g.pos_y);
+            //     out_event.world.gold_piles.push_back(g);
+            // }
 
             // 4. Efectos sonoros
             uint16_t sound_count;

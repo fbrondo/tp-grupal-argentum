@@ -25,6 +25,8 @@ target_sources(taller_server
         src/commands/command_withdraw.cpp
         src/commands/command_withdraw_gold.cpp
 
+        src/core/item.cpp
+
         src/entity/combat_entity.cpp
         src/npc/banker.cpp
         src/npc/creature.cpp

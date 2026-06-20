@@ -4,12 +4,20 @@ TraderNPC::TraderNPC(TypeNPC type, const std::string& name, const Pose& pose_,
                      std::map<TypeItem, Item*>&& items_):
         CitizenNPC(type, name, pose_), store(std::move(items_)) {}
 
-void TraderNPC::executeBuyItem(Player& player, TypeItem type_item_buy) {
+bool TraderNPC::executeBuyItem(Player& player, TypeItem type_item_buy) {
     if (!this->store.contains(type_item_buy)) {
-        return;
+        return false;
     }
-    const auto item = dynamic_cast<ShopItem*>(this->store[type_item_buy]);
-    player.buyItem(item);
+    const auto item = this->store[type_item_buy];
+    return player.buyItem(item);
+}
+
+std::map<TypeItem, uint32_t> TraderNPC::listItemsCatalog() const {
+    std::map<TypeItem, uint32_t> list;
+    for (const auto [type, item]: this->store) {
+        list.emplace(type, item->purchase_price);
+    }
+    return list;
 }
 
 // const std::map<TypeItem, std::unique_ptr<Item>>& TraderNPC::getStore() const { return

@@ -219,8 +219,8 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& item
                                                         sell_price, purch_price, min_def, max_def);
             } else if (classif == ITEM_HEALING) {
                 if (descp == "POTION") {
-                    items[type] = std::make_unique<ShopItem>(type, body, classif, std::move(name),
-                                                             sell_price, purch_price);
+                    items[type] = std::make_unique<Item>(type, body, classif, std::move(name),
+                                                         sell_price, purch_price);
                 } else if (descp == "MAGICAL") {
                     items[type] = std::make_unique<ObjectMagic>(type, body, classif,
                                                                 std::move(name), sell_price,
@@ -299,8 +299,9 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
         player_state_init.level = static_cast<uint8_t>(player_init["level"].value_or(1));
         player_state_init.golden_init =
                 static_cast<uint32_t>(player_init["golden_init"].value_or(0));
-        player_state_init.max_inventory =
-                static_cast<uint32_t>(player_init["max_inventory"].value_or(0));
+        player_state_init.max_slots = static_cast<uint32_t>(player_init["max_slots"].value_or(0));
+        player_state_init.capacity_slot =
+                static_cast<uint32_t>(player_init["capacity_slot"].value_or(1));
         /*Condiciones de un clan*/
         auto clan_info = config["clan"];
         clan.max_members = static_cast<uint32_t>(clan_info["max_members"].value_or(10));

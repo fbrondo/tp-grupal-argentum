@@ -58,12 +58,11 @@ uint16_t calculationPointsExpKill(const uint16_t& opponentsLifeMax, const uint8_
                                   const uint8_t& level) {
     // std::random_device rd;
     // std::mt19937 rng(rd());
-    std::uniform_real_distribution<double> dist(0, 0.1);
+    std::uniform_real_distribution<float> dist(0, 0.1f);
     double rand = dist(getRng() /*rng*/);
     int result = rand * opponentsLifeMax *
                  std::max(static_cast<int>(opponentsLevel) - static_cast<int>(level) + 10, 0);
     return static_cast<uint16_t>(result);
-    // return dist(this->rng) * opponentsLifeMax * std::max(opponentsLevel - level + 10, 0);
 }
 
 uint16_t limitMoveUpToNextLevel(const uint8_t& level) { return 1000 * std::pow(level, 1.8); }

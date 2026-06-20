@@ -19,7 +19,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
             (state.players.size() * sizeof(PlayerSnapshotData)) + sizeof(uint16_t) +
             (state.npcs.size() * sizeof(NpcSnapshotData)) + sizeof(uint16_t) +
             (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData)) + sizeof(uint16_t) +
-            (state.gold_piles.size() * sizeof(GoldPileGroundSnapshotData)) + sizeof(uint16_t) +
+            /*(state.gold_piles.size() * sizeof(GoldPileGroundSnapshotData)) + sizeof(uint16_t) +*/
             (state.sound_effects.size() * sizeof(SoundEffectSnapshotData));
 
     std::vector<char> buffer(size_total);
@@ -35,8 +35,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto p: state.players) {
         p.id = htonl(p.id);
-        p.pos_x = htonl(p.pos_x);
-        p.pos_y = htonl(p.pos_y);
+        p.position.x = htonl(p.position.x);
+        p.position.y = htonl(p.position.y);
         p.stats.max_hp = htons(p.stats.max_hp);
         p.stats.current_hp = htons(p.stats.current_hp);
         p.stats.current_mana = htons(p.stats.current_mana);
@@ -56,8 +56,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto n: state.npcs) {
         n.id = htonl(n.id);
-        n.pos_x = htonl(n.pos_x);
-        n.pos_y = htonl(n.pos_y);
+        n.position.x = htonl(n.position.x);
+        n.position.y = htonl(n.position.y);
         n.current_hp = htons(n.current_hp);
         n.max_hp = htons(n.max_hp);
         std::memcpy(buffer.data() + offset, &n, sizeof(NpcSnapshotData));
@@ -71,25 +71,25 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto i: state.items_on_floor) {
         i.item_id = htons(i.item_id);
-        i.pos_x = htonl(i.pos_x);
-        i.pos_y = htonl(i.pos_y);
+        i.position.x = htonl(i.position.x);
+        i.position.y = htonl(i.position.y);
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));
         offset += sizeof(ItemGroundSnapshotData);
     }
 
     // Piles de oro
-    const uint16_t g_count_net = htons(static_cast<uint16_t>(state.gold_piles.size()));
-    std::memcpy(buffer.data() + offset, &g_count_net, sizeof(g_count_net));
-    offset += sizeof(g_count_net);
-
-    for (auto g: state.gold_piles) {
-        g.amount = htonl(g.amount);
-        g.pos_x = htonl(g.pos_x);
-        g.pos_y = htonl(g.pos_y);
-
-        std::memcpy(buffer.data() + offset, &g, sizeof(GoldPileGroundSnapshotData));
-        offset += sizeof(GoldPileGroundSnapshotData);
-    }
+    // const uint16_t g_count_net = htons(static_cast<uint16_t>(state.gold_piles.size()));
+    // std::memcpy(buffer.data() + offset, &g_count_net, sizeof(g_count_net));
+    // offset += sizeof(g_count_net);
+    //
+    // for (auto g: state.gold_piles) {
+    //     g.amount = htonl(g.amount);
+    //     g.pos_x = htonl(g.pos_x);
+    //     g.pos_y = htonl(g.pos_y);
+    //
+    //     std::memcpy(buffer.data() + offset, &g, sizeof(GoldPileGroundSnapshotData));
+    //     offset += sizeof(GoldPileGroundSnapshotData);
+    // }
 
     // Efectos sonoros
     const uint16_t s_count_net = htons(static_cast<uint16_t>(state.sound_effects.size()));
@@ -379,8 +379,9 @@ void ServerProtocol::sendTraderCatalog(const std::map<TypeItem, uint32_t>& catal
     }
 }
 
-void ServerProtocol::sendBankContent(const std::vector<MsgItemInfo>& items, uint32_t gold) {
-    const size_t size_items = items.size() * sizeof(MsgItemInfo);
+void ServerProtocol::sendBankContent(const std::map<TypeItem, uint32_t>& items, uint32_t gold) {
+    const size_t size_items =
+            items.size() * (sizeof(uint8_t) + sizeof(uint32_t)) /*sizeof(MsgItemInfo)*/;
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + size_items;
 
     std::vector<char> buffer(size_total);
@@ -398,10 +399,18 @@ void ServerProtocol::sendBankContent(const std::vector<MsgItemInfo>& items, uint
     std::memcpy(buffer.data() + offset, &net_total_items, sizeof(net_total_items));
     offset += sizeof(net_total_items);
 
-    if (!items.empty()) {
-        std::memcpy(buffer.data() + offset, items.data(), size_items);
-        offset += size_items;
+    for (const auto& [type_item, count]: items) {
+        uint8_t type_byte = static_cast<uint8_t>(type_item);
+        uint16_t count_ = htons(count);
+        std::memcpy(buffer.data() + offset, &type_byte, sizeof(type_byte));
+        offset += sizeof(type_byte);
+        std::memcpy(buffer.data() + offset, &count_, sizeof(count_));
+        offset += sizeof(count_);
     }
+    // if (!items.empty()) {
+    //     std::memcpy(buffer.data() + offset, items.data(), size_items);
+    //     offset += size_items;
+    // }
     try {
         socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
@@ -535,13 +544,15 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         case DEPOSIT_GOLD:
         case WITHDRAW_GOLD: {
             uint32_t amount;
-            socket.recvall(&amount, 4);
+            uint32_t npc_id;
+            socket.recvall(&npc_id, sizeof(npc_id));
+            socket.recvall(&amount, sizeof(amount));
             amount = ntohl(amount);
 
             if (opcode == DEPOSIT_GOLD) {
-                queue.push(std::make_unique<DepositGoldCommand>(player_id, amount));
+                queue.push(std::make_unique<DepositGoldCommand>(player_id, npc_id, amount));
             } else {
-                queue.push(std::make_unique<WithdrawGoldCommand>(player_id, amount));
+                queue.push(std::make_unique<WithdrawGoldCommand>(player_id, npc_id, amount));
             }
             break;
         }

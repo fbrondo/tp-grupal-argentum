@@ -89,21 +89,19 @@ public:
 
     void processPlayerWithdrawItem(Id player_id, Id npc_id, TypeItem type_item);
     void processPlayerDepositItem(Id player_id, Id npc_id, TypeItem type_item);
-    void processPlayerDepositGold(Id player_id, uint32_t amount);
-    void processPlayerWithdrawGold(Id player_id, uint32_t amount);
+    void processPlayerDepositGold(Id player_id, Id npc_id, uint32_t amount);
+    void processPlayerWithdrawGold(Id player_id, Id npc_id, uint32_t amount);
     void processPlayerEquipItem(Id player_id, size_t slot_id);
     void processPlayerUnequipItem(Id player_id, size_t slot_id);
 
     void processPlayerDisconnet(Id player_id);
-    // void processPlayerUseItem(Id player_id, Id instance_id);
-
+    // void processPlayerUseItem(Id player_id, size_t slot_id);
 
     void processPlayerMeditate(Id player_id);
     void processPlayerHeal(Id player_id);
     void processPlayerResurrect(Id player_id);
     void processPlayerDebugKill(Id player_id);
     void processListItems(Id player_id, Id npc_id);
-
 
     void respawnDeadNpcs();
     void updatePlayersAttributes();

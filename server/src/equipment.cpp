@@ -14,7 +14,7 @@
 Equipment::Equipment(/* args */):
         equipment_container(MAX_EQUIPMENT_SIZE) /*4 slots todos vacios*/ {}
 
-size_t Equipment::getEquipmentIndex(const ShopItem* item) const {
+size_t Equipment::getEquipmentIndex(const Item* item) const {
     if (item->classif != ITEM_DEFENSIVE) {
         return INDEX_HAND;
     }
@@ -31,11 +31,11 @@ size_t Equipment::getEquipmentIndex(const ShopItem* item) const {
 }
 
 std::unique_ptr<ItemInstance> Equipment::equipItem(std::unique_ptr<ItemInstance>&& instance) {
-    const auto item = dynamic_cast<const ShopItem*>(instance->item);
-    if (item == nullptr) {
-        return instance;
-    }
-    const size_t target_index = this->getEquipmentIndex(item);
+    // const auto item = dynamic_cast<const ShopItem*>(instance->item);
+    // if (item == nullptr) {
+    //     return instance;
+    // }
+    const size_t target_index = this->getEquipmentIndex(instance->item);
     std::unique_ptr<ItemInstance> old_item = std::move(this->equipment_container[target_index]);
     this->equipment_container[target_index] = std::move(instance);
     return old_item;
@@ -83,13 +83,18 @@ std::vector<TypeItem> Equipment::getEquipmentDefensive() const {
 std::vector<MsgSlot> Equipment::getEquipmentSlots() const {
     std::vector<MsgSlot> equipment;
     for (size_t i = 0; i < this->equipment_container.size(); i++) {
-        if (!this->equipment_container[i]) {
-            continue;
-        }
+        // if (!this->equipment_container[i]) {
+        //     continue;
+        // }
         MsgSlot slot;
         slot.slot_index = static_cast<uint8_t>(i);
-        slot.type_item = static_cast<uint8_t>(this->equipment_container[i]->item->type);
-        slot.quantity = 1;
+        if (this->equipment_container[i]) {
+            slot.type_item = static_cast<uint8_t>(this->equipment_container[i]->item->type);
+            slot.quantity = 1;
+        } else {
+            slot.type_item = static_cast<uint8_t>(NONE);
+            slot.quantity = 0;
+        }
         equipment.push_back(slot);
     }
     return equipment;

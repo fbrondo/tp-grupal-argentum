@@ -4,8 +4,9 @@
 class DepositGoldCommand: public Command {
 private:
     uint32_t amount;
+    Id npc_id;
 
 public:
-    DepositGoldCommand(Id id_, uint32_t amount);
+    DepositGoldCommand(Id id_, Id npc_id, uint32_t amount);
     void execute(Gameloop& game) override;
 };

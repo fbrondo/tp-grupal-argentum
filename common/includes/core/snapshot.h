@@ -16,15 +16,12 @@ constexpr uint8_t PLAYER_FLAG_GHOST = 1 << 0;
 struct PlayerSnapshotData {
     uint32_t id;
     // Posicion en el mapa
-    uint32_t pos_x;
-    uint32_t pos_y;
+    Position position;
+    // uint32_t pos_x;
+    // uint32_t pos_y;
     uint8_t direction;  // Hacia donde mira
 
     PlayerStats stats;
-    // uint16_t hp;
-    // uint16_t max_hp;
-    // uint16_t mana;
-    // uint16_t max_mana;
     CharacterTraits ch_traits;
     // uint16_t body_id;
     // uint16_t head_id;
@@ -50,16 +47,18 @@ struct NpcSnapshotData {
     char name[MAX_NAME_SIZE];
     uint32_t id;
     uint8_t type_id;
-    uint32_t pos_x;
-    uint32_t pos_y;
+    Position position;
+    // uint32_t pos_x;
+    // uint32_t pos_y;
     uint16_t current_hp;
     uint16_t max_hp;
 };
 
 struct ItemGroundSnapshotData {
-    uint16_t item_id;
-    uint32_t pos_x;
-    uint32_t pos_y;
+    uint8_t item_id;
+    Position position;
+    // uint32_t pos_x;
+    // uint32_t pos_y;
 };
 
 struct GoldPileGroundSnapshotData {
@@ -78,7 +77,7 @@ struct Snapshot {
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;
     std::vector<ItemGroundSnapshotData> items_on_floor;
-    std::vector<GoldPileGroundSnapshotData> gold_piles;
+    // std::vector<GoldPileGroundSnapshotData> gold_piles;
     std::vector<SoundEffectSnapshotData> sound_effects;
 };
 #pragma pack(pop)

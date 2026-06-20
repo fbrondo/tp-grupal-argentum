@@ -86,8 +86,8 @@ NpcSnapshotData Creature::getNpcSnapshotData() {
     napshot.type_id = this->type_creature;
     napshot.current_hp = this->hp;
     napshot.max_hp = this->max_hp;
-    napshot.pos_x = this->pose.position.x;
-    napshot.pos_y = this->pose.position.y;
+    napshot.position.x = this->pose.position.x;
+    napshot.position.y = this->pose.position.y;
     return napshot;
 }
 

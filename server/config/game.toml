@@ -1,7 +1,8 @@
 [player_state_init]
 level = 1
 golden_init = 50
-max_inventory = 40
+max_slots = 18
+capacity_slot = 3
 #-------------------------------------------------------------------------------------------------------
 [clan]
 max_members = 16

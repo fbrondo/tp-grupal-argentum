@@ -2,8 +2,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "common//includes/core/character_traits.h"
-#include "server/includes/slot.h"
+#include "common/includes/core/character_traits.h"
 
 constexpr size_t MAX_NAME_SIZE = 30;
 constexpr size_t MAX_ITEM_SIZE = 100;
@@ -131,13 +130,5 @@ struct MsgSignup {
     char password[MAX_NAME_SIZE];
     CharacterTraits traits;
 };
-
-
-// struct MsgCharacterCreate {
-//     uint8_t opcode = CHARACTER_CREATE;
-//     char name[MAX_NAME_SIZE];
-//     uint8_t race;
-//     uint8_t clase;
-// };
 
 #pragma pack(pop)

@@ -647,7 +647,7 @@ void printItems(const std::map<TypeItem, std::unique_ptr<Item>>& items) {
                 return;
             }
             // 2. Si no es oro, debería ser un ShopItem (o alguna de sus subclases)
-            if (auto shop_item = dynamic_cast<const ShopItem*>(item.get())) {
+            if (auto shop_item = dynamic_cast<const Item*>(item.get())) {
                 // Datos comunes de cualquier ShopItem
                 std::vector<std::string> lines = {
                         " Nombre: " + shop_item->name,
@@ -672,8 +672,8 @@ void printItems(const std::map<TypeItem, std::unique_ptr<Item>>& items) {
                     lines.push_back(" Costo Mana: " + std::to_string(magic_obj->mana_cost));
                     lines.push_back(" Rango:      " + std::to_string(magic_obj->range));
                     draw_box("DEBUG: OBJ. MAGICO", lines);
-                } else if (auto potion = dynamic_cast<const Potion*>(shop_item)) {
-                    lines.push_back(" Restaura: " + std::to_string(potion->restore_amount));
+                } else {
+                    lines.push_back(" Restaura: " + shop_item->name);
                     draw_box("DEBUG: POCION", lines);
                 }
             } else {

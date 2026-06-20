@@ -10,8 +10,7 @@
 class Equipment {
 private:
     std::vector<std::unique_ptr<ItemInstance>> equipment_container;
-
-    size_t getEquipmentIndex(const ShopItem* item) const;
+    size_t getEquipmentIndex(const Item* item) const;
 
 public:
     Equipment(const Equipment&) = delete;             // No permitir copias
@@ -24,8 +23,6 @@ public:
     ~Equipment();
 
     std::unique_ptr<ItemInstance> equipItem(std::unique_ptr<ItemInstance>&& instance);
-
-    /*Vendio, solto el item o lo quito del equipo*/
     std::unique_ptr<ItemInstance> removeItem(size_t slot_index);
 
     /*Necesario para calcular los puntos de defensa*/
