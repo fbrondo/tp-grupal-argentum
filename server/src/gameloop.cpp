@@ -240,6 +240,13 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     auto citizen_snapshot = ResponseBuilder::buildCitizenNpcSnapshot(this->citizen_npcs);
     this->monitor.queueTheServerResponse(
             player_id, std::make_unique<ResponseMap>(std::move(map), std::move(citizen_snapshot)));
+    const auto pending_it = this->pending_clan_msgs.find(std::string(data.username));
+    if (pending_it != this->pending_clan_msgs.end()) {
+        for (const auto& msg: pending_it->second) {
+            this->monitor.queueTheServerResponse(player_id, std::make_shared<ResponseChatMsg>(msg));
+        }
+        this->pending_clan_msgs.erase(pending_it);
+    }
 }
 
 void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
@@ -969,6 +976,8 @@ void Gameloop::sendClanOpResult(Id caller_id, const ClanOpResult& result) {
         if (target_id.has_value()) {
             this->monitor.queueTheServerResponse(
                     *target_id, std::make_shared<ResponseChatMsg>(result.target_msg));
+        } else {
+            this->pending_clan_msgs[result.target_nick].push_back(result.target_msg);
         }
     }
 }

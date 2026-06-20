@@ -55,6 +55,7 @@ private:
         Id healer_id;
     };
     std::map<Id, ResurrectPending> pending_resurrects;
+    std::map<std::string, std::vector<std::string>> pending_clan_msgs;
 
     // void loadWorld(const WorldStateData& data);
     // void loadTreasures(const WorldStateData& world_data);
