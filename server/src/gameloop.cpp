@@ -39,6 +39,7 @@
 namespace {
 constexpr uint32_t RESURRECTION_MS_PER_TILE = 250;
 constexpr uint32_t MIN_RESURRECTION_DELAY_MS = 1000;
+constexpr uint32_t CREATURE_MOVEMENT_COOLDOWN_MS = 375;
 }  // namespace
 
 using RespSnapshot = std::shared_ptr<ResponseSnapshot>;
@@ -266,9 +267,14 @@ CombatEntity* Gameloop::inSearchOfTheVictimAttack(const Id& id_search) const {
 std::vector<Defense*> Gameloop::getPlayerDefensiveEquipment(const Id& player_id) {
     std::vector<Defense*> info_equipment_defensive;
     std::vector<TypeItem> equipmentTypes = this->players[player_id]->getEquipment();
-    for (auto Type: equipmentTypes) {
-        auto* item_defensive = dynamic_cast<Defense*>(this->conf.items.at(Type).get());
-        info_equipment_defensive.push_back(item_defensive);
+    for (auto type: equipmentTypes) {
+        const auto item = this->conf.items.find(type);
+        if (item == this->conf.items.end()) {
+            continue;
+        }
+        if (auto* defense = dynamic_cast<Defense*>(item->second.get())) {
+            info_equipment_defensive.push_back(defense);
+        }
     }
     return info_equipment_defensive;
 }
@@ -434,6 +440,108 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
     // }
 }
 
+Player* Gameloop::findNearestPlayer(const Creature& creature, Id& player_id) {
+    Player* nearest = nullptr;
+    uint32_t nearest_distance = std::numeric_limits<uint32_t>::max();
+    for (auto& [id, player]: this->players) {
+        if (!player->isAlive() || this->world.isSafeZONE(player->getPosition())) {
+            continue;
+        }
+        const uint32_t distance =
+                World::distanceBetweenPositions(creature.getPosition(), player->getPosition());
+        if (distance <= creature.getAggroRange() && distance < nearest_distance) {
+            nearest = player.get();
+            player_id = id;
+            nearest_distance = distance;
+        }
+    }
+    return nearest;
+}
+
+void Gameloop::moveCreatureTowards(Id creature_id, Creature& creature, const Position& target) {
+    const Position current = creature.getPosition();
+    const uint32_t dx = current.x > target.x ? current.x - target.x : target.x - current.x;
+    const uint32_t dy = current.y > target.y ? current.y - target.y : target.y - current.y;
+
+    Direction horizontal = target.x < current.x ? LEFT : RIGHT;
+    Direction vertical = target.y < current.y ? UP : DOWN;
+    Direction first = dx >= dy ? horizontal : vertical;
+    Direction second = dx >= dy ? vertical : horizontal;
+
+    if ((dx > 0 && first == horizontal) || (dy > 0 && first == vertical)) {
+        if (this->world.isCreatureWalkable(creature_id, first)) {
+            creature.updatePose(this->world.moveCreature(creature_id, first));
+            creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
+            return;
+        }
+    }
+    if (((dx > 0 && second == horizontal) || (dy > 0 && second == vertical)) &&
+        this->world.isCreatureWalkable(creature_id, second)) {
+        creature.updatePose(this->world.moveCreature(creature_id, second));
+        creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
+    }
+}
+
+void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
+    Player* victim = this->players.at(player_id).get();
+    if (!victim->isAlive() || this->world.isSafeZONE(victim->getPosition())) {
+        return;
+    }
+
+    bool is_critical = false;
+    uint16_t damage = creature.calculateDamage(is_critical);
+    if (!is_critical && victim->dodgeAttack()) {
+        creature.resetAttackCooldown(this->conf.times.npc_attack_cooldown);
+        creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
+        return;
+    }
+
+    const std::vector<Defense*> equipment = this->getPlayerDefensiveEquipment(player_id);
+    const uint16_t defense = victim->calculateDefense(equipment);
+    damage = damage > defense ? damage - defense : 0;
+
+    SoundEffectSnapshotData sound{};
+    sound.effect_id = SoundEffectID::GOLPE_RECIBIDO;
+    sound.pos_x = victim->getPosition().x;
+    sound.pos_y = victim->getPosition().y;
+    this->sounds_of_current_tick.push_back(sound);
+
+    VisualEffectSnapshotData visual{};
+    visual.effect_id = VisualEffectID::BE_ATTACKED;
+    visual.recipient_id = player_id;
+    visual.pos_x = victim->getPosition().x;
+    visual.pos_y = victim->getPosition().y;
+    this->visual_effects_of_current_tick.push_back(std::move(visual));
+
+    victim->receiveDamage(damage, this->world);
+    victim->breakMeditation();
+    creature.resetAttackCooldown(this->conf.times.npc_attack_cooldown);
+    creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
+}
+
+void Gameloop::updateCreatures(uint32_t delta_ms) {
+    for (auto& [creature_id, creature]: this->creatures) {
+        creature->updateCooldowns(delta_ms);
+        if (!creature->isAlive()) {
+            continue;
+        }
+
+        Id target_id = 0;
+        Player* target = this->findNearestPlayer(*creature, target_id);
+        if (!target) {
+            continue;
+        }
+
+        const uint32_t distance =
+                World::distanceBetweenPositions(creature->getPosition(), target->getPosition());
+        if (distance == 1 && creature->canAttack()) {
+            this->executeCreatureAttack(*creature, target_id);
+        } else if (distance > 1 && creature->canMove()) {
+            this->moveCreatureTowards(creature_id, *creature, target->getPosition());
+        }
+    }
+}
+
 void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
     const auto trader = dynamic_cast<TraderNPC*>(this->citizen_npcs.at(npc_id).get());
     if (!trader) {  // Enviar error como "Este NPC no vende ni compra nada."
@@ -499,7 +607,14 @@ void Gameloop::processPlayerEquipItem(Id player_id, size_t slot_id) {
     }
 }
 
-void Gameloop::processPlayerDisconnet(Id player_id) { this->players.erase(player_id); }
+void Gameloop::processPlayerDisconnet(Id player_id) {
+    if (!this->players.contains(player_id)) {
+        return;
+    }
+    this->world.removePlayer(player_id);
+    this->pending_resurrects.erase(player_id);
+    this->players.erase(player_id);
+}
 
 void Gameloop::processPlayerWithdrawItem(Id player_id, Id npc_id, TypeItem type_item) {
     const auto banker = dynamic_cast<Banker*>(this->citizen_npcs.at(npc_id).get());
@@ -893,6 +1008,7 @@ void Gameloop::run() {
         const uint32_t TICK_MS = 1000 / this->conf.times.server_update_frecuency;
         while (should_keep_running()) {
             this->execuetRequest();
+            this->updateCreatures(TICK_MS);
             for (auto it = this->pending_resurrects.begin();
                  it != this->pending_resurrects.end();) {
                 if (it->second.time_left_ms <= TICK_MS) {

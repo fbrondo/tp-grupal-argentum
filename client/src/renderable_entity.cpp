@@ -17,7 +17,7 @@ RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_til
         current_pixel_y(static_cast<float>(start_tile_y_ * TILE_SIZE)),
         current_dir(DOWN),
         is_moving(false),
-        movement_speed(120.0f),
+        movement_speed(type_ == EntityType::NPC ? 60.0f : 120.0f),
         body_id(body_id_),
         head_id(head_id_),
         weapon_id(weapon_id_),
