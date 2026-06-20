@@ -411,7 +411,10 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     if (magic_weapon)
         attacker->consumeMana(magic_weapon->mana_cost);
 
-    attacker->breakMeditation();
+    if (attacker->breakMeditation()) {
+        this->sendResponseToPlayer(
+                attacker_id, std::make_shared<ResponseChatMsg>("Tu meditación es interrumpida."));
+    }
 }
 
 void Gameloop::processMovePlayer(Id player_id, Direction dir) {
@@ -419,7 +422,10 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
         return;
     }
     if (this->world.isWalkable(player_id, dir)) {
-        this->players[player_id]->breakMeditation();
+        if (this->players[player_id]->breakMeditation()) {
+            this->sendResponseToPlayer(
+                    player_id, std::make_shared<ResponseChatMsg>("Tu meditación es interrumpida."));
+        }
         Pose new_pose = this->world.movePlayer(player_id, dir);
         this->players[player_id]->updatePose(std::move(new_pose));
     }  // else {
@@ -551,36 +557,49 @@ void Gameloop::processPlayerWithdrawGold(Id player_id, uint32_t /*amount*/) {
     player->breakMeditation();
 }
 
-void Gameloop::processListItems(Id player_id, Id /*npc_id*/) {
+void Gameloop::processListItems(Id player_id, Id npc_id) {
     Player* player = this->players.at(player_id).get();
     if (!player)
         return;
-    // CitizenNPC* npc = this->citizen_npcs.at(npc_id);
-    // if (!npc)
-    //     return;
-    // // TypeNPC npc_type = npc->getTypeNPC();
-    // //  NPC* npc_generico = this->npcs.at(npc_type).get();
-    //
-    // InteractionResult result = npc->interact();
-    // if (result.type == InteractionType::TRADER_SHOP) {
-    //     // auto response = std::make_unique<ResponseTraderCatalog>(*(result.trader_store));
-    //     // this->sendResponseToPlayer(player_id, std::move(response));
-    // } else if (result.type == InteractionType::BANK_BOX) {
-    //     std::vector<MsgItemInfo> items_info = player->getBankItemsInfo();
-    //     uint32_t bank_gold = player->getBankGold();
-    //     auto response = std::make_unique<ResponseBankContent>(std::move(items_info), bank_gold);
-    //     this->sendResponseToPlayer(player_id, std::move(response));
-    // }
+
+    auto npc_it = this->citizen_npcs.find(npc_id);
+    if (npc_it == this->citizen_npcs.end())
+        return;
+
+    CitizenNPC* citizen = npc_it->second.get();
+
+    auto* trader = dynamic_cast<TraderNPC*>(citizen);
+    if (trader) {
+        const auto& store = trader->getStore();
+        std::map<TypeItem, uint32_t> catalog;
+        for (const auto& [type, item]: store) {
+            const auto* shop_item = dynamic_cast<const ShopItem*>(item);
+            if (shop_item) {
+                catalog[type] = shop_item->selling_price;
+            }
+        }
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseTraderCatalog>(catalog));
+        return;
+    }
+
+    auto* banker = dynamic_cast<Banker*>(citizen);
+    if (banker) {
+        auto [items, gold] = banker->getBankContent(player->getUsername());
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseBankContent>(std::move(items), gold));
+    }
 }
 
 void Gameloop::processPlayerMeditate(Id player_id) {
-    // En el update del gameloop donde se manejan los ticks se debe manejar la regeneracion de mana
-    // cuando medita
     Player* player = this->players.at(player_id).get();
     if (!player->isAlive()) {
         return;
     }
     player->toggleMeditation();
+    if (player->isMeditating()) {
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>("Entrás en estado de meditación."));
+    }
 }
 
 uint32_t Gameloop::calculateResurrectionDelayMs(const Position& from, const Position& to) const {
@@ -595,6 +614,8 @@ void Gameloop::resurrectPlayerAtHealer(Id player_id, Id healer_id) {
         return;
     }
     healer->resurrect(*player, this->world, player_id);
+    this->sendResponseToPlayer(player_id,
+                               std::make_shared<ResponseChatMsg>("Has resucitado en la ciudad."));
 
     SoundEffectSnapshotData sound_effect;
     sound_effect.effect_id = SoundEffectID::CURAR;
@@ -625,6 +646,8 @@ void Gameloop::processPlayerHeal(Id player_id) {
         return;
     }
     priest->heal(*player);
+    this->sendResponseToPlayer(player_id,
+                               std::make_shared<ResponseChatMsg>("Un sacerdote te cura."));
 
     SoundEffectSnapshotData sound_effect;
     sound_effect.effect_id = SoundEffectID::CURAR;
@@ -683,6 +706,66 @@ void Gameloop::processPlayerResurrect(Id player_id) {
             this->calculateResurrectionDelayMs(player->getPosition(), healer.pose.position);
     player->startResurrection();
     this->pending_resurrects[player_id] = {delay_ms, healer.id};
+    this->sendResponseToPlayer(
+            player_id, std::make_shared<ResponseChatMsg>("El sacerdote viene a resucitarte..."));
+}
+
+void Gameloop::processPlayerInteract(Id player_id, Id npc_id, uint8_t action) {
+    if (!this->players.contains(player_id)) {
+        return;
+    }
+    Player* player = this->players.at(player_id).get();
+    if (!player->isAlive() && action != 1) {
+        return;
+    }
+    if (!this->citizen_npcs.contains(npc_id)) {
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseChatMsg>("No hay ningún NPC ahí."));
+        return;
+    }
+    auto priest = dynamic_cast<Priest*>(this->citizen_npcs.at(npc_id).get());
+    if (!priest) {
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseChatMsg>("Ese NPC no puede curarte."));
+        return;
+    }
+    const uint32_t distance =
+            World::distanceBetweenPositions(player->getPosition(), priest->getPosition());
+    if (distance > 3) {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                      "Estás demasiado lejos del sacerdote."));
+        return;
+    }
+    if (action == 0) {
+        priest->heal(*player);
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseChatMsg>("Un sacerdote te cura."));
+        SoundEffectSnapshotData sound_effect;
+        sound_effect.effect_id = SoundEffectID::CURAR;
+        Position position = player->getPosition();
+        sound_effect.pos_x = position.x;
+        sound_effect.pos_y = position.y;
+        this->sounds_of_current_tick.push_back(std::move(sound_effect));
+        VisualEffectSnapshotData visual_effect{};
+        visual_effect.effect_id = VisualEffectID::BE_HEALED;
+        visual_effect.recipient_id = player_id;
+        visual_effect.pos_x = position.x;
+        visual_effect.pos_y = position.y;
+        this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
+    } else {
+        if (player->isResurrecting()) {
+            return;
+        }
+        if (this->pending_resurrects.contains(player_id)) {
+            return;
+        }
+        uint32_t delay_ms =
+                this->calculateResurrectionDelayMs(player->getPosition(), priest->getPosition());
+        player->startResurrection();
+        this->pending_resurrects[player_id] = {delay_ms, npc_id};
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                      "El sacerdote viene a resucitarte..."));
+    }
 }
 
 void Gameloop::processPlayerDebugKill(Id player_id) {

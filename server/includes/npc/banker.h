@@ -5,6 +5,8 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "common/includes/types.h"
 #include "server/includes//player.h"
@@ -35,8 +37,7 @@ public:
 
     void playerWithdrawItem(Player& player, TypeItem type);
     void playerDepositItem(Player& player, const ShopItem* item);
-    // void playerDepositGold(Player& player, uint32_t amount);
-    // void playerWithdrawGold(Player& player, uint32_t amount);
+    std::pair<std::vector<MsgItemInfo>, uint32_t> getBankContent(const std::string& username) const;
     ~Banker() override = default;
 };
 

@@ -1,14 +1,13 @@
 #pragma once
 
-#include <string>
-
 #include "client/includes/commands/command_client.h"
 
-class ChatCommandClient: public ClientCommand {
-    std::string text;
+class InteractCommandClient: public ClientCommand {
+private:
     uint32_t npc_id;
+    uint8_t action;
 
 public:
-    explicit ChatCommandClient(std::string msg, uint32_t npc_id = 0);
+    InteractCommandClient(uint32_t npc_id, uint8_t action);
     void execute(ClientProtocol& protocol) const override;
 };

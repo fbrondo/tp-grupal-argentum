@@ -1,5 +1,9 @@
 #include "server/includes/npc/banker.h"
 
+#include <vector>
+
+#include "common/includes/protocol.h"
+
 Banker::Banker(TypeNPC type, const std::string& name, Bank& bank_, const Pose& pose_):
         CitizenNPC(type, name, pose_), bank(bank_) {}
 
@@ -79,3 +83,22 @@ void Banker::playerDepositItem(Player& player, const ShopItem* item) {
 //     result.open_bank = true;
 //     return result;
 // }
+
+std::pair<std::vector<MsgItemInfo>, uint32_t> Banker::getBankContent(
+        const std::string& username) const {
+    std::vector<MsgItemInfo> items;
+    uint32_t gold = 0;
+    auto it = bank.accounts.find(username);
+    if (it != bank.accounts.end()) {
+        gold = it->second.golden;
+        for (const auto& slot: it->second.safe_box) {
+            if (!slot.isEmpty()) {
+                MsgItemInfo info;
+                info.instance_id = static_cast<uint32_t>(slot.getTypeItem());
+                info.item_type = static_cast<uint8_t>(slot.getTypeItem());
+                items.push_back(info);
+            }
+        }
+    }
+    return {items, gold};
+}

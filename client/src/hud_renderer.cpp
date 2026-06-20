@@ -122,6 +122,11 @@ bool HudRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) co
             y <= CONSOLE_Y + CONSOLE_H);
 }
 
+bool HudRenderer::is_point_inside_console_input(uint32_t x, uint32_t y) const {
+    return (x >= CONSOLE_X && x <= CONSOLE_X + CONSOLE_W && y >= CONSOLE_INPUT_Y &&
+            y <= CONSOLE_Y + CONSOLE_H);
+}
+
 void HudRenderer::add_chat_message(const std::string& msg, MessageColor color) {
     if (msg.empty())
         return;
@@ -137,15 +142,24 @@ void HudRenderer::add_chat_message(const std::string& msg, MessageColor color) {
         case COLOR_YELLOW:
             sdl_color = {210, 170, 45, 255};
             break;
+        case COLOR_BLUE:
+            sdl_color = {100, 150, 255, 255};
+            break;
         default:
             sdl_color = {255, 255, 255, 255};
             break;
     }
     chat_log_textures.push_back(create_text_texture_colored(msg, sdl_color));
 
-    if (chat_log_textures.size() > 6) {
+    if (chat_log_textures.size() > MAX_CHAT_LOG_SIZE) {
         chat_log_textures.pop_front();
     }
+
+    constexpr int LINE_SPACING = 18;
+    int messages_area_h = CONSOLE_H - CONSOLE_INPUT_H - 5;
+    int total_lines = static_cast<int>(chat_log_textures.size());
+    int max_visible = messages_area_h / LINE_SPACING;
+    console_scroll_offset = std::max(0, total_lines - max_visible);
 }
 
 void HudRenderer::update_chat_input(const std::string& buffer, bool is_active) {
@@ -193,23 +207,60 @@ void HudRenderer::render_resurrection_notice() const {
 }
 
 void HudRenderer::render_chat() const {
-    int start_y = CONSOLE_Y + 5;
-    int line_spacing = 18;
+    constexpr int LINE_SPACING = 18;
+    int messages_area_h = CONSOLE_H - CONSOLE_INPUT_H - 5;
 
-    for (const auto& tex: chat_log_textures) {
+    int total_lines = static_cast<int>(chat_log_textures.size());
+    int max_visible = messages_area_h / LINE_SPACING;
+    int max_scroll = std::max(0, total_lines - max_visible);
+
+    int scroll = std::min(console_scroll_offset, max_scroll);
+    scroll = std::max(scroll, 0);
+
+    SDL_Rect clip_rect = {CONSOLE_X, CONSOLE_Y, CONSOLE_W, messages_area_h + 5};
+    SDL_RenderSetClipRect(renderer.Get(), &clip_rect);
+
+    int start_y = CONSOLE_Y + 5;
+    for (int i = scroll; i < total_lines; ++i) {
+        const auto& tex = chat_log_textures[i];
         if (tex) {
             renderer.Copy(*tex, SDL2pp::NullOpt,
                           SDL2pp::Rect(CONSOLE_X + 10, start_y, tex->GetWidth(), tex->GetHeight()));
-            start_y += line_spacing;
+            start_y += LINE_SPACING;
+            if (start_y + LINE_SPACING > CONSOLE_INPUT_Y)
+                break;
         }
     }
 
+    SDL_RenderSetClipRect(renderer.Get(), nullptr);
+
+    SDL_SetRenderDrawColor(renderer.Get(), 80, 80, 80, 255);
+    SDL_RenderDrawLine(renderer.Get(), CONSOLE_X, CONSOLE_INPUT_Y, CONSOLE_X + CONSOLE_W,
+                       CONSOLE_INPUT_Y);
+
     if (chat_is_active && chat_input_texture) {
-        int input_y = CONSOLE_Y + CONSOLE_H - 22;
-        renderer.Copy(*chat_input_texture, SDL2pp::NullOpt,
-                      SDL2pp::Rect(CONSOLE_X + 10, input_y, chat_input_texture->GetWidth(),
-                                   chat_input_texture->GetHeight()));
+        renderer.Copy(
+                *chat_input_texture, SDL2pp::NullOpt,
+                SDL2pp::Rect(CONSOLE_X + 10, CONSOLE_INPUT_Y + 3, chat_input_texture->GetWidth(),
+                             chat_input_texture->GetHeight()));
     }
+}
+
+void HudRenderer::scroll_console(int delta) {
+    if (chat_log_textures.empty())
+        return;
+
+    constexpr int LINE_SPACING = 18;
+    int messages_area_h = CONSOLE_H - CONSOLE_INPUT_H - 5;
+    int total_lines = static_cast<int>(chat_log_textures.size());
+    int max_visible = messages_area_h / LINE_SPACING;
+    int max_scroll = std::max(0, total_lines - max_visible);
+
+    console_scroll_offset += delta;
+    if (console_scroll_offset < 0)
+        console_scroll_offset = 0;
+    if (console_scroll_offset > max_scroll)
+        console_scroll_offset = max_scroll;
 }
 
 void HudRenderer::render() const {

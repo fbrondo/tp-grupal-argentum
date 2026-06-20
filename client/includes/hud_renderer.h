@@ -30,6 +30,9 @@ private:
     std::unique_ptr<SDL2pp::Texture> chat_input_texture;
     uint16_t resurrection_time_left_ms = 0;
     bool chat_is_active = false;
+    int console_scroll_offset = 0;
+
+    static constexpr size_t MAX_CHAT_LOG_SIZE = 50;
 
     void render_chat() const;
     void render_progress_bar(int x, int y, int width, int height, uint32_t current,
@@ -49,7 +52,9 @@ public:
     ~HudRenderer() = default;
     void set_player_name(const std::string& name);
     void add_chat_message(const std::string& msg, MessageColor color = COLOR_WHITE);
+    void scroll_console(int delta);
     bool is_point_inside_console(uint32_t x, uint32_t y) const;
+    bool is_point_inside_console_input(uint32_t x, uint32_t y) const;
     void update_chat_input(const std::string& buffer, bool is_active);
     void update_stats(const MsgPlayerStats& new_stats);
     void update_resurrection_timer(uint16_t time_left_ms);

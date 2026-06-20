@@ -323,7 +323,12 @@ bool Player::isResurrecting() const { return this->is_resurrecting; }
 
 void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
 
-void Player::breakMeditation() { this->is_meditating = false; }
+bool Player::breakMeditation() {
+    if (!this->is_meditating)
+        return false;
+    this->is_meditating = false;
+    return true;
+}
 
 void Player::updateHp(float delta) {
     if (!this->isAlive()) {

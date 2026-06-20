@@ -107,6 +107,7 @@ public:
     void processPlayerMeditate(Id player_id);
     void processPlayerHeal(Id player_id);
     void processPlayerResurrect(Id player_id);
+    void processPlayerInteract(Id player_id, Id npc_id, uint8_t action);
     void processPlayerDebugKill(Id player_id);
     void processListItems(Id player_id, Id npc_id);
     void processBroadcastChat(Id sender_id, const std::string& text);

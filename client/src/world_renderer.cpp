@@ -15,6 +15,8 @@ static uint32_t player_entity_key(uint32_t server_id) { return PLAYER_ENTITY_OFF
 
 static uint32_t npc_entity_key(uint32_t server_id) { return NPC_ENTITY_OFFSET + server_id; }
 
+static uint32_t citizen_entity_key(uint32_t server_id) { return CITIZEN_ENTITY_OFFSET + server_id; }
+
 static uint32_t item_entity_key(uint32_t pos_x, uint32_t pos_y) {
     return ITEM_ENTITY_OFFSET + (pos_x * 1000) + pos_y;
 }
@@ -109,10 +111,10 @@ void WorldRenderer::load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot
     camera.y = 0;
     update_visible_map_bounds();
     for (const auto& citizen: citizens) {
-        const uint32_t entity_key = npc_entity_key(citizen.id);
-        entities[entity_key] =
-                std::make_unique<RenderableEntity>(entity_key, EntityType::NPC, citizen.position.x,
-                                                   citizen.position.y, citizen.type, 0, 0, 0);
+        const uint32_t entity_key = citizen_entity_key(citizen.id);
+        entities[entity_key] = std::make_unique<RenderableEntity>(
+                entity_key, EntityType::CITIZEN, citizen.position.x, citizen.position.y,
+                citizen.type, 0, 0, 0);
         entities[entity_key]->move_to(citizen.position.x, citizen.position.y,
                                       static_cast<Direction>(citizen.direction));
         static_entity_keys.insert(entity_key);
@@ -184,12 +186,20 @@ void WorldRenderer::add_chat_message(const std::string& msg, const MessageColor 
     hud_renderer.add_chat_message(msg, color);
 }
 
+void WorldRenderer::scroll_console(int delta) { hud_renderer.scroll_console(delta); }
+
 void WorldRenderer::update_chat_input(const std::string& buffer, bool is_active) {
     hud_renderer.update_chat_input(buffer, is_active);
 }
 
+void WorldRenderer::set_citizen_selected(int npc_id) { selected_npc_id = npc_id; }
+
 bool WorldRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) const {
     return hud_renderer.is_point_inside_console(x, y);
+}
+
+bool WorldRenderer::is_point_inside_console_input(uint32_t x, uint32_t y) const {
+    return hud_renderer.is_point_inside_console_input(x, y);
 }
 
 bool WorldRenderer::is_local_player_moving() const {
@@ -437,6 +447,33 @@ void WorldRenderer::render() {
         entity->render_with_camera(renderer, texture_manager, camera.x, camera.y,
                                    camera_screen_offset_x, camera_screen_offset_y);
 
+        if (entity->get_type() == EntityType::CITIZEN && selected_npc_id >= 0) {
+            uint32_t citizen_server_id = entity_key - CITIZEN_ENTITY_OFFSET;
+            if (static_cast<int>(citizen_server_id) == selected_npc_id) {
+                uint16_t body = entity->get_body_id();
+                const char* icon_key = nullptr;
+                if (body == PRIEST)
+                    icon_key = "npc_17";
+                else if (body == BANKER)
+                    icon_key = "npc_15";
+                else if (body == MERCHANT)
+                    icon_key = "npc_16";
+
+                if (icon_key) {
+                    const int ex = static_cast<int>(entity->get_pixel_x()) - camera.x +
+                                   camera_screen_offset_x;
+                    const int ey = static_cast<int>(entity->get_pixel_y()) - camera.y +
+                                   camera_screen_offset_y + TILE_SIZE;
+                    auto& icon = texture_manager.get_texture(icon_key);
+                    const int icon_w = icon.GetWidth();
+                    const int icon_h = icon.GetHeight();
+                    renderer.Copy(icon, SDL2pp::NullOpt,
+                                  SDL2pp::Rect(ex + TILE_SIZE / 2 - icon_w / 2, ey - icon_h - 4,
+                                               icon_w, icon_h));
+                }
+            }
+        }
+
         if (entity->get_type() != EntityType::PLAYER)
             continue;
 
@@ -574,8 +611,19 @@ std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_scre
                 server_id = id - NPC_ENTITY_OFFSET;
             else if (type == EntityType::PLAYER)
                 server_id = id - PLAYER_ENTITY_OFFSET;
+            else if (type == EntityType::CITIZEN)
+                server_id = id - CITIZEN_ENTITY_OFFSET;
             return std::make_pair(server_id, type);
         }
     }
     return std::nullopt;
+}
+
+int WorldRenderer::get_npc_body_id(uint32_t server_id) const {
+    const uint32_t entity_key = NPC_ENTITY_OFFSET + server_id;
+    const auto it = entities.find(entity_key);
+    if (it == entities.end() || it->second->get_type() != EntityType::NPC) {
+        return -1;
+    }
+    return static_cast<int>(it->second->get_body_id());
 }

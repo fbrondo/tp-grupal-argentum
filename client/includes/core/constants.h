@@ -26,6 +26,7 @@ static constexpr int CULLING_MARGIN_TILES = MAX_TILE_TEXTURE_SIZE / TILE_SIZE + 
 static constexpr uint32_t PLAYER_ENTITY_OFFSET = 0;
 static constexpr uint32_t NPC_ENTITY_OFFSET = 1000000;
 static constexpr uint32_t ITEM_ENTITY_OFFSET = 2000000;
+static constexpr uint32_t CITIZEN_ENTITY_OFFSET = 3000000;
 
 // --- WINDOW CONFIG --- //
 static constexpr int WINDOW_W = 960;
@@ -66,3 +67,5 @@ constexpr int CONSOLE_X = 7;
 constexpr int CONSOLE_Y = 7;
 constexpr int CONSOLE_W = 672;
 constexpr int CONSOLE_H = 135;
+constexpr int CONSOLE_INPUT_H = 22;
+constexpr int CONSOLE_INPUT_Y = CONSOLE_Y + CONSOLE_H - CONSOLE_INPUT_H;

@@ -4,6 +4,8 @@ TraderNPC::TraderNPC(TypeNPC type, const std::string& name, const Pose& pose_,
                      std::map<TypeItem, Item*>&& items_):
         CitizenNPC(type, name, pose_), store(std::move(items_)) {}
 
+const std::map<TypeItem, Item*>& TraderNPC::getStore() const { return store; }
+
 void TraderNPC::executeBuyItem(Player& player, TypeItem type_item_buy) {
     if (!this->store.contains(type_item_buy)) {
         return;

@@ -37,6 +37,14 @@ std::string ChatManager::extract_message() {
     return msg;
 }
 
+void ChatManager::select_npc(int server_id) { selected_npc_id = server_id; }
+
+void ChatManager::clear_npc_selection() { selected_npc_id = -1; }
+
+bool ChatManager::has_npc_selection() const { return selected_npc_id >= 0; }
+
+int ChatManager::get_selected_npc_id() const { return selected_npc_id; }
+
 void ChatManager::add_message_to_log(const std::string& msg) {
     log.push_back(msg);
     if (log.size() > MAX_LOG_SIZE) {

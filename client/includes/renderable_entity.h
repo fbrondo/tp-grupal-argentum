@@ -9,7 +9,7 @@
 #include "client/includes/texture_manager.h"
 #include "common/includes/direction.h"
 
-enum class EntityType { PLAYER, NPC, ITEM };
+enum class EntityType { PLAYER, NPC, ITEM, CITIZEN };
 
 class RenderableEntity {
 private:
@@ -78,4 +78,5 @@ public:
     bool is_currently_moving() const { return is_moving; }
     uint8_t get_level() const { return level; }
     const std::string& get_name() const { return name; }
+    uint16_t get_body_id() const { return body_id; }
 };

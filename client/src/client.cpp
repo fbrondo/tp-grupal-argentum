@@ -1,5 +1,10 @@
 #include "client/includes/client.h"
 
+#include <algorithm>
+#include <cctype>
+#include <string>
+#include <unordered_map>
+
 #include <SDL2/SDL_image.h>
 
 #include "client/includes/commands/command_attack.h"
@@ -7,6 +12,53 @@
 #include "client/includes/commands/command_move.h"
 #include "client/includes/core/constants.h"
 #include "common/includes/toml_config.h"
+
+static const char* item_name(uint8_t type) {
+    switch (type) {
+        case SWORD:
+            return "Espada";
+        case AXE:
+            return "Hacha";
+        case HAMMER:
+            return "Martillo";
+        case ASH_STAFF:
+            return "Vara de fresno";
+        case ELVEN_FLUTE:
+            return "Flauta elfica";
+        case KNOTTED_STAFF:
+            return "Baculo nudoso";
+        case INLAID_STAFF:
+            return "Baculo engarzado";
+        case SIMPLE_BOW:
+            return "Arco simple";
+        case COMPOUND_BOW:
+            return "Arco compuesto";
+        case LEATHER_ARMOR:
+            return "Armadura de cuero";
+        case PLATE_AMOR:
+            return "Armadura de placas";
+        case BLUE_TUNIC:
+            return "Tunica azul";
+        case HOOD:
+            return "Capucha";
+        case IRON_HELMET:
+            return "Casco de hierro";
+        case TORTOISE_SHIELD:
+            return "Escudo de tortuga";
+        case IRON_SHIELD:
+            return "Escudo de hierro";
+        case MAGIC_HAT:
+            return "Sombrero magico";
+        case LIFE_POTION:
+            return "Pocion vida";
+        case MANA_POTION:
+            return "Pocion mana";
+        case GOLD:
+            return "Oro";
+        default:
+            return "?";
+    }
+}
 
 static bool get_pressed_movement_direction(Direction& direction) {
     SDL_PumpEvents();
@@ -84,9 +136,17 @@ void Client::handle_left_click(uint32_t mouse_x, uint32_t mouse_y) {
             auto hit = world_renderer.get_entity_at_screen(mouse_x, mouse_y);
             if (hit) {
                 auto [entity_id, entity_type] = *hit;
-                if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
+                if (entity_type == EntityType::PLAYER) {
                     cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
+                } else if (entity_type == EntityType::NPC) {
+                    cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
+                } else if (entity_type == EntityType::CITIZEN) {
+                    chat.select_npc(entity_id);
+                    world_renderer.set_citizen_selected(entity_id);
                 }
+            } else {
+                chat.clear_npc_selection();
+                world_renderer.set_citizen_selected(-1);
             }
         }
 
@@ -127,14 +187,25 @@ void Client::handle_events() {
             handle_left_click(event.button.x, event.button.y);
         }
 
+        if (event.type == SDL_MOUSEWHEEL) {
+            int mouse_x, mouse_y;
+            SDL_GetMouseState(&mouse_x, &mouse_y);
+            if (world_renderer.is_point_inside_console(mouse_x, mouse_y)) {
+                world_renderer.scroll_console(-event.wheel.y);
+            }
+        }
+
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN) {
             if (chat.is_active()) {
                 std::string msg = chat.extract_message();
                 if (!msg.empty()) {
-                    cmd_queue.push(std::make_unique<ChatCommandClient>(msg));
+                    uint32_t npc_id = chat.has_npc_selection() ? chat.get_selected_npc_id() : 0;
+                    cmd_queue.push(std::make_unique<ChatCommandClient>(msg, npc_id));
                     world_renderer.set_chat_bubble_on_local(msg);
                 }
                 chat.set_active(false);
+                chat.clear_npc_selection();
+                world_renderer.set_citizen_selected(-1);
                 sync_chat_ui();
             }
         }
@@ -226,6 +297,26 @@ void Client::update_state_from_server() {
                 }
                 break;
             }
+            case TypeEventClient::OPEN_MERCHANT: {
+                world_renderer.add_chat_message("--- Catalogo del comerciante ---", COLOR_BLUE);
+                for (const auto& [type, price]: event.merchant_data.catalog) {
+                    world_renderer.add_chat_message(
+                            std::string(item_name(static_cast<uint8_t>(type))) + " - " +
+                                    std::to_string(price) + "g",
+                            COLOR_WHITE);
+                }
+                break;
+            }
+            case TypeEventClient::OPEN_BANK: {
+                world_renderer.add_chat_message("--- Contenido del banco ---", COLOR_BLUE);
+                world_renderer.add_chat_message("Oro: " + std::to_string(event.bank_data.gold),
+                                                COLOR_YELLOW);
+                for (const auto& item: event.bank_data.items) {
+                    world_renderer.add_chat_message(std::string(item_name(item.item_type)),
+                                                    COLOR_WHITE);
+                }
+                break;
+            }
             case TypeEventClient::DISCONNECTION:
                 is_running = false;
                 break;
@@ -269,6 +360,8 @@ void Client::launch(const std::string& user, const std::string& pass) {
                 if (login_event.type == TypeEventClient::LOGIN_RESPONSE) {
                     if (login_event.login_success) {
                         world_renderer.set_local_player(login_event.player_id);
+                        world_renderer.add_chat_message("¡Bienvenido a las Tierras de Argentum!",
+                                                        COLOR_BLUE);
                     }
                     break;
                 }

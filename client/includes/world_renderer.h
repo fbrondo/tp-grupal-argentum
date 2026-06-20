@@ -40,6 +40,7 @@ private:
     std::vector<ActiveVisualEffect> active_visual_effects;
     std::optional<Map> current_map;
     SDL_Rect visible_map_bounds;
+    int selected_npc_id = -1;
 
     // El rectángulo de la cámara (guarda x, y, w, h en píxeles del mundo)
     SDL_Rect camera;
@@ -66,8 +67,11 @@ public:
     void load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens);
 
     void add_chat_message(const std::string& msg, MessageColor color = COLOR_WHITE);
+    void scroll_console(int delta);
     void update_chat_input(const std::string& buffer, bool is_active);
+    void set_citizen_selected(int npc_id);
     bool is_point_inside_console(uint32_t x, uint32_t y) const;
+    bool is_point_inside_console_input(uint32_t x, uint32_t y) const;
     bool is_local_player_moving() const;
     // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
     void update_from_snapshot(const Snapshot& snapshot);
@@ -82,4 +86,7 @@ public:
     // Retorna nullopt si el punto no coincide con ninguna entidad (excluye items y jugador local).
     std::optional<std::pair<uint32_t, EntityType>> get_entity_at_screen(int screen_x,
                                                                         int screen_y) const;
+
+    // Retorna el body_id (TypeNPC) de un NPC dado su server_id, o -1 si no existe.
+    int get_npc_body_id(uint32_t server_id) const;
 };
