@@ -381,6 +381,8 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     attacker->earnExperiencePoints(victim, damage_by_attacker);
 
     const bool victim_died = !victim->isAlive();
+    const bool victim_is_player = dynamic_cast<Player*>(victim) != nullptr;
+    const bool victim_is_creature = dynamic_cast<Creature*>(victim) != nullptr;
 
     std::string victim_name;
     if (auto* victim_player = dynamic_cast<Player*>(victim)) {
@@ -392,7 +394,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
 
     if (victim_died) {
         attacker->earnKillExp(victim);
-        if (dynamic_cast<Creature*>(victim))
+        if (victim_is_creature)
             this->creatures.erase(victim_id);
     }
 
@@ -404,7 +406,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         }
         this->sendCombatMessage(attacker_id, oss.str());
     }
-    if (dynamic_cast<Player*>(victim)) {
+    if (victim_is_player) {
         std::ostringstream oss;
         oss << "Recibiste " << damage_by_attacker << " de daño de " << attacker_name << ".";
         if (victim_died) {
@@ -960,6 +962,8 @@ void Gameloop::executeBroacastSnapshot() {
     snap.npcs = ResponseBuilder::buildNpcSnapshot(this->creatures);
     snap.sound_effects = std::move(this->sounds_of_current_tick);
     this->sounds_of_current_tick.clear();
+    snap.visual_effects = std::move(this->visual_effects_of_current_tick);
+    this->visual_effects_of_current_tick.clear();
     RespSnapshot resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
 }
