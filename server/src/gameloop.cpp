@@ -223,6 +223,16 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
         return;
     }
     this->loadingPlayerData(player_id, data);
+    const std::string login_clan = this->clan_manager.getClanOf(data.username);
+    if (!login_clan.empty()) {
+        const std::string notif = std::string(data.username) + " entró al juego.";
+        for (const auto& [id, p]: this->players) {
+            if (id != player_id &&
+                this->clan_manager.areInSameClan(p->getUsername(), data.username)) {
+                this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
+            }
+        }
+    }
     this->monitor.queueTheServerResponse(player_id,
                                          std::make_unique<ResponseLogin>(true, player_id));
     Map map = this->world.getMap();
@@ -299,6 +309,14 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     if (!attacker->isValidOpponent(dynamic_cast<Player*>(victim))) {
         std::cerr << "[ATTACK] blocked: invalid opponent (fair play)\n";
         return;
+    }
+
+    if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
+        if (this->clan_manager.areInSameClan(attacker->getUsername(),
+                                             victim_player->getUsername())) {
+            std::cerr << "[ATTACK] blocked: same clan\n";
+            return;
+        }
     }
 
     auto* weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
@@ -560,6 +578,17 @@ void Gameloop::processPlayerEquipItem(Id player_id, size_t slot_id) {
 void Gameloop::processPlayerDisconnet(Id player_id) {
     if (!this->players.contains(player_id)) {
         return;
+    }
+    const std::string logout_username = this->players.at(player_id)->getUsername();
+    const std::string logout_clan = this->clan_manager.getClanOf(logout_username);
+    if (!logout_clan.empty()) {
+        const std::string notif = logout_username + " salió del juego.";
+        for (const auto& [id, p]: this->players) {
+            if (id != player_id &&
+                this->clan_manager.areInSameClan(p->getUsername(), logout_username)) {
+                this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
+            }
+        }
     }
     this->world.removePlayer(player_id);
     this->pending_resurrects.erase(player_id);
