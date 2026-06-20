@@ -50,6 +50,7 @@ struct NpcSnapshotData {
     char name[MAX_NAME_SIZE];
     uint32_t id;
     uint8_t type_id;
+    uint8_t direction;
     uint32_t pos_x;
     uint32_t pos_y;
     uint16_t current_hp;

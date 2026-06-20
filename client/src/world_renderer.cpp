@@ -247,11 +247,13 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         auto it = entities.find(entity_key);
         if (it != entities.end()) {
             it->second->move_to(n_data.pos_x, n_data.pos_y,
-                                DOWN);  // Ojo: cuando tengas dirección de NPC, ponla aquí
+                                static_cast<Direction>(n_data.direction));
         } else {
             entities[entity_key] = std::make_unique<RenderableEntity>(
                     entity_key, EntityType::NPC, n_data.pos_x, n_data.pos_y,
                     static_cast<uint8_t>(n_data.type_id), 0, 0, 0);
+            entities[entity_key]->move_to(n_data.pos_x, n_data.pos_y,
+                                          static_cast<Direction>(n_data.direction));
         }
     }
 

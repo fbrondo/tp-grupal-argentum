@@ -80,6 +80,7 @@ public:
     const Map& getMap() const { return map; }
 
     bool isWalkable(const Id& id_player, const Direction dir);
+    bool isCreatureWalkable(const Id& creature_id, Direction dir) const;
     bool isSafeZONE(const Position& pos);
     // bool canDropItemAt(const Position& pos);
 
@@ -99,6 +100,7 @@ public:
     void removePlayer(const Id& player_id); /*Solo cuando un jugador se desconecte*/
     void removeCreature(const Id& creature_id);
     Pose movePlayer(const Id& player_id, Direction dir);
+    Pose moveCreature(const Id& creature_id, Direction dir);
     Pose teleportPlayer(const Id& player_id, const Position& position);
 
     // Position positionEntityTheWorld(const Id& id) const;

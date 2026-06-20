@@ -4,6 +4,4 @@
 
 DisconnectCommand::DisconnectCommand(Id id): Command(id) {}
 
-void DisconnectCommand::execute(Gameloop& /*game*/) {
-    // game.processDisconnect(this->client_id);
-}
+void DisconnectCommand::execute(Gameloop& game) { game.processPlayerDisconnet(this->client_id); }
