@@ -351,11 +351,28 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         return;
     }
 
+    std::map<std::string, Position> online_positions;
+    for (const auto& [id, p]: this->players) {
+        online_positions[p->getUsername()] = p->getPosition();
+    }
+    const uint8_t nearby_atk = this->clan_manager.countNearbyMembers(
+            attacker->getUsername(), attacker_pos, online_positions,
+            this->conf.clan.proximity_range);
+    damage_by_attacker +=
+            static_cast<uint16_t>(nearby_atk) * this->conf.clan.proximity_bonus_per_member;
+
     if (const auto player = dynamic_cast<Player*>(victim)) {
         const std::vector<Defense*> equip_defensive = this->getPlayerDefensiveEquipment(victim_id);
         const uint16_t defense_victim = player->calculateDefense(equip_defensive);
         damage_by_attacker =
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
+        const uint8_t nearby_def = this->clan_manager.countNearbyMembers(
+                player->getUsername(), victim->getPosition(), online_positions,
+                this->conf.clan.proximity_range);
+        const uint16_t clan_def_bonus =
+                static_cast<uint16_t>(nearby_def) * this->conf.clan.proximity_bonus_per_member;
+        damage_by_attacker =
+                (damage_by_attacker > clan_def_bonus) ? (damage_by_attacker - clan_def_bonus) : 0;
     }
 
     SoundEffectSnapshotData golpe_sound{};
@@ -380,6 +397,21 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
               << std::endl;
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
+
+    if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
+        const std::string victim_clan = this->clan_manager.getClanOf(victim_player->getUsername());
+        if (!victim_clan.empty()) {
+            const std::string notif = victim_player->getUsername() + " está siendo atacado!";
+            for (const auto& [id, p]: this->players) {
+                if (p->getUsername() != victim_player->getUsername() &&
+                    this->clan_manager.areInSameClan(p->getUsername(),
+                                                     victim_player->getUsername())) {
+                    this->monitor.queueTheServerResponse(id,
+                                                         std::make_shared<ResponseChatMsg>(notif));
+                }
+            }
+        }
+    }
 
     if (!victim->isAlive()) {
         attacker->earnKillExp(victim);
