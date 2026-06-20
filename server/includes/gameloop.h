@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <random>
 #include <string>
 #include <vector>
@@ -10,6 +11,7 @@
 #include "common/includes/core/user.h"
 #include "common/includes/thread.h"
 #include "common/includes/types.h"
+#include "server/includes/clan_manager.h"
 #include "server/includes/core/bank.h"
 #include "server/includes/core/config.h"
 #include "server/includes/core/item.h"
@@ -33,6 +35,7 @@ private:
     MonitorQueues& monitor;
     QueueCmd& commands_queue;
     GameConfig conf;
+    ClanManager clan_manager;
     World world;
     Persistence persistence;
     SpawnManager spawn;
@@ -75,6 +78,8 @@ private:
     CombatEntity* inSearchOfTheVictimAttack(const Id& id_search) const;
     std::vector<Defense*> getPlayerDefensiveEquipment(const Id& player_id);
     void execuetRequest();
+    std::optional<Id> findPlayerIdByUsername(const std::string& username) const;
+    void sendClanOpResult(Id caller_id, const ClanOpResult& result);
     uint32_t calculateResurrectionDelayMs(const Position& from, const Position& to) const;
     void resurrectPlayerAtHealer(Id player_id, Id healer_id);
     Player* findNearestPlayer(const Creature& creature, Id& player_id);
@@ -113,6 +118,15 @@ public:
     void processPlayerDebugKill(Id player_id);
     void processListItems(Id player_id, Id npc_id);
 
+
+    void processClanFound(Id player_id, const std::string& clan_name);
+    void processClanJoin(Id player_id, const std::string& clan_name);
+    void processClanReview(Id player_id);
+    void processClanAccept(Id player_id, const std::string& nick);
+    void processClanReject(Id player_id, const std::string& nick);
+    void processClanBan(Id player_id, const std::string& nick);
+    void processClanKick(Id player_id, const std::string& nick);
+    void processClanLeave(Id player_id);
 
     void respawnDeadNpcs();
     void updatePlayersAttributes();

@@ -21,6 +21,7 @@
 #include "server/includes/npc/priest.h"
 #include "server/includes/response_builder.h"
 #include "server/includes/responses/response_bank_content.h"
+#include "server/includes/responses/response_chat_msg.h"
 #include "server/includes/responses/response_equipment_update.h"
 #include "server/includes/responses/response_inventory_update.h"
 #include "server/includes/responses/response_login.h"
@@ -46,9 +47,11 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
         monitor(monitor),
         commands_queue(cmmds_queue),
         conf(std::move(conf_)),
+        clan_manager(this->conf.paths.clans),
         world(this->conf.paths.map),
         persistence(this->conf.paths),
         spawn(this->conf, this->world) {
+    this->clan_manager.load();
 
     if (persistence.worldStateExists()) {
         Print::printInitGameloop("CARGANDO WORLD");
@@ -891,5 +894,83 @@ void Gameloop::stop() {
     Thread::stop();  // Cambia el should_keep_running del Gameloop a false
     this->persistence
             .stop();  // <-- IMPORTANTE: Cambia el should_keep_running de la persistencia a false
+}
+
+// ---------------------------------------------------------------------------
+// Helpers de clan
+// ---------------------------------------------------------------------------
+
+std::optional<Id> Gameloop::findPlayerIdByUsername(const std::string& username) const {
+    for (const auto& [id, player]: this->players) {
+        if (player->getUsername() == username)
+            return id;
+    }
+    return std::nullopt;
+}
+
+void Gameloop::sendClanOpResult(Id caller_id, const ClanOpResult& result) {
+    this->monitor.queueTheServerResponse(caller_id, std::make_shared<ResponseChatMsg>(result.msg));
+    if (!result.target_nick.empty()) {
+        auto target_id = this->findPlayerIdByUsername(result.target_nick);
+        if (target_id.has_value()) {
+            this->monitor.queueTheServerResponse(
+                    *target_id, std::make_shared<ResponseChatMsg>(result.target_msg));
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Comandos de clan
+// ---------------------------------------------------------------------------
+
+void Gameloop::processClanFound(Id player_id, const std::string& clan_name) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    const uint8_t level = static_cast<uint8_t>(this->players.at(player_id)->getLevel());
+    ClanOpResult result = this->clan_manager.foundClan(username, clan_name, level,
+                                                       this->conf.clan.min_level_to_found);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanJoin(Id player_id, const std::string& clan_name) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.requestJoin(username, clan_name);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanReview(Id player_id) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.reviewClan(username);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanAccept(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result =
+            this->clan_manager.acceptMember(username, nick, this->conf.clan.max_members);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanReject(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.rejectMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanBan(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.banMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanKick(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.kickMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanLeave(Id player_id) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.leaveClan(username);
+    this->sendClanOpResult(player_id, result);
 }
 Gameloop::~Gameloop() {}
