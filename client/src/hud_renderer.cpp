@@ -3,19 +3,45 @@
 #include <algorithm>
 #include <string>
 
-HudRenderer::HudRenderer(SDL2pp::Renderer& r, TextureManager& tm, int width, int height):
-        renderer(r),
-        texture_manager(tm),
-        w_width(width),
-        w_height(height),
-        font("client/assets/Fonts/CinzelBold.ttf", 14) {}
+#include "client/includes/chat_manager.h"
+
+HudRenderer::HudRenderer(SDL2pp::Renderer& r, TextureManager& tm, FontManager& fm, int width,
+                         int height):
+        renderer(r), texture_manager(tm), fonts(fm), w_width(width), w_height(height) {}
 
 std::unique_ptr<SDL2pp::Texture> HudRenderer::create_text_texture(const std::string& text) {
     if (text.empty()) {
         return nullptr;
     }
     return std::make_unique<SDL2pp::Texture>(
-            renderer, font.RenderUTF8_Blended(text, SDL_Color{255, 255, 255, 255}));
+            renderer,
+            fonts.get_console_font().RenderUTF8_Blended(text, SDL_Color{255, 255, 255, 255}));
+}
+
+std::unique_ptr<SDL2pp::Texture> HudRenderer::create_input_texture(const std::string& text) {
+    if (text.empty()) {
+        return nullptr;
+    }
+    return std::make_unique<SDL2pp::Texture>(
+            renderer,
+            fonts.get_console_input_font().RenderUTF8_Blended(text, SDL_Color{255, 255, 255, 255}));
+}
+
+std::unique_ptr<SDL2pp::Texture> HudRenderer::create_hud_texture(const std::string& text) {
+    if (text.empty()) {
+        return nullptr;
+    }
+    return std::make_unique<SDL2pp::Texture>(
+            renderer, fonts.get_hud_font().RenderUTF8_Blended(text, SDL_Color{255, 255, 255, 255}));
+}
+
+std::unique_ptr<SDL2pp::Texture> HudRenderer::create_text_texture_colored(const std::string& text,
+                                                                          SDL_Color color) {
+    if (text.empty()) {
+        return nullptr;
+    }
+    return std::make_unique<SDL2pp::Texture>(
+            renderer, fonts.get_console_font().RenderUTF8_Blended(text, color));
 }
 
 void HudRenderer::render_centered_text(const std::unique_ptr<SDL2pp::Texture>& texture, int x,
@@ -38,11 +64,11 @@ void HudRenderer::render_centered_text(const std::unique_ptr<SDL2pp::Texture>& t
 }
 
 void HudRenderer::update_player_textures() {
-    player_name_texture = create_text_texture(player_name);
+    player_name_texture = create_hud_texture(player_name);
 }
 
 void HudRenderer::update_stats_textures() {
-    level_texture = create_text_texture(std::to_string(stats.level));
+    level_texture = create_hud_texture(std::to_string(stats.level));
     hp_texture = create_text_texture(std::to_string(stats.hp) + "/" + std::to_string(stats.max_hp));
     mana_texture =
             create_text_texture(std::to_string(stats.mana) + "/" + std::to_string(stats.max_mana));
@@ -96,14 +122,27 @@ bool HudRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) co
             y <= CONSOLE_Y + CONSOLE_H);
 }
 
-void HudRenderer::add_chat_message(const std::string& msg) {
+void HudRenderer::add_chat_message(const std::string& msg, MessageColor color) {
     if (msg.empty())
         return;
 
-    // Creamos la textura una sola vez y la guardamos
-    chat_log_textures.push_back(create_text_texture(msg));
+    SDL_Color sdl_color;
+    switch (color) {
+        case COLOR_GREEN:
+            sdl_color = {140, 220, 140, 255};
+            break;
+        case COLOR_RED:
+            sdl_color = {220, 80, 80, 255};
+            break;
+        case COLOR_YELLOW:
+            sdl_color = {210, 170, 45, 255};
+            break;
+        default:
+            sdl_color = {255, 255, 255, 255};
+            break;
+    }
+    chat_log_textures.push_back(create_text_texture_colored(msg, sdl_color));
 
-    // Mantenemos el límite visual de 6 líneas
     if (chat_log_textures.size() > 6) {
         chat_log_textures.pop_front();
     }
@@ -112,11 +151,9 @@ void HudRenderer::add_chat_message(const std::string& msg) {
 void HudRenderer::update_chat_input(const std::string& buffer, bool is_active) {
     chat_is_active = is_active;
     if (is_active) {
-        // Simulamos un cursor al final del texto
         std::string prompt = "> " + buffer + "_";
-        chat_input_texture = create_text_texture(prompt);
+        chat_input_texture = create_input_texture(prompt);
     } else {
-        // Si apagamos el chat, borramos la textura de la VRAM
         chat_input_texture = nullptr;
     }
 }
@@ -156,10 +193,9 @@ void HudRenderer::render_resurrection_notice() const {
 }
 
 void HudRenderer::render_chat() const {
-    int start_y = CONSOLE_Y + 5;  // Margen superior
-    int line_spacing = 18;        // Espaciado entre líneas
+    int start_y = CONSOLE_Y + 5;
+    int line_spacing = 18;
 
-    // 1. Dibujar el historial
     for (const auto& tex: chat_log_textures) {
         if (tex) {
             renderer.Copy(*tex, SDL2pp::NullOpt,
@@ -168,9 +204,8 @@ void HudRenderer::render_chat() const {
         }
     }
 
-    // 2. Dibujar lo que el jugador está escribiendo ahora
     if (chat_is_active && chat_input_texture) {
-        int input_y = CONSOLE_Y + CONSOLE_H - 22;  // Anclado al fondo de la consola
+        int input_y = CONSOLE_Y + CONSOLE_H - 22;
         renderer.Copy(*chat_input_texture, SDL2pp::NullOpt,
                       SDL2pp::Rect(CONSOLE_X + 10, input_y, chat_input_texture->GetWidth(),
                                    chat_input_texture->GetHeight()));

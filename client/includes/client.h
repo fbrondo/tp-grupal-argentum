@@ -9,6 +9,7 @@
 
 #include "client/includes/chat_manager.h"
 #include "client/includes/core/window_config.h"
+#include "client/includes/font_manager.h"
 #include "client/includes/texture_manager.h"
 #include "client/includes/window/windowSDL.h"
 #include "client/includes/world_renderer.h"
@@ -42,6 +43,7 @@ private:
     SDL2pp::SDLTTF ttf;
     WindowSDL window;
     TextureManager texture_manager;
+    FontManager font_manager;
     WorldRenderer world_renderer;
 
     uint32_t last_frame_ticks = 0;
@@ -55,6 +57,8 @@ private:
     static WindowConfig loadWindowConfig();
     void update_state_from_server();
     void handle_events();
+    void handle_left_click(uint32_t mouse_x, uint32_t mouse_y);
+    void sync_chat_ui();
     void process_movement_input();
     void clear_display();
     float calculate_delta_time();

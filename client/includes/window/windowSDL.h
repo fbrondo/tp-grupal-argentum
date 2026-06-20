@@ -19,4 +19,5 @@ public:
     void present() override;
     SDL2pp::Renderer& get_renderer();
     void setIcon(const SDL2pp::Surface& icon);
+    void toggle_fullscreen() override;
 };

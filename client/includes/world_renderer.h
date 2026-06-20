@@ -8,10 +8,10 @@
 #include <utility>
 #include <vector>
 
-#include <SDL2pp/Font.hh>
 #include <SDL2pp/SDL2pp.hh>
 
 #include "client/includes/client_protocol.h"
+#include "client/includes/font_manager.h"
 #include "client/includes/hud_renderer.h"
 #include "client/includes/renderable_entity.h"
 #include "client/includes/texture_manager.h"
@@ -29,8 +29,7 @@ private:
     SDL2pp::Renderer& renderer;
     TextureManager& texture_manager;
     HudRenderer hud_renderer;
-    SDL2pp::Font level_font;
-    SDL2pp::Font name_font;
+    FontManager& fonts;
     std::string local_player_name;
     uint32_t local_player_id;
 
@@ -52,7 +51,8 @@ private:
     void update_visible_map_bounds();
 
 public:
-    WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_);
+    WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_,
+                  FontManager& font_manager_);
     ~WorldRenderer() = default;
 
     WorldRenderer(const WorldRenderer&) = delete;
@@ -65,7 +65,7 @@ public:
     void update_hud_stats(const MsgPlayerStats& stats);
     void load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens);
 
-    void add_chat_message(const std::string& msg);
+    void add_chat_message(const std::string& msg, MessageColor color = COLOR_WHITE);
     void update_chat_input(const std::string& buffer, bool is_active);
     bool is_point_inside_console(uint32_t x, uint32_t y) const;
     bool is_local_player_moving() const;

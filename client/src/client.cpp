@@ -38,13 +38,13 @@ static bool get_pressed_movement_direction(Direction& direction) {
 WindowConfig Client::loadWindowConfig() {
     WindowConfig cfg;
     try {
-        TomlConfig toml_cfg("client/config.toml");
+        TomlConfig toml_cfg("config.toml");
         cfg.fullscreen = toml_cfg.get_or<bool>("window.fullscreen", false);
         cfg.width = toml_cfg.get_or<int>("window.width", WINDOW_W);
         cfg.height = toml_cfg.get_or<int>("window.height", WINDOW_H);
     } catch (const std::exception& e) {
-        std::cerr << "No se pudo cargar client/config.toml, usando valores por defecto: "
-                  << e.what() << std::endl;
+        std::cerr << "No se pudo cargar config.toml, usando valores por defecto: " << e.what()
+                  << std::endl;
     }
     return cfg;
 }
@@ -61,14 +61,45 @@ Client::Client(const char* host, const char* port):
             return WindowSDL("Argentum Online", cfg.width, cfg.height, cfg.fullscreen);
         }()),
         texture_manager(window.get_renderer(), window),
-        world_renderer(window.get_renderer(), texture_manager) {
+        world_renderer(window.get_renderer(), texture_manager, font_manager) {
     SoundManager::init();
+}
+
+void Client::sync_chat_ui() {
+    world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+}
+
+void Client::handle_left_click(uint32_t mouse_x, uint32_t mouse_y) {
+    constexpr SDL_Rect world_view = {7, 149, 672, 384};
+    const bool in_world = mouse_x >= world_view.x && mouse_x < world_view.x + world_view.w &&
+                          mouse_y >= world_view.y && mouse_y < world_view.y + world_view.h;
+
+    if (chat.is_active()) {
+        if (!world_renderer.is_point_inside_console(mouse_x, mouse_y)) {
+            chat.set_active(false);
+            sync_chat_ui();
+        }
+    } else {
+        if (in_world) {
+            auto hit = world_renderer.get_entity_at_screen(mouse_x, mouse_y);
+            if (hit) {
+                auto [entity_id, entity_type] = *hit;
+                if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
+                    cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
+                }
+            }
+        }
+
+        if (world_renderer.is_point_inside_console(mouse_x, mouse_y)) {
+            chat.set_active(true);
+            sync_chat_ui();
+        }
+    }
 }
 
 void Client::handle_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        // Manejo de cierre de ventana y salida
         if (event.type == SDL_QUIT) {
             is_running = false;
             return;
@@ -85,42 +116,17 @@ void Client::handle_events() {
             event.key.keysym.sym == SDLK_F6) {
             cmd_queue.push(std::make_unique<ChatCommandClient>("/resucitar"));
         }
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) {
+            window.toggle_fullscreen();
+        }
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
             last_move_command_ticks = 0;
         }
+
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-            uint32_t mouse_x = event.button.x;
-            uint32_t mouse_y = event.button.y;
-
-            // TODO: revisar este hardcodeo. Lo estoy tomando de worldrenderer
-            constexpr SDL_Rect world_view = {7, 149, 672, 384};
-            if (mouse_x >= world_view.x && mouse_x < world_view.x + world_view.w &&
-                mouse_y >= world_view.y && mouse_y < world_view.y + world_view.h) {
-                auto hit = world_renderer.get_entity_at_screen(mouse_x, mouse_y);
-                if (hit) {
-                    auto [entity_id, entity_type] = *hit;
-                    if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
-                        cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
-                    }
-                }
-            }
-
-            // Le preguntamos al motor gráfico si el clic fue en el área correcta
-            if (world_renderer.is_point_inside_console(mouse_x, mouse_y)) {
-                // Clic ADENTRO: Hacemos foco
-                if (!chat.is_active()) {
-                    chat.set_active(true);
-                    world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
-                }
-            } else {
-                // Clic AFUERA: Quitamos el foco
-                if (chat.is_active()) {
-                    chat.set_active(false);
-                    world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
-                }
-            }
+            handle_left_click(event.button.x, event.button.y);
         }
-        // 2. TECLA ENTER: Ahora SOLO sirve para enviar el mensaje
+
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN) {
             if (chat.is_active()) {
                 std::string msg = chat.extract_message();
@@ -128,23 +134,20 @@ void Client::handle_events() {
                     cmd_queue.push(std::make_unique<ChatCommandClient>(msg));
                     world_renderer.set_chat_bubble_on_local(msg);
                 }
-                // Apagamos el input después de enviar
                 chat.set_active(false);
-                world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+                sync_chat_ui();
             }
         }
 
-        // 3. Escribir texto (solo si el chat está activo)
         if (chat.is_active() && event.type == SDL_TEXTINPUT) {
             chat.append_text(event.text.text);
-            world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+            sync_chat_ui();
         }
 
-        // 4. Borrar texto con Backspace
         if (chat.is_active() && event.type == SDL_KEYDOWN &&
             event.key.keysym.sym == SDLK_BACKSPACE) {
             chat.remove_last_char();
-            world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+            sync_chat_ui();
         }
     }
 }
@@ -207,17 +210,19 @@ void Client::update_state_from_server() {
                 world_renderer.update_hud_stats(event.stats);
                 break;
             case TypeEventClient::CHAT_MSG: {
-                // Check if it's a player chat message (format: "Name: text")
-                const auto colon_pos = event.text_payload.find(": ");
-                if (colon_pos != std::string::npos) {
-                    const std::string sender_name = event.text_payload.substr(0, colon_pos);
-                    const std::string message_text = event.text_payload.substr(colon_pos + 2);
-                    // Show as bubble above sender's head
-                    world_renderer.set_chat_bubble_on_player(sender_name, message_text);
-                } else {
-                    // System/combat message: show in console
-                    chat.add_message_to_log(event.text_payload);
-                    world_renderer.add_chat_message(event.text_payload);
+                auto parsed = ChatManager::parse_server_message(event.text_payload);
+                switch (parsed.type) {
+                    case ParsedChatMessage::PUBLIC:
+                    case ParsedChatMessage::WHISPER_RECEIVED:
+                        world_renderer.set_chat_bubble_on_player(parsed.sender_name, parsed.text);
+                        break;
+                    case ParsedChatMessage::WHISPER_SENT:
+                        world_renderer.set_chat_bubble_on_local(parsed.text);
+                        break;
+                    case ParsedChatMessage::SYSTEM:
+                        chat.add_message_to_log(parsed.text);
+                        world_renderer.add_chat_message(parsed.text, parsed.color);
+                        break;
                 }
                 break;
             }

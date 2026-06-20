@@ -6,6 +6,7 @@
 #include <iostream>
 #include <unordered_set>
 
+#include "client/includes/chat_manager.h"
 #include "client/includes/core/constants.h"
 #include "client/includes/sound_manager.h"
 #include "common/includes/types.h"
@@ -50,12 +51,12 @@ static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, uint32_t p
     return dst;
 }
 
-WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_):
+WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_,
+                             FontManager& font_manager_):
         renderer(renderer_),
         texture_manager(texture_manager_),
-        hud_renderer(renderer, texture_manager, WINDOW_W, WINDOW_H),
-        level_font("client/assets/Fonts/DejaVuSans-Bold.ttf", 13),
-        name_font("client/assets/Fonts/Augusta.ttf", 21),
+        hud_renderer(renderer, texture_manager, font_manager_, WINDOW_W, WINDOW_H),
+        fonts(font_manager_),
         local_player_id(0),
         current_map(std::nullopt),
         visible_map_bounds{0, 0, 0, 0} {
@@ -179,7 +180,9 @@ void WorldRenderer::update_visible_map_bounds() {
     visible_map_bounds = {min_x, min_y, max_x - min_x, max_y - min_y};
 }
 
-void WorldRenderer::add_chat_message(const std::string& msg) { hud_renderer.add_chat_message(msg); }
+void WorldRenderer::add_chat_message(const std::string& msg, const MessageColor color) {
+    hud_renderer.add_chat_message(msg, color);
+}
 
 void WorldRenderer::update_chat_input(const std::string& buffer, bool is_active) {
     hud_renderer.update_chat_input(buffer, is_active);
@@ -449,7 +452,7 @@ void WorldRenderer::render() {
 
         if (lvl > 0) {
             std::string lvl_str = "Nv. " + std::to_string(lvl);
-            SDL2pp::Texture lvl_tex(renderer, level_font.RenderUTF8_Blended(
+            SDL2pp::Texture lvl_tex(renderer, fonts.get_level_font().RenderUTF8_Blended(
                                                       lvl_str, SDL_Color{200, 200, 200, 255}));
             const int lw = lvl_tex.GetWidth();
             const int lh = lvl_tex.GetHeight();
@@ -460,8 +463,8 @@ void WorldRenderer::render() {
 
         if (is_local && !local_player_name.empty()) {
             SDL_Color name_color = {210, 170, 45, 255};
-            SDL2pp::Texture name_tex(renderer,
-                                     name_font.RenderUTF8_Blended(local_player_name, name_color));
+            SDL2pp::Texture name_tex(renderer, fonts.get_name_font().RenderUTF8_Blended(
+                                                       local_player_name, name_color));
             const int nw = name_tex.GetWidth();
             const int nh = name_tex.GetHeight();
             text_y -= nh;
@@ -469,8 +472,8 @@ void WorldRenderer::render() {
                           SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
         } else if (!is_local && !entity->get_name().empty()) {
             SDL_Color other_name_color = {255, 255, 255, 255};
-            SDL2pp::Texture name_tex(
-                    renderer, name_font.RenderUTF8_Blended(entity->get_name(), other_name_color));
+            SDL2pp::Texture name_tex(renderer, fonts.get_name_font().RenderUTF8_Blended(
+                                                       entity->get_name(), other_name_color));
             const int nw = name_tex.GetWidth();
             const int nh = name_tex.GetHeight();
             text_y -= nh;
@@ -486,9 +489,9 @@ void WorldRenderer::render() {
                 alpha = static_cast<uint8_t>(255 - (255 * fade_elapsed / 1000));
             }
             SDL_Color bubble_color = {255, 255, 255, alpha};
-            SDL2pp::Texture bubble_tex(
-                    renderer,
-                    level_font.RenderUTF8_Blended(entity->get_chat_bubble_text(), bubble_color));
+            SDL2pp::Texture bubble_tex(renderer,
+                                       fonts.get_bubble_font().RenderUTF8_Blended(
+                                               entity->get_chat_bubble_text(), bubble_color));
             const int bw = bubble_tex.GetWidth();
             const int bh = bubble_tex.GetHeight();
             text_y -= bh;

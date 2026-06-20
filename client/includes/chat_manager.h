@@ -1,35 +1,42 @@
 #pragma once
 
-#include <cstddef>  // Para size_t
+#include <cstddef>
 #include <deque>
 #include <string>
+
+enum MessageColor { COLOR_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW };
+
+struct ParsedChatMessage {
+    enum Type { PUBLIC, WHISPER_RECEIVED, WHISPER_SENT, SYSTEM };
+    Type type;
+    MessageColor color;
+    std::string sender_name;
+    std::string text;
+};
 
 class ChatManager {
 private:
     std::string buffer;
     std::deque<std::string> log;
     bool active = false;
+
     static constexpr size_t MAX_LOG_SIZE = 6;
+    static constexpr size_t MAX_MSG_LENGTH = 30;
 
 public:
     ChatManager() = default;
     ~ChatManager() = default;
 
-    // Getters
     bool is_active() const;
     const std::string& get_buffer() const;
     const std::deque<std::string>& get_log() const;
 
-    // Control de estado
     void set_active(bool state);
 
-    // Manejo de entrada
     void append_text(const char* text);
     void remove_last_char();
-
-    // Extrae el mensaje actual y limpia el buffer para enviarlo
     std::string extract_message();
 
-    // Agrega un mensaje nuevo al historial manteniendo el límite
     void add_message_to_log(const std::string& msg);
+    static ParsedChatMessage parse_server_message(const std::string& payload);
 };

@@ -327,7 +327,20 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     bool is_critical = false;
     uint16_t damage_by_attacker = attacker->calculateDamage(is_critical, *weapon);
     if (!is_critical && victim->dodgeAttack()) {
-        std::cerr << "[ATTACK] blocked: attack dodged\n";
+        std::string victim_name;
+        if (auto* victim_player = dynamic_cast<Player*>(victim)) {
+            victim_name = victim_player->getUsername();
+        } else if (auto* creature = dynamic_cast<Creature*>(victim)) {
+            victim_name = Print::npcToString(creature->getTypeNPC());
+        }
+        if (dynamic_cast<Player*>(victim)) {
+            this->sendCombatMessage(victim_id, "Has esquivado el ataque.");
+        }
+        {
+            std::ostringstream oss;
+            oss << victim_name << " esquivó tu ataque.";
+            this->sendCombatMessage(attacker_id, oss.str());
+        }
         return;
     }
 
@@ -361,10 +374,37 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
 
-    if (!victim->isAlive()) {
+    const bool victim_died = !victim->isAlive();
+
+    std::string victim_name;
+    if (auto* victim_player = dynamic_cast<Player*>(victim)) {
+        victim_name = victim_player->getUsername();
+    } else if (auto* creature = dynamic_cast<Creature*>(victim)) {
+        victim_name = Print::npcToString(creature->getTypeNPC());
+    }
+    const std::string attacker_name = attacker->getUsername();
+
+    if (victim_died) {
         attacker->earnKillExp(victim);
         if (dynamic_cast<Creature*>(victim))
             this->creatures.erase(victim_id);
+    }
+
+    {
+        std::ostringstream oss;
+        oss << "Infligiste " << damage_by_attacker << " de daño a " << victim_name << ".";
+        if (victim_died) {
+            oss << " " << victim_name << " ha muerto.";
+        }
+        this->sendCombatMessage(attacker_id, oss.str());
+    }
+    if (dynamic_cast<Player*>(victim)) {
+        std::ostringstream oss;
+        oss << "Recibiste " << damage_by_attacker << " de daño de " << attacker_name << ".";
+        if (victim_died) {
+            oss << " Has muerto.";
+        }
+        this->sendCombatMessage(victim_id, oss.str());
     }
 
     auto* magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
@@ -666,6 +706,35 @@ void Gameloop::processBroadcastChat(Id sender_id, const std::string& text) {
     const std::string formatted = oss.str();
     for (auto& [id, player]: this->players) {
         this->sendResponseToPlayer(id, std::make_shared<ResponseChatMsg>(formatted));
+    }
+}
+
+void Gameloop::processDirectChat(Id sender_id, Id target_id, const std::string& text) {
+    if (!this->players.contains(sender_id) || !this->players.contains(target_id)) {
+        return;
+    }
+    const std::string sender_name = this->players.at(sender_id)->getUsername();
+    const std::string target_name = this->players.at(target_id)->getUsername();
+
+    std::ostringstream oss_to_target;
+    oss_to_target << "[De " << sender_name << "]: " << text;
+    this->sendResponseToPlayer(target_id, std::make_shared<ResponseChatMsg>(oss_to_target.str()));
+
+    std::ostringstream oss_to_sender;
+    oss_to_sender << "[Para " << target_name << "]: " << text;
+    this->sendResponseToPlayer(sender_id, std::make_shared<ResponseChatMsg>(oss_to_sender.str()));
+}
+
+void Gameloop::processDirectChatByName(Id sender_id, const std::string& target_name,
+                                       const std::string& text) {
+    if (!this->players.contains(sender_id)) {
+        return;
+    }
+    for (auto& [id, player]: this->players) {
+        if (player->getUsername() == target_name) {
+            this->processDirectChat(sender_id, id, text);
+            return;
+        }
     }
 }
 

@@ -110,6 +110,9 @@ public:
     void processPlayerDebugKill(Id player_id);
     void processListItems(Id player_id, Id npc_id);
     void processBroadcastChat(Id sender_id, const std::string& text);
+    void processDirectChat(Id sender_id, Id target_id, const std::string& text);
+    void processDirectChatByName(Id sender_id, const std::string& target_name,
+                                 const std::string& text);
 
 
     void respawnDeadNpcs();

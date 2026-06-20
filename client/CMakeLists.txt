@@ -16,6 +16,7 @@ target_sources(taller_client
         src/renderable_entity.cpp
         src/world_renderer.cpp
         src/hud_renderer.cpp
+        src/font_manager.cpp
         src/chat_manager.cpp
         src/sound_manager.cpp
     PUBLIC
@@ -37,6 +38,7 @@ target_sources(taller_client
         includes/world_renderer.h
         includes/sound_manager.h
         includes/hud_renderer.h
+        includes/font_manager.h
         includes/chat_manager.h
     )
 

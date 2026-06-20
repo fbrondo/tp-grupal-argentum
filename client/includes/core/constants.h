@@ -52,14 +52,15 @@ constexpr int PROGRESS_BAR_H = 20;
 constexpr int HP_BAR_Y = STATS_Y + 27;
 constexpr int MANA_BAR_Y = STATS_Y + 72;
 constexpr int EXP_BAR_Y = USER_INFO_Y + 82;
-constexpr int LEVEL_X = PANEL_RIGHT_X + 27;
+constexpr int LEVEL_X = PANEL_RIGHT_X + 20;
 constexpr int LEVEL_Y = USER_INFO_Y + 12;
-constexpr int LEVEL_W = 36;
-constexpr int LEVEL_H = 36;
-constexpr int NAME_X = PANEL_RIGHT_X + 70;
+constexpr int LEVEL_W = 50;
+constexpr int LEVEL_H = 40;
+
+constexpr int NAME_X = PANEL_RIGHT_X + 67;
 constexpr int NAME_Y = USER_INFO_Y + 12;
-constexpr int NAME_W = 177;
-constexpr int NAME_H = 36;
+constexpr int NAME_W = 185;
+constexpr int NAME_H = 44;
 
 constexpr int CONSOLE_X = 7;
 constexpr int CONSOLE_Y = 7;

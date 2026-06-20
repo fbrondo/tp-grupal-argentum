@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -11,6 +12,7 @@
 
 class DataStorage {
 private:
+    mutable std::mutex file_mutex;
     std::fstream data_file;
     std::filesystem::path data_index_player;
     std::filesystem::path data_world_path;
