@@ -20,10 +20,9 @@ void Banker::increaseGoldAccount(const std::string& username, const uint32_t& am
 
 uint32_t Banker::decreaseGoldAccount(const std::string& username, const uint32_t& amount) {
     auto& gold_current_dep = this->bank.accounts[username].golden;
-    if (amount <= gold_current_dep) {
-        gold_current_dep -= amount;
-    }
-    return gold_current_dep;
+    const uint32_t withdrawn = std::min(amount, gold_current_dep);
+    gold_current_dep -= withdrawn;
+    return withdrawn;
 }
 
 uint32_t Banker::getGoldDepositedPlayer(const std::string& username) const {

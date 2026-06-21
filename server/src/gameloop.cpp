@@ -40,7 +40,7 @@
 namespace {
 constexpr uint32_t RESURRECTION_MS_PER_TILE = 250;
 constexpr uint32_t MIN_RESURRECTION_DELAY_MS = 1000;
-constexpr TypeItem DEBUG_EQUIPMENT_ITEM = KNOTTED_STAFF;  // prueba inventario
+constexpr TypeItem DEBUG_EQUIPMENT_ITEM = NONE;  // prueba inventario
 constexpr uint32_t CREATURE_MOVEMENT_COOLDOWN_MS = 375;
 }  // namespace
 
@@ -148,6 +148,9 @@ Inventory Gameloop::loadingInventory(const PlayerData& player) const {
         }
     }
     if (!result.itemInInventory(DEBUG_EQUIPMENT_ITEM)) {  // prueba inventario
+        if constexpr (DEBUG_EQUIPMENT_ITEM == NONE) {
+            return result;
+        }
         const auto item = this->conf.items.at(DEBUG_EQUIPMENT_ITEM).get();
         if (item != nullptr) {
             result.addItemToInventory(item);
@@ -192,11 +195,11 @@ void Gameloop::createNewPlayer(const User& user, const CharacterTraits& traits) 
     // ataque.
     // TODO: eliminar cuando el cliente implemente el click en el slot del inventario para equipar
     //       (ClientProtocol::sendEquipItem ya existe, solo falta dispararlo desde el HUD).
-    const ItemInstance sword_instance(this->conf.items.at(SWORD).get());
+    /*const ItemInstance sword_instance(this->conf.items.at(SWORD).get());
     bool added = new_player->addItemToInventory(sword_instance);
     bool equipped = new_player->equipItem(0);  // el inventario esta vacio, SWORD queda en slot 0
     std::cerr << "[CREATE] sword added=" << added << " equipped=" << equipped
-              << " hand_item=" << static_cast<int>(new_player->getHandItem()) << std::endl;
+              << " hand_item=" << static_cast<int>(new_player->getHandItem()) << std::endl;*/
 
     const PlayerData player_data = new_player->getPlayerData();
     std::cerr << "[CREATE] saved equipment slots: " << player_data.equipment.size() << std::endl;
@@ -459,13 +462,14 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
 
     if (victim_died) {
         attacker->earnKillExp(victim);
-        if (victim_is_creature) {
-            this->creatures.erase(victim_id);
-        }
     }
     auto messg = GameMessageBuilder::messgAboutDamageDealtByThePlayer(
             victim->getName(), damage_by_attacker, victim_died);
     this->sendCombatMessage(attacker_id, messg);
+
+    if (victim_died && victim_is_creature) {
+        this->creatures.erase(victim_id);
+    }
 
     const auto magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
     if (magic_weapon)
@@ -627,9 +631,12 @@ void Gameloop::processPlayerDepositItem(Id player_id, Id npc_id, TypeItem type_i
     }
     if (banker->playerDepositItem(*player, type_item)) {
         this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>("Objeto depositado correctamente."));
+    } else {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                      "No tenés ese objeto para depositar."));
     }
-    this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
-                                                  "Debes seleccionar un sacerdote para curarte."));
     player->breakMeditation();
 }
 
@@ -643,6 +650,7 @@ void Gameloop::processPlayerDepositGold(Id player_id, Id npc_id, uint32_t amount
         return;
     }
     banker->playerDepositGold(*player, amount);
+    this->sendUpdateInventoryToPlayer(player_id, *player);
     player->breakMeditation();
 }
 
@@ -656,6 +664,7 @@ void Gameloop::processPlayerWithdrawGold(Id player_id, Id npc_id, uint32_t amoun
         return;
     }
     banker->playerWithdrawGold(*player, amount);
+    this->sendUpdateInventoryToPlayer(player_id, *player);
     player->breakMeditation();
 }
 
