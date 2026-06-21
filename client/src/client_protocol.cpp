@@ -146,12 +146,12 @@ void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint8_t item_id,
     }
 }
 
-void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint16_t item_id,
+void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint8_t item_id,
                                   const uint16_t quantity) const {
     MsgTrade msg;
     msg.opcode = SELL_ITEM;
     msg.npc_id = htonl(npc_id);
-    msg.item_id = htons(item_id);
+    msg.item_id = item_id;
     msg.quantity = htons(quantity);
     try {
         socket.sendall(&msg, sizeof(MsgTrade));

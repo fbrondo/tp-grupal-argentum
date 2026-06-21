@@ -237,7 +237,11 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.shield_id = static_cast<uint8_t>(this->equipment.getShieldItem());
     data.helmet_id = static_cast<uint8_t>(this->equipment.getHelmetItem());
     data.armor_id = static_cast<uint8_t>(this->equipment.getArmorItem());
-    data.flags = this->isAlive() ? 0 : PLAYER_FLAG_GHOST;
+    data.flags = 0;
+    if (!this->isAlive())
+        data.flags |= PLAYER_FLAG_GHOST;
+    if (this->isMeditating())
+        data.flags |= PLAYER_FLAG_MEDITATING;
     data.resurrection_time_left_ms = 0;
     return data;
 }

@@ -271,6 +271,9 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                     helm_y_offset = is_short_race ? -21 : -25;
                     break;
             }
+            if (helmet_id == MAGIC_HAT) {
+                helm_y_offset -= is_short_race ? 8 : 10;
+            }
 
             int base_x = dst_head.w > 0 ? dst_head.x + (dst_head.w - helm_src.w) / 2 :
                                           dst_rect.x + (dst_rect.w - helm_src.w) / 2;

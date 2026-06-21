@@ -379,6 +379,7 @@ uint32_t Client::sleep_and_calc_next_it(const uint32_t frame_start) const {
 }
 
 void Client::close() {
+    SoundManager::cleanup();
     skt.shutdown(2);
     skt.close();
     events_queue.close();

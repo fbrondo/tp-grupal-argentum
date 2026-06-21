@@ -47,6 +47,7 @@ private:
 
     std::map<Id, ResurrectPending> pending_resurrects;
     std::map<std::string, std::vector<std::string>> pending_clan_msgs;
+    std::map<Id, bool> next_step_is_second;
 
     std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
     std::vector<VisualEffectSnapshotData> visual_effects_of_current_tick;
@@ -86,6 +87,8 @@ private:
     void sendUpdateInventoryToPlayer(Id player_id, Player& player);
     void sendUpdateEquipmentToPlayer(Id player_id, Player& player);
     void reportAttackByAPlayerOnClanmates(Player& player);
+    void emitSound(SoundEffectID effect_id, const Position& position);
+    void emitRandomSound(uint16_t first_id, uint16_t last_id, const Position& position);
 
     void updateCreatures(uint32_t delta_ms);
     void respawnDeadNpcs();

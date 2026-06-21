@@ -11,6 +11,7 @@
 #include "common/includes/types.h"
 
 constexpr uint8_t PLAYER_FLAG_GHOST = 1 << 0;
+constexpr uint8_t PLAYER_FLAG_MEDITATING = 1 << 1;
 
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
