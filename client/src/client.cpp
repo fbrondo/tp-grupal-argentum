@@ -172,10 +172,10 @@ void Client::handle_events() {
             event.key.keysym.sym == SDLK_F5) {
             cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_morir"));
         }
-        if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
+        /*if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
             event.key.keysym.sym == SDLK_F6) {
             cmd_queue.push(std::make_unique<ChatCommandClient>("/resucitar"));
-        }
+        }*/
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) {
             window.toggle_fullscreen();
         }

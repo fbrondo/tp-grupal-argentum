@@ -750,35 +750,8 @@ void Gameloop::resurrectPlayerAtHealer(Id player_id, Id healer_id) {
 }
 
 void Gameloop::processPlayerHeal(Id player_id) {
-    // if (!this->players.contains(player_id)) {
-    //     return;
-    // }
-    Player* player = this->players.at(player_id).get();
-    if (!player->isAlive()) {
-        return;
-    }
-    NpcInstance healer = this->world.findNearestHealer(player->getPosition());
-    auto priest = dynamic_cast<Priest*>(this->citizen_npcs.at(healer.id).get());
-    if (!priest) {
-        return;
-    }
-    priest->heal(*player);
-    this->sendResponseToPlayer(player_id,
-                               std::make_shared<ResponseChatMsg>("Un sacerdote te cura."));
-
-    SoundEffectSnapshotData sound_effect;
-    sound_effect.effect_id = SoundEffectID::CURAR;
-    Position position = player->getPosition();
-    sound_effect.pos_x = position.x;
-    sound_effect.pos_y = position.y;
-    this->sounds_of_current_tick.push_back(std::move(sound_effect));
-
-    VisualEffectSnapshotData visual_effect{};
-    visual_effect.effect_id = VisualEffectID::BE_HEALED;
-    visual_effect.recipient_id = player_id;
-    visual_effect.pos_x = position.x;
-    visual_effect.pos_y = position.y;
-    this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                  "Debes seleccionar un sacerdote para curarte."));
 }
 //
 
@@ -1032,6 +1005,8 @@ void Gameloop::run() {
 
                     if (player) {
                         this->resurrectPlayerAtHealer(p_id, it->second.healer_id);
+                    } else if (this->players.contains(p_id)) {
+                        this->players.at(p_id)->finishResurrection();
                     }
                     it = this->pending_resurrects.erase(it);
                 } else {
