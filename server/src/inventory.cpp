@@ -141,7 +141,7 @@ const Item* Inventory::removeItemFromInventory(TypeItem type_item) {
     if (!index.has_value()) {
         return nullptr;
     }
-    const auto item = this->slots[index.has_value()].getItem();
+    const auto item = this->slots[index.value()].getItem();
     this->removeItemFromInventory(index.value());
     return item;
 }
