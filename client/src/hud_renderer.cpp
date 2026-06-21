@@ -63,7 +63,7 @@ std::unique_ptr<SDL2pp::Texture> HudRenderer::create_text_texture(const std::str
     }
     return std::make_unique<SDL2pp::Texture>(
             renderer,
-            fonts.get_console_font().RenderUTF8_Blended(text, SDL_Color{255, 255, 255, 255}));
+            fonts.get_stats_font().RenderUTF8_Blended(text, SDL_Color{255, 255, 255, 255}));
 }
 
 std::unique_ptr<SDL2pp::Texture> HudRenderer::create_input_texture(const std::string& text) {
@@ -122,6 +122,7 @@ void HudRenderer::update_stats_textures() {
             create_text_texture(std::to_string(stats.mana) + "/" + std::to_string(stats.max_mana));
     exp_texture = create_text_texture(std::to_string(stats.exp) + "/" +
                                       std::to_string(stats.exp_next_level));
+    gold_texture = create_text_texture(std::to_string(stats.gold));
 }
 
 void HudRenderer::set_player_name(const std::string& name) {
@@ -133,8 +134,8 @@ void HudRenderer::update_stats(const MsgPlayerStats& new_stats) {
     const bool values_changed =
             stats.hp != new_stats.hp || stats.max_hp != new_stats.max_hp ||
             stats.mana != new_stats.mana || stats.max_mana != new_stats.max_mana ||
-            stats.exp != new_stats.exp || stats.exp_next_level != new_stats.exp_next_level ||
-            stats.level != new_stats.level;
+            stats.gold != new_stats.gold || stats.exp != new_stats.exp ||
+            stats.exp_next_level != new_stats.exp_next_level || stats.level != new_stats.level;
     stats = new_stats;
     if (values_changed) {
         update_stats_textures();
@@ -460,6 +461,7 @@ void HudRenderer::render() const {
     render_centered_text(hp_texture, PROGRESS_BAR_X, HP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
     render_centered_text(mana_texture, PROGRESS_BAR_X, MANA_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
     render_centered_text(exp_texture, PROGRESS_BAR_X, EXP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
+    render_centered_text(gold_texture, SAFE_GOLD_X, SAFE_GOLD_Y, GOLD_ICON_W, GOLD_ICON_H);
 
     render_chat();
 

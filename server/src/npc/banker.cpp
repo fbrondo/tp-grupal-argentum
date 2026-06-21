@@ -64,7 +64,7 @@ bool Banker::thePlayerHasAnAccount(const std::string& username) {
 }
 
 bool Banker::playerWithdrawItem(Player& player, TypeItem type) {
-    const auto username = player.getUsername();
+    const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
         return false;
@@ -82,7 +82,7 @@ bool Banker::playerWithdrawItem(Player& player, TypeItem type) {
 }
 
 bool Banker::playerDepositItem(Player& player, TypeItem type) {
-    const auto username = player.getUsername();
+    const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
     }
@@ -100,7 +100,7 @@ bool Banker::playerDepositItem(Player& player, TypeItem type) {
 }
 
 void Banker::playerDepositGold(Player& player, const uint32_t& amount) {
-    const auto username = player.getUsername();
+    const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
     }
@@ -109,7 +109,7 @@ void Banker::playerDepositGold(Player& player, const uint32_t& amount) {
 }
 
 void Banker::playerWithdrawGold(Player& player, const uint32_t& amount) {
-    const auto username = player.getUsername();
+    const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
         return;
@@ -120,7 +120,7 @@ void Banker::playerWithdrawGold(Player& player, const uint32_t& amount) {
 
 std::map<TypeItem, uint32_t> Banker::depositedItems(Player& player) {
     std::map<TypeItem, uint32_t> items;
-    const auto username = player.getUsername();
+    const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
         return items;
@@ -137,7 +137,7 @@ std::map<TypeItem, uint32_t> Banker::depositedItems(Player& player) {
 }
 
 uint32_t Banker::depositedGold(Player& player) {
-    const auto username = player.getUsername();
+    const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
         return 0;

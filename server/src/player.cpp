@@ -113,7 +113,7 @@ const Item* Player::removeItemFromInventory(TypeItem type_item) {
 }
 
 bool Player::buyItem(const Item* item) {
-    const uint16_t price = item->purchase_price;
+    const auto price = item->purchase_price;
     if (!this->canBuy(price)) {
         return false;
     }
@@ -225,6 +225,7 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.stats.max_mana = this->manaMax();
     data.stats.level = this->level;
     data.stats.xp = this->exp;
+    data.stats.gold = this->inv.getGolden();
     data.ch_traits.body = this->ch.getTypeBody();
     data.ch_traits.head = this->ch.getTypeHead();
     data.ch_traits.race = this->ch.getTypeRace();
@@ -254,7 +255,7 @@ std::vector<MsgSlot> Player::getSlotsEquipment() const {
 
 void Player::teleportTo(const Position& pos) { this->pose.position = pos; }
 
-std::string Player::getUsername() const { return this->user.username; }
+std::string Player::getName() const { return this->user.username; }
 
 const Item* Player::getItemInventory(const size_t& slot_id) {
     return this->inv.getItemSlot(slot_id);
@@ -290,7 +291,11 @@ bool Player::isMeditating() const { return this->is_meditating; }
 
 bool Player::isResurrecting() const { return this->is_resurrecting; }
 
-void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
+void Player::toggleMeditation() {
+    if (this->ch.getTypeClase() == WARRIOR)
+        return;
+    this->is_meditating = !this->is_meditating;
+}
 
 bool Player::breakMeditation() {
     if (!this->is_meditating)

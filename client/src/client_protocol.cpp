@@ -132,12 +132,12 @@ void ClientProtocol::sendTakeItem() const {
     }
 }
 
-void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint16_t item_id,
+void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint8_t item_id,
                                  const uint16_t quantity) const {
     MsgTrade msg;
     msg.opcode = BUY_ITEM;
     msg.npc_id = htonl(npc_id);
-    msg.item_id = htons(item_id);
+    msg.item_id = item_id;
     msg.quantity = htons(quantity);
     try {
         socket.sendall(&msg, sizeof(MsgTrade));
@@ -531,8 +531,6 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             // TODO: Revisar si hace falta ntohl y borrar prints
             int width = static_cast<int>(ntohl(w_net));
             int height = static_cast<int>(ntohl(h_net));
-            std::cout << "[CLIENT] MAP_DATA recibido: " << width << "x" << height << " tiles."
-                      << std::endl;
             Map map("Map", width, height);
 
             std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details,
@@ -615,12 +613,12 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             count = ntohs(count);
             out_event.merchant_data.catalog.clear();
             for (uint16_t i = 0; i < count; ++i) {
-                uint8_t type_byte;
+                TypeItem type_byte;
                 uint32_t price_net;
                 socket.recvall(&type_byte, sizeof(type_byte));
                 socket.recvall(&price_net, sizeof(price_net));
-                out_event.merchant_data.catalog[static_cast<TypeItem>(type_byte)] =
-                        ntohl(price_net);
+                price_net = ntohl(price_net);
+                out_event.merchant_data.catalog.emplace(type_byte, price_net);
             }
             break;
         }
@@ -634,10 +632,12 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             count = ntohs(count);
             out_event.bank_data.items.clear();
             for (uint16_t i = 0; i < count; ++i) {
-                MsgItemInfo info;
-                socket.recvall(&info, sizeof(info));
-                info.instance_id = ntohl(info.instance_id);
-                out_event.bank_data.items.push_back(info);
+                TypeItem type_item;
+                uint32_t count_item;
+                socket.recvall(&type_item, sizeof(type_item));
+                socket.recvall(&count_item, sizeof(count_item));
+                count_item = ntohl(count_item);
+                out_event.bank_data.items.emplace(type_item, count_item);
             }
             break;
         }

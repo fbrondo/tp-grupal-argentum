@@ -31,14 +31,13 @@ private:
     std::vector<ItemInstance> items_drop_creature() const;
     NpcAttributes attributesToCreature(const CreatureConfig& creature);
 
-    std::unique_ptr<Creature> createCreature(const Id& id, TypeNPC type, const Pose& pose,
-                                             const NpcAttributes& attrib);
+    std::unique_ptr<Creature> createCreature(const Id& id, const std::string& name, TypeNPC type,
+                                             const Pose& pose, const NpcAttributes& attrib);
     std::unique_ptr<CitizenNPC> createCitizenNpc(const std::string& name_npc, const Pose& pose,
                                                  Bank& bank);
 
-    std::tuple<TypeNPC, NpcAttributes, Pose> prepareNpcSpawn(const Id& zone_id,
-                                                             const HostileRegion& region,
-                                                             const size_t& index_random);
+    std::tuple<std::string, TypeNPC, NpcAttributes, Pose> prepareNpcSpawn(
+            const Id& zone_id, const HostileRegion& region, const size_t& index_random);
     std::tuple<TypeNPC, Pose> prepareCitizenNpcSpawn(const Id& zone_id,
                                                      const std::string& name_npc);
 

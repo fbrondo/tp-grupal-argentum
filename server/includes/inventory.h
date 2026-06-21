@@ -48,8 +48,8 @@ public:
     const Item* getItemSlot(const size_t& slot_index);
 
     [[nodiscard]] uint16_t getGolden() const;
-    void incrementGolden(uint16_t amount);
-    void decrementGolden(uint16_t amount);
+    void incrementGolden(uint32_t amount);
+    void decrementGolden(uint32_t amount);
 
     void removeItemFromInventory(size_t index);
     const Item* removeItemFromInventory(TypeItem type_item);

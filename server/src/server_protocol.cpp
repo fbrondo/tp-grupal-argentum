@@ -530,19 +530,17 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         case BUY_ITEM:
         case SELL_ITEM: {
             uint32_t network_npc_id;
-            uint32_t network_item_id;
+            uint8_t network_item_id;
 
             socket.recvall(&network_npc_id, sizeof(network_npc_id));
             socket.recvall(&network_item_id, sizeof(network_item_id));
 
             Id npc_id = ntohl(network_npc_id);
 
-            Id item_id = ntohl(network_item_id);
-
             if (opcode == BUY_ITEM) {
-                queue.push(std::make_unique<BuyItemCommand>(player_id, npc_id, item_id));
+                queue.push(std::make_unique<BuyItemCommand>(player_id, npc_id, network_item_id));
             } else {
-                queue.push(std::make_unique<SellItemCommand>(player_id, npc_id, item_id));
+                queue.push(std::make_unique<SellItemCommand>(player_id, npc_id, network_item_id));
             }
             break;
         }

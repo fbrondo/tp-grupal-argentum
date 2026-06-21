@@ -138,9 +138,7 @@ void Client::handle_left_click(uint32_t mouse_x, uint32_t mouse_y) {
             auto hit = world_renderer.get_entity_at_screen(mouse_x, mouse_y);
             if (hit) {
                 auto [entity_id, entity_type] = *hit;
-                if (entity_type == EntityType::PLAYER) {
-                    cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
-                } else if (entity_type == EntityType::NPC) {
+                if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
                     cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
                 } else if (entity_type == EntityType::CITIZEN) {
                     chat.select_npc(entity_id);
@@ -201,19 +199,6 @@ void Client::handle_events() {
                 if (slot_index.has_value()) {
                     cmd_queue.push(std::make_unique<EquipCommandClient>(slot_index.value()));
                     continue;
-                }
-            }
-
-            // TODO: revisar este hardcodeo. Lo estoy tomando de worldrenderer
-            constexpr SDL_Rect world_view = {7, 149, 672, 384};
-            if (mouse_x >= world_view.x && mouse_x < world_view.x + world_view.w &&
-                mouse_y >= world_view.y && mouse_y < world_view.y + world_view.h) {
-                auto hit = world_renderer.get_entity_at_screen(mouse_x, mouse_y);
-                if (hit) {
-                    auto [entity_id, entity_type] = *hit;
-                    if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
-                        cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
-                    }
                 }
             }
             handle_left_click(event.button.x, event.button.y);
@@ -340,11 +325,17 @@ void Client::update_state_from_server() {
             }
             case TypeEventClient::OPEN_MERCHANT: {
                 world_renderer.add_chat_message("--- Catalogo del comerciante ---", COLOR_BLUE);
+                world_renderer.add_chat_message(std::string("Objeto               | Precio"),
+                                                COLOR_YELLOW);
+                world_renderer.add_chat_message(std::string("--------------------|-------"),
+                                                COLOR_YELLOW);
                 for (const auto& [type, price]: event.merchant_data.catalog) {
-                    world_renderer.add_chat_message(
-                            std::string(item_name(static_cast<uint8_t>(type))) + " - " +
-                                    std::to_string(price) + "g",
-                            COLOR_WHITE);
+                    std::string name = item_name(static_cast<uint8_t>(type));
+                    std::string price_str = std::to_string(price) + "g";
+                    std::string line = name;
+                    line.append(21 - name.size(), ' ');
+                    line += "| " + price_str;
+                    world_renderer.add_chat_message(line, COLOR_WHITE);
                 }
                 break;
             }
@@ -352,9 +343,17 @@ void Client::update_state_from_server() {
                 world_renderer.add_chat_message("--- Contenido del banco ---", COLOR_BLUE);
                 world_renderer.add_chat_message("Oro: " + std::to_string(event.bank_data.gold),
                                                 COLOR_YELLOW);
-                for (const auto& item: event.bank_data.items) {
-                    world_renderer.add_chat_message(std::string(item_name(item.item_type)),
-                                                    COLOR_WHITE);
+                world_renderer.add_chat_message(std::string("------------------------------"),
+                                                COLOR_YELLOW);
+                world_renderer.add_chat_message(std::string("Objeto               | Cantidad"),
+                                                COLOR_YELLOW);
+                for (const auto& [type, quantity]: event.bank_data.items) {
+                    std::string name = item_name(static_cast<uint8_t>(type));
+                    std::string qty_str = std::to_string(quantity);
+                    std::string line = name;
+                    line.append(21 - name.size(), ' ');
+                    line += "| " + qty_str;
+                    world_renderer.add_chat_message(line, COLOR_WHITE);
                 }
                 break;
             }

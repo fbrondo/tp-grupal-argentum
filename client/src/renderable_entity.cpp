@@ -23,7 +23,9 @@ RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_til
         weapon_id(weapon_id_),
         shield_id(shield_id_),
         helmet_id(helmet_id_),
-        is_ghost(false) {
+        is_ghost(false),
+        current_hp(0),
+        max_hp(0) {
 
     // Inicializamos el estado de animación local
     anim_state.current_anim_id = "";

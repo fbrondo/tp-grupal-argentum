@@ -1,9 +1,11 @@
 #include "server/includes/npc/creature.h"
 
 #include <algorithm>
+#include <cstring>
 #include <stdexcept>
 
 #include "common/includes/types.h"
+#include "server/print.h"
 
 // #include "server/includes/entity.h"
 
@@ -18,10 +20,11 @@ ItemInstance Creature::search_item_drop(TypeItem type) {
     return drop_item;
 }
 
-Creature::Creature(const Id& id_, TypeNPC type, const Pose& pos, const NpcAttributes& attrib,
-                   std::vector<ItemInstance>&& items_):
+Creature::Creature(const Id& id_, const std::string& name_, TypeNPC type, const Pose& pos,
+                   const NpcAttributes& attrib, std::vector<ItemInstance>&& items_):
         CombatEntity(pos, attrib.max_hp, attrib.difficulty_level),
         id(id_),
+        name(name_),
         type_creature(type),
         range_attack(attrib.range_attack),
         items_to_drop(std::move(items_)) {}
@@ -79,18 +82,19 @@ CreatureData Creature::getCreatureData() {
 }
 
 NpcSnapshotData Creature::getNpcSnapshotData() {
-    NpcSnapshotData napshot;
-    // std::memset(snapshot.name, 0, MAX_NAME_SIZE);
-    // this->name.copy(snapshot.name, MAX_NAME_SIZE - 1);
-    napshot.id = this->id;
-    napshot.type_id = this->type_creature;
-    napshot.direction = this->pose.direct;
-    napshot.current_hp = this->hp;
-    napshot.max_hp = this->max_hp;
-    napshot.position.x = this->pose.position.x;
-    napshot.position.y = this->pose.position.y;
-    return napshot;
+    NpcSnapshotData snapshot;
+    std::memset(snapshot.name, 0, MAX_NAME_SIZE);
+    this->name.copy(snapshot.name, MAX_NAME_SIZE - 1);
+    snapshot.id = this->id;
+    snapshot.type_id = this->type_creature;
+    snapshot.direction = this->pose.direct;
+    snapshot.current_hp = this->hp;
+    snapshot.max_hp = this->max_hp;
+    snapshot.position.x = this->pose.position.x;
+    snapshot.position.y = this->pose.position.y;
+    return snapshot;
 }
+std::string Creature::getName() const { return this->name; }
 
 uint16_t Creature::getAggroRange() const { return this->range_attack; }
 

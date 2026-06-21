@@ -28,7 +28,7 @@ struct MerchantEventData {
 
 struct BankEventData {
     uint32_t gold{0};
-    std::vector<MsgItemInfo> items;
+    std::map<TypeItem, uint32_t> items;
 };
 
 struct InventoryUpdateEventData {
@@ -76,7 +76,7 @@ public:
     void sendCommand(const std::string& cmd) const;
     void sendInteract(uint32_t npc_id, uint8_t action) const;
     void sendTakeItem() const;
-    void sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
+    void sendBuyItem(uint32_t npc_id, uint8_t item_id, uint16_t quantity) const;
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendDisconnect() const;
     void sendListItems(Id npc_id);
