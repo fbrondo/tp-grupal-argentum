@@ -125,6 +125,9 @@ target_sources(taller_server
         includes/entity/entity.h
         includes/entity/combat_entity.h
 
+        includes/exceptions/invalid_buy_exception.h
+        includes/exceptions/invalid_sell_exception.h
+
         includes/npc/banker.h
         includes/npc/citizen_npc.h
         includes/npc/creature.h
@@ -169,8 +172,6 @@ target_sources(taller_server
         includes/slot.h
         includes/spawn_manager.h
         includes/world.h
-
-        includes/exceptions/invalid_buy_exception.h
 
         print.h
 

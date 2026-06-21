@@ -5,6 +5,7 @@
 
 #include "common/includes/core/Statistics.h"
 #include "server/includes/exceptions/invalid_buy_exception.h"
+#include "server/includes/exceptions/invalid_sell_exception.h"
 #include "server/includes/game_formulas.h"
 #include "server/includes/world.h"
 #include "server/print.h"
@@ -106,7 +107,7 @@ const Item* Player::removeItemFromInventory(TypeItem type_item) {
     return this->inv.removeItemFromInventory(type_item);
 }
 
-bool Player::buyItem(const Item* item) {
+void Player::buyItem(const Item* item) {
     const auto price = item->purchase_price;
     if (this->inv.getGolden() < price) {
         throw InvalidBuyException("No tenés suficiente oro para comprar ese objeto.");
@@ -115,16 +116,18 @@ bool Player::buyItem(const Item* item) {
         throw InvalidBuyException("Tu inventario está lleno.");
     }
     this->inv.decrementGolden(price);
-    return this->inv.addItemToInventory(item);
+    this->inv.addItemToInventory(item);
 }
 
-bool Player::sellItem(TypeItem type_item, uint32_t sell_price) {
+void Player::sellItem(TypeItem type_item, uint32_t sell_price) {
+    if (this->inv.isInventoryEmpty()) {
+        throw InvalidSellException("Tu inventario esta vacio.");
+    }
     if (!this->inv.itemInInventory(type_item)) {
-        return false;
+        throw InvalidSellException("No tienes este item en tu inventario.");
     }
     this->inv.incrementGolden(sell_price);
     this->inv.removeItemFromInventory(type_item);
-    return true;
 }
 
 bool Player::dropItem(size_t index_slot, World& world) {
