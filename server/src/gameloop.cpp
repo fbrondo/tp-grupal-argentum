@@ -806,7 +806,7 @@ void Gameloop::processPlayerHeal(Id player_id) {
 //     this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
 // }
 //
-void Gameloop::processPlayerResurrect(Id player_id) {
+void Gameloop::processPlayerResurrect(Id player_id, std::optional<Id> priest_id) {
     if (!this->players.contains(player_id)) {
         return;
     }
@@ -815,6 +815,30 @@ void Gameloop::processPlayerResurrect(Id player_id) {
         return;
     }
     if (this->pending_resurrects.contains(player_id)) {
+        return;
+    }
+
+    if (priest_id.has_value()) {
+        auto npc_it = this->citizen_npcs.find(*priest_id);
+        if (npc_it == this->citizen_npcs.end()) {
+            this->sendResponseToPlayer(player_id,
+                                       std::make_shared<ResponseChatMsg>("No hay ningún NPC ahí."));
+            return;
+        }
+        auto* priest = dynamic_cast<Priest*>(npc_it->second.get());
+        if (!priest) {
+            this->sendResponseToPlayer(
+                    player_id, std::make_shared<ResponseChatMsg>("Ese NPC no puede resucitarte."));
+            return;
+        }
+        const uint32_t distance =
+                World::distanceBetweenPositions(player->getPosition(), priest->getPosition());
+        if (distance > 3) {
+            this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                          "Estás demasiado lejos del sacerdote."));
+            return;
+        }
+        this->resurrectPlayerAtHealer(player_id, *priest_id);
         return;
     }
 
@@ -869,19 +893,6 @@ void Gameloop::processPlayerInteract(Id player_id, Id npc_id, uint8_t action) {
         visual_effect.pos_x = position.x;
         visual_effect.pos_y = position.y;
         this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
-    } else {
-        if (player->isResurrecting()) {
-            return;
-        }
-        if (this->pending_resurrects.contains(player_id)) {
-            return;
-        }
-        uint32_t delay_ms =
-                this->calculateResurrectionDelayMs(player->getPosition(), priest->getPosition());
-        player->startResurrection();
-        this->pending_resurrects[player_id] = {delay_ms, npc_id};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
-                                                      "El sacerdote viene a resucitarte..."));
     }
 }
 

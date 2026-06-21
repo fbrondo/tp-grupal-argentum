@@ -199,7 +199,10 @@ void Client::handle_events() {
             if (chat.is_active()) {
                 std::string msg = chat.extract_message();
                 if (!msg.empty()) {
-                    uint32_t npc_id = chat.has_npc_selection() ? chat.get_selected_npc_id() : 0;
+                    std::optional<uint32_t> npc_id;
+                    if (chat.has_npc_selection()) {
+                        npc_id = static_cast<uint32_t>(chat.get_selected_npc_id());
+                    }
                     cmd_queue.push(std::make_unique<ChatCommandClient>(msg, npc_id));
                     world_renderer.set_chat_bubble_on_local(msg);
                 }

@@ -2,8 +2,9 @@
 
 #include "server/includes/gameloop.h"
 
-ResurrectCommand::ResurrectCommand(Id id): Command(id) {}
+ResurrectCommand::ResurrectCommand(Id id, std::optional<Id> priest_id):
+        Command(id), priest_id(priest_id) {}
 
 void ResurrectCommand::execute(Gameloop& gameloop) {
-    gameloop.processPlayerResurrect(this->getIdPlayer());
+    gameloop.processPlayerResurrect(this->getIdPlayer(), this->priest_id);
 }

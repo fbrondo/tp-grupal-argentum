@@ -493,7 +493,12 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
             uint8_t action;
             socket.recvall(&npc_id, 4);
             socket.recvall(&action, 1);
-            queue.push(std::make_unique<InteractCommand>(player_id, ntohl(npc_id), action));
+            npc_id = ntohl(npc_id);
+            if (action == 1) {
+                queue.push(std::make_unique<ResurrectCommand>(player_id, npc_id));
+            } else {
+                queue.push(std::make_unique<InteractCommand>(player_id, npc_id, action));
+            }
             break;
         }
         case RESURRECT: {

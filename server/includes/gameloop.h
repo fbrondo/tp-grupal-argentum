@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <random>
 #include <string>
 #include <vector>
@@ -110,7 +111,7 @@ public:
 
     void processPlayerMeditate(Id player_id);
     void processPlayerHeal(Id player_id);
-    void processPlayerResurrect(Id player_id);
+    void processPlayerResurrect(Id player_id, std::optional<Id> priest_id = std::nullopt);
     void processPlayerInteract(Id player_id, Id npc_id, uint8_t action);
     void processPlayerDebugKill(Id player_id);
     void processListItems(Id player_id, Id npc_id);

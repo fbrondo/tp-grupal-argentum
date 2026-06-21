@@ -55,7 +55,7 @@ static int resolve_item_id(const std::string& name) {
     return -1;
 }
 
-ChatCommandClient::ChatCommandClient(std::string msg, uint32_t npc_id):
+ChatCommandClient::ChatCommandClient(std::string msg, std::optional<uint32_t> npc_id):
         text(std::move(msg)), npc_id(npc_id) {}
 
 void ChatCommandClient::execute(ClientProtocol& protocol) const {
@@ -64,27 +64,27 @@ void ChatCommandClient::execute(ClientProtocol& protocol) const {
 
     std::string lower = to_lower_cmd(text);
 
-    if (npc_id != 0) {
+    if (npc_id.has_value()) {
         if (lower == "/curar" || lower == "/resucitar") {
             uint8_t action = (lower == "/resucitar") ? 1 : 0;
-            protocol.sendInteract(npc_id, action);
+            protocol.sendInteract(*npc_id, action);
             return;
         }
         if (lower == "/listar") {
-            protocol.sendListItems(npc_id);
+            protocol.sendListItems(*npc_id);
             return;
         }
         if (lower.rfind("/comprar ", 0) == 0) {
             int item_id = resolve_item_id(text.substr(9));
             if (item_id >= 0) {
-                protocol.sendBuyItem(npc_id, static_cast<uint16_t>(item_id), 1);
+                protocol.sendBuyItem(*npc_id, static_cast<uint16_t>(item_id), 1);
                 return;
             }
         }
         if (lower.rfind("/vender ", 0) == 0) {
             int item_id = resolve_item_id(text.substr(8));
             if (item_id >= 0) {
-                protocol.sendSellItem(npc_id, static_cast<uint16_t>(item_id), 1);
+                protocol.sendSellItem(*npc_id, static_cast<uint16_t>(item_id), 1);
                 return;
             }
         }
