@@ -250,6 +250,9 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     const auto inv = this->players.at(player_id)->getSlotsInventory();
     MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
     this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+    /*const auto equip = this->players.at(player_id)->getSlotsEquipment();
+    MsgEquipmentUpdate equip_msg{EQUIPMENT_UPDATE, equip};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseEquipmentUpdate>(equip_msg));*/
     const auto pending_it = this->pending_clan_msgs.find(std::string(data.username));
     if (pending_it != this->pending_clan_msgs.end()) {
         for (const auto& msg: pending_it->second) {

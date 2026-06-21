@@ -12,6 +12,7 @@ constexpr int INVENTORY_SLOT_GAP_Y = 8;
 constexpr int INVENTORY_SLOT_COLUMNS = 6;
 constexpr int INVENTORY_GRID_X = PANEL_RIGHT_X + 20;
 constexpr int INVENTORY_GRID_Y = INVENTORY_Y + 122;
+constexpr uint8_t EQUIP_KEY_OFFSET = 100;
 constexpr int EQUIPMENT_SLOT_SIZE = 32;
 constexpr int EQUIPMENT_GRID_Y = INVENTORY_Y + 40;
 constexpr int EQUIPMENT_WEAPON_X = PANEL_RIGHT_X + 36;
@@ -160,7 +161,7 @@ void HudRenderer::update_equipment(const std::vector<MsgSlot>& slots) {
         if (slot.type_item == NONE || slot.quantity == 0) {
             continue;
         }
-        equipped_inventory_slots[slot.slot_index] = slot;
+        equipped_inventory_slots[static_cast<uint8_t>(slot.slot_index + EQUIP_KEY_OFFSET)] = slot;
     }
 }
 
@@ -224,14 +225,14 @@ std::optional<uint8_t> HudRenderer::inventory_slot_at(const uint32_t x, const ui
 }
 
 std::optional<uint8_t> HudRenderer::equipment_slot_at(const uint32_t x, const uint32_t y) const {
-    for (const auto& [inventory_slot, slot]: equipped_inventory_slots) {
+    for (const auto& [equip_key, slot]: equipped_inventory_slots) {
         const auto rect = equipment_rect_for_item(slot.type_item);
         if (!rect.has_value()) {
             continue;
         }
         if (x >= static_cast<uint32_t>(rect->x) && x < static_cast<uint32_t>(rect->x + rect->w) &&
             y >= static_cast<uint32_t>(rect->y) && y < static_cast<uint32_t>(rect->y + rect->h)) {
-            return inventory_slot;
+            return equip_key - EQUIP_KEY_OFFSET;
         }
     }
     return std::nullopt;
