@@ -15,6 +15,7 @@
 #include "server/includes/commands/command_signup.h"
 #include "server/includes/core/data.h"
 #include "server/includes/entity/combat_entity.h"
+#include "server/includes/exceptions/invalid_buy_exception.h"
 #include "server/includes/game_message_builder.h"
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/creature.h"
@@ -523,9 +524,13 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
     if (!player->isAlive()) {
         return;
     }
-    if (trader->executeBuyItem(*player, type_item)) {
-        this->sendUpdateInventoryToPlayer(player_id, *player);
-        // this->sendResponseToPlayer()
+    try {
+        if (trader->executeBuyItem(*player, type_item)) {
+            this->sendUpdateInventoryToPlayer(player_id, *player);
+        }
+
+    } catch (const InvalidBuyException& e) {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(e.what()));
     }
     player->breakMeditation();
 }
