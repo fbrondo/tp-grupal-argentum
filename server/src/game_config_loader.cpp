@@ -100,6 +100,7 @@ void GameConfigLoader::loadNpcSafeZone(std::map<std::string, NpcSafeZone>& npcs)
         throw std::runtime_error(mssgErr);
     }
 }
+
 void GameConfigLoader::loadCreatures(std::map<std::string, CreatureConfig>& creatures) {
     try {
         Table config = toml::parse_file(paths.creatures.string());
@@ -193,8 +194,8 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& item
             auto body = static_cast<BodyPart>(item["body_part"].value_or(0));
             auto classif = static_cast<ItemClassification>(item["classif"].value_or(0));
 
-            auto sell_price = static_cast<uint16_t>(item["selling_price"].value_or(0));
-            auto purch_price = static_cast<uint16_t>(item["purchase_price"].value_or(0));
+            auto sell_price = static_cast<uint32_t>(item["selling_price"].value_or(0));
+            auto purch_price = static_cast<uint32_t>(item["purchase_price"].value_or(0));
 
             auto min_dam = static_cast<uint16_t>(item["minimal_damage"].value_or(0));
             auto max_dam = static_cast<uint16_t>(item["maximun_damage"].value_or(0));

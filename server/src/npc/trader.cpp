@@ -6,12 +6,12 @@ TraderNPC::TraderNPC(TypeNPC type, const std::string& name, const Pose& pose_,
                      std::map<TypeItem, Item*>&& items_):
         CitizenNPC(type, name, pose_), store(std::move(items_)) {}
 
-bool TraderNPC::executeBuyItem(Player& player, TypeItem type_item_buy) {
+void TraderNPC::executeBuyItem(Player& player, TypeItem type_item_buy) {
     if (!this->store.contains(type_item_buy)) {
         throw InvalidBuyException("Ese objeto no está en el catálogo.");
     }
     const auto item = this->store[type_item_buy];
-    return player.buyItem(item);
+    player.buyItem(item);
 }
 
 std::map<TypeItem, uint32_t> TraderNPC::listItemsCatalog() const {

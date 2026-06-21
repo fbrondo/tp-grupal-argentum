@@ -93,8 +93,8 @@ public:
     void earnKillExp(CombatEntity* victim);
     void consumeMana(uint16_t amount);
 
-    bool buyItem(const Item* item);
-    bool sellItem(TypeItem type_item, uint32_t sell_price);
+    void buyItem(const Item* item);
+    void sellItem(TypeItem type_item, uint32_t sell_price);
     bool dropItem(size_t index, World& world);
     bool equipItem(size_t slot_id);
     bool unequipItem(size_t slot_id);

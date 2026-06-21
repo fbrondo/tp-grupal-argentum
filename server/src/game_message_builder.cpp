@@ -44,4 +44,10 @@ std::string mssgeFromAClanMemberUnderAttack(const std::string& victim_name) {
     std::string notif = victim_name + " está siendo atacado!";
     return notif;
 }
+
+std::string messgThisNPCDoesNotbuyItem(const std::string& name_npc) {
+    std::ostringstream oss;
+    oss << "El " << name_npc << "no compra este item.";
+    return oss.str();
+}
 }  // namespace GameMessageBuilder

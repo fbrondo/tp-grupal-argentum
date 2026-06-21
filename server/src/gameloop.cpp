@@ -16,6 +16,7 @@
 #include "server/includes/core/data.h"
 #include "server/includes/entity/combat_entity.h"
 #include "server/includes/exceptions/invalid_buy_exception.h"
+#include "server/includes/exceptions/invalid_sell_exception.h"
 #include "server/includes/game_message_builder.h"
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/creature.h"
@@ -346,6 +347,10 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         std::cerr << "[ATTACK] blocked: no weapon equipped\n";
         return;
     }
+    if (attacker_id == victim_id && weapon_type == ELVEN_FLUTE) {
+        attacker->restoreAllHp();
+        return;
+    }
     CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
     if (!victim || !victim->isAlive()) {
         std::cerr << "[ATTACK] blocked: victim not found or dead\n";
@@ -529,10 +534,8 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
         return;
     }
     try {
-        if (trader->executeBuyItem(*player, type_item)) {
-            this->sendUpdateInventoryToPlayer(player_id, *player);
-        }
-
+        trader->executeBuyItem(*player, type_item);
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     } catch (const InvalidBuyException& e) {
         this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(e.what()));
     }
@@ -548,8 +551,11 @@ void Gameloop::processSellItem(Id player_id, Id npc_id, TypeItem type_item) {
     if (!player->isAlive()) {
         return;
     }
-    if (merchant->executePlayerSellsItem(*player, type_item)) {
+    try {
+        merchant->executePlayerSellsItem(*player, type_item);
         this->sendUpdateInventoryToPlayer(player_id, *player);
+    } catch (const InvalidSellException& e) {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(e.what()));
     }
     player->breakMeditation();
 }
