@@ -4,7 +4,9 @@
 #include <vector>
 
 #include "common/includes/core/Statistics.h"
+#include "server/includes/exceptions/invalid_buy_exception.h"
 #include "server/includes/game_formulas.h"
+#include "server/includes/responses/response_chat_msg.h"
 #include "server/includes/slot.h"
 #include "server/includes/world.h"
 #include "server/print.h"
@@ -67,15 +69,9 @@ bool Player::isValidOpponent(Player* other) const {
     return true;
 }
 
-bool Player::canBuy(uint16_t price_item) const {
-    if (this->inv.getGolden() < price_item) {
-        return false; /*TIRAR EXCEPCION NO POSIBLE COMPRA*/
-    }
-    if (this->inv.isInventoryFull()) {
-        return false; /*TIRAR EXCEPCION INVENTARIO*/
-    }
-    return true;
-}
+bool Player::hasEnoughGold(uint32_t price) const { return this->inv.getGolden() >= price; }
+
+bool Player::isInventoryFull() const { return this->inv.isInventoryFull(); }
 
 bool Player::addItemToInventory(const ItemInstance& instance) {
     if (this->inv.isInventoryFull()) {
@@ -114,8 +110,11 @@ const Item* Player::removeItemFromInventory(TypeItem type_item) {
 
 bool Player::buyItem(const Item* item) {
     const auto price = item->purchase_price;
-    if (!this->canBuy(price)) {
-        return false;
+    if (this->inv.getGolden() < price) {
+        throw InvalidBuyException("No tenés suficiente oro para comprar ese objeto.");
+    }
+    if (this->inv.isInventoryFull()) {
+        throw InvalidBuyException("Tu inventario está lleno.");
     }
     this->inv.decrementGolden(price);
     return this->inv.addItemToInventory(item);

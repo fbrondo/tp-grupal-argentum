@@ -168,6 +168,8 @@ target_sources(taller_server
         includes/spawn_manager.h
         includes/world.h
 
+        includes/exceptions/invalid_buy_exception.h
+
         print.h
 
     )

@@ -16,6 +16,7 @@
 #include "server/includes/commands/command_signup.h"
 #include "server/includes/core/data.h"
 #include "server/includes/entity/combat_entity.h"
+#include "server/includes/exceptions/invalid_buy_exception.h"
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/creature.h"
 #include "server/includes/npc/merchant.h"
@@ -535,12 +536,16 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
     if (!player->isAlive()) {
         return;
     }
-    if (trader->executeBuyItem(*player, type_item)) {
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate msg{INVENTORY_UPDATE, inv};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
+    try {
+        if (trader->executeBuyItem(*player, type_item)) {
+            const auto inv = player->getSlotsInventory();
+            MsgInventoryUpdate msg{INVENTORY_UPDATE, inv};
+            this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
+        }
+        player->breakMeditation();
+    } catch (const InvalidBuyException& e) {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(e.what()));
     }
-    player->breakMeditation();
 }
 
 void Gameloop::processSellItem(Id player_id, Id npc_id, TypeItem type_item) {
