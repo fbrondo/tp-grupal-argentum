@@ -649,8 +649,13 @@ void Gameloop::processPlayerDepositGold(Id player_id, Id npc_id, uint32_t amount
     if (!banker) {
         return;
     }
-    banker->playerDepositGold(*player, amount);
-    this->sendUpdateInventoryToPlayer(player_id, *player);
+    const uint32_t deposited = banker->playerDepositGold(*player, amount);
+    if (deposited > 0) {
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>(
+                                   "Se depositó " + std::to_string(deposited) + " de oro."));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
+    }
     player->breakMeditation();
 }
 
@@ -663,8 +668,16 @@ void Gameloop::processPlayerWithdrawGold(Id player_id, Id npc_id, uint32_t amoun
     if (!banker) {
         return;
     }
-    banker->playerWithdrawGold(*player, amount);
-    this->sendUpdateInventoryToPlayer(player_id, *player);
+    const uint32_t withdrawn = banker->playerWithdrawGold(*player, amount);
+    if (withdrawn > 0) {
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseChatMsg>(
+                                           "Se retiró " + std::to_string(withdrawn) + " de oro."));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
+    } else {
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>("No tienes oro para retirar."));
+    }
     player->breakMeditation();
 }
 

@@ -98,23 +98,25 @@ bool Banker::playerDepositItem(Player& player, TypeItem type) {
     return true;
 }
 
-void Banker::playerDepositGold(Player& player, const uint32_t& amount) {
+uint32_t Banker::playerDepositGold(Player& player, const uint32_t& amount) {
     const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
     }
     const auto gold_dep = player.decreaseGold(amount);
     this->increaseGoldAccount(username, gold_dep);
+    return gold_dep;
 }
 
-void Banker::playerWithdrawGold(Player& player, const uint32_t& amount) {
+uint32_t Banker::playerWithdrawGold(Player& player, const uint32_t& amount) {
     const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
-        return;
+        return 0;
     }
-    const auto gold_with = this->decreaseGoldAccount(username, amount);
-    player.increaseGold(gold_with);
+    const auto gold_withdraw = this->decreaseGoldAccount(username, amount);
+    player.increaseGold(gold_withdraw);
+    return gold_withdraw;
 }
 
 std::map<TypeItem, uint32_t> Banker::depositedItems(Player& player) {
