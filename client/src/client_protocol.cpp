@@ -112,9 +112,10 @@ void ClientProtocol::sendCommand(const std::string& cmd) const {
     }
 }
 
-void ClientProtocol::sendInteract(const uint32_t npc_id) const {
+void ClientProtocol::sendInteract(const uint32_t npc_id, const uint8_t action) const {
     MsgInteract msg;
     msg.npc_id = htonl(npc_id);
+    msg.action = action;
     try {
         socket.sendall(&msg, sizeof(MsgInteract));
     } catch (const std::exception& e) {
@@ -380,6 +381,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 p.stats.xp = ntohl(p.stats.xp);
                 p.ch_traits.body = ntohs(p.ch_traits.body);
                 p.ch_traits.head = ntohs(p.ch_traits.head);
+                p.name[sizeof(p.name) - 1] = '\0';
                 p.resurrection_time_left_ms = ntohs(p.resurrection_time_left_ms);
                 out_event.world.players.push_back(p);
             }
@@ -563,6 +565,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             for (uint16_t i = 0; i < count_citizen; ++i) {
                 CitizenNpcSnapshot n;
                 socket.recvall(&n, sizeof(CitizenNpcSnapshot));
+                // socket.recvall(n.name, sizeof(n.name));
                 n.id = ntohl(n.id);
                 n.position.x = ntohl(n.position.x);
                 n.position.y = ntohl(n.position.y);
@@ -617,6 +620,39 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             //
             // out_event.equip_update.slot_index = msg.slot_index;
             // out_event.equip_update.item_id = msg.type_item;
+            break;
+        }
+        case TRADER_CATALOG: {
+            out_event.type = TypeEventClient::OPEN_MERCHANT;
+            uint16_t count;
+            socket.recvall(&count, sizeof(count));
+            count = ntohs(count);
+            out_event.merchant_data.catalog.clear();
+            for (uint16_t i = 0; i < count; ++i) {
+                uint8_t type_byte;
+                uint32_t price_net;
+                socket.recvall(&type_byte, sizeof(type_byte));
+                socket.recvall(&price_net, sizeof(price_net));
+                out_event.merchant_data.catalog[static_cast<TypeItem>(type_byte)] =
+                        ntohl(price_net);
+            }
+            break;
+        }
+        case BANK_CONTENT: {
+            out_event.type = TypeEventClient::OPEN_BANK;
+            uint32_t gold_net;
+            socket.recvall(&gold_net, sizeof(gold_net));
+            out_event.bank_data.gold = ntohl(gold_net);
+            uint16_t count;
+            socket.recvall(&count, sizeof(count));
+            count = ntohs(count);
+            out_event.bank_data.items.clear();
+            for (uint16_t i = 0; i < count; ++i) {
+                MsgItemInfo info;
+                socket.recvall(&info, sizeof(info));
+                info.instance_id = ntohl(info.instance_id);
+                out_event.bank_data.items.push_back(info);
+            }
             break;
         }
         default:

@@ -33,9 +33,15 @@ ChatCommand::ChatCommand(Id id, std::string msg): Command(id), text(std::move(ms
 void ChatCommand::execute(Gameloop& game) {
     if (this->text.empty())
         return;
-    // Chat común
-    if (this->text.rfind("/", 0) != 0) {
-        // game.processBroadcastChat(this->client_id, this->text); A implementar
+    if (this->text[0] == '@') {
+        auto space_pos = this->text.find(' ');
+        if (space_pos != std::string::npos && space_pos > 1) {
+            std::string nick = this->text.substr(1, space_pos - 1);
+            std::string msg = this->text.substr(space_pos + 1);
+            if (!msg.empty()) {
+                game.processDirectChatByName(this->client_id, nick, msg);
+            }
+        }
         return;
     }
     if (this->text == MEDITATE) {
@@ -80,4 +86,5 @@ void ChatCommand::execute(Gameloop& game) {
         auto cmd = std::make_unique<ClanLeaveCommand>(this->client_id);
         cmd->execute(game);
     }
+    game.processBroadcastChat(this->client_id, this->text);
 }

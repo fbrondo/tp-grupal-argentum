@@ -190,6 +190,8 @@ uint16_t Player::calculateDefense(std::vector<Defense*> info_defense) {
 
 PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     PlayerSnapshotData data;
+    std::memset(data.name, 0, MAX_NAME_SIZE);
+    user.username.copy(data.name, MAX_NAME_SIZE - 1);
     data.id = player_id;
     data.pos_x = this->pose.position.x;
     data.pos_y = this->pose.position.y;
@@ -321,7 +323,12 @@ bool Player::isResurrecting() const { return this->is_resurrecting; }
 
 void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
 
-void Player::breakMeditation() { this->is_meditating = false; }
+bool Player::breakMeditation() {
+    if (!this->is_meditating)
+        return false;
+    this->is_meditating = false;
+    return true;
+}
 
 void Player::updateHp(float delta) {
     if (!this->isAlive()) {

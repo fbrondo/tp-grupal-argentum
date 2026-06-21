@@ -29,6 +29,7 @@ public:
     void onDeath(World& world) override;
     CreatureData getCreatureData();
     NpcSnapshotData getNpcSnapshotData();
+    TypeNPC getTypeNPC() const { return type_creature; }
     uint16_t getAggroRange() const;
     bool canAttack() const;
     bool canMove() const;

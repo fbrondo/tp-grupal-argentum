@@ -6,18 +6,16 @@
 #include <iostream>
 #include <unordered_set>
 
+#include "client/includes/chat_manager.h"
+#include "client/includes/core/constants.h"
 #include "client/includes/sound_manager.h"
 #include "common/includes/types.h"
-
-static constexpr int MAX_TILE_TEXTURE_SIZE = 1024;
-static constexpr int CULLING_MARGIN_TILES = MAX_TILE_TEXTURE_SIZE / TILE_SIZE + 2;
-static constexpr uint32_t PLAYER_ENTITY_OFFSET = 0;
-static constexpr uint32_t NPC_ENTITY_OFFSET = 1000000;
-static constexpr uint32_t ITEM_ENTITY_OFFSET = 2000000;
 
 static uint32_t player_entity_key(uint32_t server_id) { return PLAYER_ENTITY_OFFSET + server_id; }
 
 static uint32_t npc_entity_key(uint32_t server_id) { return NPC_ENTITY_OFFSET + server_id; }
+
+static uint32_t citizen_entity_key(uint32_t server_id) { return CITIZEN_ENTITY_OFFSET + server_id; }
 
 static uint32_t item_entity_key(uint32_t pos_x, uint32_t pos_y) {
     return ITEM_ENTITY_OFFSET + (pos_x * 1000) + pos_y;
@@ -55,10 +53,12 @@ static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, uint32_t p
     return dst;
 }
 
-WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_):
+WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_,
+                             FontManager& font_manager_):
         renderer(renderer_),
         texture_manager(texture_manager_),
-        hud_renderer(renderer, texture_manager, WINDOW_W, WINDOW_H),
+        hud_renderer(renderer, texture_manager, font_manager_, WINDOW_W, WINDOW_H),
+        fonts(font_manager_),
         local_player_id(0),
         current_map(std::nullopt),
         visible_map_bounds{0, 0, 0, 0} {
@@ -75,7 +75,28 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& textur
 
 void WorldRenderer::set_local_player(const uint32_t id) { local_player_id = id; }
 
-void WorldRenderer::set_player_name(const std::string& name) { hud_renderer.set_player_name(name); }
+void WorldRenderer::set_player_name(const std::string& name) {
+    local_player_name = name;
+    hud_renderer.set_player_name(name);
+}
+
+void WorldRenderer::set_chat_bubble_on_local(const std::string& text) {
+    const uint32_t key = player_entity_key(local_player_id);
+    auto it = entities.find(key);
+    if (it != entities.end()) {
+        it->second->set_chat_bubble(text);
+    }
+}
+
+void WorldRenderer::set_chat_bubble_on_player(const std::string& player_name,
+                                              const std::string& text) {
+    for (auto& [key, entity]: entities) {
+        if (entity->get_name() == player_name) {
+            entity->set_chat_bubble(text);
+            return;
+        }
+    }
+}
 
 void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
     hud_renderer.update_stats(stats);
@@ -90,17 +111,14 @@ void WorldRenderer::load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot
     camera.y = 0;
     update_visible_map_bounds();
     for (const auto& citizen: citizens) {
-        const uint32_t entity_key = npc_entity_key(citizen.id);
-        entities[entity_key] =
-                std::make_unique<RenderableEntity>(entity_key, EntityType::NPC, citizen.position.x,
-                                                   citizen.position.y, citizen.type, 0, 0, 0);
+        const uint32_t entity_key = citizen_entity_key(citizen.id);
+        entities[entity_key] = std::make_unique<RenderableEntity>(
+                entity_key, EntityType::CITIZEN, citizen.position.x, citizen.position.y,
+                citizen.type, 0, 0, 0);
         entities[entity_key]->move_to(citizen.position.x, citizen.position.y,
                                       static_cast<Direction>(citizen.direction));
         static_entity_keys.insert(entity_key);
     }
-    /*std::cout << "[WorldRenderer] Nuevo mapa binario inyectado correctamente de la red. Dimensión:
-       "
-              << current_map->width() << "x" << current_map->height() << " tiles." << std::endl;*/
 }
 
 void WorldRenderer::update_visible_map_bounds() {
@@ -164,14 +182,24 @@ void WorldRenderer::update_visible_map_bounds() {
     visible_map_bounds = {min_x, min_y, max_x - min_x, max_y - min_y};
 }
 
-void WorldRenderer::add_chat_message(const std::string& msg) { hud_renderer.add_chat_message(msg); }
+void WorldRenderer::add_chat_message(const std::string& msg, const MessageColor color) {
+    hud_renderer.add_chat_message(msg, color);
+}
+
+void WorldRenderer::scroll_console(int delta) { hud_renderer.scroll_console(delta); }
 
 void WorldRenderer::update_chat_input(const std::string& buffer, bool is_active) {
     hud_renderer.update_chat_input(buffer, is_active);
 }
 
+void WorldRenderer::set_citizen_selected(int npc_id) { selected_npc_id = npc_id; }
+
 bool WorldRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) const {
     return hud_renderer.is_point_inside_console(x, y);
+}
+
+bool WorldRenderer::is_point_inside_console_input(uint32_t x, uint32_t y) const {
+    return hud_renderer.is_point_inside_console_input(x, y);
 }
 
 bool WorldRenderer::is_local_player_moving() const {
@@ -226,16 +254,20 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             hud_renderer.update_resurrection_timer(p_data.resurrection_time_left_ms);
         }
         auto it = entities.find(entity_key);
+        std::string player_name(p_data.name);
         if (it != entities.end()) {
             it->second->move_to(p_data.pos_x, p_data.pos_y,
                                 static_cast<Direction>(p_data.direction));
+            it->second->set_name(player_name);
             it->second->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         } else {
             bool is_short = (p_data.ch_traits.race == GNOME || p_data.ch_traits.race == DWARF);
-            entities[entity_key] = std::make_unique<RenderableEntity>(
+            auto entity = std::make_unique<RenderableEntity>(
                     entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
-                    p_data.shield_id, is_short);
+                    p_data.shield_id, p_data.stats.level, is_short);
+            entity->set_name(player_name);
+            entities[entity_key] = std::move(entity);
             entities[entity_key]->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         }
     }
@@ -339,10 +371,6 @@ void WorldRenderer::update_animations(float dt) {
 
 // Renderizamos con el Algoritmo de pintor (Z-Order por eje Y)
 void WorldRenderer::render() {
-    // HARCODEADO! centra la camara
-    // camera.x = 0;
-    // camera.y = 0;
-
     if (!current_map)
         return;
 
@@ -403,24 +431,112 @@ void WorldRenderer::render() {
     // 2. RENDERIZADO DE ENTIDADES (Jugadores/NPCs)
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
 
-    std::vector<RenderableEntity*> sorted_entities;
+    std::vector<std::pair<uint32_t, RenderableEntity*>> sorted_entities;
     sorted_entities.reserve(entities.size());
     for (const auto& [id, entity]: entities) {
-        sorted_entities.push_back(entity.get());
+        sorted_entities.push_back({id, entity.get()});
     }
 
     std::sort(sorted_entities.begin(), sorted_entities.end(),
-              [](const RenderableEntity* a, const RenderableEntity* b) {
-                  if (a->get_pixel_y() != b->get_pixel_y())
-                      return a->get_pixel_y() < b->get_pixel_y();
-                  return a->get_id() < b->get_id();
+              [](const std::pair<uint32_t, RenderableEntity*>& a,
+                 const std::pair<uint32_t, RenderableEntity*>& b) {
+                  if (a.second->get_pixel_y() != b.second->get_pixel_y())
+                      return a.second->get_pixel_y() < b.second->get_pixel_y();
+                  return a.first < b.first;
               });
 
-    for (auto* entity: sorted_entities) {
-        // Le pasamos la posición de la cámara y los offsets de pantalla al método render de la
-        // entidad
+    for (auto& [entity_key, entity]: sorted_entities) {
         entity->render_with_camera(renderer, texture_manager, camera.x, camera.y,
                                    camera_screen_offset_x, camera_screen_offset_y);
+
+        if (entity->get_type() == EntityType::CITIZEN && selected_npc_id >= 0) {
+            uint32_t citizen_server_id = entity_key - CITIZEN_ENTITY_OFFSET;
+            if (static_cast<int>(citizen_server_id) == selected_npc_id) {
+                uint16_t body = entity->get_body_id();
+                const char* icon_key = nullptr;
+                if (body == PRIEST)
+                    icon_key = "npc_17";
+                else if (body == BANKER)
+                    icon_key = "npc_15";
+                else if (body == MERCHANT)
+                    icon_key = "npc_16";
+
+                if (icon_key) {
+                    const int ex = static_cast<int>(entity->get_pixel_x()) - camera.x +
+                                   camera_screen_offset_x;
+                    const int ey = static_cast<int>(entity->get_pixel_y()) - camera.y +
+                                   camera_screen_offset_y + TILE_SIZE;
+                    auto& icon = texture_manager.get_texture(icon_key);
+                    const int icon_w = icon.GetWidth();
+                    const int icon_h = icon.GetHeight();
+                    renderer.Copy(icon, SDL2pp::NullOpt,
+                                  SDL2pp::Rect(ex + TILE_SIZE / 2 - icon_w / 2, ey - icon_h - 4,
+                                               icon_w, icon_h));
+                }
+            }
+        }
+
+        if (entity->get_type() != EntityType::PLAYER)
+            continue;
+
+        const int entity_screen_x = static_cast<int>(entity->get_pixel_x()) - camera.x +
+                                    camera_screen_offset_x + TILE_SIZE / 2;
+        const int entity_top_y =
+                static_cast<int>(entity->get_pixel_y()) - camera.y + camera_screen_offset_y;
+
+        int text_y = entity_top_y - 30;
+
+        const uint8_t lvl = entity->get_level();
+        const bool is_local = (entity_key == player_entity_key(local_player_id));
+
+        if (lvl > 0) {
+            std::string lvl_str = "Nv. " + std::to_string(lvl);
+            SDL2pp::Texture lvl_tex(renderer, fonts.get_level_font().RenderUTF8_Blended(
+                                                      lvl_str, SDL_Color{200, 200, 200, 255}));
+            const int lw = lvl_tex.GetWidth();
+            const int lh = lvl_tex.GetHeight();
+            text_y -= lh;
+            renderer.Copy(lvl_tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(entity_screen_x - lw / 2, text_y, lw, lh));
+        }
+
+        if (is_local && !local_player_name.empty()) {
+            SDL_Color name_color = {210, 170, 45, 255};
+            SDL2pp::Texture name_tex(renderer, fonts.get_name_font().RenderUTF8_Blended(
+                                                       local_player_name, name_color));
+            const int nw = name_tex.GetWidth();
+            const int nh = name_tex.GetHeight();
+            text_y -= nh;
+            renderer.Copy(name_tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
+        } else if (!is_local && !entity->get_name().empty()) {
+            SDL_Color other_name_color = {255, 255, 255, 255};
+            SDL2pp::Texture name_tex(renderer, fonts.get_name_font().RenderUTF8_Blended(
+                                                       entity->get_name(), other_name_color));
+            const int nw = name_tex.GetWidth();
+            const int nh = name_tex.GetHeight();
+            text_y -= nh;
+            renderer.Copy(name_tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
+        }
+
+        if (entity->has_active_chat_bubble()) {
+            const uint32_t elapsed = SDL_GetTicks() - entity->get_chat_bubble_start_ticks();
+            uint8_t alpha = 255;
+            if (elapsed > 4000) {
+                const uint32_t fade_elapsed = elapsed - 4000;
+                alpha = static_cast<uint8_t>(255 - (255 * fade_elapsed / 1000));
+            }
+            SDL_Color bubble_color = {255, 255, 255, alpha};
+            SDL2pp::Texture bubble_tex(renderer,
+                                       fonts.get_bubble_font().RenderUTF8_Blended(
+                                               entity->get_chat_bubble_text(), bubble_color));
+            const int bw = bubble_tex.GetWidth();
+            const int bh = bubble_tex.GetHeight();
+            text_y -= bh;
+            renderer.Copy(bubble_tex, SDL2pp::NullOpt,
+                          SDL2pp::Rect(entity_screen_x - bw / 2, text_y, bw, bh));
+        }
     }
 
     for (const auto& effect: active_visual_effects) {
@@ -497,8 +613,19 @@ std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_scre
                 server_id = id - NPC_ENTITY_OFFSET;
             else if (type == EntityType::PLAYER)
                 server_id = id - PLAYER_ENTITY_OFFSET;
+            else if (type == EntityType::CITIZEN)
+                server_id = id - CITIZEN_ENTITY_OFFSET;
             return std::make_pair(server_id, type);
         }
     }
     return std::nullopt;
+}
+
+int WorldRenderer::get_npc_body_id(uint32_t server_id) const {
+    const uint32_t entity_key = NPC_ENTITY_OFFSET + server_id;
+    const auto it = entities.find(entity_key);
+    if (it == entities.end() || it->second->get_type() != EntityType::NPC) {
+        return -1;
+    }
+    return static_cast<int>(it->second->get_body_id());
 }

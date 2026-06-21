@@ -89,7 +89,7 @@ public:
     bool addItemToInventory(const TreasureInstance& instance);
 
     void toggleMeditation();
-    void breakMeditation();
+    bool breakMeditation();
     void updateHp(float delta);
     void updateMana(float delta);
     void meditating(float delta);

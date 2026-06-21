@@ -14,6 +14,7 @@ constexpr uint8_t PLAYER_FLAG_GHOST = 1 << 0;
 
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
+    char name[MAX_NAME_SIZE];
     uint32_t id;
     // Posicion en el mapa
     uint32_t pos_x;

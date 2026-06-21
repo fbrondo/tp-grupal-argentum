@@ -55,6 +55,7 @@ void DataStorage::loadIndex() {
 
 /* va al final del archivo y guarda el offset en el index*/
 void DataStorage::savePlayer(const PlayerData& data) {
+    std::lock_guard<std::mutex> lock(file_mutex);
     // this->index[data.username] = offset;
     // this->saveIndexEntry(data.username, offset);  // actualizás el archivo de índice en disco
     this->data_file.seekp(0, std::ios::end); /*se mueve el curso hacia el final del archivo*/
@@ -91,6 +92,7 @@ void DataStorage::savePlayer(const PlayerData& data) {
 }
 
 PlayerData DataStorage::loadPlayer(const std::string& username) {
+    std::lock_guard<std::mutex> lock(file_mutex);
     PlayerData data{};
     this->data_file.clear();  // seekg no reposiciona si failbit/eofbit estan activos
     this->data_file.seekg(this->index.at(username));
@@ -122,6 +124,7 @@ PlayerData DataStorage::loadPlayer(const std::string& username) {
 }
 
 void DataStorage::updateStatePlayer(const PlayerData& data) {
+    std::lock_guard<std::mutex> lock(file_mutex);
     // va al offset original y sobreescribe
     // como vimos antes, va al final si el tamaño cambió
     std::streampos offset = this->index.at(data.username);
@@ -156,6 +159,7 @@ void DataStorage::updateStatePlayer(const PlayerData& data) {
 }
 
 void DataStorage::saveWorldState(const WorldStateData& state) const {
+    std::lock_guard<std::mutex> lock(file_mutex);
     std::ofstream world_file(this->data_world_path,
                              std::ios::binary | std::ios::trunc);  // trunc = borra y reescribe
 

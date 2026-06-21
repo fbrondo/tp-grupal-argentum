@@ -80,6 +80,7 @@ struct MsgItemInfo {
 struct MsgInteract {
     uint8_t opcode = INTERACT;
     uint32_t npc_id;
+    uint8_t action;  // 0 = heal, 1 = resurrect
 };
 
 struct MsgTrade {

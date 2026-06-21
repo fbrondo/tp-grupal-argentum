@@ -16,5 +16,6 @@ public:
     TraderNPC(TypeNPC type, const std::string& name, const Pose& pose_,
               std::map<TypeItem, Item*>&& items);
     ~TraderNPC() override = default;
+    const std::map<TypeItem, Item*>& getStore() const;
     virtual void executeBuyItem(Player& player, TypeItem type_item_buy);
 };

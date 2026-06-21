@@ -11,6 +11,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2pp/SDL2pp.hh>
 
+#include "client/includes/core/texture.h"
 #include "common/includes/direction.h"
 #include "common/includes/types.h"
 

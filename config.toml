@@ -24,3 +24,8 @@ ms_per_step = 264
 # El tiempo que dura cada cuadro individual de la animación de caminata (en milisegundos)
 # Como la animación de caminata base tiene 4 cuadros: 4 * 66ms = 264ms (perfectamente sincronizado)
 frame_rate_walk_ms = 66
+
+[window]
+fullscreen = false
+width = 960
+height = 540

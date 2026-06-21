@@ -96,6 +96,7 @@ public:
     void processHandleLogin(const Id& player_id, const User& user);
     void sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response);
     void executeAttackPlayer(const Id& player_id, const Id& victim_id);
+    void sendCombatMessage(Id target_id, const std::string& msg);
 
     void processMovePlayer(Id player_id, Direction dir);
     void processBuyItem(Id player_id, Id npc_id, TypeItem type_item); /*enviabas un ID item_id*/
@@ -116,9 +117,14 @@ public:
 
     void processPlayerMeditate(Id player_id);
     void processPlayerHeal(Id player_id);
-    void processPlayerResurrect(Id player_id);
+    void processPlayerResurrect(Id player_id, std::optional<Id> priest_id = std::nullopt);
+    void processPlayerInteract(Id player_id, Id npc_id, uint8_t action);
     void processPlayerDebugKill(Id player_id);
     void processListItems(Id player_id, Id npc_id);
+    void processBroadcastChat(Id sender_id, const std::string& text);
+    void processDirectChat(Id sender_id, Id target_id, const std::string& text);
+    void processDirectChatByName(Id sender_id, const std::string& target_name,
+                                 const std::string& text);
 
 
     void processClanFound(Id player_id, const std::string& clan_name);
