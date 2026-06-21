@@ -29,8 +29,8 @@ public:
              const NpcAttributes& attrib, std::vector<ItemInstance>&& items_);
 
     void onDeath(World& world) override;
-    CreatureData getCreatureData();
-    NpcSnapshotData getNpcSnapshotData();
+    CreatureData getCreatureData() const;
+    NpcSnapshotData getNpcSnapshotData() const;
 
     std::string getName() const override;
     TypeNPC getTypeNPC() const { return type_creature; }

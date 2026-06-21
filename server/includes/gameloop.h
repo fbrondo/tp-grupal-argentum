@@ -80,13 +80,18 @@ private:
     Player* findNearestPlayer(const Creature& creature, Id& player_id);
     void moveCreatureTowards(Id creature_id, Creature& creature, const Position& target);
     void executeCreatureAttack(Creature& creature, Id player_id);
-    void updateCreatures(uint32_t delta_ms);
 
     void sendCombatMessage(Id target_id, const std::string& msg);
     void sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response);
     void sendUpdateInventoryToPlayer(Id player_id, Player& player);
     void sendUpdateEquipmentToPlayer(Id player_id, Player& player);
     void reportAttackByAPlayerOnClanmates(Player& player);
+
+    void updateCreatures(uint32_t delta_ms);
+    void respawnDeadNpcs();
+    void updatePlayersAttributes();
+    void updateStatePlayers();
+    void updateStateWorld();
 
 public:
     explicit Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_queue);
@@ -131,10 +136,6 @@ public:
     void processClanKick(Id player_id, const std::string& nick);
     void processClanLeave(Id player_id);
 
-    void respawnDeadNpcs();
-    void updatePlayersAttributes();
-    void updateStatePlayers();
-    void updateStateWorld();
     void run() override;
     void stop() override;
     ~Gameloop();

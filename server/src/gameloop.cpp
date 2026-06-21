@@ -859,6 +859,8 @@ void Gameloop::processPlayerDebugKill(Id player_id) {
         return;
     }
     player->receiveDamage(std::numeric_limits<uint16_t>::max(), this->world);
+    this->sendUpdateEquipmentToPlayer(player_id, *player);
+    this->sendUpdateInventoryToPlayer(player_id, *player);
 }
 
 void Gameloop::processBroadcastChat(Id sender_id, const std::string& text) {
@@ -1017,9 +1019,9 @@ void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
 void Gameloop::updateCreatures(uint32_t delta_ms) {
     for (auto& [creature_id, creature]: this->creatures) {
         creature->updateCooldowns(delta_ms);
-        if (!creature->isAlive()) {
+        if (!creature->isAlive())
             continue;
-        }
+
         Id target_id = 0;
         Player* target = this->findNearestPlayer(*creature, target_id);
         if (!target) {
@@ -1063,7 +1065,7 @@ void Gameloop::updateStateWorld() {
 }
 
 void Gameloop::updateStatePlayers() {
-    for (auto& [id, player]: this->players) {
+    for (const auto& player: this->players | std::views::values) {
         PlayerData data = player->getPlayerData();
         this->persistence.schedulePlayers(std::move(data));
     }
