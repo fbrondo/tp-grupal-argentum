@@ -12,4 +12,6 @@ public:
 
     // Presenta el frame dibujado
     virtual void present() = 0;
+
+    virtual void toggle_fullscreen() {}
 };

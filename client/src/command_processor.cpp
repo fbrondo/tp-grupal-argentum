@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 
 #include "client/includes/client.h"
+#include "client/includes/core/constants.h"
 #include "client/includes/menu_handler.h"
 #include "common/includes/core/character_traits.h"
 

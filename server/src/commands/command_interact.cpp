@@ -1,7 +1,10 @@
 #include "server/includes/commands/command_interact.h"
 
-InteractCommand::InteractCommand(Id id, Id npc_id): Command(id), npc_id(npc_id) {}
+#include "server/includes/gameloop.h"
 
-void InteractCommand::execute(Gameloop& /*game world*/) {
-    // world.interact_with_npc(client_id, npc_id);
+InteractCommand::InteractCommand(Id id, Id npc_id, uint8_t action):
+        Command(id), npc_id(npc_id), action(action) {}
+
+void InteractCommand::execute(Gameloop& game) {
+    game.processPlayerInteract(this->client_id, this->npc_id, this->action);
 }

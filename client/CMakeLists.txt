@@ -11,6 +11,14 @@ target_sources(taller_client
         src/commands/command_chat.cpp
         src/commands/command_equip.cpp
         src/commands/command_unequip.cpp
+        src/commands/command_interact.cpp
+        src/commands/command_buy_item.cpp
+        src/commands/command_sell_item.cpp
+        src/commands/command_deposit_item.cpp
+        src/commands/command_withdraw_item.cpp
+        src/commands/command_deposit_gold.cpp
+        src/commands/command_withdraw_gold.cpp
+        src/commands/command_list_items.cpp
         src/menu_handler.cpp
         src/command_processor.cpp
         src/texture_manager.cpp
@@ -18,6 +26,7 @@ target_sources(taller_client
         src/renderable_entity.cpp
         src/world_renderer.cpp
         src/hud_renderer.cpp
+        src/font_manager.cpp
         src/chat_manager.cpp
         src/sound_manager.cpp
     PUBLIC
@@ -34,6 +43,14 @@ target_sources(taller_client
         includes/commands/command_unequip.h
         includes/commands/command_create_character.h
         includes/commands/command_chat.h
+        includes/commands/command_interact.h
+        includes/commands/command_buy_item.h
+        includes/commands/command_sell_item.h
+        includes/commands/command_deposit_item.h
+        includes/commands/command_withdraw_item.h
+        includes/commands/command_deposit_gold.h
+        includes/commands/command_withdraw_gold.h
+        includes/commands/command_list_items.h
         includes/texture_manager.h
         includes/window/window.h
         includes/window/windowSDL.h
@@ -41,6 +58,7 @@ target_sources(taller_client
         includes/world_renderer.h
         includes/sound_manager.h
         includes/hud_renderer.h
+        includes/font_manager.h
         includes/chat_manager.h
     )
 

@@ -29,6 +29,7 @@ struct FileData {
     Path indx_players;
     Path world; /*Donde guardo el estado del mundo*/
     Path map;   /*Donde esta guardado el map que me envia el editor*/
+    Path clans; /*datos de los clanes*/
 };
 struct PlayerStateInit {
     uint8_t level;
@@ -38,7 +39,9 @@ struct PlayerStateInit {
 };
 struct ClanConfig {
     uint32_t max_members;
-    // ClanConfig() = default;
+    uint8_t min_level_to_found;
+    uint16_t proximity_bonus_per_member;
+    uint32_t proximity_range;
 };
 struct NpcSafeZone {
     TypeNPC type;

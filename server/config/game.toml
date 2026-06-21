@@ -8,6 +8,9 @@ capacity_slot = 3
 #-------------------------------------------------------------------------------------------------------
 [clan]
 max_members = 16
+min_level_to_found = 6
+proximity_bonus_per_member = 2
+proximity_range = 5
 #------------------------------------------------------------------------------------------------------
 [times]
 # frecuencia de actualizacion del servidor. El juego procesa la logica 30 veces por segundos.

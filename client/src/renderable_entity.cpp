@@ -3,15 +3,14 @@
 #include <cmath>
 #include <iostream>
 
-static constexpr int TILE_SIZE = 32;
-
 RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_,
                                    int start_tile_y_, uint16_t body_id_, uint16_t head_id_,
                                    uint8_t weapon_id_, uint8_t shield_id_, uint8_t helmet_id_,
-                                   bool is_short_race_):
+                                   uint8_t level_, bool is_short_race_):
         id(id_),
         type(type_),
         is_short_race(is_short_race_),
+        level(level_),
         tile_x(start_tile_x_),
         tile_y(start_tile_y_),
         current_pixel_x(static_cast<float>(start_tile_x_ * TILE_SIZE)),
@@ -46,7 +45,8 @@ void RenderableEntity::move_to(int target_tile_x, int target_tile_y, Direction d
             current_pixel_x = static_cast<float>(tile_x * TILE_SIZE);
             current_pixel_y = static_cast<float>(tile_y * TILE_SIZE);
             is_moving = false;
-            std::string prefix = (type == EntityType::NPC) ? "npc_" : "body_";
+            bool is_static_npc = (type == EntityType::NPC || type == EntityType::CITIZEN);
+            std::string prefix = is_static_npc ? "npc_" : "body_";
             anim_state.current_anim_id =
                     prefix + std::to_string(body_id) + "_idle_" + std::to_string(dir);
             anim_state.start_time = SDL_GetTicks();
@@ -54,7 +54,8 @@ void RenderableEntity::move_to(int target_tile_x, int target_tile_y, Direction d
         }
         is_moving = true;
 
-        std::string prefix = (type == EntityType::NPC) ? "npc_" : "body_";
+        bool is_static_npc = (type == EntityType::NPC || type == EntityType::CITIZEN);
+        std::string prefix = is_static_npc ? "npc_" : "body_";
         std::string new_anim = prefix + std::to_string(body_id) + "_walk_" + std::to_string(dir);
 
         if (anim_state.current_anim_id != new_anim) {
@@ -70,7 +71,8 @@ void RenderableEntity::move_to(int target_tile_x, int target_tile_y, Direction d
         }
 
         is_moving = false;
-        std::string prefix = (type == EntityType::NPC) ? "npc_" : "body_";
+        bool is_static_npc = (type == EntityType::NPC || type == EntityType::CITIZEN);
+        std::string prefix = is_static_npc ? "npc_" : "body_";
         anim_state.current_anim_id =
                 prefix + std::to_string(body_id) + "_idle_" + std::to_string(dir);
     }
@@ -108,7 +110,8 @@ void RenderableEntity::update(float dt) {
         // Si ya alcanzamos los píxeles de la baldosa, dejamos de movernos
         if (is_moving) {
             is_moving = false;
-            std::string prefix = (type == EntityType::NPC) ? "npc_" : "body_";
+            bool is_static_npc = (type == EntityType::NPC || type == EntityType::CITIZEN);
+            std::string prefix = is_static_npc ? "npc_" : "body_";
             anim_state.current_anim_id =
                     prefix + std::to_string(body_id) + "_idle_" + std::to_string(current_dir);
         }
@@ -147,7 +150,8 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
 
     // 2. RENDERIZADO DE JUGADORES Y NPCs
     try {
-        std::string prefix = (type == EntityType::NPC) ? "npc_" : "body_";
+        bool is_static_npc = (type == EntityType::NPC || type == EntityType::CITIZEN);
+        std::string prefix = is_static_npc ? "npc_" : "body_";
         std::string action = is_moving ? "_walk_" : "_idle_";
         std::string anim_id =
                 prefix + std::to_string(body_id) + action + std::to_string(current_dir);
@@ -156,7 +160,7 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         try {
             body_clip = &texture_manager.get_animation(anim_id);
         } catch (const std::exception&) {
-            if (type != EntityType::NPC) {
+            if (!is_static_npc) {
                 throw;
             }
             SDL2pp::Texture& npc_texture =
@@ -183,8 +187,8 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         renderer.Copy(body_texture, SDL2pp::Rect(src_rect), SDL2pp::Rect(dst_rect));
         body_texture.SetAlphaMod(255);
 
-        // Si es NPC, termina acá (no usan armas ni cascos sueltos)
-        if (type == EntityType::NPC)
+        // Si es NPC o CITIZEN, termina acá (no usan armas ni cascos sueltos)
+        if (type == EntityType::NPC || type == EntityType::CITIZEN)
             return;
 
         // B) Dibujar Capas Adicionales solo para PLAYER
@@ -250,4 +254,16 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
     } catch (const std::exception& e) {
         std::cerr << "[RenderableEntity] " << e.what() << std::endl;
     }
+}
+
+void RenderableEntity::set_chat_bubble(const std::string& text) {
+    chat_bubble_text = text;
+    chat_bubble_start_ticks = SDL_GetTicks();
+}
+
+bool RenderableEntity::has_active_chat_bubble() const {
+    if (chat_bubble_text.empty())
+        return false;
+    const uint32_t elapsed = SDL_GetTicks() - chat_bubble_start_ticks;
+    return elapsed < 5000;
 }

@@ -54,6 +54,7 @@ void GameConfigLoader::loadPaths() {
         this->data.indx_players = this->loadPath(config, "data", "indx_players");
         this->data.world = this->loadPath(config, "data", "world");
         this->data.map = this->loadPath(config, "data", "map");
+        this->data.clans = this->loadPath(config, "data", "clans");
 
         Print::printLoadPathsAndFiles(path, this->paths, this->data);
     } catch (const toml::parse_error& err) {
@@ -308,7 +309,11 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
                 static_cast<uint32_t>(player_init["capacity_slot"].value_or(1));
         /*Condiciones de un clan*/
         auto clan_info = config["clan"];
-        clan.max_members = static_cast<uint32_t>(clan_info["max_members"].value_or(10));
+        clan.max_members = static_cast<uint32_t>(clan_info["max_members"].value_or(16));
+        clan.min_level_to_found = static_cast<uint8_t>(clan_info["min_level_to_found"].value_or(6));
+        clan.proximity_bonus_per_member =
+                static_cast<uint16_t>(clan_info["proximity_bonus_per_member"].value_or(2));
+        clan.proximity_range = static_cast<uint32_t>(clan_info["proximity_range"].value_or(5));
         /*Tiempos del juego*/
         auto times_info = config["times"];
         times.server_update_frecuency =

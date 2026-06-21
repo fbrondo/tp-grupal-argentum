@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 #include <ranges>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -21,6 +22,7 @@
 #include "server/includes/npc/priest.h"
 #include "server/includes/response_builder.h"
 #include "server/includes/responses/response_bank_content.h"
+#include "server/includes/responses/response_chat_msg.h"
 #include "server/includes/responses/response_equipment_update.h"
 #include "server/includes/responses/response_inventory_update.h"
 #include "server/includes/responses/response_login.h"
@@ -47,9 +49,11 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
         monitor(monitor),
         commands_queue(cmmds_queue),
         conf(std::move(conf_)),
+        clan_manager(this->conf.paths.clans),
         world(this->conf.paths.map),
         persistence(this->conf.paths),
         spawn(this->conf, this->world) {
+    this->clan_manager.load();
 
     if (persistence.worldStateExists()) {
         Print::printInitGameloop("CARGANDO WORLD");
@@ -229,6 +233,16 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
         return;
     }
     this->loadingPlayerData(player_id, data);
+    const std::string login_clan = this->clan_manager.getClanOf(data.username);
+    if (!login_clan.empty()) {
+        const std::string notif = std::string(data.username) + " entró al juego.";
+        for (const auto& [id, p]: this->players) {
+            if (id != player_id &&
+                this->clan_manager.areInSameClan(p->getUsername(), data.username)) {
+                this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
+            }
+        }
+    }
     this->monitor.queueTheServerResponse(player_id,
                                          std::make_unique<ResponseLogin>(true, player_id));
     Map map = this->world.getMap();
@@ -238,10 +252,22 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     const auto inv = this->players.at(player_id)->getSlotsInventory();
     MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
     this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+    const auto pending_it = this->pending_clan_msgs.find(std::string(data.username));
+    if (pending_it != this->pending_clan_msgs.end()) {
+        for (const auto& msg: pending_it->second) {
+            this->monitor.queueTheServerResponse(player_id, std::make_shared<ResponseChatMsg>(msg));
+        }
+        this->pending_clan_msgs.erase(pending_it);
+    }
 }
 
 void Gameloop::sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response) {
     this->monitor.queueTheServerResponse(player_id, std::move(response));
+}
+void Gameloop::sendCombatMessage(Id target_id, const std::string& msg) {
+    if (this->players.contains(target_id)) {
+        this->sendResponseToPlayer(target_id, std::make_shared<ResponseChatMsg>(msg));
+    }
 }
 
 bool Gameloop::isItPossibleToAttack(const Id& player_id, const CombatEntity& victim,
@@ -310,6 +336,14 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         return;
     }
 
+    if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
+        if (this->clan_manager.areInSameClan(attacker->getUsername(),
+                                             victim_player->getUsername())) {
+            std::cerr << "[ATTACK] blocked: same clan\n";
+            return;
+        }
+    }
+
     auto* weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
     if (!weapon) {
         std::cerr << "[ATTACK] blocked: equipped item is not a weapon\n";
@@ -338,15 +372,34 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     bool is_critical = false;
     uint16_t damage_by_attacker = attacker->calculateDamage(is_critical, *weapon);
     if (!is_critical && victim->dodgeAttack()) {
-        std::cerr << "[ATTACK] blocked: attack dodged\n";
+        std::string victim_name;
+        if (auto* victim_player = dynamic_cast<Player*>(victim)) {
+            victim_name = victim_player->getUsername();
+        } else if (auto* creature = dynamic_cast<Creature*>(victim)) {
+            victim_name = Print::npcToString(creature->getTypeNPC());
+        }
+        if (dynamic_cast<Player*>(victim)) {
+            this->sendCombatMessage(victim_id, "Has esquivado el ataque.");
+        }
+        {
+            std::ostringstream oss;
+            oss << victim_name << " esquivó tu ataque.";
+            this->sendCombatMessage(attacker_id, oss.str());
+        }
         return;
     }
+
+    damage_by_attacker += this->calcClanProximityBonus(attacker->getUsername(), attacker_pos);
 
     if (const auto player = dynamic_cast<Player*>(victim)) {
         const std::vector<Defense*> equip_defensive = this->getPlayerDefensiveEquipment(victim_id);
         const uint16_t defense_victim = player->calculateDefense(equip_defensive);
         damage_by_attacker =
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
+        const uint16_t clan_def_bonus =
+                this->calcClanProximityBonus(player->getUsername(), victim->getPosition());
+        damage_by_attacker =
+                (damage_by_attacker > clan_def_bonus) ? (damage_by_attacker - clan_def_bonus) : 0;
     }
 
     SoundEffectSnapshotData golpe_sound{};
@@ -372,17 +425,64 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
 
-    if (!victim->isAlive()) {
+    const bool victim_died = !victim->isAlive();
+    const bool victim_is_player = dynamic_cast<Player*>(victim) != nullptr;
+    const bool victim_is_creature = dynamic_cast<Creature*>(victim) != nullptr;
+
+    std::string victim_name;
+    if (auto* victim_player = dynamic_cast<Player*>(victim)) {
+        victim_name = victim_player->getUsername();
+    } else if (auto* creature = dynamic_cast<Creature*>(victim)) {
+        victim_name = Print::npcToString(creature->getTypeNPC());
+    }
+    const std::string attacker_name = attacker->getUsername();
+
+    if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
+        const std::string victim_clan = this->clan_manager.getClanOf(victim_player->getUsername());
+        if (!victim_clan.empty()) {
+            const std::string notif = victim_player->getUsername() + " está siendo atacado!";
+            for (const auto& [id, p]: this->players) {
+                if (p->getUsername() != victim_player->getUsername() &&
+                    this->clan_manager.areInSameClan(p->getUsername(),
+                                                     victim_player->getUsername())) {
+                    this->monitor.queueTheServerResponse(id,
+                                                         std::make_shared<ResponseChatMsg>(notif));
+                }
+            }
+        }
+    }
+
+    if (victim_died) {
         attacker->earnKillExp(victim);
-        if (dynamic_cast<Creature*>(victim))
+        if (victim_is_creature)
             this->creatures.erase(victim_id);
+    }
+
+    {
+        std::ostringstream oss;
+        oss << "Infligiste " << damage_by_attacker << " de daño a " << victim_name << ".";
+        if (victim_died) {
+            oss << " " << victim_name << " ha muerto.";
+        }
+        this->sendCombatMessage(attacker_id, oss.str());
+    }
+    if (victim_is_player) {
+        std::ostringstream oss;
+        oss << "Recibiste " << damage_by_attacker << " de daño de " << attacker_name << ".";
+        if (victim_died) {
+            oss << " Has muerto.";
+        }
+        this->sendCombatMessage(victim_id, oss.str());
     }
 
     auto* magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
     if (magic_weapon)
         attacker->consumeMana(magic_weapon->mana_cost);
 
-    attacker->breakMeditation();
+    if (attacker->breakMeditation()) {
+        this->sendResponseToPlayer(
+                attacker_id, std::make_shared<ResponseChatMsg>("Tu meditación es interrumpida."));
+    }
 }
 
 void Gameloop::processMovePlayer(Id player_id, Direction dir) {
@@ -390,7 +490,10 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
         return;
     }
     if (this->world.isWalkable(player_id, dir)) {
-        this->players[player_id]->breakMeditation();
+        if (this->players[player_id]->breakMeditation()) {
+            this->sendResponseToPlayer(
+                    player_id, std::make_shared<ResponseChatMsg>("Tu meditación es interrumpida."));
+        }
         Pose new_pose = this->world.movePlayer(player_id, dir);
         this->players[player_id]->updatePose(std::move(new_pose));
     }
@@ -398,6 +501,131 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
     //     std::cerr << "[MOVE] rejected player=" << player_id << " reason=not_walkable" <<
     //     std::endl;
     // }
+}
+
+Player* Gameloop::findNearestPlayer(const Creature& creature, Id& player_id) {
+    Player* nearest = nullptr;
+    uint32_t nearest_distance = std::numeric_limits<uint32_t>::max();
+    for (auto& [id, player]: this->players) {
+        if (!player->isAlive() || this->world.isSafeZONE(player->getPosition())) {
+            continue;
+        }
+        const uint32_t distance =
+                World::distanceBetweenPositions(creature.getPosition(), player->getPosition());
+        if (distance <= creature.getAggroRange() && distance < nearest_distance) {
+            nearest = player.get();
+            player_id = id;
+            nearest_distance = distance;
+        }
+    }
+    return nearest;
+}
+
+void Gameloop::moveCreatureTowards(Id creature_id, Creature& creature, const Position& target) {
+    const Position current = creature.getPosition();
+    const uint32_t dx = current.x > target.x ? current.x - target.x : target.x - current.x;
+    const uint32_t dy = current.y > target.y ? current.y - target.y : target.y - current.y;
+
+    Direction horizontal = target.x < current.x ? LEFT : RIGHT;
+    Direction vertical = target.y < current.y ? UP : DOWN;
+    Direction first = dx >= dy ? horizontal : vertical;
+    Direction second = dx >= dy ? vertical : horizontal;
+
+    if ((dx > 0 && first == horizontal) || (dy > 0 && first == vertical)) {
+        if (this->world.isCreatureWalkable(creature_id, first)) {
+            creature.updatePose(this->world.moveCreature(creature_id, first));
+            creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
+            return;
+        }
+    }
+    if (((dx > 0 && second == horizontal) || (dy > 0 && second == vertical)) &&
+        this->world.isCreatureWalkable(creature_id, second)) {
+        creature.updatePose(this->world.moveCreature(creature_id, second));
+        creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
+    }
+}
+
+void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
+    Player* victim = this->players.at(player_id).get();
+    if (!victim->isAlive() || this->world.isSafeZONE(victim->getPosition())) {
+        return;
+    }
+
+    bool is_critical = false;
+    uint16_t damage = creature.calculateDamage(is_critical);
+    if (!is_critical && victim->dodgeAttack()) {
+        creature.resetAttackCooldown(this->conf.times.npc_attack_cooldown);
+        creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
+        return;
+    }
+
+    const std::vector<Defense*> equipment = this->getPlayerDefensiveEquipment(player_id);
+    const uint16_t defense = victim->calculateDefense(equipment);
+    damage = damage > defense ? damage - defense : 0;
+    const uint16_t clan_def_bonus =
+            this->calcClanProximityBonus(victim->getUsername(), victim->getPosition());
+    damage = (damage > clan_def_bonus) ? (damage - clan_def_bonus) : 0;
+
+    SoundEffectSnapshotData sound{};
+    sound.effect_id = SoundEffectID::GOLPE_RECIBIDO;
+    sound.pos_x = victim->getPosition().x;
+    sound.pos_y = victim->getPosition().y;
+    this->sounds_of_current_tick.push_back(sound);
+
+    VisualEffectSnapshotData visual{};
+    visual.effect_id = VisualEffectID::BE_ATTACKED;
+    visual.recipient_id = player_id;
+    visual.pos_x = victim->getPosition().x;
+    visual.pos_y = victim->getPosition().y;
+    this->visual_effects_of_current_tick.push_back(std::move(visual));
+
+    victim->receiveDamage(damage, this->world);
+    victim->breakMeditation();
+    creature.resetAttackCooldown(this->conf.times.npc_attack_cooldown);
+    creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
+}
+
+void Gameloop::updateCreatures(uint32_t delta_ms) {
+    for (auto& [creature_id, creature]: this->creatures) {
+        creature->updateCooldowns(delta_ms);
+        if (!creature->isAlive()) {
+            continue;
+        }
+
+        Id target_id = 0;
+        Player* target = this->findNearestPlayer(*creature, target_id);
+        if (!target) {
+            continue;
+        }
+
+        const uint32_t distance =
+                World::distanceBetweenPositions(creature->getPosition(), target->getPosition());
+        if (distance == 1 && creature->canAttack()) {
+            this->executeCreatureAttack(*creature, target_id);
+        } else if (distance > 1 && creature->canMove()) {
+            this->moveCreatureTowards(creature_id, *creature, target->getPosition());
+        }
+    }
+}
+
+void Gameloop::processPlayerDisconnet(Id player_id) {
+    if (!this->players.contains(player_id)) {
+        return;
+    }
+    const std::string logout_username = this->players.at(player_id)->getUsername();
+    const std::string logout_clan = this->clan_manager.getClanOf(logout_username);
+    if (!logout_clan.empty()) {
+        const std::string notif = logout_username + " se desconectó.";
+        for (const auto& [id, p]: this->players) {
+            if (id != player_id &&
+                this->clan_manager.areInSameClan(p->getUsername(), logout_username)) {
+                this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
+            }
+        }
+    }
+    this->world.removePlayer(player_id);
+    this->pending_resurrects.erase(player_id);
+    this->players.erase(player_id);
 }
 
 void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
@@ -584,6 +812,10 @@ void Gameloop::processPlayerMeditate(Id player_id) {
         return;
     }
     player->toggleMeditation();
+    if (player->isMeditating()) {
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>("Entrás en estado de meditación."));
+    }
 }
 
 uint32_t Gameloop::calculateResurrectionDelayMs(const Position& from, const Position& to) const {
@@ -598,6 +830,8 @@ void Gameloop::resurrectPlayerAtHealer(Id player_id, Id healer_id) {
         return;
     }
     healer->resurrect(*player, this->world, player_id);
+    this->sendResponseToPlayer(player_id,
+                               std::make_shared<ResponseChatMsg>("Has resucitado en la ciudad."));
 
     SoundEffectSnapshotData sound_effect;
     sound_effect.effect_id = SoundEffectID::CURAR;
@@ -638,9 +872,11 @@ void Gameloop::processPlayerHeal(Id player_id) {
     visual_effect.pos_x = position.x;
     visual_effect.pos_y = position.y;
     this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                  "Debes seleccionar un sacerdote para curarte."));
 }
 
-void Gameloop::processPlayerResurrect(Id player_id) {
+void Gameloop::processPlayerResurrect(Id player_id, std::optional<Id> priest_id) {
     Player* player = this->players.at(player_id).get();
     if (player->isAlive() || player->isResurrecting()) {
         return;
@@ -649,11 +885,82 @@ void Gameloop::processPlayerResurrect(Id player_id) {
         return;
     }
 
+    if (priest_id.has_value()) {
+        auto npc_it = this->citizen_npcs.find(*priest_id);
+        if (npc_it == this->citizen_npcs.end()) {
+            this->sendResponseToPlayer(player_id,
+                                       std::make_shared<ResponseChatMsg>("No hay ningún NPC ahí."));
+            return;
+        }
+        auto* priest = dynamic_cast<Priest*>(npc_it->second.get());
+        if (!priest) {
+            this->sendResponseToPlayer(
+                    player_id, std::make_shared<ResponseChatMsg>("Ese NPC no puede resucitarte."));
+            return;
+        }
+        const uint32_t distance =
+                World::distanceBetweenPositions(player->getPosition(), priest->getPosition());
+        if (distance > 3) {
+            this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                          "Estás demasiado lejos del sacerdote."));
+            return;
+        }
+        this->resurrectPlayerAtHealer(player_id, *priest_id);
+        return;
+    }
+
     NpcInstance healer = this->world.findNearestHealer(player->getPosition());
     uint32_t delay_ms =
             this->calculateResurrectionDelayMs(player->getPosition(), healer.pose.position);
     player->startResurrection();
     this->pending_resurrects[player_id] = {delay_ms, healer.id};
+    this->sendResponseToPlayer(
+            player_id, std::make_shared<ResponseChatMsg>("El sacerdote viene a resucitarte..."));
+}
+
+void Gameloop::processPlayerInteract(Id player_id, Id npc_id, uint8_t action) {
+    if (!this->players.contains(player_id)) {
+        return;
+    }
+    Player* player = this->players.at(player_id).get();
+    if (!player->isAlive() && action != 1) {
+        return;
+    }
+    if (!this->citizen_npcs.contains(npc_id)) {
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseChatMsg>("No hay ningún NPC ahí."));
+        return;
+    }
+    auto priest = dynamic_cast<Priest*>(this->citizen_npcs.at(npc_id).get());
+    if (!priest) {
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseChatMsg>("Ese NPC no puede curarte."));
+        return;
+    }
+    const uint32_t distance =
+            World::distanceBetweenPositions(player->getPosition(), priest->getPosition());
+    if (distance > 3) {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                      "Estás demasiado lejos del sacerdote."));
+        return;
+    }
+    if (action == 0) {
+        priest->heal(*player);
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseChatMsg>("Un sacerdote te cura."));
+        SoundEffectSnapshotData sound_effect;
+        sound_effect.effect_id = SoundEffectID::CURAR;
+        Position position = player->getPosition();
+        sound_effect.pos_x = position.x;
+        sound_effect.pos_y = position.y;
+        this->sounds_of_current_tick.push_back(std::move(sound_effect));
+        VisualEffectSnapshotData visual_effect{};
+        visual_effect.effect_id = VisualEffectID::BE_HEALED;
+        visual_effect.recipient_id = player_id;
+        visual_effect.pos_x = position.x;
+        visual_effect.pos_y = position.y;
+        this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
+    }
 }
 
 void Gameloop::processPlayerDebugKill(Id player_id) {
@@ -664,13 +971,46 @@ void Gameloop::processPlayerDebugKill(Id player_id) {
     player->receiveDamage(std::numeric_limits<uint16_t>::max(), this->world);
 }
 
-void Gameloop::processPlayerDisconnet(Id player_id) {
-    if (!this->players.contains(player_id)) {
+void Gameloop::processBroadcastChat(Id sender_id, const std::string& text) {
+    if (!this->players.contains(sender_id)) {
         return;
     }
-    this->world.removePlayer(player_id);
-    this->pending_resurrects.erase(player_id);
-    this->players.erase(player_id);
+    const std::string sender_name = this->players.at(sender_id)->getUsername();
+    std::ostringstream oss;
+    oss << sender_name << ": " << text;
+    const std::string formatted = oss.str();
+    for (auto& [id, player]: this->players) {
+        this->sendResponseToPlayer(id, std::make_shared<ResponseChatMsg>(formatted));
+    }
+}
+
+void Gameloop::processDirectChat(Id sender_id, Id target_id, const std::string& text) {
+    if (!this->players.contains(sender_id) || !this->players.contains(target_id)) {
+        return;
+    }
+    const std::string sender_name = this->players.at(sender_id)->getUsername();
+    const std::string target_name = this->players.at(target_id)->getUsername();
+
+    std::ostringstream oss_to_target;
+    oss_to_target << "[De " << sender_name << "]: " << text;
+    this->sendResponseToPlayer(target_id, std::make_shared<ResponseChatMsg>(oss_to_target.str()));
+
+    std::ostringstream oss_to_sender;
+    oss_to_sender << "[Para " << target_name << "]: " << text;
+    this->sendResponseToPlayer(sender_id, std::make_shared<ResponseChatMsg>(oss_to_sender.str()));
+}
+
+void Gameloop::processDirectChatByName(Id sender_id, const std::string& target_name,
+                                       const std::string& text) {
+    if (!this->players.contains(sender_id)) {
+        return;
+    }
+    for (auto& [id, player]: this->players) {
+        if (player->getUsername() == target_name) {
+            this->processDirectChat(sender_id, id, text);
+            return;
+        }
+    }
 }
 
 void Gameloop::execuetRequest() {
@@ -858,6 +1198,8 @@ void Gameloop::run() {
 
                     if (player) {
                         this->resurrectPlayerAtHealer(p_id, it->second.healer_id);
+                    } else if (this->players.contains(p_id)) {
+                        this->players.at(p_id)->finishResurrection();
                     }
                     it = this->pending_resurrects.erase(it);
                 } else {
@@ -897,5 +1239,102 @@ void Gameloop::stop() {
     Thread::stop();  // Cambia el should_keep_running del Gameloop a false
     this->persistence
             .stop();  // <-- IMPORTANTE: Cambia el should_keep_running de la persistencia a false
+}
+
+// ---------------------------------------------------------------------------
+// Helpers de clan
+// ---------------------------------------------------------------------------
+
+std::optional<Id> Gameloop::findPlayerIdByUsername(const std::string& username) const {
+    for (const auto& [id, player]: this->players) {
+        if (player->getUsername() == username)
+            return id;
+    }
+    return std::nullopt;
+}
+
+void Gameloop::sendClanOpResult(Id caller_id, const ClanOpResult& result) {
+    this->monitor.queueTheServerResponse(caller_id, std::make_shared<ResponseChatMsg>(result.msg));
+    if (!result.target_nick.empty()) {
+        auto target_id = this->findPlayerIdByUsername(result.target_nick);
+        if (target_id.has_value()) {
+            this->monitor.queueTheServerResponse(
+                    *target_id, std::make_shared<ResponseChatMsg>(result.target_msg));
+        } else {
+            this->pending_clan_msgs[result.target_nick].push_back(result.target_msg);
+        }
+    }
+}
+
+uint16_t Gameloop::calcClanProximityBonus(const std::string& username, const Position& pos) const {
+    std::map<std::string, Position> online_positions;
+    for (const auto& [id, p]: this->players) {
+        if (p->isAlive())
+            online_positions[p->getUsername()] = p->getPosition();
+    }
+    const uint8_t nearby = this->clan_manager.countNearbyMembers(username, pos, online_positions,
+                                                                 this->conf.clan.proximity_range);
+    return static_cast<uint16_t>(nearby) * this->conf.clan.proximity_bonus_per_member;
+}
+
+// ---------------------------------------------------------------------------
+// Comandos de clan
+// ---------------------------------------------------------------------------
+
+void Gameloop::processClanFound(Id player_id, const std::string& clan_name) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    const uint8_t level = static_cast<uint8_t>(this->players.at(player_id)->getLevel());
+    ClanOpResult result = this->clan_manager.foundClan(username, clan_name, level,
+                                                       this->conf.clan.min_level_to_found);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanJoin(Id player_id, const std::string& clan_name) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.requestJoin(username, clan_name);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanReview(Id player_id) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.reviewClan(username);
+    std::istringstream ss(result.msg);
+    std::string line;
+    while (std::getline(ss, line)) {
+        if (!line.empty())
+            this->monitor.queueTheServerResponse(player_id,
+                                                 std::make_shared<ResponseChatMsg>(line));
+    }
+}
+
+void Gameloop::processClanAccept(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result =
+            this->clan_manager.acceptMember(username, nick, this->conf.clan.max_members);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanReject(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.rejectMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanBan(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.banMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanKick(Id player_id, const std::string& nick) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.kickMember(username, nick);
+    this->sendClanOpResult(player_id, result);
+}
+
+void Gameloop::processClanLeave(Id player_id) {
+    const std::string username = this->players.at(player_id)->getUsername();
+    ClanOpResult result = this->clan_manager.leaveClan(username);
+    this->sendClanOpResult(player_id, result);
 }
 Gameloop::~Gameloop() {}

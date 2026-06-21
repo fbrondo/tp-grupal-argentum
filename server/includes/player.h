@@ -80,7 +80,7 @@ public:
 
     void teleportTo(const Position& pos);
     void toggleMeditation();
-    void breakMeditation();
+    bool breakMeditation();
     void updateHp(float delta);
     void updateMana(float delta);
     void meditating(float delta);

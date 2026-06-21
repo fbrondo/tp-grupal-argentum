@@ -12,3 +12,4 @@ players = "data/players.dat"
 indx_players = "data/players.idx"
 world = "data/world.dat" #guardo el estado del mundo
 map = "data/mapa-01.toml" #despues deberia ser data/mapa.toml
+clans = "data/clans.dat"

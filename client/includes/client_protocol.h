@@ -50,6 +50,8 @@ struct EventClient {
     std::vector<CitizenNpcSnapshot> citizens;
     std::vector<MsgSlot> inventory;
     std::vector<MsgSlot> equipment;
+    MerchantEventData merchant_data;
+    BankEventData bank_data;
     EventClient() = default;
     EventClient(EventClient&&) = default;
     EventClient& operator=(EventClient&&) = default;
@@ -72,7 +74,7 @@ public:
     void sendUseItem(uint8_t slot_index) const;
     void sendDropItem(uint8_t slot_index) const;
     void sendCommand(const std::string& cmd) const;
-    void sendInteract(uint32_t npc_id) const;
+    void sendInteract(uint32_t npc_id, uint8_t action) const;
     void sendTakeItem() const;
     void sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
     void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
