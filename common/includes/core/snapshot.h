@@ -50,6 +50,7 @@ struct NpcSnapshotData {
     Position position;
     // uint32_t pos_x;
     // uint32_t pos_y;
+    uint8_t direction;
     uint16_t current_hp;
     uint16_t max_hp;
 };
@@ -73,11 +74,20 @@ struct SoundEffectSnapshotData {
     uint32_t pos_x;  // Coordenada X donde ocurrio (para audio posicional)
     uint32_t pos_y;  // Coordenada Y
 };
+
+struct VisualEffectSnapshotData {
+    VisualEffectID effect_id;
+    uint32_t recipient_id;  // 0 para broadcast; de otro modo, id del jugador destinatario
+    uint32_t pos_x;
+    uint32_t pos_y;
+};
+
 struct Snapshot {
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;
     std::vector<ItemGroundSnapshotData> items_on_floor;
     // std::vector<GoldPileGroundSnapshotData> gold_piles;
     std::vector<SoundEffectSnapshotData> sound_effects;
+    std::vector<VisualEffectSnapshotData> visual_effects;
 };
 #pragma pack(pop)

@@ -205,7 +205,11 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& item
             auto range = static_cast<uint16_t>(item["range"].value_or(0));
 
             if (classif == ITEM_ATTACK) {
-                if (descp == "MAGICAL") {
+                if (descp == "MELEE_WEAPON" || descp == "RANGED_WEAPON") {
+                    items[type] = std::make_unique<Weapon>(type, body, classif, std::move(name),
+                                                           sell_price, purch_price, min_dam,
+                                                           max_dam, range);
+                } else if (descp == "MAGICAL") {
                     items[type] = std::make_unique<MagicWeapon>(
                             type, body, classif, std::move(name), sell_price, purch_price, min_dam,
                             max_dam, mana_cost, range);

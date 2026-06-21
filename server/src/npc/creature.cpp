@@ -84,6 +84,7 @@ NpcSnapshotData Creature::getNpcSnapshotData() {
     // this->name.copy(snapshot.name, MAX_NAME_SIZE - 1);
     napshot.id = this->id;
     napshot.type_id = this->type_creature;
+    napshot.direction = this->pose.direct;
     napshot.current_hp = this->hp;
     napshot.max_hp = this->max_hp;
     napshot.position.x = this->pose.position.x;
@@ -91,20 +92,29 @@ NpcSnapshotData Creature::getNpcSnapshotData() {
     return napshot;
 }
 
+uint16_t Creature::getAggroRange() const { return this->range_attack; }
 
-// // Elegimos al azar un item de su pool de objetos
-// TypeItem item_to_drop = NONE;
-// static std::random_device rd; std::mt19937 rng(rd());
-// std::uniform_int_distribution<size_t> item_dist(0, this->drop_items_pool.size() - 1);
-// item_to_drop = this->drop_items_pool[item_dist(rng)];
-//
-// Position death_pos = this->getPosition();
-//
-// if (item_to_drop != NONE) {
-//     // this->world.spawnItemOnFloor(death_pos, item_to_drop);
-// }
-//
-// if (drop_gold > 0) {
-//     // this->world.spawnGoldOnFloor(death_pos, drop_gold);
-// }
-// // this->markForRemoval();
+bool Creature::canAttack() const { return this->attack_cooldown_current == 0; }
+
+bool Creature::canMove() const { return this->movement_cooldown_current == 0; }
+
+void Creature::resetAttackCooldown(uint32_t cooldown_ms) {
+    this->attack_cooldown_current = cooldown_ms;
+}
+
+void Creature::resetMovementCooldown(uint32_t cooldown_ms) {
+    this->movement_cooldown_current = cooldown_ms;
+}
+
+void Creature::updateCooldowns(uint32_t delta_ms) {
+    this->attack_cooldown_current = delta_ms >= this->attack_cooldown_current ?
+                                            0 :
+                                            this->attack_cooldown_current - delta_ms;
+    this->movement_cooldown_current = delta_ms >= this->movement_cooldown_current ?
+                                              0 :
+                                              this->movement_cooldown_current - delta_ms;
+}
+
+uint16_t Creature::calculateDamage(bool& is_critical) const {
+    return GameFormulas::calculationDamage(std::max<uint16_t>(1, this->level), 1, 2, is_critical);
+}

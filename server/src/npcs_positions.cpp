@@ -38,6 +38,16 @@ NpcInstance NpcPositions::removeCreature(
     return instance;
 }
 
+const NpcInstance& NpcPositions::getCreature(Id id) const { return this->creatures.at(id); }
+
+Pose NpcPositions::moveCreature(Id id, const Position& position, Direction direction) {
+    NpcInstance& creature = this->creatures.at(id);
+    this->npc_tiles.erase(creature.pose.position);
+    creature.pose = Pose(position, direction);
+    this->npc_tiles.emplace(position, true);
+    return creature.pose;
+}
+
 bool NpcPositions::isOcupied(const Position& position) const {
     return this->npc_tiles.contains(position);
 }

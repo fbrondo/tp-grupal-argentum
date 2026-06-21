@@ -251,6 +251,39 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
     return true;
 }
 
+bool World::isCreatureWalkable(const Id& creature_id, Direction dir) const {
+    const Position& current = this->npc_positions.getCreature(creature_id).pose.position;
+    Position destination = current;
+    switch (dir) {
+        case DOWN:
+            if (current.y + 1 >= this->limit_height)
+                return false;
+            destination.y++;
+            break;
+        case UP:
+            if (current.y == 0)
+                return false;
+            destination.y--;
+            break;
+        case LEFT:
+            if (current.x == 0)
+                return false;
+            destination.x--;
+            break;
+        case RIGHT:
+            if (current.x + 1 >= this->limit_width)
+                return false;
+            destination.x++;
+            break;
+    }
+
+    return this->isWithinLimits(destination) &&
+           this->map_tiles[destination.x][destination.y].walkable &&
+           !this->positionNotWalkabled(destination) && !this->player_tiles.contains(destination) &&
+           !this->npc_positions.isOcupied(destination) &&
+           !this->item_positions.isOcupied(destination);
+}
+
 bool World::isSafeZONE(const Position& pos) {
     for (const auto& [id, zone]: this->safe_zones) {
         for (const auto& position: zone.tiles) {
@@ -473,6 +506,26 @@ Pose World::movePlayer(const Id& player_id, Direction dir) {
     this->occupied_tiles[new_position] = true;*/
     Print::printPositionMovePlayer(player_id, pose_move, previous_position);
     return pose_move;
+}
+
+Pose World::moveCreature(const Id& creature_id, Direction dir) {
+    const Position& current = this->npc_positions.getCreature(creature_id).pose.position;
+    Position destination = current;
+    switch (dir) {
+        case DOWN:
+            destination.y++;
+            break;
+        case UP:
+            destination.y--;
+            break;
+        case LEFT:
+            destination.x--;
+            break;
+        case RIGHT:
+            destination.x++;
+            break;
+    }
+    return this->npc_positions.moveCreature(creature_id, destination, dir);
 }
 
 Pose World::teleportPlayer(const Id& player_id, const Position& position) {

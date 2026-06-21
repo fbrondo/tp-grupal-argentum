@@ -37,15 +37,17 @@ private:
     Persistence persistence;
     SpawnManager spawn;
     Bank bank;
-    // std::unique_ptr<Banker> banker;
-    // std::unique_ptr<Merchant> merchant;
-    // std::unique_ptr<Priest> priest;
 
     std::map<Id, std::unique_ptr<Player>> players;
     std::map<Id, std::unique_ptr<CitizenNPC>> citizen_npcs;
     std::map<Id, std::unique_ptr<Creature>> creatures;
 
     std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
+    std::vector<VisualEffectSnapshotData> visual_effects_of_current_tick;
+    // struct ResurrectPending {
+    //     uint32_t time_left_ms;
+    //     Id healer_id;
+    // };
     std::map<Id, ResurrectPending> pending_resurrects;
 
     // void loadWorld(const WorldStateData& data);
@@ -58,7 +60,7 @@ private:
 
     Character createCharacter(const CharacterTraits& traits) const;
     // Equipment createEquipment(const std::vector<ItemInstanceData>& equip) const;
-    Inventory loadingInventory(const PlayerData& player);
+    Inventory loadingInventory(const PlayerData& player) const;
     void loadingPlayerData(const Id& player_id, const PlayerData& player_data);
     void createNewPlayer(const User& user, const CharacterTraits& traits);
 
@@ -66,12 +68,16 @@ private:
     void executeBroacastSnapshot();
 
     /*Metodos del Comando Attack*/
-    bool isItPossibleToAttack(const Id& player_id, const Id& victim, Weapon& weapon);
+    bool isItPossibleToAttack(const Id& player_id, const CombatEntity& victim, Weapon& weapon);
     CombatEntity* inSearchOfTheVictimAttack(const Id& id_search) const;
     std::vector<Defense*> getPlayerDefensiveEquipment(const Id& player_id);
     void execuetRequest();
     uint32_t calculateResurrectionDelayMs(const Position& from, const Position& to) const;
     void resurrectPlayerAtHealer(Id player_id, Id healer_id);
+    Player* findNearestPlayer(const Creature& creature, Id& player_id);
+    void moveCreatureTowards(Id creature_id, Creature& creature, const Position& target);
+    void executeCreatureAttack(Creature& creature, Id player_id);
+    void updateCreatures(uint32_t delta_ms);
 
 public:
     explicit Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_queue);
@@ -95,7 +101,7 @@ public:
     void processPlayerUnequipItem(Id player_id, size_t slot_id);
 
     void processPlayerDisconnet(Id player_id);
-    // void processPlayerUseItem(Id player_id, size_t slot_id);
+
 
     void processPlayerMeditate(Id player_id);
     void processPlayerHeal(Id player_id);

@@ -7,6 +7,7 @@ target_sources(taller_client
         src/client_sender.cpp
         src/client_receiver.cpp
         src/commands/command_move.cpp
+        src/commands/command_attack.cpp
         src/commands/command_chat.cpp
         src/commands/command_equip.cpp
         src/commands/command_unequip.cpp

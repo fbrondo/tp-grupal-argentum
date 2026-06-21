@@ -43,7 +43,7 @@ id_type = 4
 name = "Guerrero"
 life_factor =  10 # factor de vida
 metitation_factor = 0 #factor de meditacion
-mana_Ractor = 0 #factor de mana
+mana_factor = 0 #factor de mana
 
 [[clases.statistics]]
 intelligence = 1

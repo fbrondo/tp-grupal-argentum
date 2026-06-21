@@ -27,7 +27,7 @@ private:
     bool is_resurrecting = false;
 
     uint16_t mana;
-    uint16_t exp;
+    uint32_t exp;
 
     User user;
     Equipment equipment;
@@ -90,6 +90,8 @@ public:
     void startResurrection();
     void finishResurrection();
     void earnExperiencePoints(CombatEntity* victim, uint16_t damage);
+    void earnKillExp(CombatEntity* victim);
+    void consumeMana(uint16_t amount);
 
     bool buyItem(const Item* item);
     bool sellItem(TypeItem type_item, uint32_t sell_price);

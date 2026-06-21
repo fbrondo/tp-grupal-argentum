@@ -258,7 +258,6 @@ void printNpc(const NpcInstance& npc) {
     bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
     if (debug_mode) {
         const int MARGEN = 2;  // Espacio en blanco a los lados del texto
-
         std::vector<std::string> lineas = {
                 " NPC: " + npcToString(npc.type), "ID: " + std::to_string(npc.id),
                 " Posicion: (" + std::to_string(npc.pose.position.x) + ", " +

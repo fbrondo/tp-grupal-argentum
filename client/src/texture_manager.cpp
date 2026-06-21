@@ -1,8 +1,12 @@
 #include "client/includes/texture_manager.h"
 
+#include <algorithm>
+#include <array>
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <utility>
+#include <vector>
 
 #include <SDL2/SDL_image.h>
 #include <SDL2pp/SDL2pp.hh>
@@ -187,7 +191,7 @@ void TextureManager::load_bodies_textures(
     register_spritesheet("body_" + std::to_string(HUNTER_FUR), 27, 47, 6);
     // --- GHOST TEXTURE --- //
     load_texture(textures_aux, "body_" + std::to_string(GHOST),
-                 ARGENTUM_SHARE_PATH "common/assets/units/bodies/2200.png");
+                 ARGENTUM_SHARE_PATH "/common/assets/units/bodies/2200.png");
     register_spritesheet("body_" + std::to_string(GHOST), 29, 32, 3);
 }
 void TextureManager::load_npcs_textures(
@@ -436,6 +440,55 @@ void TextureManager::load_tile_textures(
     }
     // std::cout << "[TextureManager] Total tiles: " << total << std::endl;
 }
+
+void TextureManager::load_effect_textures(
+        std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
+    const std::array<std::pair<VisualEffectID, std::string>, 7> effects = {{
+            {VisualEffectID::EXPLOSION, "Explosion"},
+            {VisualEffectID::FIRE, "Fire"},
+            {VisualEffectID::DEATH, "Death"},
+            {VisualEffectID::LIGHTNING, "Lightning"},
+            {VisualEffectID::BE_HEALED, "BeHealed"},
+            {VisualEffectID::BE_ATTACKED, "BeAttacked"},
+            {VisualEffectID::DMG, "Dmg"},
+    }};
+
+    for (const auto& [effect_id, folder]: effects) {
+        const std::filesystem::path dir = ARGENTUM_SHARE_PATH "/client/assets/Effects/" + folder;
+        if (!std::filesystem::exists(dir)) {
+            std::cout << "[TextureManager] DIRECTORIO NO ENCONTRADO: " << dir << std::endl;
+            continue;
+        }
+
+        std::vector<std::pair<int, std::filesystem::path>> frames;
+        for (const auto& entry: std::filesystem::directory_iterator(dir)) {
+            if (entry.path().extension() != ".png")
+                continue;
+            try {
+                frames.emplace_back(std::stoi(entry.path().stem().string()), entry.path());
+            } catch (const std::exception&) {}
+        }
+
+        std::sort(frames.begin(), frames.end(),
+                  [](const auto& a, const auto& b) { return a.first < b.first; });
+
+        VisualEffectClip clip;
+        clip.frame_rate_ms = 80;
+        for (const auto& [frame_number, path]: frames) {
+            const std::string texture_id = "effect_" +
+                                           std::to_string(static_cast<uint16_t>(effect_id)) + "_" +
+                                           std::to_string(frame_number);
+            if (load_texture(textures_aux, texture_id, path.string())) {
+                clip.frame_texture_ids.push_back(texture_id);
+            }
+        }
+
+        if (!clip.frame_texture_ids.empty()) {
+            this->visual_effects[effect_id] = std::move(clip);
+        }
+    }
+}
+
 void TextureManager::load_HUD_textures(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
     // --- HUD BASE --- //
@@ -479,6 +532,7 @@ std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>
     // --- TILES --- //
     load_tile_textures(textures_aux);
     // --- EFFECTS --- //
+    load_effect_textures(textures_aux);
     // --- HUD --- //
     load_HUD_textures(textures_aux);
 
@@ -535,6 +589,15 @@ const AnimationClip& TextureManager::get_animation(const std::string& anim_id) c
     const auto it = animations.find(anim_id);
     if (it == animations.end()) {
         throw std::runtime_error("Animacion no encontrada: " + anim_id);
+    }
+    return it->second;
+}
+
+const VisualEffectClip& TextureManager::get_visual_effect(VisualEffectID effect_id) const {
+    const auto it = visual_effects.find(effect_id);
+    if (it == visual_effects.end()) {
+        throw std::runtime_error("Efecto visual no encontrado: " +
+                                 std::to_string(static_cast<uint16_t>(effect_id)));
     }
     return it->second;
 }
