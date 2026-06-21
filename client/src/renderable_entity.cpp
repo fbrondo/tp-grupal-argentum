@@ -262,13 +262,13 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                     helm_y_offset = 0;
                     break;
                 case DOWN:
-                    helm_y_offset = is_short_race ? 8 : 12;
+                    helm_y_offset = is_short_race ? 13 : 12;
                     break;
                 case LEFT:
-                    helm_y_offset = is_short_race ? -7 : -13;
+                    helm_y_offset = -13;
                     break;
                 case RIGHT:
-                    helm_y_offset = is_short_race ? -21 : -25;
+                    helm_y_offset = is_short_race ? -24 : -25;
                     break;
             }
 

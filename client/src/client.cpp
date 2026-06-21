@@ -327,11 +327,11 @@ void Client::update_state_from_server() {
                 world_renderer.add_chat_message("--- Catalogo del comerciante ---", COLOR_BLUE);
                 world_renderer.add_chat_message(std::string("Objeto               | Precio"),
                                                 COLOR_YELLOW);
-                world_renderer.add_chat_message(std::string("--------------------|-------"),
+                world_renderer.add_chat_message(std::string("---------------------|-------"),
                                                 COLOR_YELLOW);
                 for (const auto& [type, price]: event.merchant_data.catalog) {
                     std::string name = item_name(static_cast<uint8_t>(type));
-                    std::string price_str = std::to_string(price) + "g";
+                    std::string price_str = std::to_string(price) + "monedas";
                     std::string line = name;
                     line.append(21 - name.size(), ' ');
                     line += "| " + price_str;
@@ -343,17 +343,19 @@ void Client::update_state_from_server() {
                 world_renderer.add_chat_message("--- Contenido del banco ---", COLOR_BLUE);
                 world_renderer.add_chat_message("Oro: " + std::to_string(event.bank_data.gold),
                                                 COLOR_YELLOW);
-                world_renderer.add_chat_message(std::string("------------------------------"),
-                                                COLOR_YELLOW);
-                world_renderer.add_chat_message(std::string("Objeto               | Cantidad"),
-                                                COLOR_YELLOW);
-                for (const auto& [type, quantity]: event.bank_data.items) {
-                    std::string name = item_name(static_cast<uint8_t>(type));
-                    std::string qty_str = std::to_string(quantity);
-                    std::string line = name;
-                    line.append(21 - name.size(), ' ');
-                    line += "| " + qty_str;
-                    world_renderer.add_chat_message(line, COLOR_WHITE);
+                if (!event.bank_data.items.empty()) {
+                    world_renderer.add_chat_message(std::string("------------------------------"),
+                                                    COLOR_YELLOW);
+                    world_renderer.add_chat_message(std::string("Objeto               | Cantidad"),
+                                                    COLOR_YELLOW);
+                    for (const auto& [type, quantity]: event.bank_data.items) {
+                        std::string name = item_name(static_cast<uint8_t>(type));
+                        std::string qty_str = std::to_string(quantity);
+                        std::string line = name;
+                        line.append(21 - name.size(), ' ');
+                        line += "| " + qty_str;
+                        world_renderer.add_chat_message(line, COLOR_WHITE);
+                    }
                 }
                 break;
             }
