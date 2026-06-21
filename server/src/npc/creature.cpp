@@ -69,7 +69,7 @@ void Creature::onDeath(World& world) {
     world.removeCreature(this->id);
 }
 
-CreatureData Creature::getCreatureData() {
+CreatureData Creature::getCreatureData() const {
     CreatureData creauture_npc;
     creauture_npc.type = this->type_creature;
     creauture_npc.attributes.current_hp = this->hp;
@@ -80,7 +80,7 @@ CreatureData Creature::getCreatureData() {
     return creauture_npc;
 }
 
-NpcSnapshotData Creature::getNpcSnapshotData() {
+NpcSnapshotData Creature::getNpcSnapshotData() const {
     NpcSnapshotData snapshot;
     std::memset(snapshot.name, 0, MAX_NAME_SIZE);
     this->name.copy(snapshot.name, MAX_NAME_SIZE - 1);
