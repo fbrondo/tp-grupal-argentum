@@ -440,10 +440,16 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     const bool victim_is_creature = dynamic_cast<Creature*>(victim) != nullptr;
 
     if (const auto victim_player = dynamic_cast<Player*>(victim)) {
+        if (victim_player->breakMeditation()) {
+            this->sendResponseToPlayer(
+                    victim_id, std::make_shared<ResponseChatMsg>("Tu meditación es interrumpida."));
+        }
         this->reportAttackByAPlayerOnClanmates(*victim_player);
         auto messg = GameMessageBuilder::damageMessgToThePlayer(attacker->getName(),
                                                                 damage_by_attacker, victim_died);
+
         this->sendCombatMessage(victim_id, messg);
+
         if (victim_died) {
             this->sendUpdateEquipmentToPlayer(victim_id, *victim_player);
             this->sendUpdateInventoryToPlayer(victim_id, *victim_player);

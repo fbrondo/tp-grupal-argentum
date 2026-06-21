@@ -85,7 +85,7 @@ struct MsgInteract {
 struct MsgTrade {
     uint8_t opcode;  // BUY_ITEM or SELL_ITEM
     uint32_t npc_id;
-    uint16_t item_id;
+    uint8_t item_id;
     uint16_t quantity;
 };
 
@@ -95,7 +95,8 @@ struct MsgPlayerStats {
     uint32_t max_hp;
     uint32_t mana;
     uint32_t max_mana;
-    uint32_t gold;
+    uint32_t safe_gold;
+    uint32_t excess_gold;
     uint32_t exp;
     uint32_t exp_next_level;
     uint8_t level;

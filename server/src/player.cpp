@@ -112,7 +112,7 @@ const Item* Player::removeItemFromInventory(TypeItem type_item) {
 }
 
 bool Player::buyItem(const Item* item) {
-    const uint16_t price = item->purchase_price;
+    const auto price = item->purchase_price;
     if (!this->canBuy(price)) {
         return false;
     }
@@ -212,6 +212,8 @@ uint16_t Player::calculateDefense(std::vector<Defense*> info_defense) {
 
 PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     PlayerSnapshotData data;
+    const uint32_t oro_max = GameFormulas::calculationGoldenMax(this->level);
+    const uint32_t golden = this->inv.getGolden();
     std::memset(data.name, 0, MAX_NAME_SIZE);
     user.username.copy(data.name, MAX_NAME_SIZE - 1);
     data.id = player_id;
@@ -224,6 +226,8 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.stats.max_mana = this->manaMax();
     data.stats.level = this->level;
     data.stats.xp = this->exp;
+    data.stats.safe_gold = std::min(golden, oro_max);
+    data.stats.excess_gold = (golden > oro_max) ? (golden - oro_max) : 0;
     data.ch_traits.body = this->ch.getTypeBody();
     data.ch_traits.head = this->ch.getTypeHead();
     data.ch_traits.race = this->ch.getTypeRace();

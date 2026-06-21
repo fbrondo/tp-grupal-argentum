@@ -148,9 +148,9 @@ const Item* Inventory::removeItemFromInventory(TypeItem type_item) {
 
 uint16_t Inventory::getGolden() const { return this->golden; }
 
-void Inventory::incrementGolden(uint16_t amount) { this->golden += amount; }
+void Inventory::incrementGolden(uint32_t amount) { this->golden += amount; }
 
-void Inventory::decrementGolden(uint16_t amount) { this->golden -= amount; }
+void Inventory::decrementGolden(uint32_t amount) { this->golden -= amount; }
 
 bool Inventory::addItemToInventory(const Item* item) {
     auto index = this->searchItemInInventory(item->type);

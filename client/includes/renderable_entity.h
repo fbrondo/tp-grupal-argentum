@@ -35,6 +35,9 @@ private:
     uint8_t helmet_id;
     bool is_ghost;
 
+    uint16_t current_hp;
+    uint16_t max_hp;
+
     std::string name;
 
     std::string chat_bubble_text;
@@ -65,6 +68,11 @@ public:
     void set_ghost(bool ghost);
 
     void set_name(const std::string& name_) { name = name_; }
+    void set_level(uint8_t level_) { level = level_; }
+    void set_hp(uint16_t current, uint16_t max) {
+        current_hp = current;
+        max_hp = max;
+    }
 
     void set_chat_bubble(const std::string& text);
     bool has_active_chat_bubble() const;
@@ -81,4 +89,6 @@ public:
     uint8_t get_level() const { return level; }
     const std::string& get_name() const { return name; }
     uint16_t get_body_id() const { return body_id; }
+    uint16_t get_current_hp() const { return current_hp; }
+    uint16_t get_max_hp() const { return max_hp; }
 };

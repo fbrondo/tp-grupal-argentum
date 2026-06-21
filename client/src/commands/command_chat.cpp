@@ -15,8 +15,8 @@ static std::string to_lower_cmd(const std::string& s) {
     return result;
 }
 
-static int resolve_item_id(const std::string& name) {
-    static const std::unordered_map<std::string, int> item_names = {
+static uint8_t resolve_item_id(const std::string& name) {
+    static const std::unordered_map<std::string, uint8_t> item_names = {
             {"espada", SWORD},
             {"hacha", AXE},
             {"martillo", HAMMER},
@@ -52,7 +52,7 @@ static int resolve_item_id(const std::string& name) {
     auto it = item_names.find(to_lower_cmd(name));
     if (it != item_names.end())
         return it->second;
-    return -1;
+    return NONE;
 }
 
 ChatCommandClient::ChatCommandClient(std::string msg, std::optional<uint32_t> npc_id):
@@ -75,16 +75,16 @@ void ChatCommandClient::execute(ClientProtocol& protocol) const {
             return;
         }
         if (lower.rfind("/comprar ", 0) == 0) {
-            int item_id = resolve_item_id(text.substr(9));
-            if (item_id >= 0) {
-                protocol.sendBuyItem(*npc_id, static_cast<uint16_t>(item_id), 1);
+            uint8_t item_id = resolve_item_id(text.substr(9));
+            if (item_id != NONE) {
+                protocol.sendBuyItem(*npc_id, item_id, 1);
                 return;
             }
         }
         if (lower.rfind("/vender ", 0) == 0) {
-            int item_id = resolve_item_id(text.substr(8));
-            if (item_id >= 0) {
-                protocol.sendSellItem(*npc_id, static_cast<uint16_t>(item_id), 1);
+            uint8_t item_id = resolve_item_id(text.substr(8));
+            if (item_id != NONE) {
+                protocol.sendSellItem(*npc_id, item_id, 1);
                 return;
             }
         }
@@ -96,9 +96,9 @@ void ChatCommandClient::execute(ClientProtocol& protocol) const {
             } catch (...) {}
         }
         if (lower.rfind("/depositar ", 0) == 0) {
-            int item_id = resolve_item_id(text.substr(11));
-            if (item_id >= 0) {
-                protocol.sendDepositItem(static_cast<uint16_t>(item_id));
+            uint8_t item_id = resolve_item_id(text.substr(11));
+            if (item_id != NONE) {
+                protocol.sendDepositItem(item_id);
                 return;
             }
         }
@@ -110,9 +110,9 @@ void ChatCommandClient::execute(ClientProtocol& protocol) const {
             } catch (...) {}
         }
         if (lower.rfind("/retirar ", 0) == 0) {
-            int item_id = resolve_item_id(text.substr(9));
-            if (item_id >= 0) {
-                protocol.sendWithdrawItem(static_cast<uint16_t>(item_id));
+            uint8_t item_id = resolve_item_id(text.substr(9));
+            if (item_id != NONE) {
+                protocol.sendWithdrawItem(item_id);
                 return;
             }
         }

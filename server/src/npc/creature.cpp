@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "common/includes/types.h"
+#include "server/print.h"
 
 
 ItemInstance Creature::search_item_drop(TypeItem type) {
