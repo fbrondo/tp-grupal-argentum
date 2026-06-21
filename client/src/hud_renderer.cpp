@@ -15,9 +15,9 @@ constexpr int INVENTORY_GRID_Y = INVENTORY_Y + 122;
 constexpr uint8_t EQUIP_KEY_OFFSET = 100;
 constexpr int EQUIPMENT_SLOT_SIZE = 32;
 constexpr int EQUIPMENT_GRID_Y = INVENTORY_Y + 40;
-constexpr int EQUIPMENT_WEAPON_X = PANEL_RIGHT_X + 36;
-constexpr int EQUIPMENT_HELMET_X = PANEL_RIGHT_X + 112;
-constexpr int EQUIPMENT_ARMOR_X = PANEL_RIGHT_X + 156;
+constexpr int EQUIPMENT_WEAPON_X = PANEL_RIGHT_X + 33;
+constexpr int EQUIPMENT_HELMET_X = PANEL_RIGHT_X + 90;
+constexpr int EQUIPMENT_ARMOR_X = PANEL_RIGHT_X + 145;
 constexpr int EQUIPMENT_SHIELD_X = PANEL_RIGHT_X + 205;
 
 std::optional<SDL_Rect> equipment_rect_for_item(uint8_t type_item) {

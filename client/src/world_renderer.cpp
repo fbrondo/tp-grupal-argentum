@@ -300,7 +300,8 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         if (it != entities.end()) {
             it->second->move_to(p_data.position.x, p_data.position.y,
                                 static_cast<Direction>(p_data.direction));
-            it->second->set_equipment(p_data.weapon_id, p_data.shield_id, p_data.helmet_id);
+            it->second->set_equipment(p_data.weapon_id, p_data.shield_id, p_data.helmet_id,
+                                      p_data.armor_id);
             it->second->set_name(player_name);
             it->second->set_level(p_data.stats.level);
             it->second->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
@@ -309,9 +310,9 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             entities[entity_key] = std::make_unique<RenderableEntity>(
                     entity_key, EntityType::PLAYER, p_data.position.x, p_data.position.y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
-                    p_data.shield_id, p_data.helmet_id, p_data.stats.level, is_short);
+                    p_data.shield_id, p_data.helmet_id, p_data.armor_id, p_data.stats.level,
+                    is_short);
             entities[entity_key]->set_name(player_name);
-            // entities[entity_key] = std::move(entity);
             entities[entity_key]->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         }
     }
@@ -726,5 +727,5 @@ int WorldRenderer::get_npc_body_id(uint32_t server_id) const {
     if (it == entities.end() || it->second->get_type() != EntityType::NPC) {
         return -1;
     }
-    return static_cast<int>(it->second->get_body_id());
+    return it->second->get_body_id();
 }
