@@ -39,7 +39,7 @@
 namespace {
 constexpr uint32_t RESURRECTION_MS_PER_TILE = 250;
 constexpr uint32_t MIN_RESURRECTION_DELAY_MS = 1000;
-constexpr TypeItem DEBUG_EQUIPMENT_ITEM = SWORD;  // prueba inventario
+constexpr TypeItem DEBUG_EQUIPMENT_ITEM = KNOTTED_STAFF;  // prueba inventario
 constexpr uint32_t CREATURE_MOVEMENT_COOLDOWN_MS = 375;
 }  // namespace
 
@@ -525,6 +525,7 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
     }
     if (trader->executeBuyItem(*player, type_item)) {
         this->sendUpdateInventoryToPlayer(player_id, *player);
+        // this->sendResponseToPlayer()
     }
     player->breakMeditation();
 }
@@ -622,6 +623,8 @@ void Gameloop::processPlayerDepositItem(Id player_id, Id npc_id, TypeItem type_i
     if (banker->playerDepositItem(*player, type_item)) {
         this->sendUpdateInventoryToPlayer(player_id, *player);
     }
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                  "Debes seleccionar un sacerdote para curarte."));
     player->breakMeditation();
 }
 
