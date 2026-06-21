@@ -797,5 +797,16 @@ void imprimirTilesOcupadas(const std::unordered_map<Position, bool, PositionHash
         std::cout << std::string(ancho_total, '*') << "\n";
     }
 }
+
+void printEvasiveMessageAttack(const std::string& name_victim) {
+
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - Game] - La victima " << name_victim << " esquivo el ataque." << SALTO;
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+}
 }  // namespace Print
-   // namespace Print

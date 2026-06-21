@@ -66,6 +66,7 @@ target_sources(taller_server
         src/equipment.cpp
         src/game_config_loader.cpp
         src/game_formulas.cpp
+        src/game_message_builder.cpp
         src/gameloop.cpp
         src/inventory.cpp
         src/main.cpp
@@ -154,6 +155,7 @@ target_sources(taller_server
         includes/equipment.h
         includes/game_config_loader.h
         includes/game_formulas.h
+        includes/game_message_builder.h
         includes/gameloop.h
         includes/items_positions.h
         includes/monitor_queues.h

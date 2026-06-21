@@ -1,9 +1,10 @@
-#include "../includes/equipment.h"
+#include "server/includes/equipment.h"
 
 #include <algorithm>
 #include <stdexcept>
 
 #include "common/includes/types.h"
+#include "server/includes/world.h"
 
 #define MAX_EQUIPMENT_SIZE 4
 #define INDEX_HEAD 0   /*defensa*/
@@ -67,6 +68,17 @@ TypeItem Equipment::getHelmetItem() const {
         return this->equipment_container[INDEX_HEAD]->item->type;
     }
     return NONE;
+}
+
+void Equipment::dropEquipment(World& world, const Position& position) {
+    for (auto& equip: this->equipment_container) {
+        if (equip) {
+            ItemInstance item_drop(equip.get()->item);
+            item_drop.position = world.findNearbyFreePosition(position);
+            world.addItemWorld(item_drop);
+            equip.reset(); /*lo volvemos nullpts*/
+        }
+    }
 }
 
 std::vector<TypeItem> Equipment::getEquipmentDefensive() const {

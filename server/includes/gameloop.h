@@ -45,14 +45,11 @@ private:
     std::map<Id, std::unique_ptr<CitizenNPC>> citizen_npcs;
     std::map<Id, std::unique_ptr<Creature>> creatures;
 
-    std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
-    std::vector<VisualEffectSnapshotData> visual_effects_of_current_tick;
-    // struct ResurrectPending {
-    //     uint32_t time_left_ms;
-    //     Id healer_id;
-    // };
     std::map<Id, ResurrectPending> pending_resurrects;
     std::map<std::string, std::vector<std::string>> pending_clan_msgs;
+
+    std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
+    std::vector<VisualEffectSnapshotData> visual_effects_of_current_tick;
 
     // void loadWorld(const WorldStateData& data);
     // void loadTreasures(const WorldStateData& world_data);
@@ -60,7 +57,6 @@ private:
     // void loadCitizenNPCs(const WorldStateData& world_data);
     // void loadGoldBags(const WorldStateData& world_data);
     // void loadItems(const WorldStateData& world_data);
-
 
     Character createCharacter(const CharacterTraits& traits) const;
     // Equipment createEquipment(const std::vector<ItemInstanceData>& equip) const;
@@ -75,7 +71,7 @@ private:
     bool isItPossibleToAttack(const Id& player_id, const CombatEntity& victim, Weapon& weapon);
     CombatEntity* inSearchOfTheVictimAttack(const Id& id_search) const;
     std::vector<Defense*> getPlayerDefensiveEquipment(const Id& player_id);
-    void execuetRequest();
+    void executeRequest();
     std::optional<Id> findPlayerIdByUsername(const std::string& username) const;
     void sendClanOpResult(Id caller_id, const ClanOpResult& result);
     uint16_t calcClanProximityBonus(const std::string& username, const Position& pos) const;
@@ -86,14 +82,19 @@ private:
     void executeCreatureAttack(Creature& creature, Id player_id);
     void updateCreatures(uint32_t delta_ms);
 
+    void sendCombatMessage(Id target_id, const std::string& msg);
+    void sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response);
+    void sendUpdateInventoryToPlayer(Id player_id, Player& player);
+    void sendUpdateEquipmentToPlayer(Id player_id, Player& player);
+    void reportAttackByAPlayerOnClanmates(Player& player);
+
 public:
     explicit Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_queue);
 
     void processHandleSignup(const Id& player_id, const User& user, const CharacterTraits& traits);
     void processHandleLogin(const Id& player_id, const User& user);
-    void sendResponseToPlayer(Id player_id, std::shared_ptr<Response> response);
     void executeAttackPlayer(const Id& player_id, const Id& victim_id);
-    void sendCombatMessage(Id target_id, const std::string& msg);
+
 
     void processMovePlayer(Id player_id, Direction dir);
     void processBuyItem(Id player_id, Id npc_id, TypeItem type_item); /*enviabas un ID item_id*/
@@ -110,7 +111,6 @@ public:
 
     void processPlayerDisconnet(Id player_id);
 
-
     void processPlayerMeditate(Id player_id);
     void processPlayerHeal(Id player_id);
     void processPlayerResurrect(Id player_id, std::optional<Id> priest_id = std::nullopt);
@@ -121,7 +121,6 @@ public:
     void processDirectChat(Id sender_id, Id target_id, const std::string& text);
     void processDirectChatByName(Id sender_id, const std::string& target_name,
                                  const std::string& text);
-
 
     void processClanFound(Id player_id, const std::string& clan_name);
     void processClanJoin(Id player_id, const std::string& clan_name);

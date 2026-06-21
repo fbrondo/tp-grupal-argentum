@@ -60,7 +60,7 @@ public:
     std::vector<MsgSlot> getSlotsInventory() const;
     std::vector<MsgSlot> getSlotsEquipment() const;
 
-    std::string getUsername() const;
+    std::string getName() const override;
     const Item* getItemInventory(const size_t& slot_id);
     const Item* removeItemInventory(TypeItem type_item);
 

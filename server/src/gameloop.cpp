@@ -7,7 +7,6 @@
 #include <ranges>
 #include <sstream>
 #include <string>
-#include <tuple>
 #include <utility>
 
 #include "common/includes/core/snapshot.h"
@@ -16,6 +15,7 @@
 #include "server/includes/commands/command_signup.h"
 #include "server/includes/core/data.h"
 #include "server/includes/entity/combat_entity.h"
+#include "server/includes/game_message_builder.h"
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/creature.h"
 #include "server/includes/npc/merchant.h"
@@ -44,7 +44,6 @@ constexpr uint32_t CREATURE_MOVEMENT_COOLDOWN_MS = 375;
 }  // namespace
 
 using RespSnapshot = std::shared_ptr<ResponseSnapshot>;
-
 Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_queue):
         monitor(monitor),
         commands_queue(cmmds_queue),
@@ -62,13 +61,9 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
         Print::printInitGameloop("INICIANDO WORLD");
         this->spawn.spawnCitizenNpcZones(this->next_npc_id, this->citizen_npcs, this->bank);
         this->spawn.spawnCreaturesZones(this->next_npc_id, this->creatures);
-        // this->spawn.spawnTreasuresZones();
+        this->spawn.spawnTreasuresZones();
     }
     Print::printMessageConsole("FINAL CONSTRUCTOR GAMELOOP");
-    // Print::printNpcsSafeLoads(this->conf.npcs);
-    // Print::printCreatureLoads(this->conf.creatures);
-    // Print::printRacesLoad(this->conf.races);
-    // Print::printClasesLoad(this->conf.clases);
 }
 //
 // void Gameloop::loadTreasures(const WorldStateData& world_data) {
@@ -237,8 +232,7 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     if (!login_clan.empty()) {
         const std::string notif = std::string(data.username) + " entró al juego.";
         for (const auto& [id, p]: this->players) {
-            if (id != player_id &&
-                this->clan_manager.areInSameClan(p->getUsername(), data.username)) {
+            if (id != player_id && this->clan_manager.areInSameClan(p->getName(), data.username)) {
                 this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
             }
         }
@@ -270,6 +264,33 @@ void Gameloop::sendCombatMessage(Id target_id, const std::string& msg) {
     }
 }
 
+void Gameloop::sendUpdateInventoryToPlayer(Id player_id, Player& player) {
+    const auto inv = player.getSlotsInventory();
+    MsgInventoryUpdate msg{INVENTORY_UPDATE, inv};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
+}
+
+void Gameloop::sendUpdateEquipmentToPlayer(Id player_id, Player& player) {
+    const auto equip = player.getSlotsEquipment();
+    MsgEquipmentUpdate msg{EQUIPMENT_UPDATE, equip};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseEquipmentUpdate>(msg));
+}
+
+void Gameloop::reportAttackByAPlayerOnClanmates(Player& player) {
+    const auto victim_clan = this->clan_manager.getClanOf(player.getName());
+    /*Con esto evitamos que nos quede la forma piramidal en el bloque de codigo*/
+    if (victim_clan.empty()) {
+        return;
+    }
+    const auto notif = GameMessageBuilder::mssgeFromAClanMemberUnderAttack(player.getName());
+    for (const auto& [id, p]: this->players) {
+        if (p->getName() != player.getName() &&
+            this->clan_manager.areInSameClan(p->getName(), player.getName())) {
+            this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
+        }
+    }
+}
+
 bool Gameloop::isItPossibleToAttack(const Id& player_id, const CombatEntity& victim,
                                     Weapon& weapon) {
     auto* magic_weapon = dynamic_cast<MagicWeapon*>(&weapon);
@@ -290,7 +311,6 @@ CombatEntity* Gameloop::inSearchOfTheVictimAttack(const Id& id_search) const {
     }
     if (this->creatures.contains(id_search)) {
         return this->creatures.at(id_search).get();
-        // victim = this->creatures.at(id_search).get();
     }
     return nullptr;
 }
@@ -310,7 +330,6 @@ std::vector<Defense*> Gameloop::getPlayerDefensiveEquipment(const Id& player_id)
     return info_equipment_defensive;
 }
 
-// TODO: Delete all this debugs prints after development
 void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     std::cerr << "[ATTACK] attacker=" << attacker_id << " victim=" << victim_id << std::endl;
     Player* attacker = this->players.at(attacker_id).get();
@@ -318,43 +337,40 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         std::cerr << "[ATTACK] blocked: attacker is dead\n";
         return;
     }
-
     const TypeItem weapon_type = attacker->getHandItem();
     if (weapon_type == NONE) {
         std::cerr << "[ATTACK] blocked: no weapon equipped\n";
         return;
     }
-
     CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
     if (!victim || !victim->isAlive()) {
         std::cerr << "[ATTACK] blocked: victim not found or dead\n";
         return;
     }
-
     if (!attacker->isValidOpponent(dynamic_cast<Player*>(victim))) {
         std::cerr << "[ATTACK] blocked: invalid opponent (fair play)\n";
         return;
     }
-
+    /*DEBERIA EVALUARSE EN EL PLAYER ?*/
     if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
-        if (this->clan_manager.areInSameClan(attacker->getUsername(),
-                                             victim_player->getUsername())) {
+        if (this->clan_manager.areInSameClan(attacker->getName(), victim_player->getName())) {
             std::cerr << "[ATTACK] blocked: same clan\n";
             return;
         }
     }
-
     auto* weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
     if (!weapon) {
         std::cerr << "[ATTACK] blocked: equipped item is not a weapon\n";
         return;
     }
 
+    /*ESTOS DOS IF LOS PODEMOS COMBINAR EN UNO*/
     const Position attacker_pos = this->world.positionPlayerInTheWorld(attacker_id);
     if (this->world.isSafeZONE(attacker_pos)) {
         std::cerr << "[ATTACK] blocked: attacker is in safe zone\n";
         return;
     }
+    /*El dynamicast es redundante, getPosition es de la clase clase combatiente*/
     if (dynamic_cast<Player*>(victim) && this->world.isSafeZONE(victim->getPosition())) {
         std::cerr << "[ATTACK] blocked: victim is in safe zone\n";
         return;
@@ -372,32 +388,25 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     bool is_critical = false;
     uint16_t damage_by_attacker = attacker->calculateDamage(is_critical, *weapon);
     if (!is_critical && victim->dodgeAttack()) {
-        std::string victim_name;
-        if (auto* victim_player = dynamic_cast<Player*>(victim)) {
-            victim_name = victim_player->getUsername();
-        } else if (auto* creature = dynamic_cast<Creature*>(victim)) {
-            victim_name = Print::npcToString(creature->getTypeNPC());
-        }
         if (dynamic_cast<Player*>(victim)) {
-            this->sendCombatMessage(victim_id, "Has esquivado el ataque.");
+            auto mssg =
+                    GameMessageBuilder::messgAttackDodged(attacker->getName(), victim->getName());
+            this->sendCombatMessage(victim_id, mssg);
         }
-        {
-            std::ostringstream oss;
-            oss << victim_name << " esquivó tu ataque.";
-            this->sendCombatMessage(attacker_id, oss.str());
-        }
+        auto mssg = GameMessageBuilder::messgTheOpponentDodgedTheAttack(victim->getName());
+        this->sendCombatMessage(attacker_id, mssg);
+        Print::printEvasiveMessageAttack(victim->getName());
         return;
     }
-
-    damage_by_attacker += this->calcClanProximityBonus(attacker->getUsername(), attacker_pos);
+    damage_by_attacker += this->calcClanProximityBonus(attacker->getName(), attacker_pos);
 
     if (const auto player = dynamic_cast<Player*>(victim)) {
         const std::vector<Defense*> equip_defensive = this->getPlayerDefensiveEquipment(victim_id);
-        const uint16_t defense_victim = player->calculateDefense(equip_defensive);
+        const auto defense_victim = player->calculateDefense(equip_defensive);
         damage_by_attacker =
                 (damage_by_attacker > defense_victim) ? (damage_by_attacker - defense_victim) : 0;
-        const uint16_t clan_def_bonus =
-                this->calcClanProximityBonus(player->getUsername(), victim->getPosition());
+        const auto clan_def_bonus =
+                this->calcClanProximityBonus(player->getName(), victim->getPosition());
         damage_by_attacker =
                 (damage_by_attacker > clan_def_bonus) ? (damage_by_attacker - clan_def_bonus) : 0;
     }
@@ -422,60 +431,36 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
               << " dmg=" << damage_by_attacker << " critical=" << is_critical
               << " hp=" << victim->getHp() - damage_by_attacker << "/" << victim->getMaxHp()
               << std::endl;
+
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
 
     const bool victim_died = !victim->isAlive();
-    const bool victim_is_player = dynamic_cast<Player*>(victim) != nullptr;
+    // const bool victim_is_player = dynamic_cast<Player*>(victim) != nullptr;
     const bool victim_is_creature = dynamic_cast<Creature*>(victim) != nullptr;
 
-    std::string victim_name;
-    if (auto* victim_player = dynamic_cast<Player*>(victim)) {
-        victim_name = victim_player->getUsername();
-    } else if (auto* creature = dynamic_cast<Creature*>(victim)) {
-        victim_name = Print::npcToString(creature->getTypeNPC());
-    }
-    const std::string attacker_name = attacker->getUsername();
-
-    if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
-        const std::string victim_clan = this->clan_manager.getClanOf(victim_player->getUsername());
-        if (!victim_clan.empty()) {
-            const std::string notif = victim_player->getUsername() + " está siendo atacado!";
-            for (const auto& [id, p]: this->players) {
-                if (p->getUsername() != victim_player->getUsername() &&
-                    this->clan_manager.areInSameClan(p->getUsername(),
-                                                     victim_player->getUsername())) {
-                    this->monitor.queueTheServerResponse(id,
-                                                         std::make_shared<ResponseChatMsg>(notif));
-                }
-            }
+    if (const auto victim_player = dynamic_cast<Player*>(victim)) {
+        this->reportAttackByAPlayerOnClanmates(*victim_player);
+        auto messg = GameMessageBuilder::damageMessgToThePlayer(attacker->getName(),
+                                                                damage_by_attacker, victim_died);
+        this->sendCombatMessage(victim_id, messg);
+        if (victim_died) {
+            this->sendUpdateEquipmentToPlayer(victim_id, *victim_player);
+            this->sendUpdateInventoryToPlayer(victim_id, *victim_player);
         }
     }
 
     if (victim_died) {
         attacker->earnKillExp(victim);
-        if (victim_is_creature)
+        if (victim_is_creature) {
             this->creatures.erase(victim_id);
-    }
-
-    {
-        std::ostringstream oss;
-        oss << "Infligiste " << damage_by_attacker << " de daño a " << victim_name << ".";
-        if (victim_died) {
-            oss << " " << victim_name << " ha muerto.";
         }
-        this->sendCombatMessage(attacker_id, oss.str());
     }
-    if (victim_is_player) {
-        std::ostringstream oss;
-        oss << "Recibiste " << damage_by_attacker << " de daño de " << attacker_name << ".";
-        if (victim_died) {
-            oss << " Has muerto.";
-        }
-        this->sendCombatMessage(victim_id, oss.str());
-    }
+    auto messg = GameMessageBuilder::messgAboutDamageDealtByThePlayer(
+            victim->getName(), damage_by_attacker, victim_died);
+    this->sendCombatMessage(attacker_id, messg);
 
-    auto* magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
+    const auto magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
     if (magic_weapon)
         attacker->consumeMana(magic_weapon->mana_cost);
 
@@ -507,13 +492,13 @@ void Gameloop::processPlayerDisconnet(Id player_id) {
     if (!this->players.contains(player_id)) {
         return;
     }
-    const std::string logout_username = this->players.at(player_id)->getUsername();
+    const std::string logout_username = this->players.at(player_id)->getName();
     const std::string logout_clan = this->clan_manager.getClanOf(logout_username);
     if (!logout_clan.empty()) {
         const std::string notif = logout_username + " se desconectó.";
         for (const auto& [id, p]: this->players) {
             if (id != player_id &&
-                this->clan_manager.areInSameClan(p->getUsername(), logout_username)) {
+                this->clan_manager.areInSameClan(p->getName(), logout_username)) {
                 this->monitor.queueTheServerResponse(id, std::make_shared<ResponseChatMsg>(notif));
             }
         }
@@ -533,9 +518,7 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
         return;
     }
     if (trader->executeBuyItem(*player, type_item)) {
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate msg{INVENTORY_UPDATE, inv};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     }
     player->breakMeditation();
 }
@@ -550,9 +533,7 @@ void Gameloop::processSellItem(Id player_id, Id npc_id, TypeItem type_item) {
         return;
     }
     if (merchant->executePlayerSellsItem(*player, type_item)) {
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate msg{INVENTORY_UPDATE, inv};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     }
     player->breakMeditation();
 }
@@ -563,9 +544,7 @@ void Gameloop::processPlayerPickUp(Id player_id) {
         return;
     }
     if (this->world.playerTakeItemOnTheFloor(*player)) {
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate msg{INVENTORY_UPDATE, inv};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     }
     player->breakMeditation();
 }
@@ -576,9 +555,7 @@ void Gameloop::processPlayerDropItem(Id player_id, size_t index_slot) {
         return;
     }
     if (player->dropItem(index_slot, this->world)) {
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate msg{INVENTORY_UPDATE, inv};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(msg));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     }
     player->breakMeditation();
 }
@@ -593,14 +570,10 @@ void Gameloop::processPlayerEquipItem(Id player_id, size_t slot_id) {
     }
     if (player->equipItem(slot_id) && !update_inventory) {
         update_inventory = true;
-        const auto slots = player->getSlotsEquipment();
-        MsgEquipmentUpdate msg{EQUIPMENT_UPDATE, slots};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseEquipmentUpdate>(msg));
+        this->sendUpdateEquipmentToPlayer(player_id, *player);
     }
     if (update_inventory) {
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     }
     player->breakMeditation();
 }
@@ -610,12 +583,8 @@ void Gameloop::processPlayerUnequipItem(Id player_id, size_t slot_id) {
     if (!player->isAlive())
         return;
     if (player->unequipItem(slot_id)) {
-        const auto slots = player->getSlotsEquipment();
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
-        MsgEquipmentUpdate msg{EQUIPMENT_UPDATE, slots};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseEquipmentUpdate>(msg));
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+        this->sendUpdateEquipmentToPlayer(player_id, *player);
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     }
     player->breakMeditation();
 }
@@ -630,9 +599,7 @@ void Gameloop::processPlayerWithdrawItem(Id player_id, Id npc_id, TypeItem type_
         return;
     }
     if (banker->playerWithdrawItem(*player, type_item)) {
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     }
     player->breakMeditation();
 }
@@ -647,9 +614,7 @@ void Gameloop::processPlayerDepositItem(Id player_id, Id npc_id, TypeItem type_i
         return;
     }
     if (banker->playerDepositItem(*player, type_item)) {
-        const auto inv = player->getSlotsInventory();
-        MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
-        this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
     }
     player->breakMeditation();
 }
@@ -708,8 +673,9 @@ void Gameloop::processPlayerMeditate(Id player_id) {
     }
     player->toggleMeditation();
     if (player->isMeditating()) {
-        this->sendResponseToPlayer(
-                player_id, std::make_shared<ResponseChatMsg>("Entrás en estado de meditación."));
+        auto mssg = GameMessageBuilder::messageReportingMditationStatus(player->getName());
+        auto respo = std::make_shared<ResponseChatMsg>(mssg);
+        this->sendResponseToPlayer(player_id, std::move(respo));
     }
 }
 
@@ -870,7 +836,7 @@ void Gameloop::processBroadcastChat(Id sender_id, const std::string& text) {
     if (!this->players.contains(sender_id)) {
         return;
     }
-    const std::string sender_name = this->players.at(sender_id)->getUsername();
+    const std::string sender_name = this->players.at(sender_id)->getName();
     std::ostringstream oss;
     oss << sender_name << ": " << text;
     const std::string formatted = oss.str();
@@ -883,8 +849,8 @@ void Gameloop::processDirectChat(Id sender_id, Id target_id, const std::string& 
     if (!this->players.contains(sender_id) || !this->players.contains(target_id)) {
         return;
     }
-    const std::string sender_name = this->players.at(sender_id)->getUsername();
-    const std::string target_name = this->players.at(target_id)->getUsername();
+    const std::string sender_name = this->players.at(sender_id)->getName();
+    const std::string target_name = this->players.at(target_id)->getName();
 
     std::ostringstream oss_to_target;
     oss_to_target << "[De " << sender_name << "]: " << text;
@@ -901,14 +867,14 @@ void Gameloop::processDirectChatByName(Id sender_id, const std::string& target_n
         return;
     }
     for (auto& [id, player]: this->players) {
-        if (player->getUsername() == target_name) {
+        if (player->getName() == target_name) {
             this->processDirectChat(sender_id, id, text);
             return;
         }
     }
 }
 
-void Gameloop::execuetRequest() {
+void Gameloop::executeRequest() {
     std::unique_ptr<Command> cmd;
     while (this->commands_queue.try_pop(cmd)) {
         try {
@@ -1083,7 +1049,7 @@ void Gameloop::run() {
         uint32_t timer_persistence = 0;
         const uint32_t TICK_MS = 1000 / this->conf.times.server_update_frecuency;
         while (should_keep_running()) {
-            this->execuetRequest();
+            this->executeRequest();
             this->updateCreatures(TICK_MS);
             for (auto it = this->pending_resurrects.begin();
                  it != this->pending_resurrects.end();) {
@@ -1127,7 +1093,6 @@ void Gameloop::run() {
     }
     this->updateStatePlayers();
     this->persistence.join();
-    std::cerr << "[Gameloop] run() finished" << std::endl;
 }
 
 void Gameloop::stop() {
@@ -1142,7 +1107,7 @@ void Gameloop::stop() {
 
 std::optional<Id> Gameloop::findPlayerIdByUsername(const std::string& username) const {
     for (const auto& [id, player]: this->players) {
-        if (player->getUsername() == username)
+        if (player->getName() == username)
             return id;
     }
     return std::nullopt;
@@ -1165,7 +1130,7 @@ uint16_t Gameloop::calcClanProximityBonus(const std::string& username, const Pos
     std::map<std::string, Position> online_positions;
     for (const auto& [id, p]: this->players) {
         if (p->isAlive())
-            online_positions[p->getUsername()] = p->getPosition();
+            online_positions[p->getName()] = p->getPosition();
     }
     const uint8_t nearby = this->clan_manager.countNearbyMembers(username, pos, online_positions,
                                                                  this->conf.clan.proximity_range);
@@ -1177,7 +1142,7 @@ uint16_t Gameloop::calcClanProximityBonus(const std::string& username, const Pos
 // ---------------------------------------------------------------------------
 
 void Gameloop::processClanFound(Id player_id, const std::string& clan_name) {
-    const std::string username = this->players.at(player_id)->getUsername();
+    const std::string username = this->players.at(player_id)->getName();
     const uint8_t level = static_cast<uint8_t>(this->players.at(player_id)->getLevel());
     ClanOpResult result = this->clan_manager.foundClan(username, clan_name, level,
                                                        this->conf.clan.min_level_to_found);
@@ -1185,13 +1150,13 @@ void Gameloop::processClanFound(Id player_id, const std::string& clan_name) {
 }
 
 void Gameloop::processClanJoin(Id player_id, const std::string& clan_name) {
-    const std::string username = this->players.at(player_id)->getUsername();
+    const std::string username = this->players.at(player_id)->getName();
     ClanOpResult result = this->clan_manager.requestJoin(username, clan_name);
     this->sendClanOpResult(player_id, result);
 }
 
 void Gameloop::processClanReview(Id player_id) {
-    const std::string username = this->players.at(player_id)->getUsername();
+    const std::string username = this->players.at(player_id)->getName();
     ClanOpResult result = this->clan_manager.reviewClan(username);
     std::istringstream ss(result.msg);
     std::string line;
@@ -1203,33 +1168,33 @@ void Gameloop::processClanReview(Id player_id) {
 }
 
 void Gameloop::processClanAccept(Id player_id, const std::string& nick) {
-    const std::string username = this->players.at(player_id)->getUsername();
+    const std::string username = this->players.at(player_id)->getName();
     ClanOpResult result =
             this->clan_manager.acceptMember(username, nick, this->conf.clan.max_members);
     this->sendClanOpResult(player_id, result);
 }
 
 void Gameloop::processClanReject(Id player_id, const std::string& nick) {
-    const std::string username = this->players.at(player_id)->getUsername();
+    const std::string username = this->players.at(player_id)->getName();
     ClanOpResult result = this->clan_manager.rejectMember(username, nick);
     this->sendClanOpResult(player_id, result);
 }
 
 void Gameloop::processClanBan(Id player_id, const std::string& nick) {
-    const std::string username = this->players.at(player_id)->getUsername();
+    const std::string username = this->players.at(player_id)->getName();
     ClanOpResult result = this->clan_manager.banMember(username, nick);
     this->sendClanOpResult(player_id, result);
 }
 
 void Gameloop::processClanKick(Id player_id, const std::string& nick) {
-    const std::string username = this->players.at(player_id)->getUsername();
+    const std::string username = this->players.at(player_id)->getName();
     ClanOpResult result = this->clan_manager.kickMember(username, nick);
     this->sendClanOpResult(player_id, result);
 }
 
 void Gameloop::processClanLeave(Id player_id) {
-    const std::string username = this->players.at(player_id)->getUsername();
+    const std::string username = this->players.at(player_id)->getName();
     ClanOpResult result = this->clan_manager.leaveClan(username);
     this->sendClanOpResult(player_id, result);
 }
-Gameloop::~Gameloop() {}
+Gameloop::~Gameloop() { std::cerr << "[Gameloop] run() finished" << std::endl; }

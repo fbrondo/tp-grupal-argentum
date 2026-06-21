@@ -58,21 +58,21 @@ NpcAttributes SpawnManager::attributesToCreature(const CreatureConfig& creature)
     return attrib;
 }
 
-std::tuple<TypeNPC, NpcAttributes, Pose> SpawnManager::prepareNpcSpawn(const Id& zone_id,
-                                                                       const HostileRegion& region,
-                                                                       const size_t& index_random) {
+std::tuple<std::string, TypeNPC, NpcAttributes, Pose> SpawnManager::prepareNpcSpawn(
+        const Id& zone_id, const HostileRegion& region, const size_t& index_random) {
     const auto& name_npc = region.npc_types[index_random];
     const auto& type_npc = this->conf_creatures.at(name_npc).type;
     const auto position_spawn = this->world.calculatePositionRandom(zone_id);
     Pose pose_spawn(position_spawn, DOWN);
     NpcAttributes attrib = this->attributesToCreature(this->conf_creatures.at(name_npc));
-    return {type_npc, attrib, pose_spawn};
+    return {name_npc, type_npc, attrib, pose_spawn};
 }
 
-std::unique_ptr<Creature> SpawnManager::createCreature(const Id& id, TypeNPC type, const Pose& pose,
+std::unique_ptr<Creature> SpawnManager::createCreature(const Id& id, const std::string& name_npc,
+                                                       TypeNPC type, const Pose& pose,
                                                        const NpcAttributes& attrib) {
     std::vector<ItemInstance> items_ = this->items_drop_creature();
-    return std::make_unique<Creature>(id, type, pose, attrib, std::move(items_));
+    return std::make_unique<Creature>(id, name_npc, type, pose, attrib, std::move(items_));
 }
 
 void SpawnManager::spawnCreaturesZones(Id& next_id,
@@ -86,9 +86,9 @@ void SpawnManager::spawnCreaturesZones(Id& next_id,
             std::uniform_int_distribution<size_t> distr_npc(0, region->npc_types.size() - 1);
             while (count < region->max_creatures) {
                 const Id id = next_id++;
-                auto [type, attrib, pose] =
+                auto [name, type, attrib, pose] =
                         this->prepareNpcSpawn(zone.id, *region, distr_npc(this->gen));
-                auto creature = this->createCreature(id, type, pose, attrib);
+                auto creature = this->createCreature(id, name, type, pose, attrib);
                 NpcInstance creature_instance(id, zone.id, type, pose);
                 creatures.emplace(id, std::move(creature));
                 this->world.addNpcWorld(creature_instance);

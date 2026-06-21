@@ -5,7 +5,6 @@
 
 #include "common/includes/core/Statistics.h"
 #include "server/includes/game_formulas.h"
-#include "server/includes/slot.h"
 #include "server/includes/world.h"
 #include "server/print.h"
 
@@ -239,11 +238,6 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
 
 TypeItem Player::getHandItem() { return this->equipment.getHandItem(); }
 
-// TypeItem Player::getShieldItem() const { return this->equipment.getShieldItem(); }
-
-// TypeItem Player::getHelmetItem() const { return this->equipment.getHelmetItem(); }
-
-
 std::vector<TypeItem> Player::getEquipment() { return this->equipment.getEquipmentDefensive(); }
 
 std::vector<MsgSlot> Player::getSlotsInventory() const { return this->inv.getInventory(); }
@@ -254,7 +248,7 @@ std::vector<MsgSlot> Player::getSlotsEquipment() const {
 
 void Player::teleportTo(const Position& pos) { this->pose.position = pos; }
 
-std::string Player::getUsername() const { return this->user.username; }
+std::string Player::getName() const { return this->user.username; }
 
 const Item* Player::getItemInventory(const size_t& slot_id) {
     return this->inv.getItemSlot(slot_id);
@@ -290,7 +284,11 @@ bool Player::isMeditating() const { return this->is_meditating; }
 
 bool Player::isResurrecting() const { return this->is_resurrecting; }
 
-void Player::toggleMeditation() { this->is_meditating = !this->is_meditating; }
+void Player::toggleMeditation() {
+    if (this->ch.getTypeClase() == WARRIOR)
+        return;
+    this->is_meditating = !this->is_meditating;
+}
 
 bool Player::breakMeditation() {
     if (!this->is_meditating)
@@ -372,6 +370,7 @@ void Player::consumeMana(uint16_t amount) {
 
 void Player::onDeath(World& world) {
     this->inv.dropInventory(world, this->pose.position);
+    this->equipment.dropEquipment(world, this->pose.position);
     const uint16_t oro_max = GameFormulas::calculationGoldenMax(this->level);
     const uint16_t golden = this->inv.getGolden();
     if (golden > oro_max) {

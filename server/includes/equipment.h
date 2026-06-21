@@ -6,7 +6,7 @@
 
 #include "common/includes/protocol.h"
 #include "server/includes/core/instances.h"
-
+class World;
 class Equipment {
 private:
     std::vector<std::unique_ptr<ItemInstance>> equipment_container;
@@ -32,6 +32,8 @@ public:
     TypeItem getHandItem() const;
     TypeItem getShieldItem() const;
     TypeItem getHelmetItem() const;
+
+    void dropEquipment(World& world, const Position& position);
 };
 
 
