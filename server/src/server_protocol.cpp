@@ -138,7 +138,8 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
     temp.max_hp = htonl(stats.max_hp);
     temp.mana = htonl(stats.mana);
     temp.max_mana = htonl(stats.max_mana);
-    temp.gold = htonl(stats.gold);
+    temp.safe_gold = htonl(stats.safe_gold);
+    temp.excess_gold = htonl(stats.excess_gold);
     temp.exp = htonl(stats.exp);
     temp.exp_next_level = htonl(stats.exp_next_level);
     try {
@@ -531,9 +532,11 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         case SELL_ITEM: {
             uint32_t network_npc_id;
             uint8_t network_item_id;
+            uint16_t network_quantity;
 
             socket.recvall(&network_npc_id, sizeof(network_npc_id));
             socket.recvall(&network_item_id, sizeof(network_item_id));
+            socket.recvall(&network_quantity, sizeof(network_quantity));
 
             Id npc_id = ntohl(network_npc_id);
 

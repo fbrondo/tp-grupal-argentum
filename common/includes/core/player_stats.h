@@ -11,7 +11,8 @@ struct PlayerStats {
     uint16_t max_hp;
     uint16_t current_mana;
     uint16_t max_mana;
-    uint32_t gold;
+    uint32_t safe_gold;
+    uint32_t excess_gold;
 };
 #pragma pack(pop)
 #endif  // PLAYER_STATS_H

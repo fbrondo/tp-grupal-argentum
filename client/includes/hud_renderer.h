@@ -31,7 +31,8 @@ private:
     std::unique_ptr<SDL2pp::Texture> hp_texture;
     std::unique_ptr<SDL2pp::Texture> mana_texture;
     std::unique_ptr<SDL2pp::Texture> exp_texture;
-    std::unique_ptr<SDL2pp::Texture> gold_texture;
+    std::unique_ptr<SDL2pp::Texture> safe_gold_texture;
+    std::unique_ptr<SDL2pp::Texture> excess_gold_texture;
     std::unique_ptr<SDL2pp::Texture> resurrection_texture;
     std::deque<std::unique_ptr<SDL2pp::Texture>> chat_log_textures;
     std::unique_ptr<SDL2pp::Texture> chat_input_texture;

@@ -9,7 +9,7 @@ FontManager::FontManager():
         level_font(FONT_PATH "DejaVuSans-Bold.ttf", 13),
         name_font(FONT_PATH "Augusta.ttf", 21),
         hud_font(FONT_PATH "OldLondon.ttf", 35),
-        stats_font(FONT_PATH "CinzelBold.ttf", 12),
+        stats_font(FONT_PATH "CinzelBold.ttf", 14),
         npc_name_font(FONT_PATH "Augusta.ttf", 18) {}
 
 SDL2pp::Font& FontManager::get_console_font() { return console_font; }

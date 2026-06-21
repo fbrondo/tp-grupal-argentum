@@ -287,7 +287,8 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             stats.max_hp = p_data.stats.max_hp;
             stats.mana = p_data.stats.current_mana;
             stats.max_mana = p_data.stats.max_mana;
-            stats.gold = p_data.stats.gold;
+            stats.safe_gold = p_data.stats.safe_gold;
+            stats.excess_gold = p_data.stats.excess_gold;
             stats.exp = p_data.stats.xp;
             stats.exp_next_level = exp_next_level(p_data.stats.level);
             stats.level = p_data.stats.level;

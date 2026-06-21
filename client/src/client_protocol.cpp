@@ -477,8 +477,11 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             socket.recvall(&out_event.stats.max_mana, sizeof(out_event.stats.max_mana));
             out_event.stats.max_mana = ntohl(out_event.stats.max_mana);
 
-            socket.recvall(&out_event.stats.gold, sizeof(out_event.stats.gold));
-            out_event.stats.gold = ntohl(out_event.stats.gold);
+            socket.recvall(&out_event.stats.safe_gold, sizeof(out_event.stats.safe_gold));
+            out_event.stats.safe_gold = ntohl(out_event.stats.safe_gold);
+
+            socket.recvall(&out_event.stats.excess_gold, sizeof(out_event.stats.excess_gold));
+            out_event.stats.excess_gold = ntohl(out_event.stats.excess_gold);
 
             socket.recvall(&out_event.stats.exp, sizeof(out_event.stats.exp));
             out_event.stats.exp = ntohl(out_event.stats.exp);
