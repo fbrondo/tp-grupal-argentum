@@ -424,7 +424,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         victim_name = Print::npcToString(creature->getTypeNPC());
     }
     const std::string attacker_name = attacker->getUsername();
-  
+
     if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
         const std::string victim_clan = this->clan_manager.getClanOf(victim_player->getUsername());
         if (!victim_clan.empty()) {
@@ -439,7 +439,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
             }
         }
     }
-  
+
     if (victim_died) {
         attacker->earnKillExp(victim);
         if (victim_is_creature)
@@ -667,7 +667,7 @@ void Gameloop::processPlayerDisconnet(Id player_id) {
     const std::string logout_username = this->players.at(player_id)->getUsername();
     const std::string logout_clan = this->clan_manager.getClanOf(logout_username);
     if (!logout_clan.empty()) {
-        const std::string notif = logout_username + " salió del juego.";
+        const std::string notif = logout_username + " se desconectó.";
         for (const auto& [id, p]: this->players) {
             if (id != player_id &&
                 this->clan_manager.areInSameClan(p->getUsername(), logout_username)) {
