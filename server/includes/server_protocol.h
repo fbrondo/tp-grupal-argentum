@@ -2,6 +2,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "commands/command.h"
@@ -57,7 +58,7 @@ public:
     void sendChangeMap(uint16_t map_id) const;
     void sendActionError(const std::string& error_msg) const;
     void sendMap(const Map& map, const std::vector<CitizenNpcSnapshot>& citizen);
-    void sendTraderCatalog(const std::map<TypeItem, uint32_t>& catalog);
+    void sendTraderCatalog(const std::map<TypeItem, std::pair<uint32_t, uint32_t>>& catalog);
     void sendBankContent(const std::map<TypeItem, uint32_t>& items, uint32_t gold);
 
     // Returns false when the client disconnects

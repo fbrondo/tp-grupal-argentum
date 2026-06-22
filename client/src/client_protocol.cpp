@@ -633,11 +633,15 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.merchant_data.catalog.clear();
             for (uint16_t i = 0; i < count; ++i) {
                 TypeItem type_byte;
-                uint32_t price_net;
+                uint32_t purchase_price_net;
+                uint32_t selling_price_net;
                 socket.recvall(&type_byte, sizeof(type_byte));
-                socket.recvall(&price_net, sizeof(price_net));
-                price_net = ntohl(price_net);
-                out_event.merchant_data.catalog.emplace(type_byte, price_net);
+                socket.recvall(&purchase_price_net, sizeof(purchase_price_net));
+                socket.recvall(&selling_price_net, sizeof(selling_price_net));
+                purchase_price_net = ntohl(purchase_price_net);
+                selling_price_net = ntohl(selling_price_net);
+                out_event.merchant_data.catalog.emplace(
+                        type_byte, CatalogEntry{purchase_price_net, selling_price_net});
             }
             break;
         }

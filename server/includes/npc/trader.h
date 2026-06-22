@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "server/includes/core/item.h"
 #include "server/includes/npc/citizen_npc.h"
@@ -17,5 +18,5 @@ public:
               std::map<TypeItem, Item*>&& items);
     ~TraderNPC() override = default;
     virtual void executeBuyItem(Player& player, TypeItem type_item_buy);
-    virtual std::map<TypeItem, uint32_t> listItemsCatalog() const;
+    virtual std::map<TypeItem, std::pair<uint32_t, uint32_t>> listItemsCatalog() const;
 };

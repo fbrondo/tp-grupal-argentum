@@ -14,10 +14,10 @@ void TraderNPC::executeBuyItem(Player& player, TypeItem type_item_buy) {
     player.buyItem(item);
 }
 
-std::map<TypeItem, uint32_t> TraderNPC::listItemsCatalog() const {
-    std::map<TypeItem, uint32_t> list;
+std::map<TypeItem, std::pair<uint32_t, uint32_t>> TraderNPC::listItemsCatalog() const {
+    std::map<TypeItem, std::pair<uint32_t, uint32_t>> list;
     for (const auto [type, item]: this->store) {
-        list.emplace(type, item->purchase_price);
+        list.emplace(type, std::make_pair(item->purchase_price, item->selling_price));
     }
     return list;
 }
