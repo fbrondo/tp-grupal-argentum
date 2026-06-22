@@ -1,5 +1,6 @@
 #include "server/includes/world.h"
 
+#include <algorithm>
 #include <queue>
 #include <ranges>
 #include <stack>
@@ -165,6 +166,12 @@ void World::identifyZones() {
             zone.id = zone_id++;
             // this->zone_count[region]++;
             this->floodFill(Position{x, y}, region, visited, zone);
+            const bool has_walkable_tile = std::any_of(
+                    zone.tiles.begin(), zone.tiles.end(),
+                    [this](const Position& pos) { return this->map_tiles[pos.x][pos.y].walkable; });
+            if (!has_walkable_tile) {
+                continue;
+            }
             if (region == Town || region == City) {
                 this->safe_zones.emplace(zone.id, zone);
             } else {
@@ -319,22 +326,33 @@ Position World::calculatePosition(const Id& player_id, const Direction dir) cons
 }
 
 Position World::calculatePositionRandom(const Id& zone_id) {
-    std::vector<Position> tiles;
+    const std::vector<Position>* tiles = nullptr;
     if (this->hostile_zones.contains(zone_id)) {
-        tiles = this->hostile_zones[zone_id].tiles;
+        tiles = &this->hostile_zones.at(zone_id).tiles;
+    } else if (this->safe_zones.contains(zone_id)) {
+        tiles = &this->safe_zones.at(zone_id).tiles;
     } else {
-        tiles = this->safe_zones[zone_id].tiles;
+        throw std::runtime_error("La zona indicada no existe");
     }
-    std::uniform_int_distribution<size_t> dist(0, tiles.size() - 1);
-    Position random;
-    bool is_ocupied;
-    do {
-        random = tiles[dist(this->gen)];
-        is_ocupied = this->player_tiles.contains(random) || this->npc_positions.isOcupied(random) ||
-                     this->item_positions.isOcupied(random);
-    } while (this->positionNotWalkabled(random) || this->isInPlayerVisionRange(random) ||
-             is_ocupied);
-    return random;
+
+    std::vector<Position> available;
+    available.reserve(tiles->size());
+    std::copy_if(tiles->begin(), tiles->end(), std::back_inserter(available),
+                 [this](const Position& pos) {
+                     const bool is_occupied = this->player_tiles.contains(pos) ||
+                                              this->npc_positions.isOcupied(pos) ||
+                                              this->item_positions.isOcupied(pos);
+                     return this->map_tiles[pos.x][pos.y].walkable &&
+                            !this->positionNotWalkabled(pos) && !this->isInPlayerVisionRange(pos) &&
+                            !is_occupied;
+                 });
+
+    if (available.empty()) {
+        throw std::runtime_error("No hay posiciones libres y caminables en la zona");
+    }
+
+    std::uniform_int_distribution<size_t> dist(0, available.size() - 1);
+    return available[dist(this->gen)];
 }
 //
 // Position World::findNearbyFreePosition(const Position& center) const {
