@@ -2,11 +2,8 @@
 
 #include "server/includes/server_protocol.h"
 
-ResponseTraderCatalog::ResponseTraderCatalog(const std::map<TypeItem, uint32_t>& catalog) {
-    // for (auto& [type, item] : store) {
-    //     this->catalog[type] = item->selling_price;
-    // }
-    this->catalog = catalog;
+ResponseTraderCatalog::ResponseTraderCatalog(std::map<TypeItem, uint32_t>&& catalog) {
+    this->catalog = std::move(catalog);
 }
 
 void ResponseTraderCatalog::execute(ServerProtocol& protocol) {

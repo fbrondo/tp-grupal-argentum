@@ -18,7 +18,8 @@ enum class TypeEventClient {
     MAP_DATA,
     OPEN_MERCHANT,
     OPEN_BANK,
-    INVENTORY_UPDATE
+    INVENTORY_UPDATE,
+    EQUIPMENT_UPDATE
 };
 
 struct MerchantEventData {
@@ -27,7 +28,7 @@ struct MerchantEventData {
 
 struct BankEventData {
     uint32_t gold{0};
-    std::vector<MsgItemInfo> items;
+    std::map<TypeItem, uint32_t> items;
 };
 
 struct InventoryUpdateEventData {
@@ -47,6 +48,8 @@ struct EventClient {
     uint16_t map_id{0};  // Se usa para CAMBIO_MAPA
     Map map_data;        // Se usa para MAP_DATA
     std::vector<CitizenNpcSnapshot> citizens;
+    std::vector<MsgSlot> inventory;
+    std::vector<MsgSlot> equipment;
     MerchantEventData merchant_data;
     BankEventData bank_data;
     EventClient() = default;
@@ -73,14 +76,14 @@ public:
     void sendCommand(const std::string& cmd) const;
     void sendInteract(uint32_t npc_id, uint8_t action) const;
     void sendTakeItem() const;
-    void sendBuyItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
-    void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
+    void sendBuyItem(uint32_t npc_id, uint8_t item_id, uint16_t quantity) const;
+    void sendSellItem(uint32_t npc_id, uint8_t item_id, uint16_t quantity) const;
     void sendDisconnect() const;
     void sendListItems(Id npc_id);
-    void sendDepositItem(Id item_id);
-    void sendWithdrawItem(Id item_id);
-    void sendDepositGold(uint32_t amount);
-    void sendWithdrawGold(uint32_t amount);
+    void sendDepositItem(Id npc_id, Id item_id);
+    void sendWithdrawItem(Id npc_id, Id item_id);
+    void sendDepositGold(Id npc_id, uint32_t amount);
+    void sendWithdrawGold(Id npc_id, uint32_t amount);
     void sendEquipItem(Id item_id);
     void sendUnequipItem(Id item_id);
     void sendResurrect();

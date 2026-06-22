@@ -9,6 +9,8 @@ target_sources(taller_client
         src/commands/command_move.cpp
         src/commands/command_attack.cpp
         src/commands/command_chat.cpp
+        src/commands/command_equip.cpp
+        src/commands/command_unequip.cpp
         src/commands/command_interact.cpp
         src/commands/command_buy_item.cpp
         src/commands/command_sell_item.cpp
@@ -37,6 +39,8 @@ target_sources(taller_client
         includes/client_receiver.h
         includes/commands/command_client.h
         includes/commands/command_move.h
+        includes/commands/command_equip.h
+        includes/commands/command_unequip.h
         includes/commands/command_create_character.h
         includes/commands/command_chat.h
         includes/commands/command_interact.h

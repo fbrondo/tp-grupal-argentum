@@ -1,6 +1,7 @@
 #ifndef INVENTORY_H
 #define INVENTORY_H
 
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -17,10 +18,10 @@ private:
     uint32_t max_inventory;
     uint32_t size_current;
     std::vector<Slot> slots;
-    std::vector<size_t> indexs_slots_equipment;
 
-    void incrementSlotInventory(const size_t& index);
-    void setItemInInventory(const ShopItem* item);
+    bool incrementSlotInventory(const size_t& index);
+    bool setItemInInventory(const Item* item);
+    bool setItemInstanceInInventory(std::unique_ptr<ItemInstance>& instance);
     std::optional<size_t> searchItemInInventory(TypeItem type_item) const;
 
 public:
@@ -30,26 +31,25 @@ public:
     Inventory(Inventory&&) = default;
     Inventory& operator=(Inventory&&) = default;
 
-    Inventory(const uint32_t& golden, const uint32_t& max_inventory_, const uint32_t& max_slot);
+    Inventory(const uint32_t& golden, const uint32_t& max_slots_, const uint32_t& capacity_slot);
     [[nodiscard]] bool itemInInventory(TypeItem type_item) const;
     [[nodiscard]] bool isInventoryFull() const;
     [[nodiscard]] bool isInventoryEmpty() const;
     [[nodiscard]] bool slotEmpty(const size_t& index) const;
 
-    void addItemToInventory(const ShopItem* item);
+    bool addItemToInventory(const Item* item);
     bool setItemInTheEquipment(Equipment& equipment, size_t slot_index);
+    bool removeItemFromEquipment(Equipment& equipment, size_t slot_index);
 
     std::vector<SlotData> getSlotsData() const;
     std::vector<MsgSlot> getInventory() const;
 
-    std::vector<size_t> getSlotsEquipment();
-
     void dropInventory(World& world, const Position& position);
-    const Item* getItemSlot(const size_t& index);
+    const Item* getItemSlot(const size_t& slot_index);
 
     [[nodiscard]] uint16_t getGolden() const;
-    void incrementGolden(uint16_t amount);
-    void decrementGolden(uint16_t amount);
+    void incrementGolden(uint32_t amount);
+    void decrementGolden(uint32_t amount);
 
     void removeItemFromInventory(size_t index);
     const Item* removeItemFromInventory(TypeItem type_item);

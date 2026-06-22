@@ -1,5 +1,6 @@
 #include "client/includes/sound_manager.h"
 
+#include <cmath>
 #include <iostream>
 
 void SoundManager::init() {
@@ -55,6 +56,11 @@ void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t 
         chunk_a_reproducir = it->second;
     }
 
+    const bool quiet_step = effect_id == SoundEffectID::PASO || effect_id == SoundEffectID::PASO_2;
+    const bool quiet_resurrection = effect_id == SoundEffectID::RESUCITAR;
+    const int volume = (quiet_step || quiet_resurrection) ? MIX_MAX_VOLUME / 3 : MIX_MAX_VOLUME;
+    Mix_VolumeChunk(chunk_a_reproducir, volume);
+
     if (chunk_a_reproducir) {
         int channel = Mix_PlayChannel(-1, chunk_a_reproducir, 0);
         if (channel != -1) {
@@ -77,7 +83,37 @@ void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t 
     }
 }
 
+void SoundManager::set_meditation_loop(bool active) {
+    if (!active) {
+        if (meditation_channel != -1)
+            Mix_HaltChannel(meditation_channel);
+        meditation_channel = -1;
+        return;
+    }
+    if (meditation_channel != -1 && Mix_Playing(meditation_channel))
+        return;
+
+    const SoundEffectID effect_id = SoundEffectID::MEDITACION;
+    auto it = sound_bank.find(effect_id);
+    Mix_Chunk* meditation_sound = nullptr;
+    if (it == sound_bank.end()) {
+        const std::string filepath = ARGENTUM_SHARE_PATH "/client/assets/Sounds/158.wav";
+        meditation_sound = Mix_LoadWAV(filepath.c_str());
+        if (!meditation_sound) {
+            std::cerr << "No se pudo cargar el sonido [" << filepath << "]: " << Mix_GetError()
+                      << std::endl;
+            return;
+        }
+        sound_bank[effect_id] = meditation_sound;
+    } else {
+        meditation_sound = it->second;
+    }
+
+    meditation_channel = Mix_PlayChannel(-1, meditation_sound, -1);
+}
+
 void SoundManager::cleanup() {
+    set_meditation_loop(false);
     stop_background_music();
     for (auto& [id, chunk]: sound_bank) {
         if (chunk)

@@ -5,8 +5,8 @@
 
 RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_,
                                    int start_tile_y_, uint16_t body_id_, uint16_t head_id_,
-                                   uint8_t weapon_id_, uint8_t shield_id_, uint8_t level_,
-                                   bool is_short_race_):
+                                   uint8_t weapon_id_, uint8_t shield_id_, uint8_t helmet_id_,
+                                   uint8_t armor_id_, uint8_t level_, bool is_short_race_):
         id(id_),
         type(type_),
         is_short_race(is_short_race_),
@@ -22,7 +22,11 @@ RenderableEntity::RenderableEntity(uint32_t id_, EntityType type_, int start_til
         head_id(head_id_),
         weapon_id(weapon_id_),
         shield_id(shield_id_),
-        is_ghost(false) {
+        helmet_id(helmet_id_),
+        armor_id(armor_id_),
+        is_ghost(false),
+        current_hp(0),
+        max_hp(0) {
 
     // Inicializamos el estado de animación local
     anim_state.current_anim_id = "";
@@ -119,6 +123,14 @@ void RenderableEntity::update(float dt) {
 
 void RenderableEntity::set_ghost(bool ghost) { this->is_ghost = ghost; }
 
+void RenderableEntity::set_equipment(uint8_t weapon_id_, uint8_t shield_id_, uint8_t helmet_id_,
+                                     uint8_t armor_id_) {
+    this->weapon_id = weapon_id_;
+    this->shield_id = shield_id_;
+    this->helmet_id = helmet_id_;
+    this->armor_id = armor_id_;
+}
+
 void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                                           TextureManager& texture_manager, int cam_x, int cam_y,
                                           int offset_x, int offset_y) {
@@ -187,6 +199,20 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
         // B) Dibujar Capas Adicionales solo para PLAYER
         std::string race_prefix = is_short_race ? "anim_drf_gnm_" : "anim_hum_elf_";
 
+        // Armadura (se renderiza sobre el cuerpo)
+        if (armor_id != 0) {
+            std::string armor_anim =
+                    race_prefix + std::to_string(armor_id) + action + std::to_string(current_dir);
+            const AnimationClip& armor_clip = texture_manager.get_animation(armor_anim);
+            SDL2pp::Texture& armor_tex =
+                    texture_manager.get_texture(race_prefix + std::to_string(armor_id));
+            const uint32_t armor_frame = frame_index % armor_clip.frames.size();
+            armor_tex.SetAlphaMod(alpha);
+            renderer.Copy(armor_tex, SDL2pp::Rect(armor_clip.frames[armor_frame]),
+                          SDL2pp::Rect(dst_rect));
+            armor_tex.SetAlphaMod(255);
+        }
+
         // Arma (Va por detrás de la cabeza, sobre el cuerpo)
         if (weapon_id != 0) {
             std::string wpn_anim =
@@ -194,29 +220,82 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
             const AnimationClip& wpn_clip = texture_manager.get_animation(wpn_anim);
             SDL2pp::Texture& wpn_tex =
                     texture_manager.get_texture(race_prefix + std::to_string(weapon_id));
+            const uint32_t wpn_frame = frame_index % wpn_clip.frames.size();
             wpn_tex.SetAlphaMod(alpha);
-            renderer.Copy(wpn_tex, SDL2pp::Rect(wpn_clip.frames[frame_index]),
+            renderer.Copy(wpn_tex, SDL2pp::Rect(wpn_clip.frames[wpn_frame]),
                           SDL2pp::Rect(dst_rect));
             wpn_tex.SetAlphaMod(255);
         }
 
         // Cabeza
-        if (head_id != 0) {
+        SDL_Rect dst_head = {0, 0, 0, 0};
+        const bool has_head = head_id != 0;
+        if (has_head) {
             std::string head_tex_key = "head_" + std::to_string(head_id);
             std::string head_anim = head_tex_key + "_idle_" + std::to_string(current_dir);
             const AnimationClip& head_clip = texture_manager.get_animation(head_anim);
             SDL_Rect head_src = head_clip.frames[0];
             SDL2pp::Texture& head_texture = texture_manager.get_texture(head_tex_key);
-            SDL_Rect dst_head = {dst_rect.x + (dst_rect.w - head_src.w) / 2, dst_rect.y, head_src.w,
-                                 head_src.h};
+            dst_head = {dst_rect.x + (dst_rect.w - head_src.w) / 2, dst_rect.y, head_src.w,
+                        head_src.h};
             if (is_short_race) {
-                dst_head.y -= 12;
+                dst_head.y -= 11;
             } else {
                 dst_head.y -= 20;  // Offset hacia arriba para el cuello
             }
             head_texture.SetAlphaMod(alpha);
             renderer.Copy(head_texture, SDL2pp::Rect(head_src), SDL2pp::Rect(dst_head));
             head_texture.SetAlphaMod(255);
+        }
+
+        if (helmet_id != 0) {
+            std::string helm_anim =
+                    race_prefix + std::to_string(helmet_id) + action + std::to_string(current_dir);
+            const AnimationClip& helm_clip = texture_manager.get_animation(helm_anim);
+            SDL2pp::Texture& helm_tex =
+                    texture_manager.get_texture(race_prefix + std::to_string(helmet_id));
+            const uint32_t helm_frame = frame_index % helm_clip.frames.size();
+            SDL_Rect helm_src = helm_clip.frames[helm_frame];
+
+            int helm_y_offset = 0;
+            switch (current_dir) {
+                case UP:
+                    helm_y_offset = 0;
+                    break;
+                case DOWN:
+                    helm_y_offset = is_short_race ? 12 : 14;
+                    break;
+                case LEFT:
+                    helm_y_offset = -13;
+                    break;
+                case RIGHT:
+                    helm_y_offset = -26;
+                    break;
+            }
+            if (helmet_id == TypeItem::MAGIC_HAT) {
+                switch (current_dir) {
+                    case UP:
+                        helm_y_offset = -10;
+                        break;
+                    case DOWN:
+                        helm_y_offset = 0;
+                        break;
+                    case LEFT:
+                        helm_y_offset = -23;
+                        break;
+                    case RIGHT:
+                        helm_y_offset = -35;
+                        break;
+                }
+            }
+
+            int base_x = has_head ? dst_head.x + (dst_head.w - helm_src.w) / 2 :
+                                    dst_rect.x + (dst_rect.w - helm_src.w) / 2;
+            int base_y = (has_head ? dst_head.y : dst_rect.y) + helm_y_offset;
+            SDL_Rect dst_helm = {base_x, base_y, helm_src.w, helm_src.h};
+            helm_tex.SetAlphaMod(alpha);
+            renderer.Copy(helm_tex, SDL2pp::Rect(helm_src), SDL2pp::Rect(dst_helm));
+            helm_tex.SetAlphaMod(255);
         }
 
         // Escudo (Suele ir en la capa más alta para tapar parte del cuerpo)
@@ -226,8 +305,9 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
             const AnimationClip& shd_clip = texture_manager.get_animation(shd_anim);
             SDL2pp::Texture& shd_tex =
                     texture_manager.get_texture(race_prefix + std::to_string(shield_id));
+            const uint32_t shd_frame = frame_index % shd_clip.frames.size();
             shd_tex.SetAlphaMod(alpha);
-            renderer.Copy(shd_tex, SDL2pp::Rect(shd_clip.frames[frame_index]),
+            renderer.Copy(shd_tex, SDL2pp::Rect(shd_clip.frames[shd_frame]),
                           SDL2pp::Rect(dst_rect));
             shd_tex.SetAlphaMod(255);
         }

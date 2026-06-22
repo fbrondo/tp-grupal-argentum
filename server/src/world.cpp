@@ -436,27 +436,6 @@ uint32_t World::distanceBetweenPositions(const Position& from, const Position& t
     return dx + dy;
 }
 
-// const std::map<Id, Pose> World::get_players_positions(){
-//     return this->players_positions;
-// }
-
-// const std::map<Id, NpcInstance> World::get_creatures_positions(){
-//     return this->creatures_positions;
-// }
-//
-// const std::map<Id, NpcInstance> World::get_npc_positions(){
-//     return this->npc_positions;
-// }
-//
-// const std::map<Id, ItemInstance> World::get_items_on_flor(){
-//     return this->items_on_flor;
-// }
-//
-// const std::map<Id, GoldBagInstance> World::get_gold_on_floor(){
-//     return this->gold_on_floor;
-// }
-
-
 std::unordered_map<Id, Zone> World::getHostileZones() { return this->hostile_zones; }
 std::unordered_map<Id, Zone> World::getSafeZones() { return this->safe_zones; }
 
@@ -610,37 +589,6 @@ WorldStateData World::buildWorldState() {
     return world_data;
 }
 
-
-//
-// void World::collectGoldAt(const Position& pos, Id& player_gold) {
-//     auto it = this->gold_on_floor.begin();
-//     while (it != this->gold_on_floor.end()) {
-//         if (it->second.pos == pos) {
-//             player_gold += it->second.amount;
-//             it = this->gold_on_floor.erase(it);
-//             return;
-//         } else {
-//             ++it;
-//         }
-//     }
-// }
-
-
-// std::unique_ptr<ItemInstance> World::pickUpItem(const Position& pos) {
-//     auto it = this->items_on_flor.begin();
-//     while (it != this->items_on_flor.end()) {
-//         if (it->second.pos == pos) {
-//             auto item_ptr = std::make_unique<ItemInstance>(std::move(it->second));
-//             this->items_on_flor.erase(it);
-//             return item_ptr;
-//         } else {
-//             ++it;
-//         }
-//     }
-//     return nullptr;
-// }
-
-// void World::dropItem(const Position& pos, std::unique_ptr<ItemInstance> item) {
-//     Id item_id = item->id;
-//     this->items_on_flor.emplace(item_id, std::move(*item));
-// }
+std::vector<ItemGroundSnapshotData> World::itemsOnTheFloor() {
+    return this->item_positions.getItemsOnFloor();
+}

@@ -1,12 +1,7 @@
 #include "server/includes/npc/banker.h"
 
-#include <vector>
-
-#include "common/includes/protocol.h"
-
 Banker::Banker(TypeNPC type, const std::string& name, Bank& bank_, const Pose& pose_):
         CitizenNPC(type, name, pose_), bank(bank_) {}
-
 
 void Banker::incrementSlotSafeBox(const std::string& username, TypeItem type_item) {
     std::vector<Slot>& slots = this->bank.accounts[username].safe_box;
@@ -18,15 +13,35 @@ void Banker::incrementSlotSafeBox(const std::string& username, TypeItem type_ite
     }
 }
 
-void Banker::setItemSafeBox(const std::string& username, const ShopItem* item) {
+void Banker::increaseGoldAccount(const std::string& username, const uint32_t& amount) {
+    auto& gold_current_dep = this->bank.accounts[username].golden;
+    gold_current_dep += amount;
+}
+
+uint32_t Banker::decreaseGoldAccount(const std::string& username, const uint32_t& amount) {
+    auto& gold_current_dep = this->bank.accounts[username].golden;
+    const uint32_t withdrawn = std::min(amount, gold_current_dep);
+    gold_current_dep -= withdrawn;
+    return withdrawn;
+}
+
+uint32_t Banker::getGoldDepositedPlayer(const std::string& username) const {
+    return this->bank.accounts[username].golden;
+}
+
+void Banker::setItemSafeBox(const std::string& username, const Item* item) {
     std::vector<Slot>& slots = this->bank.accounts[username].safe_box;
-    for (auto& slot: slots) {
-        if (slot.isEmpty()) {
-            slot.setItem(std::make_unique<ItemInstance>(item));
-            slot.increase();
-            break;
-        }
-    }
+    Slot slot(10);  // capacity
+    slot.setItem(std::make_unique<ItemInstance>(item));
+    slot.increase();
+    slots.emplace_back(std::move(slot));
+    // for (auto& slot: slots) {
+    //     if (slot.isEmpty()) {
+    //         slot.setItem(std::make_unique<ItemInstance>(item));
+    //         slot.increase();
+    //         break;
+    //     }
+    // }
 }
 
 void Banker::createPlayerAccount(const std::string& username) {
@@ -47,58 +62,86 @@ bool Banker::thePlayerHasAnAccount(const std::string& username) {
     return this->bank.accounts.contains(username);
 }
 
-void Banker::playerWithdrawItem(Player& player, TypeItem type) {
-    const auto username = player.getUsername();
+bool Banker::playerWithdrawItem(Player& player, TypeItem type) {
+    const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
-        return; /*Si se esta creando, obvio no lo va a tener*/
+        return false;
     }
     std::optional<size_t> index = this->hasItemInAccountPlayer(username, type);
     if (!index.has_value()) {
-        return; /*Excepcion de item no encontrado en la cuenta*/
+        return false;
     }
     auto& slots = this->bank.accounts[username].safe_box;
     auto& slot = slots[index.value()];  // cppcheck-suppress syntaxError
-    ItemInstance item(slot.getItem());
+    const ItemInstance item(slot.getItem());
     player.addItemToInventory(item);
     slot.decrease();
+    return true;
 }
 
-void Banker::playerDepositItem(Player& player, const ShopItem* item) {
-    const auto username = player.getUsername();
+bool Banker::playerDepositItem(Player& player, TypeItem type) {
+    const auto username = player.getName();
     if (!this->thePlayerHasAnAccount(username)) {
         this->createPlayerAccount(username);
-        return;
+    }
+    const auto item = player.removeItemFromInventory(type);
+    if (!item) {
+        return false;
     }
     std::optional<size_t> index = this->hasItemInAccountPlayer(username, item->type);
     if (index.has_value()) {
-        return; /*Excepcion de item no encontrado en la cuenta*/
+        this->incrementSlotSafeBox(username, item->type);
     } else {
+        this->setItemSafeBox(username, item);
     }
+    return true;
 }
 
-// InteractionResult Banker::interact() {
-//     InteractionResult result;
-//     result.type = InteractionType::BANK_BOX;
-//     result.open_bank = true;
-//     return result;
-// }
+uint32_t Banker::playerDepositGold(Player& player, const uint32_t& amount) {
+    const auto username = player.getName();
+    if (!this->thePlayerHasAnAccount(username)) {
+        this->createPlayerAccount(username);
+    }
+    const auto gold_dep = player.decreaseGold(amount);
+    this->increaseGoldAccount(username, gold_dep);
+    return gold_dep;
+}
 
-std::pair<std::vector<MsgItemInfo>, uint32_t> Banker::getBankContent(
-        const std::string& username) const {
-    std::vector<MsgItemInfo> items;
-    uint32_t gold = 0;
-    auto it = bank.accounts.find(username);
-    if (it != bank.accounts.end()) {
-        gold = it->second.golden;
-        for (const auto& slot: it->second.safe_box) {
-            if (!slot.isEmpty()) {
-                MsgItemInfo info;
-                info.instance_id = static_cast<uint32_t>(slot.getTypeItem());
-                info.item_type = static_cast<uint8_t>(slot.getTypeItem());
-                items.push_back(info);
-            }
+uint32_t Banker::playerWithdrawGold(Player& player, const uint32_t& amount) {
+    const auto username = player.getName();
+    if (!this->thePlayerHasAnAccount(username)) {
+        this->createPlayerAccount(username);
+        return 0;
+    }
+    const auto gold_withdraw = this->decreaseGoldAccount(username, amount);
+    player.increaseGold(gold_withdraw);
+    return gold_withdraw;
+}
+
+std::map<TypeItem, uint32_t> Banker::depositedItems(Player& player) {
+    std::map<TypeItem, uint32_t> items;
+    const auto username = player.getName();
+    if (!this->thePlayerHasAnAccount(username)) {
+        this->createPlayerAccount(username);
+        return items;
+    }
+    const auto& slots = this->bank.accounts[username].safe_box;
+    for (const auto& slot: slots) {
+        if (!slot.isEmpty()) {
+            const auto type_iem = slot.getTypeItem();
+            const auto quantity = slot.getQuantity();
+            items.emplace(type_iem, quantity);
         }
     }
-    return {items, gold};
+    return items;
+}
+
+uint32_t Banker::depositedGold(Player& player) {
+    const auto username = player.getName();
+    if (!this->thePlayerHasAnAccount(username)) {
+        this->createPlayerAccount(username);
+        return 0;
+    }
+    return this->getGoldDepositedPlayer(username);
 }

@@ -64,6 +64,8 @@ public:
     void set_chat_bubble_on_local(const std::string& text);
     void set_chat_bubble_on_player(const std::string& player_name, const std::string& text);
     void update_hud_stats(const MsgPlayerStats& stats);
+    void update_hud_inventory(const std::vector<MsgSlot>& inventory);
+    void update_hud_equipment(const std::vector<MsgSlot>& equipment);
     void load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens);
 
     void add_chat_message(const std::string& msg, MessageColor color = COLOR_WHITE);
@@ -71,7 +73,8 @@ public:
     void update_chat_input(const std::string& buffer, bool is_active);
     void set_citizen_selected(int npc_id);
     bool is_point_inside_console(uint32_t x, uint32_t y) const;
-    bool is_point_inside_console_input(uint32_t x, uint32_t y) const;
+    std::optional<uint8_t> inventory_slot_at(uint32_t x, uint32_t y) const;
+    std::optional<uint8_t> equipment_slot_at(uint32_t x, uint32_t y) const;
     bool is_local_player_moving() const;
     // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
     void update_from_snapshot(const Snapshot& snapshot);

@@ -1,5 +1,6 @@
 #ifndef CRIATURE_H
 #define CRIATURE_H
+#include <string>
 #include <vector>
 
 #include "common/includes/core/snapshot.h"
@@ -14,6 +15,7 @@
 class Creature: public CombatEntity {
 private:
     Id id;
+    std::string name;
     TypeNPC type_creature;
     uint16_t range_attack;
     uint32_t attack_cooldown_current{0};
@@ -23,12 +25,14 @@ private:
 
 public:
     /*Tiempo de recuperacion al dar un ataque*/
-    Creature(const Id& id_, TypeNPC type, const Pose& pose_, const NpcAttributes& attrib,
-             std::vector<ItemInstance>&& items_);
+    Creature(const Id& id_, const std::string& name, TypeNPC type, const Pose& pose_,
+             const NpcAttributes& attrib, std::vector<ItemInstance>&& items_);
 
     void onDeath(World& world) override;
-    CreatureData getCreatureData();
-    NpcSnapshotData getNpcSnapshotData();
+    CreatureData getCreatureData() const;
+    NpcSnapshotData getNpcSnapshotData() const;
+
+    std::string getName() const override;
     TypeNPC getTypeNPC() const { return type_creature; }
     uint16_t getAggroRange() const;
     bool canAttack() const;

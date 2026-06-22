@@ -63,6 +63,15 @@ constexpr int NAME_Y = USER_INFO_Y + 12;
 constexpr int NAME_W = 185;
 constexpr int NAME_H = 44;
 
+constexpr int GOLD_ICON_W = 40;
+constexpr int GOLD_ICON_H = 40;
+
+constexpr int SAFE_GOLD_X = PANEL_RIGHT_X + 75;  // 686 + 19 = 705
+constexpr int SAFE_GOLD_Y = INVENTORY_Y + 252;   // 128 + 244 = 372
+
+constexpr int EXCESS_GOLD_X = PANEL_RIGHT_X + 189;  // 686 + 133 = 819
+constexpr int EXCESS_GOLD_Y = INVENTORY_Y + 252;    // 128 + 244 = 372
+
 constexpr int CONSOLE_X = 7;
 constexpr int CONSOLE_Y = 7;
 constexpr int CONSOLE_W = 672;

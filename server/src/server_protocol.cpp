@@ -19,7 +19,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
             (state.players.size() * sizeof(PlayerSnapshotData)) + sizeof(uint16_t) +
             (state.npcs.size() * sizeof(NpcSnapshotData)) + sizeof(uint16_t) +
             (state.items_on_floor.size() * sizeof(ItemGroundSnapshotData)) + sizeof(uint16_t) +
-            (state.gold_piles.size() * sizeof(GoldPileGroundSnapshotData)) + sizeof(uint16_t) +
+            /*(state.gold_piles.size() * sizeof(GoldPileGroundSnapshotData)) + sizeof(uint16_t) +*/
             (state.sound_effects.size() * sizeof(SoundEffectSnapshotData)) + sizeof(uint16_t) +
             (state.visual_effects.size() * sizeof(VisualEffectSnapshotData));
 
@@ -36,8 +36,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto p: state.players) {
         p.id = htonl(p.id);
-        p.pos_x = htonl(p.pos_x);
-        p.pos_y = htonl(p.pos_y);
+        p.position.x = htonl(p.position.x);
+        p.position.y = htonl(p.position.y);
         p.stats.max_hp = htons(p.stats.max_hp);
         p.stats.current_hp = htons(p.stats.current_hp);
         p.stats.current_mana = htons(p.stats.current_mana);
@@ -57,8 +57,8 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto n: state.npcs) {
         n.id = htonl(n.id);
-        n.pos_x = htonl(n.pos_x);
-        n.pos_y = htonl(n.pos_y);
+        n.position.x = htonl(n.position.x);
+        n.position.y = htonl(n.position.y);
         n.current_hp = htons(n.current_hp);
         n.max_hp = htons(n.max_hp);
         std::memcpy(buffer.data() + offset, &n, sizeof(NpcSnapshotData));
@@ -72,25 +72,25 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
 
     for (auto i: state.items_on_floor) {
         i.item_id = htons(i.item_id);
-        i.pos_x = htonl(i.pos_x);
-        i.pos_y = htonl(i.pos_y);
+        i.position.x = htonl(i.position.x);
+        i.position.y = htonl(i.position.y);
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));
         offset += sizeof(ItemGroundSnapshotData);
     }
 
     // Piles de oro
-    const uint16_t g_count_net = htons(static_cast<uint16_t>(state.gold_piles.size()));
-    std::memcpy(buffer.data() + offset, &g_count_net, sizeof(g_count_net));
-    offset += sizeof(g_count_net);
-
-    for (auto g: state.gold_piles) {
-        g.amount = htonl(g.amount);
-        g.pos_x = htonl(g.pos_x);
-        g.pos_y = htonl(g.pos_y);
-
-        std::memcpy(buffer.data() + offset, &g, sizeof(GoldPileGroundSnapshotData));
-        offset += sizeof(GoldPileGroundSnapshotData);
-    }
+    // const uint16_t g_count_net = htons(static_cast<uint16_t>(state.gold_piles.size()));
+    // std::memcpy(buffer.data() + offset, &g_count_net, sizeof(g_count_net));
+    // offset += sizeof(g_count_net);
+    //
+    // for (auto g: state.gold_piles) {
+    //     g.amount = htonl(g.amount);
+    //     g.pos_x = htonl(g.pos_x);
+    //     g.pos_y = htonl(g.pos_y);
+    //
+    //     std::memcpy(buffer.data() + offset, &g, sizeof(GoldPileGroundSnapshotData));
+    //     offset += sizeof(GoldPileGroundSnapshotData);
+    // }
 
     // Efectos sonoros
     const uint16_t s_count_net = htons(static_cast<uint16_t>(state.sound_effects.size()));
@@ -138,7 +138,8 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
     temp.max_hp = htonl(stats.max_hp);
     temp.mana = htonl(stats.mana);
     temp.max_mana = htonl(stats.max_mana);
-    temp.gold = htonl(stats.gold);
+    temp.safe_gold = htonl(stats.safe_gold);
+    temp.excess_gold = htonl(stats.excess_gold);
     temp.exp = htonl(stats.exp);
     temp.exp_next_level = htonl(stats.exp_next_level);
     try {
@@ -150,11 +151,15 @@ void ServerProtocol::sendPlayerStats(const MsgPlayerStats& stats) const {
 
 void ServerProtocol::sendInventoryUpdate(const MsgInventoryUpdate& inv) const {
     MsgInventoryUpdate temp = inv;
-    uint16_t size_inventory = htonl(static_cast<uint8_t>(temp.inventory.size()));
-    size_t size_buffer = sizeof(size_inventory) + (temp.inventory.size() * sizeof(MsgSlot));
+    constexpr uint8_t opcode = INVENTORY_UPDATE;
+    uint16_t size_inventory = htons(static_cast<uint16_t>(temp.inventory.size()));
+    size_t size_buffer =
+            sizeof(opcode) + sizeof(size_inventory) + (temp.inventory.size() * sizeof(MsgSlot));
     std::vector<char> buffer(size_buffer);
     size_t offset = 0;
 
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
     std::memcpy(buffer.data() + offset, &size_inventory, sizeof(size_inventory));
     offset += sizeof(size_inventory);
     for (auto& slot: temp.inventory) {
@@ -174,14 +179,19 @@ void ServerProtocol::sendInventoryUpdate(const MsgInventoryUpdate& inv) const {
 
 void ServerProtocol::sendEquipmentUpdate(const MsgEquipmentUpdate& equip) const {
     // MsgEquipmentUpdate temp = equip;
-    uint16_t equipment = htonl(static_cast<uint8_t>(equip.equipment.size()));
-    size_t size_buffer = sizeof(equipment) + (equip.equipment.size() * sizeof(MsgSlot));
+    constexpr uint8_t opcode = EQUIPMENT_UPDATE;
+    uint16_t equipment = htons(static_cast<uint16_t>(equip.equipment.size()));
+    size_t size_buffer =
+            sizeof(opcode) + sizeof(equipment) + (equip.equipment.size() * sizeof(MsgSlot));
     std::vector<char> buffer(size_buffer);
     size_t offset = 0;
 
+    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
+    offset += sizeof(opcode);
     std::memcpy(buffer.data() + offset, &equipment, sizeof(equipment));
     offset += sizeof(equipment);
-    for (const auto slot: equip.equipment) {
+    for (auto slot: equip.equipment) {
+        slot.quantity = htons(slot.quantity);
         std::memcpy(buffer.data() + offset, &slot, sizeof(slot));
         offset += sizeof(slot);
     }
@@ -388,8 +398,8 @@ void ServerProtocol::sendTraderCatalog(const std::map<TypeItem, uint32_t>& catal
     }
 }
 
-void ServerProtocol::sendBankContent(const std::vector<MsgItemInfo>& items, uint32_t gold) {
-    const size_t size_items = items.size() * sizeof(MsgItemInfo);
+void ServerProtocol::sendBankContent(const std::map<TypeItem, uint32_t>& items, uint32_t gold) {
+    const size_t size_items = items.size() * (sizeof(uint8_t) + sizeof(uint32_t));
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + size_items;
 
     std::vector<char> buffer(size_total);
@@ -407,9 +417,13 @@ void ServerProtocol::sendBankContent(const std::vector<MsgItemInfo>& items, uint
     std::memcpy(buffer.data() + offset, &net_total_items, sizeof(net_total_items));
     offset += sizeof(net_total_items);
 
-    if (!items.empty()) {
-        std::memcpy(buffer.data() + offset, items.data(), size_items);
-        offset += size_items;
+    for (const auto& [type_item, count]: items) {
+        uint8_t type_byte = static_cast<uint8_t>(type_item);
+        uint32_t count_ = htonl(count);
+        std::memcpy(buffer.data() + offset, &type_byte, sizeof(type_byte));
+        offset += sizeof(type_byte);
+        std::memcpy(buffer.data() + offset, &count_, sizeof(count_));
+        offset += sizeof(count_);
     }
     try {
         socket.sendall(buffer.data(), buffer.size());
@@ -512,34 +526,33 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         case BUY_ITEM:
         case SELL_ITEM: {
             uint32_t network_npc_id;
-            uint32_t network_item_id;
+            uint8_t network_item_id;
+            uint16_t network_quantity;
 
             socket.recvall(&network_npc_id, sizeof(network_npc_id));
             socket.recvall(&network_item_id, sizeof(network_item_id));
+            socket.recvall(&network_quantity, sizeof(network_quantity));
 
             Id npc_id = ntohl(network_npc_id);
 
-            Id item_id = ntohl(network_item_id);
-
             if (opcode == BUY_ITEM) {
-                queue.push(std::make_unique<BuyItemCommand>(player_id, npc_id, item_id));
+                queue.push(std::make_unique<BuyItemCommand>(player_id, npc_id, network_item_id));
             } else {
-                queue.push(std::make_unique<SellItemCommand>(player_id, npc_id, item_id));
+                queue.push(std::make_unique<SellItemCommand>(player_id, npc_id, network_item_id));
             }
             break;
         }
         case DEPOSIT_ITEM:
         case WITHDRAW_ITEM: {
-            Id item_id;
+            uint32_t npc_id;
+            uint16_t item_id;
+
+            socket.recvall(&npc_id, sizeof(npc_id));
+            npc_id = ntohl(npc_id);
             socket.recvall(&item_id, sizeof(item_id));
             item_id = ntohs(item_id);
 
-            Id npc_id;
-            socket.recvall(&item_id, sizeof(npc_id));
-            item_id = ntohs(item_id);
-
-            uint8_t type_item;
-            socket.recvall(&type_item, sizeof(type_item));
+            uint8_t type_item = static_cast<uint8_t>(item_id);
 
             if (opcode == DEPOSIT_ITEM) {
                 queue.push(std::make_unique<DepositItemCommand>(player_id, npc_id, type_item));
@@ -550,14 +563,17 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         }
         case DEPOSIT_GOLD:
         case WITHDRAW_GOLD: {
+            uint32_t npc_id;
             uint32_t amount;
-            socket.recvall(&amount, 4);
+            socket.recvall(&npc_id, sizeof(npc_id));
+            npc_id = ntohl(npc_id);
+            socket.recvall(&amount, sizeof(amount));
             amount = ntohl(amount);
 
             if (opcode == DEPOSIT_GOLD) {
-                queue.push(std::make_unique<DepositGoldCommand>(player_id, amount));
+                queue.push(std::make_unique<DepositGoldCommand>(player_id, npc_id, amount));
             } else {
-                queue.push(std::make_unique<WithdrawGoldCommand>(player_id, amount));
+                queue.push(std::make_unique<WithdrawGoldCommand>(player_id, npc_id, amount));
             }
             break;
         }
@@ -572,8 +588,8 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         case EQUIP_ITEM:
         case UNEQUIP_ITEM: {
             Id item_id;
-            socket.recvall(&item_id, 2);
-            item_id = ntohs(item_id);
+            socket.recvall(&item_id, sizeof(item_id));
+            item_id = ntohl(item_id);
 
             if (opcode == EQUIP_ITEM) {
                 queue.push(std::make_unique<EquipCommand>(player_id, item_id));

@@ -100,6 +100,7 @@ void GameConfigLoader::loadNpcSafeZone(std::map<std::string, NpcSafeZone>& npcs)
         throw std::runtime_error(mssgErr);
     }
 }
+
 void GameConfigLoader::loadCreatures(std::map<std::string, CreatureConfig>& creatures) {
     try {
         Table config = toml::parse_file(paths.creatures.string());
@@ -193,8 +194,8 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& item
             auto body = static_cast<BodyPart>(item["body_part"].value_or(0));
             auto classif = static_cast<ItemClassification>(item["classif"].value_or(0));
 
-            auto sell_price = static_cast<uint16_t>(item["selling_price"].value_or(0));
-            auto purch_price = static_cast<uint16_t>(item["purchase_price"].value_or(0));
+            auto sell_price = static_cast<uint32_t>(item["selling_price"].value_or(0));
+            auto purch_price = static_cast<uint32_t>(item["purchase_price"].value_or(0));
 
             auto min_dam = static_cast<uint16_t>(item["minimal_damage"].value_or(0));
             auto max_dam = static_cast<uint16_t>(item["maximun_damage"].value_or(0));
@@ -224,8 +225,8 @@ void GameConfigLoader::loadItems(std::map<TypeItem, std::unique_ptr<Item>>& item
                                                         sell_price, purch_price, min_def, max_def);
             } else if (classif == ITEM_HEALING) {
                 if (descp == "POTION") {
-                    items[type] = std::make_unique<ShopItem>(type, body, classif, std::move(name),
-                                                             sell_price, purch_price);
+                    items[type] = std::make_unique<Item>(type, body, classif, std::move(name),
+                                                         sell_price, purch_price);
                 } else if (descp == "MAGICAL") {
                     items[type] = std::make_unique<ObjectMagic>(type, body, classif,
                                                                 std::move(name), sell_price,
@@ -304,8 +305,9 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
         player_state_init.level = static_cast<uint8_t>(player_init["level"].value_or(1));
         player_state_init.golden_init =
                 static_cast<uint32_t>(player_init["golden_init"].value_or(0));
-        player_state_init.max_inventory =
-                static_cast<uint32_t>(player_init["max_inventory"].value_or(0));
+        player_state_init.max_slots = static_cast<uint32_t>(player_init["max_slots"].value_or(0));
+        player_state_init.capacity_slot =
+                static_cast<uint32_t>(player_init["capacity_slot"].value_or(1));
         /*Condiciones de un clan*/
         auto clan_info = config["clan"];
         clan.max_members = static_cast<uint32_t>(clan_info["max_members"].value_or(16));

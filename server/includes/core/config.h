@@ -34,7 +34,8 @@ struct FileData {
 struct PlayerStateInit {
     uint8_t level;
     uint32_t golden_init;
-    uint32_t max_inventory;
+    uint32_t max_slots;
+    uint32_t capacity_slot;
 };
 struct ClanConfig {
     uint32_t max_members;

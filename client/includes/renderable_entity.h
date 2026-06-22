@@ -32,7 +32,12 @@ private:
     uint16_t head_id;
     uint8_t weapon_id;
     uint8_t shield_id;
+    uint8_t helmet_id;
+    uint8_t armor_id;
     bool is_ghost;
+
+    uint16_t current_hp;
+    uint16_t max_hp;
 
     std::string name;
 
@@ -44,7 +49,8 @@ private:
 public:
     RenderableEntity(uint32_t id_, EntityType type_, int start_tile_x_, int start_tile_y_,
                      uint16_t body_id_, uint16_t head_id_, uint8_t weapon_id_, uint8_t shield_id_,
-                     uint8_t level_ = 0, bool is_short_race_ = false);
+                     uint8_t helmet_id_ = 0, uint8_t armor_id_ = 0, uint8_t level_ = 0,
+                     bool is_short_race_ = false);
 
     virtual ~RenderableEntity() = default;
 
@@ -60,9 +66,16 @@ public:
 
     // Método para cuando el servidor nos notifica una actualización de posición/dirección
     void move_to(int target_tile_x, int target_tile_y, Direction dir);
+    void set_equipment(uint8_t weapon_id_, uint8_t shield_id_, uint8_t helmet_id_,
+                       uint8_t armor_id_);
     void set_ghost(bool ghost);
 
     void set_name(const std::string& name_) { name = name_; }
+    void set_level(uint8_t level_) { level = level_; }
+    void set_hp(uint16_t current, uint16_t max) {
+        current_hp = current;
+        max_hp = max;
+    }
 
     void set_chat_bubble(const std::string& text);
     bool has_active_chat_bubble() const;
@@ -79,4 +92,6 @@ public:
     uint8_t get_level() const { return level; }
     const std::string& get_name() const { return name; }
     uint16_t get_body_id() const { return body_id; }
+    uint16_t get_current_hp() const { return current_hp; }
+    uint16_t get_max_hp() const { return max_hp; }
 };

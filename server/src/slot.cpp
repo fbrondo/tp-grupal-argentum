@@ -1,8 +1,8 @@
 #include "server/includes/slot.h"
 
-Slot::Slot(const uint32_t& max_slot): quantity(0), max_slot(max_slot) {}
+Slot::Slot(const uint32_t& capacity_slot): quantity(0), capacity_slot(capacity_slot) {}
 
-bool Slot::isFull() const { return quantity == max_slot; }
+bool Slot::isFull() const { return this->quantity == this->capacity_slot; }
 
 bool Slot::isEmpty() const { return instance == nullptr; }
 
@@ -11,7 +11,7 @@ void Slot::increase() { this->quantity += 1; }
 void Slot::decrease() {
     if (isEmpty())
         return;
-    if (1 > quantity) {
+    if (quantity <= 1) {
         quantity = 0;
         instance.reset();
     } else {
@@ -23,7 +23,19 @@ void Slot::setItem(std::unique_ptr<ItemInstance>&& instance_) {
     this->instance = std::move(instance_);
 }
 
-ItemInstance* Slot::getItemInstance() { return instance.get(); }
+std::unique_ptr<ItemInstance> Slot::takeOneItem() {
+    if (this->isEmpty()) {
+        return nullptr;
+    }
+    auto inst = std::make_unique<ItemInstance>(this->instance->item);
+    this->decrease();
+    // if (this->quantity > 1) {
+    //     this->quantity -= 1;
+    //     return std::make_unique<ItemInstance>(instance->item);
+    // }
+    // quantity = 0;
+    return inst;  // std::move(instance);
+}
 
 uint32_t Slot::getQuantity() const {
     if (this->isEmpty()) {

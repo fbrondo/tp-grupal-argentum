@@ -9,7 +9,9 @@
 
 #include "client/includes/commands/command_attack.h"
 #include "client/includes/commands/command_chat.h"
+#include "client/includes/commands/command_equip.h"
 #include "client/includes/commands/command_move.h"
+#include "client/includes/commands/command_unequip.h"
 #include "client/includes/core/constants.h"
 #include "common/includes/toml_config.h"
 
@@ -136,9 +138,7 @@ void Client::handle_left_click(uint32_t mouse_x, uint32_t mouse_y) {
             auto hit = world_renderer.get_entity_at_screen(mouse_x, mouse_y);
             if (hit) {
                 auto [entity_id, entity_type] = *hit;
-                if (entity_type == EntityType::PLAYER) {
-                    cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
-                } else if (entity_type == EntityType::NPC) {
+                if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
                     cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
                 } else if (entity_type == EntityType::CITIZEN) {
                     chat.select_npc(entity_id);
@@ -184,6 +184,23 @@ void Client::handle_events() {
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+            uint32_t mouse_x = event.button.x;
+            uint32_t mouse_y = event.button.y;
+
+            if (event.button.clicks >= 2) {
+                const auto equipped_slot_index = world_renderer.equipment_slot_at(mouse_x, mouse_y);
+                if (equipped_slot_index.has_value()) {
+                    cmd_queue.push(
+                            std::make_unique<UnequipCommandClient>(equipped_slot_index.value()));
+                    continue;
+                }
+
+                const auto slot_index = world_renderer.inventory_slot_at(mouse_x, mouse_y);
+                if (slot_index.has_value()) {
+                    cmd_queue.push(std::make_unique<EquipCommandClient>(slot_index.value()));
+                    continue;
+                }
+            }
             handle_left_click(event.button.x, event.button.y);
         }
 
@@ -283,6 +300,12 @@ void Client::update_state_from_server() {
             case TypeEventClient::OWN_STATS:
                 world_renderer.update_hud_stats(event.stats);
                 break;
+            case TypeEventClient::INVENTORY_UPDATE:
+                world_renderer.update_hud_inventory(event.inventory);
+                break;
+            case TypeEventClient::EQUIPMENT_UPDATE:
+                world_renderer.update_hud_equipment(event.equipment);
+                break;
             case TypeEventClient::CHAT_MSG: {
                 auto parsed = ChatManager::parse_server_message(event.text_payload);
                 switch (parsed.type) {
@@ -302,11 +325,17 @@ void Client::update_state_from_server() {
             }
             case TypeEventClient::OPEN_MERCHANT: {
                 world_renderer.add_chat_message("--- Catalogo del comerciante ---", COLOR_BLUE);
+                world_renderer.add_chat_message(std::string("Objeto               | Precio"),
+                                                COLOR_YELLOW);
+                world_renderer.add_chat_message(std::string("--------------------|-------"),
+                                                COLOR_YELLOW);
                 for (const auto& [type, price]: event.merchant_data.catalog) {
-                    world_renderer.add_chat_message(
-                            std::string(item_name(static_cast<uint8_t>(type))) + " - " +
-                                    std::to_string(price) + "g",
-                            COLOR_WHITE);
+                    std::string name = item_name(static_cast<uint8_t>(type));
+                    std::string price_str = std::to_string(price) + "g";
+                    std::string line = name;
+                    line.append(21 - name.size(), ' ');
+                    line += "| " + price_str;
+                    world_renderer.add_chat_message(line, COLOR_WHITE);
                 }
                 break;
             }
@@ -314,9 +343,17 @@ void Client::update_state_from_server() {
                 world_renderer.add_chat_message("--- Contenido del banco ---", COLOR_BLUE);
                 world_renderer.add_chat_message("Oro: " + std::to_string(event.bank_data.gold),
                                                 COLOR_YELLOW);
-                for (const auto& item: event.bank_data.items) {
-                    world_renderer.add_chat_message(std::string(item_name(item.item_type)),
-                                                    COLOR_WHITE);
+                world_renderer.add_chat_message(std::string("------------------------------"),
+                                                COLOR_YELLOW);
+                world_renderer.add_chat_message(std::string("Objeto               | Cantidad"),
+                                                COLOR_YELLOW);
+                for (const auto& [type, quantity]: event.bank_data.items) {
+                    std::string name = item_name(static_cast<uint8_t>(type));
+                    std::string qty_str = std::to_string(quantity);
+                    std::string line = name;
+                    line.append(21 - name.size(), ' ');
+                    line += "| " + qty_str;
+                    world_renderer.add_chat_message(line, COLOR_WHITE);
                 }
                 break;
             }
@@ -342,6 +379,7 @@ uint32_t Client::sleep_and_calc_next_it(const uint32_t frame_start) const {
 }
 
 void Client::close() {
+    SoundManager::cleanup();
     skt.shutdown(2);
     skt.close();
     events_queue.close();
@@ -370,6 +408,9 @@ void Client::launch(const std::string& user, const std::string& pass) {
                 }
                 if (login_event.type == TypeEventClient::MAP_DATA) {
                     world_renderer.load_map(std::move(login_event.map_data), login_event.citizens);
+                }
+                if (login_event.type == TypeEventClient::INVENTORY_UPDATE) {
+                    world_renderer.update_hud_inventory(login_event.inventory);
                 }
             }
         }

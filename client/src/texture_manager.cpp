@@ -261,49 +261,7 @@ void TextureManager::load_items_textures(
         load_texture(textures_aux, "item_" + std::to_string(item.id), base_path + item.filename);
     }
 }
-/*void TextureManager::load_items_textures(
-        std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
-    load_texture(textures_aux, "item_" + std::to_string(SWORD),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1000.png");
-    load_texture(textures_aux, "item_" + std::to_string(AXE),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1001.png");
-    load_texture(textures_aux, "item_" + std::to_string(HAMMER),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1002.png");
-    load_texture(textures_aux, "item_" + std::to_string(ASH_STAFF),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1100.png");
-    load_texture(textures_aux, "item_" + std::to_string(ELVEN_FLUTE),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1101.png");
-    load_texture(textures_aux, "item_" + std::to_string(KNOTTED_STAFF),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1102.png");
-    load_texture(textures_aux, "item_" + std::to_string(INLAID_STAFF),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1103.png");
-    load_texture(textures_aux, "item_" + std::to_string(SIMPLE_BOW),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1003.png");
-    load_texture(textures_aux, "item_" + std::to_string(COMPOUND_BOW),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1004.png");
-    load_texture(textures_aux, "item_" + std::to_string(LEATHER_ARMOR),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1400.png");
-    load_texture(textures_aux, "item_" + std::to_string(PLATE_AMOR),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1401.png");
-    load_texture(textures_aux, "item_" + std::to_string(BLUE_TUNIC),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1402.png");
-    load_texture(textures_aux, "item_" + std::to_string(HOOD),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1300.png");
-    load_texture(textures_aux, "item_" + std::to_string(IRON_HELMET),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1301.png");
-    load_texture(textures_aux, "item_" + std::to_string(TORTOISE_SHIELD),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1500.png");
-    load_texture(textures_aux, "item_" + std::to_string(IRON_SHIELD),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1501.png");
-    load_texture(textures_aux, "item_" + std::to_string(MAGIC_HAT),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1302.png");
-    load_texture(textures_aux, "item_" + std::to_string(LIFE_POTION),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1600.png");
-    load_texture(textures_aux, "item_" + std::to_string(MANA_POTION),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/1601.png");
-    load_texture(textures_aux, "item_" + std::to_string(GOLD),
-                 ARGENTUM_SHARE_PATH "/client/assets/Sprites/Items/2000.png");
-}*/
+
 void TextureManager::load_animation_items(
         std::unordered_map<std::string, std::unique_ptr<SDL2pp::Texture>>& textures_aux) {
     // --- HUMAN/ELF ITEMS ANIMATION --- //
@@ -345,19 +303,19 @@ void TextureManager::load_animation_items(
     register_spritesheet("anim_hum_elf_" + std::to_string(BLUE_TUNIC), 25, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(HOOD),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/humanos-elfos/1300.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(HOOD), 27, 63, 1);
+    register_spritesheet("anim_hum_elf_" + std::to_string(HOOD), 13, 52, 1);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(IRON_HELMET),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/humanos-elfos/1301.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_HELMET), 25, 45, 6);
+    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_HELMET), 15, 51, 1);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(TORTOISE_SHIELD),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/humanos-elfos/1500.png");
     register_spritesheet("anim_hum_elf_" + std::to_string(TORTOISE_SHIELD), 25, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(IRON_SHIELD),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/humanos-elfos/1501.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_HELMET), 27, 63, 1);
+    register_spritesheet("anim_hum_elf_" + std::to_string(IRON_SHIELD), 25, 45, 6);
     load_texture(textures_aux, "anim_hum_elf_" + std::to_string(MAGIC_HAT),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/humanos-elfos/1302.png");
-    register_spritesheet("anim_hum_elf_" + std::to_string(MAGIC_HAT), 27, 63, 1);
+    register_spritesheet("anim_hum_elf_" + std::to_string(MAGIC_HAT), 19, 52, 1);
 
     // --- DWARF/GNOME ITEMS ANIMATION --- //
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(SWORD),
@@ -398,10 +356,10 @@ void TextureManager::load_animation_items(
     register_spritesheet("anim_drf_gnm_" + std::to_string(BLUE_TUNIC), 25, 46, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(HOOD),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/gnomos-enanos/11300.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(HOOD), 25, 46, 6);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(HOOD), 13, 52, 1);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(IRON_HELMET),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/gnomos-enanos/11301.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(IRON_HELMET), 25, 46, 6);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(IRON_HELMET), 15, 51, 1);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(TORTOISE_SHIELD),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/gnomos-enanos/11500.png");
     register_spritesheet("anim_drf_gnm_" + std::to_string(TORTOISE_SHIELD), 25, 46, 6);
@@ -410,7 +368,7 @@ void TextureManager::load_animation_items(
     register_spritesheet("anim_drf_gnm_" + std::to_string(IRON_SHIELD), 25, 46, 6);
     load_texture(textures_aux, "anim_drf_gnm_" + std::to_string(MAGIC_HAT),
                  ARGENTUM_SHARE_PATH "/client/assets/Sprites/Units/items/gnomos-enanos/11302.png");
-    register_spritesheet("anim_drf_gnm_" + std::to_string(MAGIC_HAT), 25, 46, 6);
+    register_spritesheet("anim_drf_gnm_" + std::to_string(MAGIC_HAT), 19, 52, 1);
 }
 
 void TextureManager::load_tile_textures(

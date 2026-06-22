@@ -132,12 +132,12 @@ void ClientProtocol::sendTakeItem() const {
     }
 }
 
-void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint16_t item_id,
+void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint8_t item_id,
                                  const uint16_t quantity) const {
     MsgTrade msg;
     msg.opcode = BUY_ITEM;
     msg.npc_id = htonl(npc_id);
-    msg.item_id = htons(item_id);
+    msg.item_id = item_id;
     msg.quantity = htons(quantity);
     try {
         socket.sendall(&msg, sizeof(MsgTrade));
@@ -146,12 +146,12 @@ void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint16_t item_id,
     }
 }
 
-void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint16_t item_id,
+void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint8_t item_id,
                                   const uint16_t quantity) const {
     MsgTrade msg;
     msg.opcode = SELL_ITEM;
     msg.npc_id = htonl(npc_id);
-    msg.item_id = htons(item_id);
+    msg.item_id = item_id;
     msg.quantity = htons(quantity);
     try {
         socket.sendall(&msg, sizeof(MsgTrade));
@@ -203,14 +203,18 @@ void ClientProtocol::sendListItems(Id npc_id) {
     }
 }
 
-void ClientProtocol::sendDepositItem(Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t);
+void ClientProtocol::sendDepositItem(Id npc_id, Id item_id) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
     constexpr uint8_t opcode = DEPOSIT_ITEM;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
+
+    uint32_t npc_id_net = htonl(npc_id);
+    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
+    offset += sizeof(npc_id_net);
 
     uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
     std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
@@ -222,14 +226,18 @@ void ClientProtocol::sendDepositItem(Id item_id) {
     }
 }
 
-void ClientProtocol::sendWithdrawItem(Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t);
+void ClientProtocol::sendWithdrawItem(Id npc_id, Id item_id) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
     constexpr uint8_t opcode = WITHDRAW_ITEM;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
+
+    uint32_t npc_id_net = htonl(npc_id);
+    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
+    offset += sizeof(npc_id_net);
 
     uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
     std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
@@ -241,14 +249,18 @@ void ClientProtocol::sendWithdrawItem(Id item_id) {
     }
 }
 
-void ClientProtocol::sendDepositGold(uint32_t amount) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
+void ClientProtocol::sendDepositGold(Id npc_id, uint32_t amount) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
     constexpr uint8_t opcode = DEPOSIT_GOLD;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
+
+    uint32_t npc_id_net = htonl(npc_id);
+    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
+    offset += sizeof(npc_id_net);
 
     uint32_t amount_net = htonl(amount);
     std::memcpy(buffer.data() + offset, &amount_net, sizeof(amount_net));
@@ -260,14 +272,18 @@ void ClientProtocol::sendDepositGold(uint32_t amount) {
     }
 }
 
-void ClientProtocol::sendWithdrawGold(uint32_t amount) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
+void ClientProtocol::sendWithdrawGold(Id npc_id, uint32_t amount) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
     constexpr uint8_t opcode = WITHDRAW_GOLD;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
+
+    uint32_t npc_id_net = htonl(npc_id);
+    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
+    offset += sizeof(npc_id_net);
 
     uint32_t amount_net = htonl(amount);
     std::memcpy(buffer.data() + offset, &amount_net, sizeof(amount_net));
@@ -361,7 +377,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             out_event.world.players.clear();
             out_event.world.npcs.clear();
             out_event.world.items_on_floor.clear();
-            out_event.world.gold_piles.clear();
+            // out_event.world.gold_piles.clear();
             out_event.world.sound_effects.clear();
             out_event.world.visual_effects.clear();
 
@@ -372,8 +388,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 PlayerSnapshotData p;
                 socket.recvall(&p, sizeof(PlayerSnapshotData));
                 p.id = ntohl(p.id);
-                p.pos_x = ntohl(p.pos_x);
-                p.pos_y = ntohl(p.pos_y);
+                p.position.x = ntohl(p.position.x);
+                p.position.y = ntohl(p.position.y);
                 p.stats.max_hp = ntohs(p.stats.max_hp);
                 p.stats.current_hp = ntohs(p.stats.current_hp);
                 p.stats.current_mana = ntohs(p.stats.current_mana);
@@ -393,9 +409,8 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 NpcSnapshotData n;
                 socket.recvall(&n, sizeof(NpcSnapshotData));
                 n.id = ntohl(n.id);
-                n.pos_x = ntohl(n.pos_x);
-                n.pos_y = ntohl(n.pos_y);
-                // type_id es uint8_t: no tiene endianness, no se convierte
+                n.position.x = ntohl(n.position.x);
+                n.position.y = ntohl(n.position.y);
                 n.current_hp = ntohs(n.current_hp);
                 n.max_hp = ntohs(n.max_hp);
                 out_event.world.npcs.push_back(n);
@@ -408,23 +423,23 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
                 ItemGroundSnapshotData it;
                 socket.recvall(&it, sizeof(ItemGroundSnapshotData));
                 it.item_id = ntohs(it.item_id);
-                it.pos_x = ntohl(it.pos_x);
-                it.pos_y = ntohl(it.pos_y);
+                it.position.x = ntohl(it.position.x);
+                it.position.y = ntohl(it.position.y);
                 out_event.world.items_on_floor.push_back(it);
             }
 
-            uint16_t g_count;
-            if (socket.recvall(&g_count, 2) <= 0)
-                return false;
-            g_count = ntohs(g_count);
-            for (uint16_t i = 0; i < g_count; ++i) {
-                GoldPileGroundSnapshotData g;
-                socket.recvall(&g, sizeof(GoldPileGroundSnapshotData));
-                g.amount = ntohl(g.amount);
-                g.pos_x = ntohl(g.pos_x);
-                g.pos_y = ntohl(g.pos_y);
-                out_event.world.gold_piles.push_back(g);
-            }
+            // uint16_t g_count;
+            // if (socket.recvall(&g_count, 2) <= 0)
+            //     return false;
+            // g_count = ntohs(g_count);
+            // for (uint16_t i = 0; i < g_count; ++i) {
+            //     GoldPileGroundSnapshotData g;
+            //     socket.recvall(&g, sizeof(GoldPileGroundSnapshotData));
+            //     g.amount = ntohl(g.amount);
+            //     g.pos_x = ntohl(g.pos_x);
+            //     g.pos_y = ntohl(g.pos_y);
+            //     out_event.world.gold_piles.push_back(g);
+            // }
 
             // 4. Efectos sonoros
             uint16_t sound_count;
@@ -478,8 +493,11 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             socket.recvall(&out_event.stats.max_mana, sizeof(out_event.stats.max_mana));
             out_event.stats.max_mana = ntohl(out_event.stats.max_mana);
 
-            socket.recvall(&out_event.stats.gold, sizeof(out_event.stats.gold));
-            out_event.stats.gold = ntohl(out_event.stats.gold);
+            socket.recvall(&out_event.stats.safe_gold, sizeof(out_event.stats.safe_gold));
+            out_event.stats.safe_gold = ntohl(out_event.stats.safe_gold);
+
+            socket.recvall(&out_event.stats.excess_gold, sizeof(out_event.stats.excess_gold));
+            out_event.stats.excess_gold = ntohl(out_event.stats.excess_gold);
 
             socket.recvall(&out_event.stats.exp, sizeof(out_event.stats.exp));
             out_event.stats.exp = ntohl(out_event.stats.exp);
@@ -532,8 +550,6 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             // TODO: Revisar si hace falta ntohl y borrar prints
             int width = static_cast<int>(ntohl(w_net));
             int height = static_cast<int>(ntohl(h_net));
-            std::cout << "[CLIENT] MAP_DATA recibido: " << width << "x" << height << " tiles."
-                      << std::endl;
             Map map("Map", width, height);
 
             std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details,
@@ -576,50 +592,37 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
         }
         case INVENTORY_UPDATE: {
             out_event.type = TypeEventClient::INVENTORY_UPDATE;
-            // MsgInventoryUpdate msg;
             uint16_t size_net;
             if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
                 return false;
 
             const uint16_t count = ntohs(size_net);
-            // out_event.inventory_update.resize(count);
+            out_event.inventory.clear();
+            out_event.inventory.reserve(count);
             for (uint16_t i = 0; i < count; i++) {
                 MsgSlot slot;
                 socket.recvall(&slot, sizeof(slot));
                 slot.quantity = ntohs(slot.quantity);
-                // out_event.inventory_update[i] = slot;
+                out_event.inventory.push_back(slot);
             }
-
-            // if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
-
-            // msg.item_id = ntohs(msg.item_id);
-            // msg.quantity = ntohs(msg.quantity);
-
-            // out_event.inventory_update.slot_index = msg.slot_index;
-            // out_event.inventory_update.item_id = msg.item_id;
-            // out_event.inventory_update.quantity = msg.quantity;
-            // out_event.inventory_update.is_equipped = msg.is_equipped;
 
             break;
         }
         case EQUIPMENT_UPDATE: {
-            // out_event.type = TypeEventClient::EQUIPMENT_UPDATE;
-            // uint16_t size_net;
-            // if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
-            //     return false;
-            //
-            // const uint16_t count = ntohs(size_net);
-            // out_event.equipment_update.resize(count);
-            // for (uint16_t i = 0; i < count; i++) {
-            //     MsgSlot slot;
-            //     socket.recvall(&slot, sizeof(slot));
-            //     out_event.equipment_update[i] = slot;
-            // }
-            // MsgEquipmentUpdate msg;
-            // if (socket.recvall(&msg, sizeof(MsgInventoryUpdate)) <= 0) return false;
-            //
-            // out_event.equip_update.slot_index = msg.slot_index;
-            // out_event.equip_update.item_id = msg.type_item;
+            out_event.type = TypeEventClient::EQUIPMENT_UPDATE;
+            uint16_t size_net;
+            if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
+                return false;
+
+            const uint16_t count = ntohs(size_net);
+            out_event.equipment.clear();
+            out_event.equipment.reserve(count);
+            for (uint16_t i = 0; i < count; i++) {
+                MsgSlot slot;
+                socket.recvall(&slot, sizeof(slot));
+                slot.quantity = ntohs(slot.quantity);
+                out_event.equipment.push_back(slot);
+            }
             break;
         }
         case TRADER_CATALOG: {
@@ -629,12 +632,12 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             count = ntohs(count);
             out_event.merchant_data.catalog.clear();
             for (uint16_t i = 0; i < count; ++i) {
-                uint8_t type_byte;
+                TypeItem type_byte;
                 uint32_t price_net;
                 socket.recvall(&type_byte, sizeof(type_byte));
                 socket.recvall(&price_net, sizeof(price_net));
-                out_event.merchant_data.catalog[static_cast<TypeItem>(type_byte)] =
-                        ntohl(price_net);
+                price_net = ntohl(price_net);
+                out_event.merchant_data.catalog.emplace(type_byte, price_net);
             }
             break;
         }
@@ -648,10 +651,12 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             count = ntohs(count);
             out_event.bank_data.items.clear();
             for (uint16_t i = 0; i < count; ++i) {
-                MsgItemInfo info;
-                socket.recvall(&info, sizeof(info));
-                info.instance_id = ntohl(info.instance_id);
-                out_event.bank_data.items.push_back(info);
+                TypeItem type_item;
+                uint32_t count_item;
+                socket.recvall(&type_item, sizeof(type_item));
+                socket.recvall(&count_item, sizeof(count_item));
+                count_item = ntohl(count_item);
+                out_event.bank_data.items.emplace(type_item, count_item);
             }
             break;
         }

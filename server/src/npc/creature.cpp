@@ -1,11 +1,12 @@
 #include "server/includes/npc/creature.h"
 
 #include <algorithm>
+#include <cstring>
 #include <stdexcept>
 
 #include "common/includes/types.h"
+#include "server/print.h"
 
-// #include "server/includes/entity.h"
 
 ItemInstance Creature::search_item_drop(TypeItem type) {
     ItemInstance drop_item;
@@ -18,11 +19,12 @@ ItemInstance Creature::search_item_drop(TypeItem type) {
     return drop_item;
 }
 
-Creature::Creature(const Id& id_, TypeNPC type, const Pose& pos, const NpcAttributes& attrib,
-                   std::vector<ItemInstance>&& items_):
+Creature::Creature(const Id& id_, const std::string& name_, TypeNPC type_, const Pose& pos,
+                   const NpcAttributes& attrib, std::vector<ItemInstance>&& items_):
         CombatEntity(pos, attrib.max_hp, attrib.difficulty_level),
         id(id_),
-        type_creature(type),
+        name(name_),
+        type_creature(type_),
         range_attack(attrib.range_attack),
         items_to_drop(std::move(items_)) {}
 
@@ -67,7 +69,7 @@ void Creature::onDeath(World& world) {
     world.removeCreature(this->id);
 }
 
-CreatureData Creature::getCreatureData() {
+CreatureData Creature::getCreatureData() const {
     CreatureData creauture_npc;
     creauture_npc.type = this->type_creature;
     creauture_npc.attributes.current_hp = this->hp;
@@ -78,19 +80,21 @@ CreatureData Creature::getCreatureData() {
     return creauture_npc;
 }
 
-NpcSnapshotData Creature::getNpcSnapshotData() {
-    NpcSnapshotData napshot;
-    // std::memset(snapshot.name, 0, MAX_NAME_SIZE);
-    // this->name.copy(snapshot.name, MAX_NAME_SIZE - 1);
-    napshot.id = this->id;
-    napshot.type_id = this->type_creature;
-    napshot.direction = this->pose.direct;
-    napshot.current_hp = this->hp;
-    napshot.max_hp = this->max_hp;
-    napshot.pos_x = this->pose.position.x;
-    napshot.pos_y = this->pose.position.y;
-    return napshot;
+NpcSnapshotData Creature::getNpcSnapshotData() const {
+    NpcSnapshotData snapshot;
+    std::memset(snapshot.name, 0, MAX_NAME_SIZE);
+    this->name.copy(snapshot.name, MAX_NAME_SIZE - 1);
+    snapshot.id = this->id;
+    snapshot.type_id = this->type_creature;
+    snapshot.direction = this->pose.direct;
+    snapshot.current_hp = this->hp;
+    snapshot.max_hp = this->max_hp;
+    snapshot.position.x = this->pose.position.x;
+    snapshot.position.y = this->pose.position.y;
+    return snapshot;
 }
+
+std::string Creature::getName() const { return this->name; }
 
 uint16_t Creature::getAggroRange() const { return this->range_attack; }
 
@@ -118,21 +122,3 @@ void Creature::updateCooldowns(uint32_t delta_ms) {
 uint16_t Creature::calculateDamage(bool& is_critical) const {
     return GameFormulas::calculationDamage(std::max<uint16_t>(1, this->level), 1, 2, is_critical);
 }
-
-
-// // Elegimos al azar un item de su pool de objetos
-// TypeItem item_to_drop = NONE;
-// static std::random_device rd; std::mt19937 rng(rd());
-// std::uniform_int_distribution<size_t> item_dist(0, this->drop_items_pool.size() - 1);
-// item_to_drop = this->drop_items_pool[item_dist(rng)];
-//
-// Position death_pos = this->getPosition();
-//
-// if (item_to_drop != NONE) {
-//     // this->world.spawnItemOnFloor(death_pos, item_to_drop);
-// }
-//
-// if (drop_gold > 0) {
-//     // this->world.spawnGoldOnFloor(death_pos, drop_gold);
-// }
-// // this->markForRemoval();

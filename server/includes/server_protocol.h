@@ -58,7 +58,7 @@ public:
     void sendActionError(const std::string& error_msg) const;
     void sendMap(const Map& map, const std::vector<CitizenNpcSnapshot>& citizen);
     void sendTraderCatalog(const std::map<TypeItem, uint32_t>& catalog);
-    void sendBankContent(const std::vector<MsgItemInfo>& items, uint32_t gold);
+    void sendBankContent(const std::map<TypeItem, uint32_t>& items, uint32_t gold);
 
     // Returns false when the client disconnects
     bool readCommand(Id player_id, QueueCmd& queue);

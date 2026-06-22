@@ -11,21 +11,19 @@
 #include "common/includes/types.h"
 
 constexpr uint8_t PLAYER_FLAG_GHOST = 1 << 0;
+constexpr uint8_t PLAYER_FLAG_MEDITATING = 1 << 1;
 
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
     char name[MAX_NAME_SIZE];
     uint32_t id;
     // Posicion en el mapa
-    uint32_t pos_x;
-    uint32_t pos_y;
+    Position position;
+    // uint32_t pos_x;
+    // uint32_t pos_y;
     uint8_t direction;  // Hacia donde mira
 
     PlayerStats stats;
-    // uint16_t hp;
-    // uint16_t max_hp;
-    // uint16_t mana;
-    // uint16_t max_mana;
     CharacterTraits ch_traits;
     // uint16_t body_id;
     // uint16_t head_id;
@@ -35,6 +33,7 @@ struct PlayerSnapshotData {
     uint8_t weapon_id;
     uint8_t shield_id; /*Debe ser none si no esta equipado*/
     uint8_t helmet_id;
+    uint8_t armor_id;
 
     uint8_t flags;  // Estados especiales (por ej: bit 0 = invisible, bit 1 = meditando, etc.)
     uint16_t resurrection_time_left_ms;
@@ -51,17 +50,19 @@ struct NpcSnapshotData {
     char name[MAX_NAME_SIZE];
     uint32_t id;
     uint8_t type_id;
+    Position position;
+    // uint32_t pos_x;
+    // uint32_t pos_y;
     uint8_t direction;
-    uint32_t pos_x;
-    uint32_t pos_y;
     uint16_t current_hp;
     uint16_t max_hp;
 };
 
 struct ItemGroundSnapshotData {
-    uint16_t item_id;
-    uint32_t pos_x;
-    uint32_t pos_y;
+    uint8_t item_id;
+    Position position;
+    // uint32_t pos_x;
+    // uint32_t pos_y;
 };
 
 struct GoldPileGroundSnapshotData {
@@ -88,7 +89,7 @@ struct Snapshot {
     std::vector<PlayerSnapshotData> players;
     std::vector<NpcSnapshotData> npcs;
     std::vector<ItemGroundSnapshotData> items_on_floor;
-    std::vector<GoldPileGroundSnapshotData> gold_piles;
+    // std::vector<GoldPileGroundSnapshotData> gold_piles;
     std::vector<SoundEffectSnapshotData> sound_effects;
     std::vector<VisualEffectSnapshotData> visual_effects;
 };

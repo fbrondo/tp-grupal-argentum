@@ -4,6 +4,8 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
+#include <sstream>
 #include <unordered_set>
 
 #include "client/includes/chat_manager.h"
@@ -33,9 +35,35 @@ static void log_render_error_once(const std::string& texture_key, const std::exc
     }
 }
 
-static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, uint32_t pos_x,
-                                            uint32_t pos_y, const SDL_Rect& camera, int offset_x,
-                                            int offset_y) {
+static std::vector<std::string> wrap_text(SDL2pp::Font& font, const std::string& text,
+                                          int max_width) {
+    std::vector<std::string> lines;
+    if (text.empty())
+        return lines;
+
+    std::istringstream stream(text);
+    std::string word;
+    std::string current_line;
+
+    while (stream >> word) {
+        std::string test_line = current_line.empty() ? word : current_line + " " + word;
+        SDL2pp::Surface surface = font.RenderUTF8_Blended(test_line, SDL_Color{255, 255, 255, 255});
+        if (surface.GetWidth() > max_width && !current_line.empty()) {
+            lines.push_back(current_line);
+            current_line = word;
+        } else {
+            current_line = test_line;
+        }
+    }
+    if (!current_line.empty()) {
+        lines.push_back(current_line);
+    }
+    return lines;
+}
+
+static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, VisualEffectID effect_id,
+                                            uint32_t pos_x, uint32_t pos_y, const SDL_Rect& camera,
+                                            int offset_x, int offset_y) {
     int dst_w = texture.GetWidth();
     int dst_h = texture.GetHeight();
 
@@ -49,7 +77,11 @@ static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, uint32_t p
     dst.w = dst_w;
     dst.h = dst_h;
     dst.x = static_cast<int>(pos_x * TILE_SIZE) + (TILE_SIZE - dst.w) / 2 - camera.x + offset_x;
-    dst.y = static_cast<int>(pos_y * TILE_SIZE) + TILE_SIZE - dst.h - camera.y + offset_y;
+    if (effect_id == VisualEffectID::EXPLOSION) {
+        dst.y = static_cast<int>(pos_y * TILE_SIZE) + (TILE_SIZE - dst.h) / 2 - camera.y + offset_y;
+    } else {
+        dst.y = static_cast<int>(pos_y * TILE_SIZE) + TILE_SIZE - dst.h - camera.y + offset_y;
+    }
     return dst;
 }
 
@@ -102,6 +134,14 @@ void WorldRenderer::update_hud_stats(const MsgPlayerStats& stats) {
     hud_renderer.update_stats(stats);
 }
 
+void WorldRenderer::update_hud_inventory(const std::vector<MsgSlot>& inventory) {
+    hud_renderer.update_inventory(inventory);
+}
+
+void WorldRenderer::update_hud_equipment(const std::vector<MsgSlot>& equipment) {
+    hud_renderer.update_equipment(equipment);
+}
+
 void WorldRenderer::load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot>& citizens) {
     entities.clear();
     static_entity_keys.clear();
@@ -117,6 +157,7 @@ void WorldRenderer::load_map(Map&& new_map, const std::vector<CitizenNpcSnapshot
                 citizen.type, 0, 0, 0);
         entities[entity_key]->move_to(citizen.position.x, citizen.position.y,
                                       static_cast<Direction>(citizen.direction));
+        entities[entity_key]->set_name(std::string(citizen.name));
         static_entity_keys.insert(entity_key);
     }
 }
@@ -198,8 +239,12 @@ bool WorldRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) 
     return hud_renderer.is_point_inside_console(x, y);
 }
 
-bool WorldRenderer::is_point_inside_console_input(uint32_t x, uint32_t y) const {
-    return hud_renderer.is_point_inside_console_input(x, y);
+std::optional<uint8_t> WorldRenderer::inventory_slot_at(const uint32_t x, const uint32_t y) const {
+    return hud_renderer.inventory_slot_at(x, y);
+}
+
+std::optional<uint8_t> WorldRenderer::equipment_slot_at(const uint32_t x, const uint32_t y) const {
+    return hud_renderer.equipment_slot_at(x, y);
 }
 
 bool WorldRenderer::is_local_player_moving() const {
@@ -242,11 +287,14 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         const uint32_t entity_key = player_entity_key(p_data.id);
         ids_en_snapshot.push_back(entity_key);
         if (p_data.id == local_player_id) {
+            SoundManager::set_meditation_loop((p_data.flags & PLAYER_FLAG_MEDITATING) != 0);
             MsgPlayerStats stats;
             stats.hp = p_data.stats.current_hp;
             stats.max_hp = p_data.stats.max_hp;
             stats.mana = p_data.stats.current_mana;
             stats.max_mana = p_data.stats.max_mana;
+            stats.safe_gold = p_data.stats.safe_gold;
+            stats.excess_gold = p_data.stats.excess_gold;
             stats.exp = p_data.stats.xp;
             stats.exp_next_level = exp_next_level(p_data.stats.level);
             stats.level = p_data.stats.level;
@@ -256,18 +304,21 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         auto it = entities.find(entity_key);
         std::string player_name(p_data.name);
         if (it != entities.end()) {
-            it->second->move_to(p_data.pos_x, p_data.pos_y,
+            it->second->move_to(p_data.position.x, p_data.position.y,
                                 static_cast<Direction>(p_data.direction));
+            it->second->set_equipment(p_data.weapon_id, p_data.shield_id, p_data.helmet_id,
+                                      p_data.armor_id);
             it->second->set_name(player_name);
+            it->second->set_level(p_data.stats.level);
             it->second->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         } else {
             bool is_short = (p_data.ch_traits.race == GNOME || p_data.ch_traits.race == DWARF);
-            auto entity = std::make_unique<RenderableEntity>(
-                    entity_key, EntityType::PLAYER, p_data.pos_x, p_data.pos_y,
+            entities[entity_key] = std::make_unique<RenderableEntity>(
+                    entity_key, EntityType::PLAYER, p_data.position.x, p_data.position.y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
-                    p_data.shield_id, p_data.stats.level, is_short);
-            entity->set_name(player_name);
-            entities[entity_key] = std::move(entity);
+                    p_data.shield_id, p_data.helmet_id, p_data.armor_id, p_data.stats.level,
+                    is_short);
+            entities[entity_key]->set_name(player_name);
             entities[entity_key]->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         }
     }
@@ -278,14 +329,18 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         ids_en_snapshot.push_back(entity_key);
         auto it = entities.find(entity_key);
         if (it != entities.end()) {
-            it->second->move_to(n_data.pos_x, n_data.pos_y,
+            it->second->move_to(n_data.position.x, n_data.position.y,
                                 static_cast<Direction>(n_data.direction));
+            it->second->set_hp(n_data.current_hp, n_data.max_hp);
+            it->second->set_name(std::string(n_data.name));
         } else {
             entities[entity_key] = std::make_unique<RenderableEntity>(
-                    entity_key, EntityType::NPC, n_data.pos_x, n_data.pos_y,
+                    entity_key, EntityType::NPC, n_data.position.x, n_data.position.y,
                     static_cast<uint8_t>(n_data.type_id), 0, 0, 0);
-            entities[entity_key]->move_to(n_data.pos_x, n_data.pos_y,
+            entities[entity_key]->move_to(n_data.position.x, n_data.position.y,
                                           static_cast<Direction>(n_data.direction));
+            entities[entity_key]->set_name(std::string(n_data.name));
+            entities[entity_key]->set_hp(n_data.current_hp, n_data.max_hp);
         }
     }
 
@@ -294,12 +349,12 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         // Generamos un ID único espacial (Spatial Hash).
         // Asumiendo que el mapa no mide más de 1000x1000 baldosas:
         // Ej: pos_x = 50, pos_y = 30 -> ID = 2000000 + 50000 + 30 = 2050030
-        uint32_t item_client_id = item_entity_key(i_data.pos_x, i_data.pos_y);
+        uint32_t item_client_id = item_entity_key(i_data.position.x, i_data.position.y);
         ids_en_snapshot.push_back(item_client_id);
         auto it = entities.find(item_client_id);
         if (it == entities.end()) {
             entities[item_client_id] = std::make_unique<RenderableEntity>(
-                    item_client_id, EntityType::ITEM, i_data.pos_x, i_data.pos_y,
+                    item_client_id, EntityType::ITEM, i_data.position.x, i_data.position.y,
                     static_cast<uint8_t>(i_data.item_id), 0, 0, 0);
         }
     }
@@ -476,7 +531,8 @@ void WorldRenderer::render() {
             }
         }
 
-        if (entity->get_type() != EntityType::PLAYER)
+        if (entity->get_type() != EntityType::PLAYER && entity->get_type() != EntityType::NPC &&
+            entity->get_type() != EntityType::CITIZEN)
             continue;
 
         const int entity_screen_x = static_cast<int>(entity->get_pixel_x()) - camera.x +
@@ -486,10 +542,44 @@ void WorldRenderer::render() {
 
         int text_y = entity_top_y - 30;
 
-        const uint8_t lvl = entity->get_level();
         const bool is_local = (entity_key == player_entity_key(local_player_id));
 
-        if (lvl > 0) {
+        // Barra de vida para criaturas (NPCs)
+        if (entity->get_type() == EntityType::NPC && entity->get_max_hp() > 0) {
+            const uint16_t hp = entity->get_current_hp();
+            const uint16_t max = entity->get_max_hp();
+            const int bar_width = 60;
+            const int bar_height = 6;
+            const int bar_x = entity_screen_x - bar_width / 2;
+            const int bar_y = text_y - bar_height - 4;
+
+            // Borde (negro)
+            renderer.SetDrawColor(0, 0, 0, 255);
+            renderer.FillRect(SDL2pp::Rect(bar_x - 1, bar_y - 1, bar_width + 2, bar_height + 2));
+
+            // Fondo (gris oscuro)
+            renderer.SetDrawColor(50, 50, 50, 255);
+            renderer.FillRect(SDL2pp::Rect(bar_x, bar_y, bar_width, bar_height));
+
+            // Vida actual
+            const int fill_width = static_cast<int>(bar_width * hp / max);
+            if (hp > max / 2)
+                renderer.SetDrawColor(50, 200, 50, 255);
+            else if (hp > max / 4)
+                renderer.SetDrawColor(200, 200, 50, 255);
+            else
+                renderer.SetDrawColor(200, 50, 50, 255);
+            renderer.FillRect(SDL2pp::Rect(bar_x, bar_y, fill_width, bar_height));
+
+            // Restaurar color a negro para no afectar el HUD
+            renderer.SetDrawColor(0, 0, 0, 255);
+
+            text_y = bar_y - 4;
+        }
+
+        // Nivel (solo jugadores)
+        const uint8_t lvl = entity->get_level();
+        if (entity->get_type() == EntityType::PLAYER && lvl > 0) {
             std::string lvl_str = "Nv. " + std::to_string(lvl);
             SDL2pp::Texture lvl_tex(renderer, fonts.get_level_font().RenderUTF8_Blended(
                                                       lvl_str, SDL_Color{200, 200, 200, 255}));
@@ -500,6 +590,7 @@ void WorldRenderer::render() {
                           SDL2pp::Rect(entity_screen_x - lw / 2, text_y, lw, lh));
         }
 
+        // Nombre
         if (is_local && !local_player_name.empty()) {
             SDL_Color name_color = {210, 170, 45, 255};
             SDL2pp::Texture name_tex(renderer, fonts.get_name_font().RenderUTF8_Blended(
@@ -509,18 +600,29 @@ void WorldRenderer::render() {
             text_y -= nh;
             renderer.Copy(name_tex, SDL2pp::NullOpt,
                           SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
-        } else if (!is_local && !entity->get_name().empty()) {
-            SDL_Color other_name_color = {255, 255, 255, 255};
-            SDL2pp::Texture name_tex(renderer, fonts.get_name_font().RenderUTF8_Blended(
-                                                       entity->get_name(), other_name_color));
-            const int nw = name_tex.GetWidth();
-            const int nh = name_tex.GetHeight();
-            text_y -= nh;
-            renderer.Copy(name_tex, SDL2pp::NullOpt,
-                          SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
+        } else if (!entity->get_name().empty()) {
+            SDL_Color name_color = {255, 255, 255, 255};
+            if (entity->get_type() == EntityType::NPC) {
+                name_color = {255, 100, 100, 255};  // Rojo para criaturas
+            } else if (entity->get_type() == EntityType::CITIZEN) {
+                name_color = {100, 200, 255, 255};  // Azul para ciudadanos
+            }
+            const int max_name_width = 100;
+            auto name_lines =
+                    wrap_text(fonts.get_npc_name_font(), entity->get_name(), max_name_width);
+            for (auto it = name_lines.rbegin(); it != name_lines.rend(); ++it) {
+                SDL2pp::Texture name_tex(
+                        renderer, fonts.get_npc_name_font().RenderUTF8_Blended(*it, name_color));
+                const int nw = name_tex.GetWidth();
+                const int nh = name_tex.GetHeight();
+                text_y -= nh;
+                renderer.Copy(name_tex, SDL2pp::NullOpt,
+                              SDL2pp::Rect(entity_screen_x - nw / 2, text_y, nw, nh));
+            }
         }
 
-        if (entity->has_active_chat_bubble()) {
+        // Burbuja de chat (solo jugadores)
+        if (entity->get_type() == EntityType::PLAYER && entity->has_active_chat_bubble()) {
             const uint32_t elapsed = SDL_GetTicks() - entity->get_chat_bubble_start_ticks();
             uint8_t alpha = 255;
             if (elapsed > 4000) {
@@ -528,14 +630,18 @@ void WorldRenderer::render() {
                 alpha = static_cast<uint8_t>(255 - (255 * fade_elapsed / 1000));
             }
             SDL_Color bubble_color = {255, 255, 255, alpha};
-            SDL2pp::Texture bubble_tex(renderer,
-                                       fonts.get_bubble_font().RenderUTF8_Blended(
-                                               entity->get_chat_bubble_text(), bubble_color));
-            const int bw = bubble_tex.GetWidth();
-            const int bh = bubble_tex.GetHeight();
-            text_y -= bh;
-            renderer.Copy(bubble_tex, SDL2pp::NullOpt,
-                          SDL2pp::Rect(entity_screen_x - bw / 2, text_y, bw, bh));
+            const int max_bubble_width = 150;
+            auto bubble_lines = wrap_text(fonts.get_bubble_font(), entity->get_chat_bubble_text(),
+                                          max_bubble_width);
+            for (auto it = bubble_lines.rbegin(); it != bubble_lines.rend(); ++it) {
+                SDL2pp::Texture bubble_tex(
+                        renderer, fonts.get_bubble_font().RenderUTF8_Blended(*it, bubble_color));
+                const int bw = bubble_tex.GetWidth();
+                const int bh = bubble_tex.GetHeight();
+                text_y -= bh;
+                renderer.Copy(bubble_tex, SDL2pp::NullOpt,
+                              SDL2pp::Rect(entity_screen_x - bw / 2, text_y, bw, bh));
+            }
         }
     }
 
@@ -551,9 +657,9 @@ void WorldRenderer::render() {
 
             SDL2pp::Texture& texture =
                     texture_manager.get_texture(clip.frame_texture_ids.at(frame_index));
-            SDL_Rect dst =
-                    calculate_visual_effect_dst(texture, effect.pos_x, effect.pos_y, camera,
-                                                camera_screen_offset_x, camera_screen_offset_y);
+            SDL_Rect dst = calculate_visual_effect_dst(texture, effect.effect_id, effect.pos_x,
+                                                       effect.pos_y, camera, camera_screen_offset_x,
+                                                       camera_screen_offset_y);
 
             renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
         } catch (const std::exception& e) {
@@ -598,15 +704,18 @@ void WorldRenderer::render() {
 
 std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_screen(
         int screen_x, int screen_y) const {
+    std::optional<std::pair<uint32_t, EntityType>> closest_entity;
+    int64_t closest_distance_squared = std::numeric_limits<int64_t>::max();
+
     for (const auto& [id, entity]: entities) {
         if (entity->get_type() == EntityType::ITEM)
             continue;
-        if (id == local_player_id)
-            continue;
         int ex = static_cast<int>(entity->get_pixel_x()) - camera.x + camera_screen_offset_x;
         int ey = static_cast<int>(entity->get_pixel_y()) - camera.y + camera_screen_offset_y;
-        if (screen_x >= ex && screen_x < ex + TILE_SIZE && screen_y >= ey &&
-            screen_y < ey + TILE_SIZE) {
+        constexpr int horizontal_margin = TILE_SIZE / 4;
+        constexpr int upper_sprite_margin = TILE_SIZE / 2;
+        if (screen_x >= ex - horizontal_margin && screen_x < ex + TILE_SIZE + horizontal_margin &&
+            screen_y >= ey - upper_sprite_margin && screen_y < ey + TILE_SIZE) {
             EntityType type = entity->get_type();
             uint32_t server_id = id;
             if (type == EntityType::NPC)
@@ -615,10 +724,17 @@ std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_scre
                 server_id = id - PLAYER_ENTITY_OFFSET;
             else if (type == EntityType::CITIZEN)
                 server_id = id - CITIZEN_ENTITY_OFFSET;
-            return std::make_pair(server_id, type);
+
+            const int64_t dx = screen_x - (ex + TILE_SIZE / 2);
+            const int64_t dy = screen_y - (ey + TILE_SIZE / 2);
+            const int64_t distance_squared = dx * dx + dy * dy;
+            if (distance_squared < closest_distance_squared) {
+                closest_distance_squared = distance_squared;
+                closest_entity = std::make_pair(server_id, type);
+            }
         }
     }
-    return std::nullopt;
+    return closest_entity;
 }
 
 int WorldRenderer::get_npc_body_id(uint32_t server_id) const {
@@ -627,5 +743,5 @@ int WorldRenderer::get_npc_body_id(uint32_t server_id) const {
     if (it == entities.end() || it->second->get_type() != EntityType::NPC) {
         return -1;
     }
-    return static_cast<int>(it->second->get_body_id());
+    return it->second->get_body_id();
 }

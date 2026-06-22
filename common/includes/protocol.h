@@ -2,8 +2,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "common//includes/core/character_traits.h"
-#include "server/includes/slot.h"
+#include "common/includes/core/character_traits.h"
 
 constexpr size_t MAX_NAME_SIZE = 30;
 constexpr size_t MAX_ITEM_SIZE = 100;
@@ -86,7 +85,7 @@ struct MsgInteract {
 struct MsgTrade {
     uint8_t opcode;  // BUY_ITEM or SELL_ITEM
     uint32_t npc_id;
-    uint16_t item_id;
+    uint8_t item_id;
     uint16_t quantity;
 };
 
@@ -96,7 +95,8 @@ struct MsgPlayerStats {
     uint32_t max_hp;
     uint32_t mana;
     uint32_t max_mana;
-    uint32_t gold;
+    uint32_t safe_gold;
+    uint32_t excess_gold;
     uint32_t exp;
     uint32_t exp_next_level;
     uint8_t level;
@@ -132,13 +132,5 @@ struct MsgSignup {
     char password[MAX_NAME_SIZE];
     CharacterTraits traits;
 };
-
-
-// struct MsgCharacterCreate {
-//     uint8_t opcode = CHARACTER_CREATE;
-//     char name[MAX_NAME_SIZE];
-//     uint8_t race;
-//     uint8_t clase;
-// };
 
 #pragma pack(pop)

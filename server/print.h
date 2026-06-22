@@ -69,6 +69,9 @@ void printPositionMovePlayer(const Id& id, const Pose& pose, const Position& pre
 void imprimirCajaContenedora(const PlayerData& player);
 void printInitGameloop(const std::string& message);
 void imprimirTilesOcupadas(const std::unordered_map<Position, bool, PositionHash>& occupied_tiles);
+
+// void printBuyItem(const std::string name, const Item* item);
+void printEvasiveMessageAttack(const std::string& name_victim);
 };  // namespace Print
 
 #endif

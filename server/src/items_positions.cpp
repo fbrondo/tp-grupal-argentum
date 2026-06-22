@@ -15,11 +15,11 @@ void ItemsPositions::add(const TreasureInstance& treasure) {
     this->items_tiles.emplace(treasure.position, true);
 }
 
-void ItemsPositions::remove(const ItemInstance& item) { items_on_floor.erase(item.id); }
-void ItemsPositions::remove(const GoldBagInstance& gold) {
-    this->gold_bags_on_floor.erase(gold.id);
-}
-void ItemsPositions::remove(const TreasureInstance& t) { treasures_on_floor.erase(t.id); }
+// void ItemsPositions::remove(const ItemInstance& item) { items_on_floor.erase(item.id); }
+// void ItemsPositions::remove(const GoldBagInstance& gold) {
+//     this->gold_bags_on_floor.erase(gold.id);
+// }
+// void ItemsPositions::remove(const TreasureInstance& t) { treasures_on_floor.erase(t.id); }
 
 bool ItemsPositions::removeItemTakeToPlayer(Player& player) {
     bool item_take = false;
@@ -60,6 +60,27 @@ bool ItemsPositions::removeItemTakeToPlayer(Player& player) {
 
 bool ItemsPositions::isOcupied(const Position& position) const {
     return this->items_tiles.contains(position);
+}
+
+std::vector<ItemGroundSnapshotData> ItemsPositions::getItemsOnFloor() {
+    std::vector<ItemGroundSnapshotData> items;
+    for (auto it = this->items_on_floor.begin(); it != this->items_on_floor.end(); ++it) {
+        ItemGroundSnapshotData item{};
+        item.item_id = it->second.item->type;
+        item.position = it->second.position;
+    }
+    for (auto it = this->treasures_on_floor.begin(); it != this->treasures_on_floor.end(); ++it) {
+        ItemGroundSnapshotData item{};
+        item.item_id = TREASURE;
+        item.position = it->second.position;
+    }
+    for (auto it = this->gold_bags_on_floor.begin(); it != this->gold_bags_on_floor.end(); ++it) {
+        ItemGroundSnapshotData item{};
+        item.item_id = GOLD;
+        item.position = it->second.position;
+        items.emplace_back(item);
+    }
+    return items;
 }
 
 // Si el jugador solo manda "Quiero interactuar con lo que hay en la posición X, Y"
