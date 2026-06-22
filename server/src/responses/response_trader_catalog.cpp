@@ -2,7 +2,8 @@
 
 #include "server/includes/server_protocol.h"
 
-ResponseTraderCatalog::ResponseTraderCatalog(std::map<TypeItem, uint32_t>&& catalog) {
+ResponseTraderCatalog::ResponseTraderCatalog(
+        std::map<TypeItem, std::pair<uint32_t, uint32_t>>&& catalog) {
     this->catalog = std::move(catalog);
 }
 

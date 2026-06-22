@@ -22,8 +22,13 @@ enum class TypeEventClient {
     EQUIPMENT_UPDATE
 };
 
+struct CatalogEntry {
+    uint32_t purchase_price;
+    uint32_t selling_price;
+};
+
 struct MerchantEventData {
-    std::map<TypeItem, uint32_t> catalog;
+    std::map<TypeItem, CatalogEntry> catalog;
 };
 
 struct BankEventData {

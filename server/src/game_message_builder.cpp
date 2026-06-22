@@ -30,7 +30,7 @@ std::string messageReportingMditationStatus(const std::string& name) {
 
 std::string messgAttackDodged(const std::string& attacker_name, const std::string& victim_name) {
     std::ostringstream oss;
-    oss << victim_name << "has esquivado el ataque de" << attacker_name << ".";
+    oss << victim_name << " has esquivado el ataque de " << attacker_name << ".";
     return oss.str();
 }
 
@@ -47,7 +47,7 @@ std::string mssgeFromAClanMemberUnderAttack(const std::string& victim_name) {
 
 std::string messgThisNPCDoesNotbuyItem(const std::string& name_npc) {
     std::ostringstream oss;
-    oss << "El " << name_npc << "no compra este item.";
+    oss << "El " << name_npc << " no compra este item.";
     return oss.str();
 }
 }  // namespace GameMessageBuilder

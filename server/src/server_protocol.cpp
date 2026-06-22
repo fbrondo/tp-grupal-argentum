@@ -368,8 +368,9 @@ void ServerProtocol::sendMap(const Map& map, const std::vector<CitizenNpcSnapsho
     }
 }
 
-void ServerProtocol::sendTraderCatalog(const std::map<TypeItem, uint32_t>& catalog) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t) + (catalog.size() * 5);
+void ServerProtocol::sendTraderCatalog(
+        const std::map<TypeItem, std::pair<uint32_t, uint32_t>>& catalog) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t) + (catalog.size() * 9);
 
     std::vector<char> buffer(size_total);
     size_t offset = 0;
@@ -382,14 +383,18 @@ void ServerProtocol::sendTraderCatalog(const std::map<TypeItem, uint32_t>& catal
     std::memcpy(buffer.data() + offset, &net_total_items, sizeof(net_total_items));
     offset += sizeof(net_total_items);
 
-    for (auto& [item_type, price]: catalog) {
+    for (auto& [item_type, prices]: catalog) {
         uint8_t type_byte = static_cast<uint8_t>(item_type);
         std::memcpy(buffer.data() + offset, &type_byte, sizeof(type_byte));
         offset += sizeof(type_byte);
 
-        uint32_t net_price = htonl(price);
-        std::memcpy(buffer.data() + offset, &net_price, sizeof(net_price));
-        offset += sizeof(net_price);
+        uint32_t net_purchase_price = htonl(prices.first);
+        std::memcpy(buffer.data() + offset, &net_purchase_price, sizeof(net_purchase_price));
+        offset += sizeof(net_purchase_price);
+
+        uint32_t net_selling_price = htonl(prices.second);
+        std::memcpy(buffer.data() + offset, &net_selling_price, sizeof(net_selling_price));
+        offset += sizeof(net_selling_price);
     }
     try {
         socket.sendall(buffer.data(), buffer.size());

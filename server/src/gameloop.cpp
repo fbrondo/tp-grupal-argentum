@@ -764,19 +764,18 @@ void Gameloop::processPlayerWithdrawGold(Id player_id, Id npc_id, uint32_t amoun
 
 void Gameloop::processListItems(Id player_id, Id npc_id) {
     std::unique_ptr<Response> response;
-    std::map<TypeItem, uint32_t> list_items;
     Player* player = this->players.at(player_id).get();
     if (!player->isAlive()) {
         return;
     }
     auto npc = this->citizen_npcs.at(npc_id).get();
     if (auto trader = dynamic_cast<TraderNPC*>(npc)) {
-        list_items = trader->listItemsCatalog();
+        auto list_items = trader->listItemsCatalog();
         response = std::make_unique<ResponseTraderCatalog>(std::move(list_items));
         this->effects.emitRandomSound(600, 602, player->getPosition());
     }
     if (auto banker = dynamic_cast<Banker*>(npc)) {
-        list_items = banker->depositedItems(*player);
+        auto list_items = banker->depositedItems(*player);
         const auto gold_deposited = banker->depositedGold(*player);
         response = std::make_unique<ResponseBankContent>(std::move(list_items), gold_deposited);
         this->effects.emitSound(SoundEffectID::BIENVENIDO_AL_BANCO, player->getPosition());
@@ -879,7 +878,7 @@ void Gameloop::processPlayerResurrect(Id player_id, std::optional<Id> priest_id)
     player->startResurrection();
     this->pending_resurrects[player_id] = {delay_ms, healer.id};
     this->sendResponseToPlayer(
-            player_id, std::make_shared<ResponseChatMsg>("El sacerdote viene a resucitarte..."));
+            player_id, std::make_shared<ResponseChatMsg>("Buscando sacerdote para resucitarte..."));
 }
 
 void Gameloop::processPlayerInteract(Id player_id, Id npc_id, uint8_t action) {
