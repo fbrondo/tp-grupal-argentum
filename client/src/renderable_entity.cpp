@@ -229,7 +229,8 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
 
         // Cabeza
         SDL_Rect dst_head = {0, 0, 0, 0};
-        if (head_id != 0) {
+        const bool has_head = head_id != 0;
+        if (has_head) {
             std::string head_tex_key = "head_" + std::to_string(head_id);
             std::string head_anim = head_tex_key + "_idle_" + std::to_string(current_dir);
             const AnimationClip& head_clip = texture_manager.get_animation(head_anim);
@@ -262,22 +263,35 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                     helm_y_offset = 0;
                     break;
                 case DOWN:
-                    helm_y_offset = is_short_race ? 8 : 12;
+                    helm_y_offset = is_short_race ? 12 : 14;
                     break;
                 case LEFT:
-                    helm_y_offset = is_short_race ? -7 : -13;
+                    helm_y_offset = -13;
                     break;
                 case RIGHT:
-                    helm_y_offset = is_short_race ? -21 : -25;
+                    helm_y_offset = -26;
                     break;
             }
-            if (helmet_id == MAGIC_HAT) {
-                helm_y_offset -= is_short_race ? 8 : 10;
+            if (type == TypeItem::MAGIC_HAT) {
+                switch (current_dir) {
+                    case UP:
+                        helm_y_offset = -10;
+                        break;
+                    case DOWN:
+                        helm_y_offset = is_short_race ? 5 : 7;
+                        break;
+                    case LEFT:
+                        helm_y_offset = -19;
+                        break;
+                    case RIGHT:
+                        helm_y_offset = -32;
+                        break;
+                }
             }
 
-            int base_x = dst_head.w > 0 ? dst_head.x + (dst_head.w - helm_src.w) / 2 :
-                                          dst_rect.x + (dst_rect.w - helm_src.w) / 2;
-            int base_y = (dst_head.y > 0 ? dst_head.y : dst_rect.y) + helm_y_offset;
+            int base_x = has_head ? dst_head.x + (dst_head.w - helm_src.w) / 2 :
+                                    dst_rect.x + (dst_rect.w - helm_src.w) / 2;
+            int base_y = (has_head ? dst_head.y : dst_rect.y) + helm_y_offset;
             SDL_Rect dst_helm = {base_x, base_y, helm_src.w, helm_src.h};
             helm_tex.SetAlphaMod(alpha);
             renderer.Copy(helm_tex, SDL2pp::Rect(helm_src), SDL2pp::Rect(dst_helm));
