@@ -338,6 +338,17 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
     }
 
     // C. PROCESAR ÍTEMS EN EL SUELO
+    // TODO: Borrar estos prints de debug
+    static size_t last_logged_count = 0;
+    if (snapshot.items_on_floor.size() != last_logged_count) {
+        last_logged_count = snapshot.items_on_floor.size();
+        std::cerr << "[CLIENT] items_on_floor recibidos (primera vez): "
+                  << snapshot.items_on_floor.size() << "\n";
+        for (const auto& i: snapshot.items_on_floor) {
+            std::cerr << "  item_id=" << static_cast<int>(i.item_id) << " pos=(" << i.position.x
+                      << "," << i.position.y << ")\n";
+        }
+    }
     for (const auto& i_data: snapshot.items_on_floor) {
         // Generamos un ID único espacial (Spatial Hash).
         // Asumiendo que el mapa no mide más de 1000x1000 baldosas:
