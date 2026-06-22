@@ -71,7 +71,7 @@ void ServerProtocol::sendSnapshot(const Snapshot& state) const {
     offset += sizeof(i_count_net);
 
     for (auto i: state.items_on_floor) {
-        i.item_id = htons(i.item_id);
+        // item_id es uint8_t no necesita conversión
         i.position.x = htonl(i.position.x);
         i.position.y = htonl(i.position.y);
         std::memcpy(buffer.data() + offset, &i, sizeof(ItemGroundSnapshotData));

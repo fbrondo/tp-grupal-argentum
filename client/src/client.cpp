@@ -124,6 +124,13 @@ void Client::sync_chat_ui() {
 }
 
 void Client::handle_left_click(uint32_t mouse_x, uint32_t mouse_y) {
+    const auto inv_slot = world_renderer.inventory_slot_at(mouse_x, mouse_y);
+    if (inv_slot.has_value()) {
+        selected_inv_slot = inv_slot;
+        world_renderer.set_selected_inv_slot(inv_slot);
+        return;
+    }
+
     constexpr SDL_Rect world_view = {7, 149, 672, 384};
     const bool in_world = mouse_x >= world_view.x && mouse_x < world_view.x + world_view.w &&
                           mouse_y >= world_view.y && mouse_y < world_view.y + world_view.h;
@@ -220,7 +227,8 @@ void Client::handle_events() {
                     if (chat.has_npc_selection()) {
                         npc_id = static_cast<uint32_t>(chat.get_selected_npc_id());
                     }
-                    cmd_queue.push(std::make_unique<ChatCommandClient>(msg, npc_id));
+                    cmd_queue.push(
+                            std::make_unique<ChatCommandClient>(msg, npc_id, selected_inv_slot));
                     world_renderer.set_chat_bubble_on_local(msg);
                 }
                 chat.set_active(false);

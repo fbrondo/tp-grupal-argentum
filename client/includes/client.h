@@ -53,6 +53,7 @@ private:
     Direction last_move_direction = DOWN;
 
     ChatManager chat;
+    std::optional<uint8_t> selected_inv_slot;
 
     static WindowConfig loadWindowConfig();
     void update_state_from_server();

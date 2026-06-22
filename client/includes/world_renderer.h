@@ -75,6 +75,7 @@ public:
     bool is_point_inside_console(uint32_t x, uint32_t y) const;
     std::optional<uint8_t> inventory_slot_at(uint32_t x, uint32_t y) const;
     std::optional<uint8_t> equipment_slot_at(uint32_t x, uint32_t y) const;
+    void set_selected_inv_slot(std::optional<uint8_t> slot);
     bool is_local_player_moving() const;
     // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
     void update_from_snapshot(const Snapshot& snapshot);

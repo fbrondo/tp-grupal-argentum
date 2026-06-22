@@ -298,6 +298,8 @@ void HudRenderer::update_resurrection_timer(uint16_t time_left_ms) {
             create_text_texture("Estas resucitando... " + std::to_string(seconds_left) + "s");
 }
 
+void HudRenderer::set_selected_slot(std::optional<uint8_t> slot) { selected_slot = slot; }
+
 void HudRenderer::render_resurrection_notice() const {
     if (!resurrection_texture) {
         return;
@@ -384,6 +386,18 @@ void HudRenderer::render_inventory() const {
                           SDL2pp::Rect(x + (INVENTORY_SLOT_SIZE - dst_w) / 2,
                                        y + (INVENTORY_SLOT_SIZE - dst_h) / 2, dst_w, dst_h));
         } catch (...) {}
+    }
+
+    if (selected_slot.has_value()) {
+        const int sel = *selected_slot;
+        const int col = sel % INVENTORY_SLOT_COLUMNS;
+        const int row = sel / INVENTORY_SLOT_COLUMNS;
+        const int sx = INVENTORY_GRID_X + col * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X);
+        const int sy = INVENTORY_GRID_Y + row * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y);
+        SDL_Rect highlight = {sx - 1, sy - 1, INVENTORY_SLOT_SIZE + 2, INVENTORY_SLOT_SIZE + 2};
+        SDL_SetRenderDrawColor(renderer.Get(), 255, 220, 0, 255);
+        SDL_RenderDrawRect(renderer.Get(), &highlight);
+        SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 255);
     }
 
     for (const auto& [slot_index, slot]: equipped_inventory_slots) {

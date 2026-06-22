@@ -1,11 +1,18 @@
 #include "server/includes/items_positions.h"
 
+#include <iostream>
+
 void ItemsPositions::add(const ItemInstance& item) {
+    std::cerr << "[FLOOR] add ItemInstance id=" << item.id
+              << " type=" << static_cast<int>(item.item ? item.item->type : 0) << " pos=("
+              << item.position.x << "," << item.position.y << ")\n";
     this->items_on_floor.emplace(item.id, item);
     this->items_tiles.emplace(item.position, true);
 }
 
 void ItemsPositions::add(const GoldBagInstance& gold_bag) {
+    std::cerr << "[FLOOR] add GoldBag id=" << gold_bag.id << " amount=" << gold_bag.amount
+              << " pos=(" << gold_bag.position.x << "," << gold_bag.position.y << ")\n";
     this->gold_bags_on_floor.emplace(gold_bag.id, gold_bag);
     this->items_tiles.emplace(gold_bag.position, true);
 }
@@ -68,11 +75,13 @@ std::vector<ItemGroundSnapshotData> ItemsPositions::getItemsOnFloor() {
         ItemGroundSnapshotData item{};
         item.item_id = it->second.item->type;
         item.position = it->second.position;
+        items.emplace_back(item);
     }
     for (auto it = this->treasures_on_floor.begin(); it != this->treasures_on_floor.end(); ++it) {
         ItemGroundSnapshotData item{};
         item.item_id = TREASURE;
         item.position = it->second.position;
+        items.emplace_back(item);
     }
     for (auto it = this->gold_bags_on_floor.begin(); it != this->gold_bags_on_floor.end(); ++it) {
         ItemGroundSnapshotData item{};
