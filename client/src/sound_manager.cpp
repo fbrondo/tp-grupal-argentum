@@ -1,14 +1,35 @@
 #include "client/includes/sound_manager.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
-void SoundManager::init() {
-    Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG);
-    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+namespace {
+constexpr double POSITIONAL_ATTENUATION_PER_TILE = 16.0;
 }
 
-void SoundManager::play_background_music(const std::string& filepath) {
+bool SoundManager::init() {
+    const int requested_codecs = MIX_INIT_MP3 | MIX_INIT_OGG;
+    const int initialized_codecs = Mix_Init(requested_codecs);
+    if ((initialized_codecs & MIX_INIT_MP3) == 0) {
+        std::cerr << "No se pudo inicializar el soporte MP3: " << Mix_GetError() << std::endl;
+    }
+
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
+        std::cerr << "No se pudo abrir el dispositivo de audio: " << Mix_GetError() << std::endl;
+        Mix_Quit();
+        return false;
+    }
+
+    audio_open = true;
+    return true;
+}
+
+void SoundManager::play_background_music(const std::string& filepath,
+                                         const double start_position_seconds) {
+    if (!audio_open)
+        return;
+
     stop_background_music();
 
     background_music = Mix_LoadMUS(filepath.c_str());
@@ -20,6 +41,11 @@ void SoundManager::play_background_music(const std::string& filepath) {
 
     if (Mix_PlayMusic(background_music, -1) == -1) {
         std::cerr << "Error al reproducir la musica: " << Mix_GetError() << std::endl;
+        return;
+    }
+
+    if (start_position_seconds > 0.0 && Mix_SetMusicPosition(start_position_seconds) == -1) {
+        std::cerr << "No se pudo adelantar la musica: " << Mix_GetError() << std::endl;
     }
 }
 
@@ -65,20 +91,27 @@ void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t 
         int channel = Mix_PlayChannel(-1, chunk_a_reproducir, 0);
         if (channel != -1) {
             // Calculamos la distancia entre el personaje y el ruido
-            int32_t dx = static_cast<int32_t>(fx_x) - static_cast<int32_t>(player_x);
-            int32_t dy = static_cast<int32_t>(fx_y) - static_cast<int32_t>(player_y);
-            int distance = static_cast<int>(std::sqrt(dx * dx + dy * dy) / 4);
-
-            if (distance > 255)
-                distance = 255;
+            const int64_t dx = static_cast<int64_t>(fx_x) - static_cast<int64_t>(player_x);
+            const int64_t dy = static_cast<int64_t>(fx_y) - static_cast<int64_t>(player_y);
+            const int distance = std::min(
+                    255,
+                    static_cast<int>(std::hypot(static_cast<double>(dx), static_cast<double>(dy)) *
+                                     POSITIONAL_ATTENUATION_PER_TILE));
 
             // Calculamos el ángulo (0 = Arriba, 90 = Derecha, 180 = Abajo, 270 = Izquierda)
-            int angle = static_cast<int>(std::atan2(dx, -dy) * 180.0 / M_PI);
+            int angle = static_cast<int>(
+                    std::atan2(static_cast<double>(dx), static_cast<double>(-dy)) * 180.0 / M_PI);
             if (angle < 0)
                 angle += 360;
 
             // SDL_mixer altera el volumen de los canales izquierdo/derecho
-            Mix_SetPosition(channel, angle, distance);
+            if (Mix_SetPosition(channel, static_cast<Sint16>(angle),
+                                static_cast<Uint8>(distance)) == 0) {
+                std::cerr << "No se pudo posicionar el sonido: " << Mix_GetError() << std::endl;
+            }
+        } else {
+            std::cerr << "No hay un canal disponible para reproducir el sonido: " << Mix_GetError()
+                      << std::endl;
         }
     }
 }
@@ -120,5 +153,9 @@ void SoundManager::cleanup() {
             Mix_FreeChunk(chunk);
     }
     sound_bank.clear();
-    Mix_CloseAudio();
+    if (audio_open) {
+        Mix_CloseAudio();
+        audio_open = false;
+    }
+    Mix_Quit();
 }
