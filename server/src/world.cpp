@@ -245,9 +245,6 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
     if (this->npc_positions.isOcupied(position)) {
         return false;
     }
-    if (this->item_positions.isOcupied(position)) {
-        return false;
-    }
     return true;
 }
 

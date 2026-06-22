@@ -456,6 +456,8 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         }
     }
 
+    const std::string victim_name = victim->getName();
+
     if (victim_died) {
         attacker->earnKillExp(victim);
         if (victim_is_creature) {
@@ -463,7 +465,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         }
     }
     auto messg = GameMessageBuilder::messgAboutDamageDealtByThePlayer(
-            victim->getName(), damage_by_attacker, victim_died);
+            victim_name, damage_by_attacker, victim_died);
     this->sendCombatMessage(attacker_id, messg);
 
     const auto magic_weapon = dynamic_cast<MagicWeapon*>(weapon);

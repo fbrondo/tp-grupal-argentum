@@ -406,7 +406,7 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
             for (uint16_t i = 0; i < i_count; ++i) {
                 ItemGroundSnapshotData it;
                 socket.recvall(&it, sizeof(ItemGroundSnapshotData));
-                it.item_id = ntohs(it.item_id);
+                // item_id es uint8_t no necesita conversión
                 it.position.x = ntohl(it.position.x);
                 it.position.y = ntohl(it.position.y);
                 out_event.world.items_on_floor.push_back(it);
