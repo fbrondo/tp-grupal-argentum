@@ -18,7 +18,7 @@ server_update_frecuency = 30
 
 # Cada medio segundo el servidor refresca las estadisitcas (vida, mana).
 # Aqui es donde se nota la regenacion de vida y mana por tiempo
-update_player_atributes = 500
+update_player_atributes = 1000
 
 # Los monstruos tardan 3 segundos en aparecer (respawn) despues de morir o iniciar el mapa.
 # cada cierto tiempo hago spawn de los npcs que han sido vencidos
@@ -31,4 +31,6 @@ disappear_dropped_item = 60000
 pesist_data = 60000
 #
 npc_attack_cooldown = 1000
+#
+player_attack_cooldown = 6000
 

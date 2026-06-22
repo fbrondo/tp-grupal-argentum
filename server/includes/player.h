@@ -107,6 +107,7 @@ public:
     bool equipItem(size_t slot_id);
     bool unequipItem(size_t slot_id);
     bool useItem(const size_t& slot_id);
+    bool canAttack() const;
 
     uint16_t calculateDamage(bool& is_critical, Weapon& weapon) const;
     static uint16_t calculateDefense(std::vector<Defense*> info_defense);

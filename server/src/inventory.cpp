@@ -189,14 +189,3 @@ std::vector<MsgSlot> Inventory::getInventory() const {
 }
 
 void Inventory::reset() { this->size_current = 0; }
-// uint8_t getSlotOfInstance(Id instance_id) const {
-//     uint8_t slot_index = 0;
-//
-//     for (const auto& [id, item] : this->inventory) {
-//         if (id == instance_id) {
-//             return slot_index;
-//         }
-//         slot_index++;
-//     }
-//     return 255;
-// }

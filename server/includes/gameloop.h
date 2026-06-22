@@ -85,10 +85,13 @@ private:
     void sendUpdateInventoryToPlayer(Id player_id, Player& player);
     void sendUpdateEquipmentToPlayer(Id player_id, Player& player);
     void reportAttackByAPlayerOnClanmates(Player& player);
+    void reportPlayerInterruptedMeditation(const Id& player_id, Player& player);
 
+    void updateAttackCooldown(const uint32_t& delta_ms);
     void updateCreatures(uint32_t delta_ms);
     void respawnDeadNpcs();
     void updatePlayersAttributes();
+    void updatePendingResurrects(const uint32_t& delta_ms);
     void updateStatePlayers();
     void updateStateWorld();
 
@@ -98,7 +101,6 @@ public:
     void processHandleSignup(const Id& player_id, const User& user, const CharacterTraits& traits);
     void processHandleLogin(const Id& player_id, const User& user);
     void executeAttackPlayer(const Id& player_id, const Id& victim_id);
-
 
     void processMovePlayer(Id player_id, Direction dir);
     void processBuyItem(Id player_id, Id npc_id, TypeItem type_item); /*enviabas un ID item_id*/

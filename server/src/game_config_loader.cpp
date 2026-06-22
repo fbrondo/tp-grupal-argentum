@@ -327,6 +327,8 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
         times.pesistence_data = static_cast<uint32_t>(times_info["pesist_data"].value_or(60000));
         times.npc_attack_cooldown =
                 static_cast<uint32_t>(times_info["npc_attack_cooldown"].value_or(1000));
+        times.player_attack_cooldown =
+                static_cast<uint32_t>(times_info["player_attack_cooldown"].value_or(1000));
     } catch (const toml::parse_error& err) {
         std::string mssgErr(ERROR_LOAD_GAME);
         mssgErr += err.description();
