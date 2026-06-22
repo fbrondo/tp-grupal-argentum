@@ -272,19 +272,19 @@ void RenderableEntity::render_with_camera(SDL2pp::Renderer& renderer,
                     helm_y_offset = -26;
                     break;
             }
-            if (type == TypeItem::MAGIC_HAT) {
+            if (helmet_id == TypeItem::MAGIC_HAT) {
                 switch (current_dir) {
                     case UP:
                         helm_y_offset = -10;
                         break;
                     case DOWN:
-                        helm_y_offset = is_short_race ? 5 : 7;
+                        helm_y_offset = 0;
                         break;
                     case LEFT:
-                        helm_y_offset = -19;
+                        helm_y_offset = -23;
                         break;
                     case RIGHT:
-                        helm_y_offset = -32;
+                        helm_y_offset = -35;
                         break;
                 }
             }
