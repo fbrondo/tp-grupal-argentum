@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "common/includes/core/Statistics.h"
+#include "server/includes/exceptions/invalid_buy_exception.h"
+#include "server/includes/exceptions/invalid_sell_exception.h"
 #include "server/includes/game_formulas.h"
 #include "server/includes/world.h"
 #include "server/print.h"
@@ -66,15 +68,9 @@ bool Player::isValidOpponent(Player* other) const {
     return true;
 }
 
-bool Player::canBuy(uint16_t price_item) const {
-    if (this->inv.getGolden() < price_item) {
-        return false; /*TIRAR EXCEPCION NO POSIBLE COMPRA*/
-    }
-    if (this->inv.isInventoryFull()) {
-        return false; /*TIRAR EXCEPCION INVENTARIO*/
-    }
-    return true;
-}
+bool Player::hasEnoughGold(uint32_t price) const { return this->inv.getGolden() >= price; }
+
+bool Player::isInventoryFull() const { return this->inv.isInventoryFull(); }
 
 bool Player::addItemToInventory(const ItemInstance& instance) {
     if (this->inv.isInventoryFull()) {
@@ -111,22 +107,27 @@ const Item* Player::removeItemFromInventory(TypeItem type_item) {
     return this->inv.removeItemFromInventory(type_item);
 }
 
-bool Player::buyItem(const Item* item) {
+void Player::buyItem(const Item* item) {
     const auto price = item->purchase_price;
-    if (!this->canBuy(price)) {
-        return false;
+    if (this->inv.getGolden() < price) {
+        throw InvalidBuyException("No tenés suficiente oro para comprar ese objeto.");
+    }
+    if (this->inv.isInventoryFull()) {
+        throw InvalidBuyException("Tu inventario está lleno.");
     }
     this->inv.decrementGolden(price);
-    return this->inv.addItemToInventory(item);
+    this->inv.addItemToInventory(item);
 }
 
-bool Player::sellItem(TypeItem type_item, uint32_t sell_price) {
+void Player::sellItem(TypeItem type_item, uint32_t sell_price) {
+    if (this->inv.isInventoryEmpty()) {
+        throw InvalidSellException("Tu inventario esta vacio.");
+    }
     if (!this->inv.itemInInventory(type_item)) {
-        return false;
+        throw InvalidSellException("No tienes este item en tu inventario.");
     }
     this->inv.incrementGolden(sell_price);
     this->inv.removeItemFromInventory(type_item);
-    return true;
 }
 
 bool Player::dropItem(size_t index_slot, World& world) {
@@ -235,7 +236,12 @@ PlayerSnapshotData Player::getPlayerSnapshotData(const Id& player_id) {
     data.weapon_id = static_cast<uint8_t>(this->getHandItem());
     data.shield_id = static_cast<uint8_t>(this->equipment.getShieldItem());
     data.helmet_id = static_cast<uint8_t>(this->equipment.getHelmetItem());
-    data.flags = this->isAlive() ? 0 : PLAYER_FLAG_GHOST;
+    data.armor_id = static_cast<uint8_t>(this->equipment.getArmorItem());
+    data.flags = 0;
+    if (!this->isAlive())
+        data.flags |= PLAYER_FLAG_GHOST;
+    if (this->isMeditating())
+        data.flags |= PLAYER_FLAG_MEDITATING;
     data.resurrection_time_left_ms = 0;
     return data;
 }

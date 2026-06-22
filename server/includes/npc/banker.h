@@ -39,8 +39,8 @@ public:
 
     bool playerWithdrawItem(Player& player, TypeItem type);
     bool playerDepositItem(Player& player, TypeItem type);
-    void playerDepositGold(Player& player, const uint32_t& amount);
-    void playerWithdrawGold(Player& player, const uint32_t& amount);
+    uint32_t playerDepositGold(Player& player, const uint32_t& amount);
+    uint32_t playerWithdrawGold(Player& player, const uint32_t& amount);
     std::map<TypeItem, uint32_t> depositedItems(Player& player);
     uint32_t depositedGold(Player& player);
 

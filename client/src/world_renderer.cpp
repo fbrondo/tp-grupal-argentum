@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <unordered_set>
 
@@ -60,9 +61,9 @@ static std::vector<std::string> wrap_text(SDL2pp::Font& font, const std::string&
     return lines;
 }
 
-static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, uint32_t pos_x,
-                                            uint32_t pos_y, const SDL_Rect& camera, int offset_x,
-                                            int offset_y) {
+static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, VisualEffectID effect_id,
+                                            uint32_t pos_x, uint32_t pos_y, const SDL_Rect& camera,
+                                            int offset_x, int offset_y) {
     int dst_w = texture.GetWidth();
     int dst_h = texture.GetHeight();
 
@@ -76,7 +77,11 @@ static SDL_Rect calculate_visual_effect_dst(SDL2pp::Texture& texture, uint32_t p
     dst.w = dst_w;
     dst.h = dst_h;
     dst.x = static_cast<int>(pos_x * TILE_SIZE) + (TILE_SIZE - dst.w) / 2 - camera.x + offset_x;
-    dst.y = static_cast<int>(pos_y * TILE_SIZE) + TILE_SIZE - dst.h - camera.y + offset_y;
+    if (effect_id == VisualEffectID::EXPLOSION) {
+        dst.y = static_cast<int>(pos_y * TILE_SIZE) + (TILE_SIZE - dst.h) / 2 - camera.y + offset_y;
+    } else {
+        dst.y = static_cast<int>(pos_y * TILE_SIZE) + TILE_SIZE - dst.h - camera.y + offset_y;
+    }
     return dst;
 }
 
@@ -282,6 +287,7 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         const uint32_t entity_key = player_entity_key(p_data.id);
         ids_en_snapshot.push_back(entity_key);
         if (p_data.id == local_player_id) {
+            SoundManager::set_meditation_loop((p_data.flags & PLAYER_FLAG_MEDITATING) != 0);
             MsgPlayerStats stats;
             stats.hp = p_data.stats.current_hp;
             stats.max_hp = p_data.stats.max_hp;
@@ -300,7 +306,8 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
         if (it != entities.end()) {
             it->second->move_to(p_data.position.x, p_data.position.y,
                                 static_cast<Direction>(p_data.direction));
-            it->second->set_equipment(p_data.weapon_id, p_data.shield_id, p_data.helmet_id);
+            it->second->set_equipment(p_data.weapon_id, p_data.shield_id, p_data.helmet_id,
+                                      p_data.armor_id);
             it->second->set_name(player_name);
             it->second->set_level(p_data.stats.level);
             it->second->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
@@ -309,9 +316,9 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
             entities[entity_key] = std::make_unique<RenderableEntity>(
                     entity_key, EntityType::PLAYER, p_data.position.x, p_data.position.y,
                     p_data.ch_traits.body, p_data.ch_traits.head, p_data.weapon_id,
-                    p_data.shield_id, p_data.helmet_id, p_data.stats.level, is_short);
+                    p_data.shield_id, p_data.helmet_id, p_data.armor_id, p_data.stats.level,
+                    is_short);
             entities[entity_key]->set_name(player_name);
-            // entities[entity_key] = std::move(entity);
             entities[entity_key]->set_ghost((p_data.flags & PLAYER_FLAG_GHOST) != 0);
         }
     }
@@ -661,9 +668,9 @@ void WorldRenderer::render() {
 
             SDL2pp::Texture& texture =
                     texture_manager.get_texture(clip.frame_texture_ids.at(frame_index));
-            SDL_Rect dst =
-                    calculate_visual_effect_dst(texture, effect.pos_x, effect.pos_y, camera,
-                                                camera_screen_offset_x, camera_screen_offset_y);
+            SDL_Rect dst = calculate_visual_effect_dst(texture, effect.effect_id, effect.pos_x,
+                                                       effect.pos_y, camera, camera_screen_offset_x,
+                                                       camera_screen_offset_y);
 
             renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
         } catch (const std::exception& e) {
@@ -708,15 +715,18 @@ void WorldRenderer::render() {
 
 std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_screen(
         int screen_x, int screen_y) const {
+    std::optional<std::pair<uint32_t, EntityType>> closest_entity;
+    int64_t closest_distance_squared = std::numeric_limits<int64_t>::max();
+
     for (const auto& [id, entity]: entities) {
         if (entity->get_type() == EntityType::ITEM)
             continue;
-        if (id == local_player_id)
-            continue;
         int ex = static_cast<int>(entity->get_pixel_x()) - camera.x + camera_screen_offset_x;
         int ey = static_cast<int>(entity->get_pixel_y()) - camera.y + camera_screen_offset_y;
-        if (screen_x >= ex && screen_x < ex + TILE_SIZE && screen_y >= ey &&
-            screen_y < ey + TILE_SIZE) {
+        constexpr int horizontal_margin = TILE_SIZE / 4;
+        constexpr int upper_sprite_margin = TILE_SIZE / 2;
+        if (screen_x >= ex - horizontal_margin && screen_x < ex + TILE_SIZE + horizontal_margin &&
+            screen_y >= ey - upper_sprite_margin && screen_y < ey + TILE_SIZE) {
             EntityType type = entity->get_type();
             uint32_t server_id = id;
             if (type == EntityType::NPC)
@@ -725,10 +735,17 @@ std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_scre
                 server_id = id - PLAYER_ENTITY_OFFSET;
             else if (type == EntityType::CITIZEN)
                 server_id = id - CITIZEN_ENTITY_OFFSET;
-            return std::make_pair(server_id, type);
+
+            const int64_t dx = screen_x - (ex + TILE_SIZE / 2);
+            const int64_t dy = screen_y - (ey + TILE_SIZE / 2);
+            const int64_t distance_squared = dx * dx + dy * dy;
+            if (distance_squared < closest_distance_squared) {
+                closest_distance_squared = distance_squared;
+                closest_entity = std::make_pair(server_id, type);
+            }
         }
     }
-    return std::nullopt;
+    return closest_entity;
 }
 
 int WorldRenderer::get_npc_body_id(uint32_t server_id) const {
@@ -737,5 +754,5 @@ int WorldRenderer::get_npc_body_id(uint32_t server_id) const {
     if (it == entities.end() || it->second->get_type() != EntityType::NPC) {
         return -1;
     }
-    return static_cast<int>(it->second->get_body_id());
+    return it->second->get_body_id();
 }

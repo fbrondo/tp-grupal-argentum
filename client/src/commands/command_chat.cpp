@@ -91,28 +91,28 @@ void ChatCommandClient::execute(ClientProtocol& protocol) const {
         if (lower.rfind("/depositar oro ", 0) == 0) {
             try {
                 uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(14)));
-                protocol.sendDepositGold(amount);
+                protocol.sendDepositGold(*npc_id, amount);
                 return;
             } catch (...) {}
         }
         if (lower.rfind("/depositar ", 0) == 0) {
             uint8_t item_id = resolve_item_id(text.substr(11));
             if (item_id != NONE) {
-                protocol.sendDepositItem(item_id);
+                protocol.sendDepositItem(*npc_id, item_id);
                 return;
             }
         }
         if (lower.rfind("/retirar oro ", 0) == 0) {
             try {
                 uint32_t amount = static_cast<uint32_t>(std::stoul(text.substr(12)));
-                protocol.sendWithdrawGold(amount);
+                protocol.sendWithdrawGold(*npc_id, amount);
                 return;
             } catch (...) {}
         }
         if (lower.rfind("/retirar ", 0) == 0) {
             uint8_t item_id = resolve_item_id(text.substr(9));
             if (item_id != NONE) {
-                protocol.sendWithdrawItem(item_id);
+                protocol.sendWithdrawItem(*npc_id, item_id);
                 return;
             }
         }

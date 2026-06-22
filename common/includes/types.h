@@ -29,9 +29,9 @@ enum TypeItem : uint8_t {
     AXE,             /*HACHA*/
     HAMMER,          /*MARTILLO*/
     ASH_STAFF,       /*VARA DE FRESNO*/
-    ELVEN_FLUTE,     /*FLUTA ELFICA*/
     KNOTTED_STAFF,   /*BACULO NUDOSO*/
     INLAID_STAFF,    /*BACULO ENGARZADO*/
+    ELVEN_FLUTE,     /*FLAUTA ELFICA*/
     SIMPLE_BOW,      /*ARCO SIMPLE*/
     COMPOUND_BOW,    /*ARCO COMPUESTO*/
     LEATHER_ARMOR,   /*ARMADURA DE CUERO*/

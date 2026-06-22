@@ -77,13 +77,13 @@ public:
     void sendInteract(uint32_t npc_id, uint8_t action) const;
     void sendTakeItem() const;
     void sendBuyItem(uint32_t npc_id, uint8_t item_id, uint16_t quantity) const;
-    void sendSellItem(uint32_t npc_id, uint16_t item_id, uint16_t quantity) const;
+    void sendSellItem(uint32_t npc_id, uint8_t item_id, uint16_t quantity) const;
     void sendDisconnect() const;
     void sendListItems(Id npc_id);
-    void sendDepositItem(Id item_id);
-    void sendWithdrawItem(Id item_id);
-    void sendDepositGold(uint32_t amount);
-    void sendWithdrawGold(uint32_t amount);
+    void sendDepositItem(Id npc_id, Id item_id);
+    void sendWithdrawItem(Id npc_id, Id item_id);
+    void sendDepositGold(Id npc_id, uint32_t amount);
+    void sendWithdrawGold(Id npc_id, uint32_t amount);
     void sendEquipItem(Id item_id);
     void sendUnequipItem(Id item_id);
     void sendResurrect();

@@ -15,6 +15,8 @@
 #include "server/includes/commands/command_signup.h"
 #include "server/includes/core/data.h"
 #include "server/includes/entity/combat_entity.h"
+#include "server/includes/exceptions/invalid_buy_exception.h"
+#include "server/includes/exceptions/invalid_sell_exception.h"
 #include "server/includes/game_message_builder.h"
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/creature.h"
@@ -39,8 +41,40 @@
 namespace {
 constexpr uint32_t RESURRECTION_MS_PER_TILE = 250;
 constexpr uint32_t MIN_RESURRECTION_DELAY_MS = 1000;
-constexpr TypeItem DEBUG_EQUIPMENT_ITEM = SWORD;  // prueba inventario
+constexpr TypeItem DEBUG_EQUIPMENT_ITEM = NONE;  // prueba inventario
 constexpr uint32_t CREATURE_MOVEMENT_COOLDOWN_MS = 375;
+constexpr uint16_t MIN_CREATURE_AGGRO_RANGE = 8;
+constexpr uint16_t PRIEST_DIALOG_FIRST = 620;
+constexpr uint16_t PRIEST_DIALOG_LAST = 623;
+
+SoundEffectID attackSoundFor(TypeItem weapon_type) {
+    switch (weapon_type) {
+        case SWORD:
+            return SoundEffectID::ESPADAZO;
+        case ASH_STAFF:
+            return SoundEffectID::FLECHA_MAGICA;
+        case KNOTTED_STAFF:
+        case INLAID_STAFF:
+            return SoundEffectID::RESORTE_EXPLOSIVO;
+        case SIMPLE_BOW:
+        case COMPOUND_BOW:
+            return SoundEffectID::FLECHA;
+        default:
+            return SoundEffectID::GOLPE_ARMA;
+    }
+}
+
+std::optional<VisualEffectID> attackVisualFor(TypeItem weapon_type) {
+    switch (weapon_type) {
+        case ASH_STAFF:
+            return VisualEffectID::LIGHTNING;
+        case KNOTTED_STAFF:
+        case INLAID_STAFF:
+            return VisualEffectID::EXPLOSION;
+        default:
+            return std::nullopt;
+    }
+}
 }  // namespace
 
 using RespSnapshot = std::shared_ptr<ResponseSnapshot>;
@@ -147,6 +181,9 @@ Inventory Gameloop::loadingInventory(const PlayerData& player) const {
         }
     }
     if (!result.itemInInventory(DEBUG_EQUIPMENT_ITEM)) {  // prueba inventario
+        if constexpr (DEBUG_EQUIPMENT_ITEM == NONE) {
+            return result;
+        }
         const auto item = this->conf.items.at(DEBUG_EQUIPMENT_ITEM).get();
         if (item != nullptr) {
             result.addItemToInventory(item);
@@ -191,11 +228,11 @@ void Gameloop::createNewPlayer(const User& user, const CharacterTraits& traits) 
     // ataque.
     // TODO: eliminar cuando el cliente implemente el click en el slot del inventario para equipar
     //       (ClientProtocol::sendEquipItem ya existe, solo falta dispararlo desde el HUD).
-    const ItemInstance sword_instance(this->conf.items.at(SWORD).get());
+    /*const ItemInstance sword_instance(this->conf.items.at(SWORD).get());
     bool added = new_player->addItemToInventory(sword_instance);
     bool equipped = new_player->equipItem(0);  // el inventario esta vacio, SWORD queda en slot 0
     std::cerr << "[CREATE] sword added=" << added << " equipped=" << equipped
-              << " hand_item=" << static_cast<int>(new_player->getHandItem()) << std::endl;
+              << " hand_item=" << static_cast<int>(new_player->getHandItem()) << std::endl;*/
 
     const PlayerData player_data = new_player->getPlayerData();
     std::cerr << "[CREATE] saved equipment slots: " << player_data.equipment.size() << std::endl;
@@ -246,6 +283,9 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     const auto inv = this->players.at(player_id)->getSlotsInventory();
     MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
     this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+    /*const auto equip = this->players.at(player_id)->getSlotsEquipment();
+    MsgEquipmentUpdate equip_msg{EQUIPMENT_UPDATE, equip};
+    this->sendResponseToPlayer(player_id, std::make_shared<ResponseEquipmentUpdate>(equip_msg));*/
     const auto pending_it = this->pending_clan_msgs.find(std::string(data.username));
     if (pending_it != this->pending_clan_msgs.end()) {
         for (const auto& msg: pending_it->second) {
@@ -342,6 +382,24 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         std::cerr << "[ATTACK] blocked: no weapon equipped\n";
         return;
     }
+    if (weapon_type == ELVEN_FLUTE) {
+        const auto* flute = dynamic_cast<ObjectMagic*>(this->conf.items.at(weapon_type).get());
+        if (!flute || !attacker->hasEnoughMana(flute->mana_cost)) {
+            this->sendResponseToPlayer(
+                    attacker_id, std::make_shared<ResponseChatMsg>("No tenés suficiente maná."));
+            return;
+        }
+        attacker->restoreAllHp();
+        attacker->consumeMana(flute->mana_cost);
+        this->effects.emitSound(SoundEffectID::CURAR, attacker->getPosition());
+        const Position position = attacker->getPosition();
+        this->effects.emitVisual(VisualEffectID::BE_HEALED, position);
+        attacker->breakMeditation();
+        return;
+    }
+    if (attacker_id == victim_id) {
+        return;
+    }
     CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
     if (!victim || !victim->isAlive()) {
         std::cerr << "[ATTACK] blocked: victim not found or dead\n";
@@ -411,20 +469,18 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
                 (damage_by_attacker > clan_def_bonus) ? (damage_by_attacker - clan_def_bonus) : 0;
     }
 
-    SoundEffectSnapshotData golpe_sound{};
-    golpe_sound.effect_id = SoundEffectID::GOLPE_ARMA;
-    golpe_sound.pos_x = attacker_pos.x;
-    golpe_sound.pos_y = attacker_pos.y;
-    this->sounds_of_current_tick.push_back(std::move(golpe_sound));
+    this->effects.emitSound(attackSoundFor(weapon_type), attacker_pos);
+
+    const Position victim_position = victim->getPosition();
+    if (const auto weapon_visual = attackVisualFor(weapon_type); weapon_visual.has_value()) {
+        this->effects.emitVisual(*weapon_visual, victim_position);
+    }
+    if (damage_by_attacker > 0) {
+        this->effects.emitVisual(VisualEffectID::DMG, victim_position);
+    }
 
     if (dynamic_cast<Player*>(victim)) {
-        VisualEffectSnapshotData golpe_visual{};
-        golpe_visual.effect_id = VisualEffectID::BE_ATTACKED;
-        golpe_visual.recipient_id = victim_id;
-        Position victim_position = victim->getPosition();
-        golpe_visual.pos_x = victim_position.x;
-        golpe_visual.pos_y = victim_position.y;
-        this->visual_effects_of_current_tick.push_back(std::move(golpe_visual));
+        this->effects.emitVisual(VisualEffectID::BE_ATTACKED, victim_position, victim_id);
     }
 
     std::cerr << "[ATTACK] HIT attacker=" << attacker_id << " -> victim=" << victim_id
@@ -438,6 +494,16 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     const bool victim_died = !victim->isAlive();
     // const bool victim_is_player = dynamic_cast<Player*>(victim) != nullptr;
     const bool victim_is_creature = dynamic_cast<Creature*>(victim) != nullptr;
+
+    if (victim_died) {
+        this->effects.emitVisual(VisualEffectID::DEATH, victim_position);
+    }
+
+    if (victim_died && !victim_is_creature)
+        this->effects.emitSound(SoundEffectID::MUERTE_HOMBRE, victim->getPosition());
+
+    if (victim_died && victim_is_creature)
+        this->effects.emitSound(SoundEffectID::DROP_ESPECIAL_NPC, victim->getPosition());
 
     if (const auto victim_player = dynamic_cast<Player*>(victim)) {
         if (victim_player->breakMeditation()) {
@@ -460,13 +526,14 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
 
     if (victim_died) {
         attacker->earnKillExp(victim);
-        if (victim_is_creature) {
-            this->creatures.erase(victim_id);
-        }
     }
     auto messg = GameMessageBuilder::messgAboutDamageDealtByThePlayer(
             victim_name, damage_by_attacker, victim_died);
     this->sendCombatMessage(attacker_id, messg);
+
+    if (victim_died && victim_is_creature) {
+        this->creatures.erase(victim_id);
+    }
 
     const auto magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
     if (magic_weapon)
@@ -489,6 +556,10 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
         }
         Pose new_pose = this->world.movePlayer(player_id, dir);
         this->players[player_id]->updatePose(std::move(new_pose));
+        bool& use_second_step = this->next_step_is_second[player_id];
+        this->effects.emitSound(use_second_step ? SoundEffectID::PASO_2 : SoundEffectID::PASO,
+                                this->players[player_id]->getPosition());
+        use_second_step = !use_second_step;
     }
     // else {
     //     std::cerr << "[MOVE] rejected player=" << player_id << " reason=not_walkable" <<
@@ -513,6 +584,7 @@ void Gameloop::processPlayerDisconnet(Id player_id) {
     }
     this->world.removePlayer(player_id);
     this->pending_resurrects.erase(player_id);
+    this->next_step_is_second.erase(player_id);
     this->players.erase(player_id);
 }
 
@@ -525,8 +597,13 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
     if (!player->isAlive()) {
         return;
     }
-    if (trader->executeBuyItem(*player, type_item)) {
+    try {
+        trader->executeBuyItem(*player, type_item);
         this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->effects.emitSound(SoundEffectID::MONEDAS, player->getPosition());
+        this->effects.emitRandomSound(603, 609, player->getPosition());
+    } catch (const InvalidBuyException& e) {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(e.what()));
     }
     player->breakMeditation();
 }
@@ -540,8 +617,12 @@ void Gameloop::processSellItem(Id player_id, Id npc_id, TypeItem type_item) {
     if (!player->isAlive()) {
         return;
     }
-    if (merchant->executePlayerSellsItem(*player, type_item)) {
+    try {
+        merchant->executePlayerSellsItem(*player, type_item);
         this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->effects.emitSound(SoundEffectID::MONEDAS, player->getPosition());
+    } catch (const InvalidSellException& e) {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(e.what()));
     }
     player->breakMeditation();
 }
@@ -572,13 +653,17 @@ void Gameloop::processPlayerEquipItem(Id player_id, size_t slot_id) {
     Player* player = this->players.at(player_id).get();
     if (!player->isAlive())
         return;
+    const TypeItem previous_hand_item = player->getHandItem();
     bool update_inventory = false;
     if (player->useItem(slot_id)) {
         update_inventory = true;
+        this->effects.emitSound(SoundEffectID::TOMAR_POCION, player->getPosition());
     }
     if (player->equipItem(slot_id) && !update_inventory) {
         update_inventory = true;
         this->sendUpdateEquipmentToPlayer(player_id, *player);
+        if (player->getHandItem() != NONE && player->getHandItem() != previous_hand_item)
+            this->effects.emitSound(SoundEffectID::EQUIPAR_ARMA, player->getPosition());
     }
     if (update_inventory) {
         this->sendUpdateInventoryToPlayer(player_id, *player);
@@ -608,6 +693,7 @@ void Gameloop::processPlayerWithdrawItem(Id player_id, Id npc_id, TypeItem type_
     }
     if (banker->playerWithdrawItem(*player, type_item)) {
         this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->effects.emitSound(SoundEffectID::DEPOSITAR_RETIRAR_BOVEDA_2, player->getPosition());
     }
     player->breakMeditation();
 }
@@ -623,6 +709,13 @@ void Gameloop::processPlayerDepositItem(Id player_id, Id npc_id, TypeItem type_i
     }
     if (banker->playerDepositItem(*player, type_item)) {
         this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>("Objeto depositado correctamente."));
+        this->effects.emitSound(SoundEffectID::DEPOSITAR_RETIRAR_BOVEDA, player->getPosition());
+        this->effects.emitRandomSound(610, 613, player->getPosition());
+    } else {
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
+                                                      "No tenés ese objeto para depositar."));
     }
     player->breakMeditation();
 }
@@ -636,7 +729,15 @@ void Gameloop::processPlayerDepositGold(Id player_id, Id npc_id, uint32_t amount
     if (!banker) {
         return;
     }
-    banker->playerDepositGold(*player, amount);
+    const uint32_t deposited = banker->playerDepositGold(*player, amount);
+    if (deposited > 0) {
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>(
+                                   "Se depositó " + std::to_string(deposited) + " de oro."));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->effects.emitSound(SoundEffectID::DEPOSITAR_RETIRAR_BOVEDA, player->getPosition());
+        this->effects.emitRandomSound(610, 613, player->getPosition());
+    }
     player->breakMeditation();
 }
 
@@ -649,7 +750,17 @@ void Gameloop::processPlayerWithdrawGold(Id player_id, Id npc_id, uint32_t amoun
     if (!banker) {
         return;
     }
-    banker->playerWithdrawGold(*player, amount);
+    const uint32_t withdrawn = banker->playerWithdrawGold(*player, amount);
+    if (withdrawn > 0) {
+        this->sendResponseToPlayer(player_id,
+                                   std::make_shared<ResponseChatMsg>(
+                                           "Se retiró " + std::to_string(withdrawn) + " de oro."));
+        this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->effects.emitSound(SoundEffectID::DEPOSITAR_RETIRAR_BOVEDA_2, player->getPosition());
+    } else {
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>("No tienes oro para retirar."));
+    }
     player->breakMeditation();
 }
 
@@ -664,11 +775,13 @@ void Gameloop::processListItems(Id player_id, Id npc_id) {
     if (auto trader = dynamic_cast<TraderNPC*>(npc)) {
         list_items = trader->listItemsCatalog();
         response = std::make_unique<ResponseTraderCatalog>(std::move(list_items));
+        this->effects.emitRandomSound(600, 602, player->getPosition());
     }
     if (auto banker = dynamic_cast<Banker*>(npc)) {
         list_items = banker->depositedItems(*player);
         const auto gold_deposited = banker->depositedGold(*player);
         response = std::make_unique<ResponseBankContent>(std::move(list_items), gold_deposited);
+        this->effects.emitSound(SoundEffectID::BIENVENIDO_AL_BANCO, player->getPosition());
     }
     this->monitor.queueTheServerResponse(player_id, std::move(response));
     player->breakMeditation();
@@ -702,19 +815,11 @@ void Gameloop::resurrectPlayerAtHealer(Id player_id, Id healer_id) {
     this->sendResponseToPlayer(player_id,
                                std::make_shared<ResponseChatMsg>("Has resucitado en la ciudad."));
 
-    SoundEffectSnapshotData sound_effect;
-    sound_effect.effect_id = SoundEffectID::CURAR;
     Position position = player->getPosition();
-    sound_effect.pos_x = position.x;
-    sound_effect.pos_y = position.y;
-    this->sounds_of_current_tick.push_back(std::move(sound_effect));
+    this->effects.emitSound(SoundEffectID::RESUCITAR, position);
+    this->effects.emitRandomSound(PRIEST_DIALOG_FIRST, PRIEST_DIALOG_LAST, position);
 
-    VisualEffectSnapshotData visual_effect{};
-    visual_effect.effect_id = VisualEffectID::BE_HEALED;
-    visual_effect.recipient_id = player_id;
-    visual_effect.pos_x = position.x;
-    visual_effect.pos_y = position.y;
-    this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
+    this->effects.emitVisual(VisualEffectID::BE_HEALED, position, player_id);
 }
 
 void Gameloop::processPlayerHeal(Id player_id) {
@@ -728,19 +833,11 @@ void Gameloop::processPlayerHeal(Id player_id) {
         return;
     }
     priest->heal(*player);
-    SoundEffectSnapshotData sound_effect;
-    sound_effect.effect_id = SoundEffectID::CURAR;
     Position position = player->getPosition();
-    sound_effect.pos_x = position.x;
-    sound_effect.pos_y = position.y;
-    this->sounds_of_current_tick.push_back(std::move(sound_effect));
+    this->effects.emitSound(SoundEffectID::CURAR, position);
+    this->effects.emitRandomSound(PRIEST_DIALOG_FIRST, PRIEST_DIALOG_LAST, position);
 
-    VisualEffectSnapshotData visual_effect{};
-    visual_effect.effect_id = VisualEffectID::BE_HEALED;
-    visual_effect.recipient_id = player_id;
-    visual_effect.pos_x = position.x;
-    visual_effect.pos_y = position.y;
-    this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
+    this->effects.emitVisual(VisualEffectID::BE_HEALED, position, player_id);
     this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(
                                                   "Debes seleccionar un sacerdote para curarte."));
 }
@@ -817,18 +914,10 @@ void Gameloop::processPlayerInteract(Id player_id, Id npc_id, uint8_t action) {
         priest->heal(*player);
         this->sendResponseToPlayer(player_id,
                                    std::make_shared<ResponseChatMsg>("Un sacerdote te cura."));
-        SoundEffectSnapshotData sound_effect;
-        sound_effect.effect_id = SoundEffectID::CURAR;
         Position position = player->getPosition();
-        sound_effect.pos_x = position.x;
-        sound_effect.pos_y = position.y;
-        this->sounds_of_current_tick.push_back(std::move(sound_effect));
-        VisualEffectSnapshotData visual_effect{};
-        visual_effect.effect_id = VisualEffectID::BE_HEALED;
-        visual_effect.recipient_id = player_id;
-        visual_effect.pos_x = position.x;
-        visual_effect.pos_y = position.y;
-        this->visual_effects_of_current_tick.push_back(std::move(visual_effect));
+        this->effects.emitSound(SoundEffectID::CURAR, position);
+        this->effects.emitRandomSound(PRIEST_DIALOG_FIRST, PRIEST_DIALOG_LAST, position);
+        this->effects.emitVisual(VisualEffectID::BE_HEALED, position, player_id);
     }
 }
 
@@ -838,6 +927,11 @@ void Gameloop::processPlayerDebugKill(Id player_id) {
         return;
     }
     player->receiveDamage(std::numeric_limits<uint16_t>::max(), this->world);
+    this->effects.emitSound(SoundEffectID::MUERTE_HOMBRE, player->getPosition());
+    const Position position = player->getPosition();
+    this->effects.emitVisual(VisualEffectID::DEATH, position);
+    this->sendUpdateEquipmentToPlayer(player_id, *player);
+    this->sendUpdateInventoryToPlayer(player_id, *player);
 }
 
 void Gameloop::processBroadcastChat(Id sender_id, const std::string& text) {
@@ -905,10 +999,7 @@ void Gameloop::executeBroacastSnapshot() {
     }
     snap.npcs = ResponseBuilder::buildNpcSnapshot(this->creatures);
     snap.items_on_floor = this->world.itemsOnTheFloor();
-    snap.sound_effects = std::move(this->sounds_of_current_tick);
-    this->sounds_of_current_tick.clear();
-    snap.visual_effects = std::move(this->visual_effects_of_current_tick);
-    this->visual_effects_of_current_tick.clear();
+    this->effects.flushInto(snap);
     RespSnapshot resp_snap = std::make_unique<ResponseSnapshot>(std::move(snap));
     this->monitor.executeBroadcast(std::move(resp_snap));
 }
@@ -923,7 +1014,9 @@ Player* Gameloop::findNearestPlayer(const Creature& creature, Id& player_id) {
         }
         const uint32_t distance =
                 this->world.distanceBetweenPositions(creature.getPosition(), player->getPosition());
-        if (distance <= creature.getAggroRange() && distance < nearest_distance) {
+        const uint32_t aggro_range =
+                std::max<uint32_t>(creature.getAggroRange(), MIN_CREATURE_AGGRO_RANGE);
+        if (distance <= aggro_range && distance < nearest_distance) {
             nearest = player.get();
             player_id = id;
             nearest_distance = distance;
@@ -974,21 +1067,22 @@ void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
     const uint16_t defense = victim->calculateDefense(equipment);
     damage = damage > defense ? damage - defense : 0;
 
-    SoundEffectSnapshotData sound{};
-    sound.effect_id = SoundEffectID::GOLPE_RECIBIDO;
-    sound.pos_x = victim->getPosition().x;
-    sound.pos_y = victim->getPosition().y;
-    this->sounds_of_current_tick.push_back(sound);
-
-    VisualEffectSnapshotData visual{};
-    visual.effect_id = VisualEffectID::BE_ATTACKED;
-    visual.recipient_id = player_id;
-    visual.pos_x = victim->getPosition().x;
-    visual.pos_y = victim->getPosition().y;
-    this->visual_effects_of_current_tick.push_back(std::move(visual));
+    this->effects.emitSound(SoundEffectID::GOLPE_RECIBIDO, victim->getPosition());
+    this->effects.emitVisual(VisualEffectID::BE_ATTACKED, victim->getPosition(), player_id);
 
     victim->receiveDamage(damage, this->world);
     victim->breakMeditation();
+    if (damage > 0) {
+        const Position position = victim->getPosition();
+        this->effects.emitVisual(VisualEffectID::DMG, position);
+    }
+    if (!victim->isAlive()) {
+        this->effects.emitSound(SoundEffectID::MUERTE_HOMBRE, victim->getPosition());
+        const Position position = victim->getPosition();
+        this->effects.emitVisual(VisualEffectID::DEATH, position);
+        this->sendUpdateEquipmentToPlayer(player_id, *victim);
+        this->sendUpdateInventoryToPlayer(player_id, *victim);
+    }
     creature.resetAttackCooldown(this->conf.times.npc_attack_cooldown);
     creature.resetMovementCooldown(CREATURE_MOVEMENT_COOLDOWN_MS);
 }
@@ -996,9 +1090,9 @@ void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
 void Gameloop::updateCreatures(uint32_t delta_ms) {
     for (auto& [creature_id, creature]: this->creatures) {
         creature->updateCooldowns(delta_ms);
-        if (!creature->isAlive()) {
+        if (!creature->isAlive())
             continue;
-        }
+
         Id target_id = 0;
         Player* target = this->findNearestPlayer(*creature, target_id);
         if (!target) {
@@ -1042,7 +1136,7 @@ void Gameloop::updateStateWorld() {
 }
 
 void Gameloop::updateStatePlayers() {
-    for (auto& [id, player]: this->players) {
+    for (const auto& player: this->players | std::views::values) {
         PlayerData data = player->getPlayerData();
         this->persistence.schedulePlayers(std::move(data));
     }
@@ -1104,9 +1198,8 @@ void Gameloop::run() {
 }
 
 void Gameloop::stop() {
-    Thread::stop();  // Cambia el should_keep_running del Gameloop a false
-    this->persistence
-            .stop();  // <-- IMPORTANTE: Cambia el should_keep_running de la persistencia a false
+    Thread::stop();
+    this->persistence.stop();
 }
 
 // ---------------------------------------------------------------------------
@@ -1152,8 +1245,12 @@ uint16_t Gameloop::calcClanProximityBonus(const std::string& username, const Pos
 void Gameloop::processClanFound(Id player_id, const std::string& clan_name) {
     const std::string username = this->players.at(player_id)->getName();
     const uint8_t level = static_cast<uint8_t>(this->players.at(player_id)->getLevel());
+    const bool had_clan = !this->clan_manager.getClanOf(username).empty();
     ClanOpResult result = this->clan_manager.foundClan(username, clan_name, level,
                                                        this->conf.clan.min_level_to_found);
+    if (!had_clan && this->clan_manager.getClanOf(username) == clan_name)
+        this->effects.emitSound(SoundEffectID::CREACION_CLAN,
+                                this->players.at(player_id)->getPosition());
     this->sendClanOpResult(player_id, result);
 }
 

@@ -41,8 +41,6 @@ private:
     float resurrection_timer = 0.0f;  // Tiempo restante en segundos
     Position healer_target_position;
 
-    bool canBuy(uint16_t price_item) const;
-
 public:
     Player(const Player& other) = delete;
     Player& operator=(const Player& other) = delete;
@@ -72,6 +70,8 @@ public:
     bool isMeditating() const;
     bool isResurrecting() const;
     bool hasEnoughMana(uint16_t mana_cost) const;
+    bool hasEnoughGold(uint32_t price) const;
+    bool isInventoryFull() const;
 
     bool addItemToInventory(const ItemInstance& instance);
     void addItemToInventory(const GoldBagInstance& instance);
@@ -93,8 +93,8 @@ public:
     void earnKillExp(CombatEntity* victim);
     void consumeMana(uint16_t amount);
 
-    bool buyItem(const Item* item);
-    bool sellItem(TypeItem type_item, uint32_t sell_price);
+    void buyItem(const Item* item);
+    void sellItem(TypeItem type_item, uint32_t sell_price);
     bool dropItem(size_t index, World& world);
     bool equipItem(size_t slot_id);
     bool unequipItem(size_t slot_id);

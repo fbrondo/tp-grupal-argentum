@@ -70,6 +70,13 @@ TypeItem Equipment::getHelmetItem() const {
     return NONE;
 }
 
+TypeItem Equipment::getArmorItem() const {
+    if (this->equipment_container[INDEX_BACK]) {
+        return this->equipment_container[INDEX_BACK]->item->type;
+    }
+    return NONE;
+}
+
 void Equipment::dropEquipment(World& world, const Position& position) {
     for (auto& equip: this->equipment_container) {
         if (equip) {

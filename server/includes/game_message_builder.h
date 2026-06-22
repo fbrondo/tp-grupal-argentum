@@ -12,6 +12,9 @@ std::string messageReportingMditationStatus(const std::string& name);
 std::string messgAttackDodged(const std::string& attacker_name, const std::string& victim_name);
 std::string messgTheOpponentDodgedTheAttack(const std::string& victim_name);
 std::string mssgeFromAClanMemberUnderAttack(const std::string& victim_name);
+
+
+std::string messgThisNPCDoesNotbuyItem(const std::string& name_npc);
 }  // namespace GameMessageBuilder
 
 

@@ -146,12 +146,12 @@ void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint8_t item_id,
     }
 }
 
-void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint16_t item_id,
+void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint8_t item_id,
                                   const uint16_t quantity) const {
     MsgTrade msg;
     msg.opcode = SELL_ITEM;
     msg.npc_id = htonl(npc_id);
-    msg.item_id = htons(item_id);
+    msg.item_id = item_id;
     msg.quantity = htons(quantity);
     try {
         socket.sendall(&msg, sizeof(MsgTrade));
@@ -203,14 +203,18 @@ void ClientProtocol::sendListItems(Id npc_id) {
     }
 }
 
-void ClientProtocol::sendDepositItem(Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t);
+void ClientProtocol::sendDepositItem(Id npc_id, Id item_id) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
     constexpr uint8_t opcode = DEPOSIT_ITEM;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
+
+    uint32_t npc_id_net = htonl(npc_id);
+    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
+    offset += sizeof(npc_id_net);
 
     uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
     std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
@@ -222,14 +226,18 @@ void ClientProtocol::sendDepositItem(Id item_id) {
     }
 }
 
-void ClientProtocol::sendWithdrawItem(Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint16_t);
+void ClientProtocol::sendWithdrawItem(Id npc_id, Id item_id) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
     constexpr uint8_t opcode = WITHDRAW_ITEM;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
+
+    uint32_t npc_id_net = htonl(npc_id);
+    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
+    offset += sizeof(npc_id_net);
 
     uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
     std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
@@ -241,14 +249,18 @@ void ClientProtocol::sendWithdrawItem(Id item_id) {
     }
 }
 
-void ClientProtocol::sendDepositGold(uint32_t amount) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
+void ClientProtocol::sendDepositGold(Id npc_id, uint32_t amount) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
     constexpr uint8_t opcode = DEPOSIT_GOLD;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
+
+    uint32_t npc_id_net = htonl(npc_id);
+    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
+    offset += sizeof(npc_id_net);
 
     uint32_t amount_net = htonl(amount);
     std::memcpy(buffer.data() + offset, &amount_net, sizeof(amount_net));
@@ -260,14 +272,18 @@ void ClientProtocol::sendDepositGold(uint32_t amount) {
     }
 }
 
-void ClientProtocol::sendWithdrawGold(uint32_t amount) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
+void ClientProtocol::sendWithdrawGold(Id npc_id, uint32_t amount) {
+    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t);
     std::vector<char> buffer(size_total);
     size_t offset = 0;
 
     constexpr uint8_t opcode = WITHDRAW_GOLD;
     std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
     offset += sizeof(opcode);
+
+    uint32_t npc_id_net = htonl(npc_id);
+    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
+    offset += sizeof(npc_id_net);
 
     uint32_t amount_net = htonl(amount);
     std::memcpy(buffer.data() + offset, &amount_net, sizeof(amount_net));

@@ -4,9 +4,10 @@
 
 class WithdrawGoldCommandClient: public ClientCommand {
 private:
+    uint32_t npc_id;
     uint32_t amount;
 
 public:
-    explicit WithdrawGoldCommandClient(uint32_t amount);
+    explicit WithdrawGoldCommandClient(uint32_t npc_id, uint32_t amount);
     void execute(ClientProtocol& protocol) const override;
 };

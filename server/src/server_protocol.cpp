@@ -399,8 +399,7 @@ void ServerProtocol::sendTraderCatalog(const std::map<TypeItem, uint32_t>& catal
 }
 
 void ServerProtocol::sendBankContent(const std::map<TypeItem, uint32_t>& items, uint32_t gold) {
-    const size_t size_items =
-            items.size() * (sizeof(uint8_t) + sizeof(uint32_t)) /*sizeof(MsgItemInfo)*/;
+    const size_t size_items = items.size() * (sizeof(uint8_t) + sizeof(uint32_t));
     const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t) + size_items;
 
     std::vector<char> buffer(size_total);
@@ -420,16 +419,12 @@ void ServerProtocol::sendBankContent(const std::map<TypeItem, uint32_t>& items, 
 
     for (const auto& [type_item, count]: items) {
         uint8_t type_byte = static_cast<uint8_t>(type_item);
-        uint16_t count_ = htons(count);
+        uint32_t count_ = htonl(count);
         std::memcpy(buffer.data() + offset, &type_byte, sizeof(type_byte));
         offset += sizeof(type_byte);
         std::memcpy(buffer.data() + offset, &count_, sizeof(count_));
         offset += sizeof(count_);
     }
-    // if (!items.empty()) {
-    //     std::memcpy(buffer.data() + offset, items.data(), size_items);
-    //     offset += size_items;
-    // }
     try {
         socket.sendall(buffer.data(), buffer.size());
     } catch (const std::exception& e) {
@@ -549,16 +544,15 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         }
         case DEPOSIT_ITEM:
         case WITHDRAW_ITEM: {
-            Id item_id;
+            uint32_t npc_id;
+            uint16_t item_id;
+
+            socket.recvall(&npc_id, sizeof(npc_id));
+            npc_id = ntohl(npc_id);
             socket.recvall(&item_id, sizeof(item_id));
             item_id = ntohs(item_id);
 
-            Id npc_id;
-            socket.recvall(&item_id, sizeof(npc_id));
-            item_id = ntohs(item_id);
-
-            uint8_t type_item;
-            socket.recvall(&type_item, sizeof(type_item));
+            uint8_t type_item = static_cast<uint8_t>(item_id);
 
             if (opcode == DEPOSIT_ITEM) {
                 queue.push(std::make_unique<DepositItemCommand>(player_id, npc_id, type_item));
@@ -569,9 +563,10 @@ bool ServerProtocol::readCommand(Id player_id, QueueCmd& queue) {
         }
         case DEPOSIT_GOLD:
         case WITHDRAW_GOLD: {
-            uint32_t amount;
             uint32_t npc_id;
+            uint32_t amount;
             socket.recvall(&npc_id, sizeof(npc_id));
+            npc_id = ntohl(npc_id);
             socket.recvall(&amount, sizeof(amount));
             amount = ntohl(amount);
 

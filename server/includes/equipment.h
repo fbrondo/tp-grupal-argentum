@@ -32,6 +32,7 @@ public:
     TypeItem getHandItem() const;
     TypeItem getShieldItem() const;
     TypeItem getHelmetItem() const;
+    TypeItem getArmorItem() const;
 
     void dropEquipment(World& world, const Position& position);
 };

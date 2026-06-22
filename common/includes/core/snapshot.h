@@ -11,6 +11,7 @@
 #include "common/includes/types.h"
 
 constexpr uint8_t PLAYER_FLAG_GHOST = 1 << 0;
+constexpr uint8_t PLAYER_FLAG_MEDITATING = 1 << 1;
 
 #pragma pack(push, 1)
 struct PlayerSnapshotData {
@@ -32,6 +33,7 @@ struct PlayerSnapshotData {
     uint8_t weapon_id;
     uint8_t shield_id; /*Debe ser none si no esta equipado*/
     uint8_t helmet_id;
+    uint8_t armor_id;
 
     uint8_t flags;  // Estados especiales (por ej: bit 0 = invisible, bit 1 = meditando, etc.)
     uint16_t resurrection_time_left_ms;

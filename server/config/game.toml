@@ -1,8 +1,8 @@
 [player_state_init]
 # HOTFIX: nivel 13 para poder probar el ataque (newbies son nivel <= 12 y no pueden atacar).
 # TODO: revertir a level = 1 cuando el mecanismo de XP/subida de nivel este integrado al cliente.
-level = 13
-golden_init = 50
+level = 1
+golden_init = 300
 max_slots = 18
 capacity_slot = 3
 #-------------------------------------------------------------------------------------------------------
