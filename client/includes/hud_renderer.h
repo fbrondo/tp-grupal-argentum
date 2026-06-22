@@ -39,6 +39,7 @@ private:
     uint16_t resurrection_time_left_ms = 0;
     bool chat_is_active = false;
     int console_scroll_offset = 0;
+    std::optional<uint8_t> selected_slot;
 
     static constexpr size_t MAX_CHAT_LOG_SIZE = 50;
 
@@ -72,5 +73,6 @@ public:
     void update_equipment(const std::vector<MsgSlot>& slots);
     void update_resurrection_timer(uint16_t time_left_ms);
     void render_resurrection_notice() const;
+    void set_selected_slot(std::optional<uint8_t> slot);
     void render() const;
 };

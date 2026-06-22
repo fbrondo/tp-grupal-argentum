@@ -70,7 +70,7 @@ void ClientProtocol::sendChat(const std::string& msg) const {
 void ClientProtocol::sendUseItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
     msg.opcode = USE_ITEM;
-    msg.instance_id = slot_index;
+    msg.instance_id = htonl(static_cast<uint32_t>(slot_index));
     try {
         socket.sendall(&msg, sizeof(MsgSlotItem));
     } catch (const std::exception& e) {
@@ -81,7 +81,7 @@ void ClientProtocol::sendUseItem(const uint8_t slot_index) const {
 void ClientProtocol::sendDropItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
     msg.opcode = DROP_ITEM;
-    msg.instance_id = slot_index;
+    msg.instance_id = htonl(static_cast<uint32_t>(slot_index));
     try {
         socket.sendall(&msg, sizeof(MsgSlotItem));
     } catch (const std::exception& e) {
