@@ -94,14 +94,13 @@ void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t 
             const int64_t dx = static_cast<int64_t>(fx_x) - static_cast<int64_t>(player_x);
             const int64_t dy = static_cast<int64_t>(fx_y) - static_cast<int64_t>(player_y);
             const int distance = std::min(
-                    255, static_cast<int>(std::hypot(static_cast<double>(dx),
-                                                     static_cast<double>(dy)) *
-                                          POSITIONAL_ATTENUATION_PER_TILE));
+                    255,
+                    static_cast<int>(std::hypot(static_cast<double>(dx), static_cast<double>(dy)) *
+                                     POSITIONAL_ATTENUATION_PER_TILE));
 
             // Calculamos el ángulo (0 = Arriba, 90 = Derecha, 180 = Abajo, 270 = Izquierda)
-            int angle = static_cast<int>(std::atan2(static_cast<double>(dx),
-                                                    static_cast<double>(-dy)) *
-                                         180.0 / M_PI);
+            int angle = static_cast<int>(
+                    std::atan2(static_cast<double>(dx), static_cast<double>(-dy)) * 180.0 / M_PI);
             if (angle < 0)
                 angle += 360;
 
