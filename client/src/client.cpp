@@ -193,6 +193,11 @@ void Client::handle_events() {
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
             last_move_command_ticks = 0;
         }
+        if (event.type == SDL_KEYDOWN && event.key.repeat == 0 && event.key.keysym.sym == SDLK_c &&
+            (event.key.keysym.mod & KMOD_CTRL)) {
+            chat.set_active(!chat.is_active());
+            sync_chat_ui();
+        }
 
         if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
             uint32_t mouse_x = event.button.x;
