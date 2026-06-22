@@ -933,6 +933,22 @@ void Gameloop::processPlayerDebugKill(Id player_id) {
     this->sendUpdateInventoryToPlayer(player_id, *player);
 }
 
+void Gameloop::processPlayerToggleInfiniteHp(Id player_id) {
+    Player* player = this->players.at(player_id).get();
+    player->toggleInfiniteHp();
+    if (player->hasInfiniteHp()) {
+        player->restoreAllHp();
+    }
+}
+
+void Gameloop::processPlayerToggleInfiniteMana(Id player_id) {
+    Player* player = this->players.at(player_id).get();
+    player->toggleInfiniteMana();
+    if (player->hasInfiniteMana()) {
+        player->restoreAllMana();
+    }
+}
+
 void Gameloop::processBroadcastChat(Id sender_id, const std::string& text) {
     if (!this->players.contains(sender_id)) {
         return;
@@ -1116,8 +1132,14 @@ void Gameloop::respawnDeadNpcs() {
 void Gameloop::updatePlayersAttributes() {
     const float delta = this->conf.times.update_player_atributes / 1000.0f;
     for (auto& player: this->players | std::views::values) {
-        player->updateHp(delta);
-        if (player->isMeditating()) {
+        if (player->hasInfiniteHp()) {
+            player->restoreAllHp();
+        } else {
+            player->updateHp(delta);
+        }
+        if (player->hasInfiniteMana()) {
+            player->restoreAllMana();
+        } else if (player->isMeditating()) {
             player->meditating(delta);
         } else {
             player->updateMana(delta);
@@ -1301,4 +1323,19 @@ void Gameloop::processClanLeave(Id player_id) {
     ClanOpResult result = this->clan_manager.leaveClan(username);
     this->sendClanOpResult(player_id, result);
 }
+
+void Gameloop::processClanList(Id player_id) {
+    std::vector<std::string> clan_list = this->clan_manager.listClans();
+    std::ostringstream oss;
+    oss << "--- Clanes disponibles ---";
+    if (clan_list.empty()) {
+        oss << "\nNo hay clanes fundados aun.";
+    } else {
+        for (const auto& clan_info: clan_list) {
+            oss << "\n- " << clan_info;
+        }
+    }
+    this->monitor.queueTheServerResponse(player_id, std::make_shared<ResponseChatMsg>(oss.str()));
+}
+
 Gameloop::~Gameloop() { std::cerr << "[Gameloop] run() finished" << std::endl; }

@@ -53,6 +53,7 @@ public:
     bool areInSameClan(const std::string& a, const std::string& b) const;
     std::string getClanOf(const std::string& username) const;
     std::vector<std::string> getMembersOf(const std::string& clan_name) const;
+    std::vector<std::string> listClans() const;
     uint8_t countNearbyMembers(const std::string& username, const Position& pos,
                                const std::map<std::string, Position>& online_positions,
                                uint32_t range) const;

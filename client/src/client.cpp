@@ -179,10 +179,14 @@ void Client::handle_events() {
             event.key.keysym.sym == SDLK_F5) {
             cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_morir"));
         }
-        /*if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
-            event.key.keysym.sym == SDLK_F6) {
-            cmd_queue.push(std::make_unique<ChatCommandClient>("/resucitar"));
-        }*/
+        if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
+            event.key.keysym.sym == SDLK_F7) {
+            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_vida_infinita"));
+        }
+        if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
+            event.key.keysym.sym == SDLK_F8) {
+            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_mana_infinito"));
+        }
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) {
             window.toggle_fullscreen();
         }
@@ -223,13 +227,68 @@ void Client::handle_events() {
             if (chat.is_active()) {
                 std::string msg = chat.extract_message();
                 if (!msg.empty()) {
-                    std::optional<uint32_t> npc_id;
-                    if (chat.has_npc_selection()) {
-                        npc_id = static_cast<uint32_t>(chat.get_selected_npc_id());
+                    std::string lower = msg;
+                    std::transform(lower.begin(), lower.end(), lower.begin(),
+                                   [](unsigned char c) { return std::tolower(c); });
+
+                    if (lower == "/help") {
+                        world_renderer.add_chat_message("--- Comandos disponibles ---",
+                                                        COLOR_YELLOW);
+                        world_renderer.add_chat_message(
+                                "/comprar <item> - Comprar item a comerciante o sacerdote",
+                                COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/vender <item> - Vender item al comerciante", COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/listar - Ver catalogo de comerciante, banquero o sacerdote",
+                                COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/depositar oro <cantidad> - Depositar oro en banco", COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/depositar <item> - Depositar item en banco", COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/retirar oro <cantidad> - Retirar oro del banco", COLOR_WHITE);
+                        world_renderer.add_chat_message("/retirar <item> - Retirar item del banco",
+                                                        COLOR_WHITE);
+                        world_renderer.add_chat_message("/curar - Curar via sacerdote",
+                                                        COLOR_WHITE);
+                        world_renderer.add_chat_message("/resucitar - Resucitar via sacerdote",
+                                                        COLOR_WHITE);
+                        world_renderer.add_chat_message("/meditar - Meditar para recuperar mana",
+                                                        COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "@<nick> <msg> - Mensaje privado a otro jugador", COLOR_WHITE);
+                        world_renderer.add_chat_message("/fundar-clan <nombre> - Fundar un clan",
+                                                        COLOR_WHITE);
+                        world_renderer.add_chat_message("/unirse <nombre> - Pide unirse a un clan",
+                                                        COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/revisar-clan - Revisa pedidos pendientes y miembros",
+                                COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/clan-aceptar <nick> - Acepta a un jugador al clan", COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/clan-rechazar <nick> - Rechaza a un jugador del clan",
+                                COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/clan-ban <nick> - Banea a un jugador del clan", COLOR_WHITE);
+                        world_renderer.add_chat_message("/dejar-clan - Dejar tu clan actual",
+                                                        COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/listar-clanes - Ver lista de clanes disponibles", COLOR_WHITE);
+                        world_renderer.add_chat_message(
+                                "/clan-kick <nick> - Expulsa a un jugador del clan", COLOR_WHITE);
+                    } else {
+                        std::optional<uint32_t> npc_id;
+                        if (chat.has_npc_selection()) {
+                            npc_id = static_cast<uint32_t>(chat.get_selected_npc_id());
+                        }
+                        cmd_queue.push(std::make_unique<ChatCommandClient>(msg, npc_id,
+                                                                           selected_inv_slot));
+                        if (msg[0] != '/' && msg[0] != '@') {
+                            world_renderer.set_chat_bubble_on_local(msg);
+                        }
                     }
-                    cmd_queue.push(
-                            std::make_unique<ChatCommandClient>(msg, npc_id, selected_inv_slot));
-                    world_renderer.set_chat_bubble_on_local(msg);
                 }
                 chat.set_active(false);
                 chat.clear_npc_selection();
@@ -332,7 +391,7 @@ void Client::update_state_from_server() {
                 break;
             }
             case TypeEventClient::OPEN_MERCHANT: {
-                world_renderer.add_chat_message("--- Catalogo del comerciante ---", COLOR_BLUE);
+                world_renderer.add_chat_message("--- Catalogo del comerciante ---", COLOR_YELLOW);
                 for (const auto& [type, entry]: event.merchant_data.catalog) {
                     std::string name = item_name(static_cast<uint8_t>(type));
                     std::string line = name + ": " + std::to_string(entry.purchase_price) +
@@ -343,7 +402,7 @@ void Client::update_state_from_server() {
                 break;
             }
             case TypeEventClient::OPEN_BANK: {
-                world_renderer.add_chat_message("--- Contenido del banco ---", COLOR_BLUE);
+                world_renderer.add_chat_message("--- Contenido del banco ---", COLOR_YELLOW);
                 world_renderer.add_chat_message("Oro: " + std::to_string(event.bank_data.gold),
                                                 COLOR_YELLOW);
                 if (!event.bank_data.items.empty()) {
@@ -401,6 +460,8 @@ void Client::launch(const std::string& user, const std::string& pass) {
                         world_renderer.set_local_player(login_event.player_id);
                         world_renderer.add_chat_message("¡Bienvenido a las Tierras de Argentum!",
                                                         COLOR_BLUE);
+                        world_renderer.add_chat_message(
+                                "Escribi /help para ver los comandos disponibles.", COLOR_YELLOW);
                     }
                     break;
                 }

@@ -300,6 +300,14 @@ void Player::toggleMeditation() {
     this->is_meditating = !this->is_meditating;
 }
 
+void Player::toggleInfiniteHp() { this->infinite_hp = !this->infinite_hp; }
+
+void Player::toggleInfiniteMana() { this->infinite_mana = !this->infinite_mana; }
+
+bool Player::hasInfiniteHp() const { return this->infinite_hp; }
+
+bool Player::hasInfiniteMana() const { return this->infinite_mana; }
+
 bool Player::breakMeditation() {
     if (!this->is_meditating)
         return false;
@@ -338,6 +346,13 @@ void Player::meditating(float delta) {
 
 void Player::restoreAllHp() { this->hp = this->hpMax(); }
 
+void Player::receiveDamage(uint16_t damage, World& world) {
+    if (this->infinite_hp) {
+        return;
+    }
+    CombatEntity::receiveDamage(damage, world);
+}
+
 void Player::restoreAllMana() { this->mana = this->manaMax(); }
 
 void Player::startResurrection() {
@@ -365,6 +380,9 @@ void Player::earnKillExp(CombatEntity* victim) {
 }
 
 void Player::consumeMana(uint16_t amount) {
+    if (this->infinite_mana) {
+        return;
+    }
     this->mana = (this->mana >= amount) ? (this->mana - amount) : 0;
 }
 
