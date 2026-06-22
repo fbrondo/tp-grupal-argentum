@@ -75,7 +75,7 @@ bool Inventory::removeItemFromEquipment(Equipment& equipment, size_t equipment_s
     if (!instance) {
         return false;
     }
-    return this->setItemInInventory(instance->item);
+    return this->addItemToInventory(instance->item);
     // if (!this->setItemInstanceInInventory(instance->item)) {
     //     equipment.equipItem(std::move(instance));
     //     return false;
