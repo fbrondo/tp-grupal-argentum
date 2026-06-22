@@ -385,6 +385,15 @@ void HudRenderer::render_inventory() const {
             renderer.Copy(item_texture, SDL2pp::NullOpt,
                           SDL2pp::Rect(x + (INVENTORY_SLOT_SIZE - dst_w) / 2,
                                        y + (INVENTORY_SLOT_SIZE - dst_h) / 2, dst_w, dst_h));
+            if (slot.quantity > 1) {
+                auto qty_tex = std::make_unique<SDL2pp::Texture>(
+                        renderer,
+                        fonts.get_level_font().RenderUTF8_Blended(std::to_string(slot.quantity),
+                                                                  SDL_Color{255, 255, 255, 255}));
+                const int qw = qty_tex->GetWidth();
+                const int qh = qty_tex->GetHeight();
+                renderer.Copy(*qty_tex, SDL2pp::NullOpt, SDL2pp::Rect(x + 2, y + 1, qw, qh));
+            }
         } catch (...) {}
     }
 
