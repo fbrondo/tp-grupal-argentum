@@ -4,7 +4,6 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <random>
 #include <string>
 #include <vector>
 
@@ -17,6 +16,7 @@
 #include "server/includes/core/item.h"
 #include "server/includes/core/resurrect.h"
 #include "server/includes/definitions.h"
+#include "server/includes/effect_manager.h"
 #include "server/includes/inventory.h"
 #include "server/includes/monitor_queues.h"
 #include "server/includes/npc/citizen_npc.h"
@@ -29,7 +29,6 @@
 class Gameloop: public Thread {
 
 private:
-    std::mt19937 gen;
     Id next_npc_id{0};
 
     MonitorQueues& monitor;
@@ -49,8 +48,7 @@ private:
     std::map<std::string, std::vector<std::string>> pending_clan_msgs;
     std::map<Id, bool> next_step_is_second;
 
-    std::vector<SoundEffectSnapshotData> sounds_of_current_tick;
-    std::vector<VisualEffectSnapshotData> visual_effects_of_current_tick;
+    EffectManager effects;
 
     // void loadWorld(const WorldStateData& data);
     // void loadTreasures(const WorldStateData& world_data);
@@ -87,8 +85,6 @@ private:
     void sendUpdateInventoryToPlayer(Id player_id, Player& player);
     void sendUpdateEquipmentToPlayer(Id player_id, Player& player);
     void reportAttackByAPlayerOnClanmates(Player& player);
-    void emitSound(SoundEffectID effect_id, const Position& position);
-    void emitRandomSound(uint16_t first_id, uint16_t last_id, const Position& position);
 
     void updateCreatures(uint32_t delta_ms);
     void respawnDeadNpcs();

@@ -710,8 +710,6 @@ std::optional<std::pair<uint32_t, EntityType>> WorldRenderer::get_entity_at_scre
     for (const auto& [id, entity]: entities) {
         if (entity->get_type() == EntityType::ITEM)
             continue;
-        if (id == local_player_id)
-            continue;
         int ex = static_cast<int>(entity->get_pixel_x()) - camera.x + camera_screen_offset_x;
         int ey = static_cast<int>(entity->get_pixel_y()) - camera.y + camera_screen_offset_y;
         constexpr int horizontal_margin = TILE_SIZE / 4;

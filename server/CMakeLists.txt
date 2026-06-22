@@ -64,6 +64,7 @@ target_sources(taller_server
         src/client_receiver.cpp
         src/client_sender.cpp
         src/equipment.cpp
+        src/effect_manager.cpp
         src/game_config_loader.cpp
         src/game_formulas.cpp
         src/game_message_builder.cpp
@@ -156,6 +157,7 @@ target_sources(taller_server
         includes/client_sender.h
         includes/definitions.h
         includes/equipment.h
+        includes/effect_manager.h
         includes/game_config_loader.h
         includes/game_formulas.h
         includes/game_message_builder.h
