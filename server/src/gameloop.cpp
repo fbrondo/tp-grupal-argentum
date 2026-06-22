@@ -1325,17 +1325,18 @@ void Gameloop::processClanLeave(Id player_id) {
 }
 
 void Gameloop::processClanList(Id player_id) {
+    this->sendResponseToPlayer(player_id,
+                               std::make_shared<ResponseChatMsg>("--- Clanes disponibles ---"));
     std::vector<std::string> clan_list = this->clan_manager.listClans();
-    std::ostringstream oss;
-    oss << "--- Clanes disponibles ---";
     if (clan_list.empty()) {
-        oss << "\nNo hay clanes fundados aun.";
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>("No hay clanes fundados aun."));
     } else {
         for (const auto& clan_info: clan_list) {
-            oss << "\n- " << clan_info;
+            this->sendResponseToPlayer(player_id,
+                                       std::make_shared<ResponseChatMsg>("- " + clan_info));
         }
     }
-    this->monitor.queueTheServerResponse(player_id, std::make_shared<ResponseChatMsg>(oss.str()));
 }
 
 Gameloop::~Gameloop() { std::cerr << "[Gameloop] run() finished" << std::endl; }

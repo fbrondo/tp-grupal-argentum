@@ -322,8 +322,8 @@ uint8_t ClanManager::countNearbyMembers(const std::string& username, const Posit
 std::vector<std::string> ClanManager::listClans() const {
     std::vector<std::string> result;
     for (const auto& [name, entry]: clans) {
-        result.push_back(name + " (fundador: " + entry.founder +
-                         ", miembros: " + std::to_string(entry.members.size()) + ")");
+        result.push_back(name + " -> Fundador ( " + entry.founder + " ) - Miembros (" +
+                         std::to_string(entry.members.size()) + ")");
     }
     return result;
 }
