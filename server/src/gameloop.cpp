@@ -933,6 +933,22 @@ void Gameloop::processPlayerDebugKill(Id player_id) {
     this->sendUpdateInventoryToPlayer(player_id, *player);
 }
 
+void Gameloop::processPlayerToggleInfiniteHp(Id player_id) {
+    Player* player = this->players.at(player_id).get();
+    player->toggleInfiniteHp();
+    if (player->hasInfiniteHp()) {
+        player->restoreAllHp();
+    }
+}
+
+void Gameloop::processPlayerToggleInfiniteMana(Id player_id) {
+    Player* player = this->players.at(player_id).get();
+    player->toggleInfiniteMana();
+    if (player->hasInfiniteMana()) {
+        player->restoreAllMana();
+    }
+}
+
 void Gameloop::processBroadcastChat(Id sender_id, const std::string& text) {
     if (!this->players.contains(sender_id)) {
         return;
@@ -1116,8 +1132,14 @@ void Gameloop::respawnDeadNpcs() {
 void Gameloop::updatePlayersAttributes() {
     const float delta = this->conf.times.update_player_atributes / 1000.0f;
     for (auto& player: this->players | std::views::values) {
-        player->updateHp(delta);
-        if (player->isMeditating()) {
+        if (player->hasInfiniteHp()) {
+            player->restoreAllHp();
+        } else {
+            player->updateHp(delta);
+        }
+        if (player->hasInfiniteMana()) {
+            player->restoreAllMana();
+        } else if (player->isMeditating()) {
             player->meditating(delta);
         } else {
             player->updateMana(delta);
@@ -1301,4 +1323,20 @@ void Gameloop::processClanLeave(Id player_id) {
     ClanOpResult result = this->clan_manager.leaveClan(username);
     this->sendClanOpResult(player_id, result);
 }
+
+void Gameloop::processClanList(Id player_id) {
+    this->sendResponseToPlayer(player_id,
+                               std::make_shared<ResponseChatMsg>("--- Clanes disponibles ---"));
+    std::vector<std::string> clan_list = this->clan_manager.listClans();
+    if (clan_list.empty()) {
+        this->sendResponseToPlayer(
+                player_id, std::make_shared<ResponseChatMsg>("No hay clanes fundados aun."));
+    } else {
+        for (const auto& clan_info: clan_list) {
+            this->sendResponseToPlayer(player_id,
+                                       std::make_shared<ResponseChatMsg>("- " + clan_info));
+        }
+    }
+}
+
 Gameloop::~Gameloop() { std::cerr << "[Gameloop] run() finished" << std::endl; }

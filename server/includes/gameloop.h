@@ -120,6 +120,8 @@ public:
     void processPlayerResurrect(Id player_id, std::optional<Id> priest_id = std::nullopt);
     void processPlayerInteract(Id player_id, Id npc_id, uint8_t action);
     void processPlayerDebugKill(Id player_id);
+    void processPlayerToggleInfiniteHp(Id player_id);
+    void processPlayerToggleInfiniteMana(Id player_id);
     void processListItems(Id player_id, Id npc_id);
     void processBroadcastChat(Id sender_id, const std::string& text);
     void processDirectChat(Id sender_id, Id target_id, const std::string& text);
@@ -134,6 +136,7 @@ public:
     void processClanBan(Id player_id, const std::string& nick);
     void processClanKick(Id player_id, const std::string& nick);
     void processClanLeave(Id player_id);
+    void processClanList(Id player_id);
 
     void run() override;
     void stop() override;

@@ -73,8 +73,10 @@ ParsedChatMessage ChatManager::parse_server_message(const std::string& payload) 
     }
 
     MessageColor color = COLOR_WHITE;
-    if (payload.find("Infligiste ") != std::string::npos ||
-        payload.find("ha muerto") != std::string::npos) {
+    if (payload.find("---") == 0) {
+        color = COLOR_YELLOW;
+    } else if (payload.find("Infligiste ") != std::string::npos ||
+               payload.find("ha muerto") != std::string::npos) {
         color = COLOR_GREEN;
     } else if (payload.find("Recibiste ") != std::string::npos) {
         color = COLOR_RED;

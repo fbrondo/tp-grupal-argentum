@@ -25,6 +25,8 @@ class Player: public CombatEntity {
 private:
     bool is_meditating = false;
     bool is_resurrecting = false;
+    bool infinite_hp = false;
+    bool infinite_mana = false;
 
     uint16_t mana;
     uint32_t exp;
@@ -80,12 +82,18 @@ public:
 
     void teleportTo(const Position& pos);
     void toggleMeditation();
+    void toggleInfiniteHp();
+    void toggleInfiniteMana();
+    bool hasInfiniteHp() const;
+    bool hasInfiniteMana() const;
     bool breakMeditation();
     void updateHp(float delta);
     void updateMana(float delta);
     void meditating(float delta);
     void restoreAllMana();
     void restoreAllHp();
+
+    void receiveDamage(uint16_t damage, World& world) override;
 
     void startResurrection();
     void finishResurrection();

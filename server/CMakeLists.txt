@@ -10,6 +10,7 @@ target_sources(taller_server
         src/commands/command_clan_join.cpp
         src/commands/command_clan_kick.cpp
         src/commands/command_clan_leave.cpp
+        src/commands/command_clan_list.cpp
         src/commands/command_clan_reject.cpp
         src/commands/command_clan_review.cpp
         src/commands/command_chat.cpp
@@ -99,7 +100,17 @@ target_sources(taller_server
         includes/commands/command_equip.h
         includes/commands/command_heal.h
         includes/commands/command_interact.h
+        includes/commands/command_list_items.h
         includes/commands/command_login.h
+        includes/commands/command_clan_accept.h
+        includes/commands/command_clan_ban.h
+        includes/commands/command_clan_found.h
+        includes/commands/command_clan_join.h
+        includes/commands/command_clan_kick.h
+        includes/commands/command_clan_leave.h
+        includes/commands/command_clan_list.h
+        includes/commands/command_clan_reject.h
+        includes/commands/command_clan_review.h
         includes/commands/command_meditate.h
         includes/commands/command_move.h
         includes/commands/command_resurrect.h

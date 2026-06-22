@@ -138,6 +138,5 @@ void ChatCommandClient::execute(ClientProtocol& protocol) const {
         } catch (...) {}
         return;
     }
-
     protocol.sendChat(text);
 }
