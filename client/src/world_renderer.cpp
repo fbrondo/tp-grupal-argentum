@@ -194,7 +194,10 @@ void WorldRenderer::update_visible_map_bounds() {
                     SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
                     // Cuanto ocupa el sprite
                     const int sprite_left = x * TILE_SIZE;
-                    const int sprite_top = (y * TILE_SIZE + TILE_SIZE) - texture.GetHeight();
+                    const int sprite_top =
+                            (layer == Layer::Details || layer == Layer::Roof) ?
+                                    y * TILE_SIZE :
+                                    (y * TILE_SIZE + TILE_SIZE) - texture.GetHeight();
                     const int sprite_right = sprite_left + texture.GetWidth();
                     const int sprite_bottom = sprite_top + texture.GetHeight();
                     // Cuanto ocupa el rectangulo que contiene al sprite
@@ -462,10 +465,9 @@ void WorldRenderer::render() {
             std::min(current_map->height() - 1,
                      (camera.y + camera.h + TILE_SIZE - 1) / TILE_SIZE + CULLING_MARGIN_TILES);
 
-    // 1. RENDERIZADO DEL SUELO (Background, Details y Object)
-    std::array<std::pair<Layer, std::string>, 3> ground_layers = {{
+    // 1. RENDERIZADO DEL SUELO (Background y Object)
+    std::array<std::pair<Layer, std::string>, 2> ground_layers = {{
             {Layer::Background, "tile_bg_"},
-            {Layer::Details, "tile_det_"},
             {Layer::Object, "tile_obj_"},
     }};
     for (auto& [layer, key_prefix]: ground_layers) {
@@ -683,8 +685,36 @@ void WorldRenderer::render() {
         }
     }
 
-    // 3. RENDERIZADO DE TECHOS (Roofs)
+    // 3. RENDERIZADO DE DETAILS DELANTE DE LAS ENTIDADES
+    for (int y = start_tile_y; y <= end_tile_y; ++y) {
+        for (int x = start_tile_x; x <= end_tile_x; ++x) {
+            const auto& tile_data = current_map->tile_at(x, y, Layer::Details);
+            if (tile_data.sprite_id == 0)
+                continue;
+
+            const std::string tex_key = "tile_det_" + std::to_string(tile_data.sprite_id);
+            try {
+                SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
+                const SDL_Rect dst = {(x * TILE_SIZE) - camera.x + camera_screen_offset_x,
+                                      (y * TILE_SIZE) - camera.y + camera_screen_offset_y,
+                                      texture.GetWidth(), texture.GetHeight()};
+                renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
+            } catch (const std::exception& e) {
+                log_render_error_once(tex_key, e);
+            }
+        }
+    }
+
+    // 4. RENDERIZADO DE TECHOS (Roofs)
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
+
+    std::optional<SDL_Point> local_player_position;
+    const auto local_player = entities.find(player_entity_key(local_player_id));
+    if (local_player != entities.end()) {
+        local_player_position =
+                SDL_Point{static_cast<int>(local_player->second->get_pixel_x()) + TILE_SIZE / 2,
+                          static_cast<int>(local_player->second->get_pixel_y()) + TILE_SIZE / 2};
+    }
 
     for (int y = start_tile_y; y <= end_tile_y; ++y) {
         for (int x = start_tile_x; x <= end_tile_x; ++x) {
@@ -701,9 +731,15 @@ void WorldRenderer::render() {
                 int tex_w = texture.GetWidth();
                 int tex_h = texture.GetHeight();
 
+                const SDL_Rect roof_world_rect = {x * TILE_SIZE, y * TILE_SIZE, tex_w, tex_h};
+                if (local_player_position &&
+                    SDL_PointInRect(&local_player_position.value(), &roof_world_rect)) {
+                    continue;
+                }
+
                 SDL_Rect dst;
                 dst.x = (x * TILE_SIZE) - camera.x + camera_screen_offset_x;
-                dst.y = (y * TILE_SIZE + TILE_SIZE) - camera.y + camera_screen_offset_y - tex_h;
+                dst.y = (y * TILE_SIZE) - camera.y + camera_screen_offset_y;
                 dst.w = tex_w;
                 dst.h = tex_h;
 
