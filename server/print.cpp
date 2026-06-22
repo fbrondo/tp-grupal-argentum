@@ -798,6 +798,17 @@ void imprimirTilesOcupadas(const std::unordered_map<Position, bool, PositionHash
     }
 }
 
+void printSizeInventory(const uint32_t& size_inventory) {
+    const char* env_p = std::getenv("DEBUG");
+    bool debug_mode = (env_p != nullptr && std::string(env_p) == "1");
+    if (debug_mode) {
+        std::ostringstream oss;
+        oss << "[DEBUG - INVENTORY] - Cantidad items en inventario: " << size_inventory << SALTO;
+        std::string message = oss.str();
+        print_message_console(message);
+    }
+}
+
 void printEvasiveMessageAttack(const std::string& name_victim) {
 
     const char* env_p = std::getenv("DEBUG");

@@ -153,6 +153,7 @@ void Inventory::incrementGolden(uint32_t amount) { this->golden += amount; }
 void Inventory::decrementGolden(uint32_t amount) { this->golden -= amount; }
 
 bool Inventory::addItemToInventory(const Item* item) {
+    Print::printSizeInventory(this->size_current);
     auto index = this->searchItemInInventory(item->type);
     if (index.has_value()) {
         return this->incrementSlotInventory(index.value());

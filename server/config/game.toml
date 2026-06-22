@@ -4,7 +4,7 @@
 level = 1
 golden_init = 300
 max_slots = 18
-capacity_slot = 3
+capacity_slot = 2
 #-------------------------------------------------------------------------------------------------------
 [clan]
 max_members = 16
