@@ -598,6 +598,7 @@ void Gameloop::processBuyItem(Id player_id, Id npc_id, TypeItem type_item) {
     try {
         trader->executeBuyItem(*player, type_item);
         this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->effects.emitSound(SoundEffectID::MONEDAS, player->getPosition());
         this->effects.emitRandomSound(603, 609, player->getPosition());
     } catch (const InvalidBuyException& e) {
         this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(e.what()));
@@ -617,6 +618,7 @@ void Gameloop::processSellItem(Id player_id, Id npc_id, TypeItem type_item) {
     try {
         merchant->executePlayerSellsItem(*player, type_item);
         this->sendUpdateInventoryToPlayer(player_id, *player);
+        this->effects.emitSound(SoundEffectID::MONEDAS, player->getPosition());
     } catch (const InvalidSellException& e) {
         this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(e.what()));
     }
