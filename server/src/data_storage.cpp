@@ -9,8 +9,7 @@ DataStorage::DataStorage(const FileData& paths) {
         std::ofstream create(data_players, std::ios::binary);
     }
     /*Permite leer, escribir, bytes puros sin interpretar, escrituta al final*/
-    this->data_file.open(data_players,
-                         std::ios::in | std::ios::out | std::ios::binary | std::ios::app);
+    this->data_file.open(data_players, std::ios::in | std::ios::out | std::ios::binary);
     if (!this->data_file.is_open()) {
         throw std::runtime_error("Error al cargar datos al server");
     }

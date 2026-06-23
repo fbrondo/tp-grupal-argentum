@@ -137,8 +137,8 @@ void SpawnManager::spawnCitizenNpcZones(Id& next_id,
     if (!configured_spawns.empty()) {
         for (const auto& spawn: configured_spawns) {
             const std::string name_npc = this->citizenNameForType(spawn.type);
-            auto new_npc = this->createCitizenNpc(name_npc, spawn.pose, bank);
             NpcInstance instance(next_id++, spawn.zone_id, spawn.type, spawn.pose);
+            auto new_npc = this->createCitizenNpc(name_npc, instance, bank);
             citizen_npcs.emplace(instance.id, std::move(new_npc));
             this->world.addNpcWorld(instance);
         }

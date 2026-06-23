@@ -367,7 +367,8 @@ bool World::isCreatureWalkable(const Id& creature_id, Direction dir) const {
 }
 
 bool World::isPositionInCreatureZone(const Id& creature_id, const Position& position) const {
-    const Id creature_zone = this->npc_positions.getCreature(creature_id).zone_id;
+    const Id creature_zone =
+            this->npc_positions.getZoneCreature(creature_id);  // getCreature(creature_id).zone_id;
     const auto position_zone = this->position_zones.find(position);
     return position_zone != this->position_zones.end() && position_zone->second == creature_zone;
 }

@@ -21,6 +21,7 @@ public:
     void add(const NpcInstance& npc);
 
     Id removeCreature(const Id& creature_id);
+    Id getZoneCreature(const Id& creature_id) const;
     Position getPositionCreature(const Id& creature_id) const;
 
     Pose moveCreature(Id id, const Position& position, Direction direction);

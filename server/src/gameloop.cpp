@@ -185,6 +185,7 @@ void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_d
     Pose pose(position, dir);
     auto new_player = std::make_unique<Player>(pose, std::move(inv), std::move(equip),
                                                std::move(charact), player_data);
+
     this->players.emplace(player_id, std::move(new_player));
     this->world.addPlayerWorld(player_id, pose);
     this->loadAccountBank(player_data);
@@ -226,6 +227,7 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
                 player_id, std::make_unique<ResponseLogin>(false, player_id, INVALID_PASSWORD));
         return;
     }
+    Print::printMessageConsole("llega hasta aqui");
     this->loadingPlayerData(player_id, data);
     const std::string login_clan = this->clan_manager.getClanOf(data.username);
     if (!login_clan.empty()) {
@@ -236,6 +238,7 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
             }
         }
     }
+    Print::printMessageConsole("llega hasta aqui");
     this->monitor.queueTheServerResponse(player_id,
                                          std::make_unique<ResponseLogin>(true, player_id));
     Map map = this->world.getMap();
@@ -243,6 +246,7 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     this->monitor.queueTheServerResponse(
             player_id, std::make_unique<ResponseMap>(std::move(map), std::move(citizen_snapshot)));
     this->sendUpdateInventoryToPlayer(player_id, *this->players.at(player_id).get());
+    this->sendUpdateEquipmentToPlayer(player_id, *this->players.at(player_id).get());
     // const auto inv = this->players.at(player_id)->getSlotsInventory();
     // MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
     // this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));

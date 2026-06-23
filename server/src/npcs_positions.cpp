@@ -37,6 +37,11 @@ Id NpcPositions::removeCreature(const Id& creature_id) {
     return instance.zone_id;
 }
 
+Id NpcPositions::getZoneCreature(const Id& creature_id) const {
+    NpcInstance instance = this->creatures.at(creature_id);
+    return instance.zone_id;
+}
+
 Position NpcPositions::getPositionCreature(const Id& creature_id) const {
     return this->creatures.at(creature_id).pose.position;
 }
