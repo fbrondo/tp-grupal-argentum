@@ -361,7 +361,6 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     }
     const TypeItem weapon_type = attacker->getHandItem();
     if (weapon_type == NONE) {
-        std::cerr << "[ATTACK] blocked: no weapon equipped\n";
         return;
     }
     if (weapon_type == ELVEN_FLUTE) {
@@ -386,43 +385,33 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
 
     CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
     if (!victim || !victim->isAlive()) {
-        std::cerr << "[ATTACK] blocked: victim not found or dead\n";
         return;
     }
     if (!attacker->isValidOpponent(dynamic_cast<Player*>(victim))) {
-        std::cerr << "[ATTACK] blocked: invalid opponent (fair play)\n";
         return;
     }
     /*DEBERIA EVALUARSE EN EL PLAYER ?*/
     if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
         if (this->clan_manager.areInSameClan(attacker->getName(), victim_player->getName())) {
-            std::cerr << "[ATTACK] blocked: same clan\n";
             return;
         }
     }
     const auto weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
     if (!weapon) {
-        std::cerr << "[ATTACK] blocked: equipped item is not a weapon\n";
         return;
     }
     /*ESTOS DOS IF LOS PODEMOS COMBINAR EN UNO*/
     const Position attacker_pos =
             attacker->getPosition();  // this->world.positionPlayerInTheWorld(attacker_id);
     if (this->world.isSafeZONE(attacker_pos)) {
-        std::cerr << "[ATTACK] blocked: attacker is in safe zone\n";
         return;
     }
     /*El dynamicast es redundante, getPosition es de la clase clase combatiente*/
     if (dynamic_cast<Player*>(victim) && this->world.isSafeZONE(victim->getPosition())) {
-        std::cerr << "[ATTACK] blocked: victim is in safe zone\n";
         return;
     }
+
     if (!this->isItPossibleToAttack(*attacker, *victim, *weapon)) {
-        const Position& vpos = victim->getPosition();
-        int dist = std::abs(static_cast<int>(attacker_pos.x) - static_cast<int>(vpos.x)) +
-                   std::abs(static_cast<int>(attacker_pos.y) - static_cast<int>(vpos.y));
-        std::cerr << "[ATTACK] blocked: out of range (dist=" << dist
-                  << " range=" << weapon->range_attack << ")\n";
         return;
     }
 
@@ -467,12 +456,6 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         this->effects.emitVisual(VisualEffectID::BE_ATTACKED, victim_position, victim_id);
     }
 
-    std::cerr << "[ATTACK] HIT attacker=" << attacker_id << " -> victim=" << victim_id
-              << " dmg=" << damage_by_attacker << " critical="
-              << is_critical
-              //<< " hp=" << victim->getHp() - damage_by_attacker << "/" << victim->getMaxHp()
-              << std::endl;
-
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
 
@@ -487,24 +470,29 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         this->effects.emitSound(SoundEffectID::MUERTE_HOMBRE, victim->getPosition());
 
     if (victim_died && victim_is_creature) {
-        this->creatures.erase(victim_id);
         this->effects.emitSound(SoundEffectID::DROP_ESPECIAL_NPC, victim->getPosition());
     }
 
-    if (const auto victim_player = dynamic_cast<Player*>(victim)) {
-        this->reportPlayerInterruptedMeditation(victim_id, *victim_player);
-        this->reportAttackByAPlayerOnClanmates(*victim_player);
-        auto messg = GameMessageBuilder::damageMessgToThePlayer(attacker->getName(),
-                                                                damage_by_attacker, victim_died);
-        this->sendCombatMessage(victim_id, messg);
-        if (victim_died) {
-            this->sendUpdateEquipmentToPlayer(victim_id, *victim_player);
-            this->sendUpdateInventoryToPlayer(victim_id, *victim_player);
+    if (!victim_is_creature) {
+        if (const auto victim_player = dynamic_cast<Player*>(victim)) {
+            this->reportPlayerInterruptedMeditation(victim_id, *victim_player);
+            this->reportAttackByAPlayerOnClanmates(*victim_player);
+            auto messg = GameMessageBuilder::damageMessgToThePlayer(
+                    attacker->getName(), damage_by_attacker, victim_died);
+            this->sendCombatMessage(victim_id, messg);
+            if (victim_died) {
+                this->sendUpdateEquipmentToPlayer(victim_id, *victim_player);
+                this->sendUpdateInventoryToPlayer(victim_id, *victim_player);
+            }
         }
     }
     auto messg = GameMessageBuilder::messgAboutDamageDealtByThePlayer(
             victim->getName(), damage_by_attacker, victim_died);
     this->sendCombatMessage(attacker_id, messg);
+
+    if (victim_died && victim_is_creature) {
+        this->creatures.erase(victim_id);
+    }
 
     const auto magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
     if (magic_weapon)
