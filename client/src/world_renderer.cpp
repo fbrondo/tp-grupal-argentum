@@ -194,10 +194,7 @@ void WorldRenderer::update_visible_map_bounds() {
                     SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
                     // Cuanto ocupa el sprite
                     const int sprite_left = x * TILE_SIZE;
-                    const int sprite_top =
-                            (layer == Layer::Details || layer == Layer::Roof) ?
-                                    y * TILE_SIZE :
-                                    (y * TILE_SIZE + TILE_SIZE) - texture.GetHeight();
+                    const int sprite_top = y * TILE_SIZE;
                     const int sprite_right = sprite_left + texture.GetWidth();
                     const int sprite_bottom = sprite_top + texture.GetHeight();
                     // Cuanto ocupa el rectangulo que contiene al sprite
@@ -488,7 +485,7 @@ void WorldRenderer::render() {
 
                     SDL_Rect dst;
                     dst.x = (x * TILE_SIZE) - camera.x + camera_screen_offset_x;
-                    dst.y = (y * TILE_SIZE + TILE_SIZE) - camera.y + camera_screen_offset_y - tex_h;
+                    dst.y = (y * TILE_SIZE) - camera.y + camera_screen_offset_y;
                     dst.w = tex_w;
                     dst.h = tex_h;
 
