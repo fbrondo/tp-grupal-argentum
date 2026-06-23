@@ -25,10 +25,6 @@ public:
     void add(const GoldBagInstance& gold_bag);
     void add(const TreasureInstance& treasure);
 
-    // void remove(const ItemInstance& item);
-    // void remove(const GoldBagInstance& gold);
-    // void remove(const TreasureInstance& t);
-
     bool removeItemTakeToPlayer(Player& player);
 
     bool isOcupied(const Position& position) const;

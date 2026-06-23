@@ -51,8 +51,6 @@ void DataStorage::loadIndex() {
 /* va al final del archivo y guarda el offset en el index*/
 void DataStorage::savePlayer(const PlayerData& data) {
     std::lock_guard<std::mutex> lock(file_mutex);
-    // this->index[data.username] = offset;
-    // this->saveIndexEntry(data.username, offset);  // actualizás el archivo de índice en disco
     this->data_file.seekp(0, std::ios::end); /*se mueve el curso hacia el final del archivo*/
     std::streampos offset = this->data_file.tellp(); /*tellp nos da la posicion en que quedo*/
 

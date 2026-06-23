@@ -15,19 +15,6 @@ enum BodyPart : uint8_t {
     MOUTH,    /*Boca - posiciones*/
 };
 
-//
-// struct Item {
-//     TypeItem type;
-//     explicit Item(TypeItem type_): type(type_) {}
-//     // Item() = default;
-//
-//     // virtual bool use(Player& user) {
-//     //     throw std::runtime_error("Este objeto no se puede usar directamente desde el
-//     //     inventario.");
-//     // }
-//     virtual ~Item() = default;
-// };
-
 /*Un Item es equipable y almacenable en un inventario/tienda */
 // consultar si es preferible usar una clase. Lo hice un struct porque no como tal no maneja logica.
 struct Item {
@@ -48,7 +35,6 @@ struct Item {
             purchase_price(purch_price) {}
 
     bool use(Player& user) const;
-    // virtual bool is_equpped() { return body_part_use != MOUTH; }
     virtual ~Item() = default;
 };
 
@@ -59,10 +45,9 @@ struct Item {
     - Casco, capucha, sombrero.
 */
 struct Defense: Item {
-    uint16_t minimal_defense;  //= 0;
-    uint16_t maximun_defense;  //= 0;
+    uint16_t minimal_defense;
+    uint16_t maximun_defense;
 
-    // Defense() = default;
     Defense(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
             uint32_t sell_price, uint32_t purch_price, uint16_t min_def, uint16_t max_def):
             Item(type, body, classif, name, sell_price, purch_price),
@@ -78,11 +63,10 @@ struct Defense: Item {
     - Arco simple
 */
 struct Weapon: Item {
-    uint16_t minimal_damage;  // = 0;
-    uint16_t maximun_damage;  // = 0;
-    uint16_t range_attack;    // = 0;
+    uint16_t minimal_damage;
+    uint16_t maximun_damage;
+    uint16_t range_attack;
 
-    // Weapon() = default;
     Weapon(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
            uint32_t sell_price, uint32_t purch_price, uint16_t min_dam, uint16_t max_dam,
            uint16_t r_attack):
@@ -99,7 +83,6 @@ struct ObjectMagic: Item {
     uint16_t mana_cost;
     uint16_t range;
 
-    // ObjectMagic() = default;
     ObjectMagic(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
                 uint32_t sell_price, uint32_t purch_price, uint16_t m_cost, uint16_t range):
             Item(type, body, classif, name, sell_price, purch_price),
@@ -114,29 +97,10 @@ struct ObjectMagic: Item {
 struct MagicWeapon: Weapon {
     uint16_t mana_cost;
 
-    // MagicWeapon() = default;
     MagicWeapon(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
                 uint32_t sell_price, uint32_t purch_price, uint16_t min_dam, uint16_t max_dam,
                 uint16_t m_cost, uint16_t range):
             Weapon(type, body, classif, name, sell_price, purch_price, min_dam, max_dam, range),
             mana_cost(m_cost) {}
 };
-
-// struct Potion: Item {
-//     //uint16_t restore_amount;
-//
-//     Potion(TypeItem type, BodyPart body, ItemClassification classif, const std::string& name,
-//            uint16_t sell_price, uint16_t purch_price, uint16_t rest_amount):
-//             Item(type, body, classif, name, sell_price, purch_price)
-//             /*restore_amount(rest_amount)*/ {}
-
-// bool use(Player& user) {
-//     if (this->type == LIFE_POTION) {
-//         user.restoreAllHp();
-//     } else if (this->type == MANA_POTION) {
-//         user.restoreAllMana();
-//     }
-//     return true;
-// }
-//}
 #endif

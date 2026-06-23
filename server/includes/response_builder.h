@@ -12,8 +12,6 @@
 #include "world.h"
 
 namespace ResponseBuilder {
-// std::vector<PlayerSnapshotData> buildPlayerSnapshot(const std::map<Id, std::unique_ptr<Player>>&
-// players);
 std::vector<PlayerSnapshotData> buildPlayerSnapshot(
         const std::map<Id, std::unique_ptr<Player>>& players);
 std::vector<NpcSnapshotData> buildNpcSnapshot(const std::map<Id, std::unique_ptr<Creature>>& npcs);

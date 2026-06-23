@@ -6,7 +6,6 @@
 #include <stdexcept>
 
 #include "common/includes/types.h"
-#include "server/print.h"
 
 
 ItemInstance Creature::search_item_drop(TypeItem type) {
@@ -28,8 +27,6 @@ Creature::Creature(const Id& id_, const std::string& name_, TypeNPC type_, const
         type_creature(type_),
         range_attack(attrib.range_attack),
         items_to_drop(std::move(items_)) {}
-
-// void Creature::updatePosition(Position&& new_pos) { this->pos = std::move(new_pos); }
 
 void Creature::onDeath(World& world) {
     static std::random_device rd;
@@ -113,18 +110,11 @@ bool Creature::canAttack() const { return this->attack_cooldown_current == 0; }
 
 bool Creature::canMove() const { return this->movement_cooldown_current == 0; }
 
-// void Creature::resetAttackCooldown(uint32_t cooldown_ms) {
-//     this->attack_cooldown_current = cooldown_ms;
-// }
-
 void Creature::resetMovementCooldown(uint32_t cooldown_ms) {
     this->movement_cooldown_current = cooldown_ms;
 }
 
 void Creature::updateCooldowns(uint32_t delta_ms) {
-    // this->attack_cooldown_current = delta_ms >= this->attack_cooldown_current ?
-    //                                         0 :
-    //                                         this->attack_cooldown_current - delta_ms;
     this->updateAttackCooldown(delta_ms);
     this->movement_cooldown_current = delta_ms >= this->movement_cooldown_current ?
                                               0 :

@@ -68,25 +68,3 @@ NpcInstance NpcPositions::findNearestPriest(const Position& position) const {
     }
     return closest_priest;
 }
-
-// void removeByIdOnly(uint32_t id) {
-//     if (creatures.erase(id)) return;
-//     if (citizens.erase(id)) return;
-//     if (merchants.erase(id)) return;
-// }
-
-// 3. BUSCAR/OBTENER: Devuelve el NPC sin importar en qué mapa esté alojado
-// NpcData& get(uint32_t id, uint8_t type) {
-//     NpcCategory category = getCategory(type);
-//     switch (category) {
-//         case NpcCategory::CITIZEN:  return citizens.at(id);
-//         case NpcCategory::CREATURE: return creatures.at(id);
-//         case NpcCategory::MERCHANT: return merchants.at(id);
-//         default: throw std::out_of_range("NPC no encontrado");
-//     }
-// }
-
-// Getters para cuando el Gameloop/Broadcast necesite iterar sobre un grupo específico
-// const std::unordered_map<uint32_t, NpcData>& getCreatures() const { return creatures; }
-// const std::unordered_map<uint32_t, NpcData>& getCitizens() const { return citizens; }
-// const std::unordered_map<uint32_t, NpcData>& getMerchants() const { return merchants; }

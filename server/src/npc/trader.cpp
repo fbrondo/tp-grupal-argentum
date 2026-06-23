@@ -21,16 +21,3 @@ std::map<TypeItem, std::pair<uint32_t, uint32_t>> TraderNPC::listItemsCatalog() 
     }
     return list;
 }
-
-// const std::map<TypeItem, std::unique_ptr<Item>>& TraderNPC::getStore() const { return
-// this->store; }
-//
-// bool TraderNPC::hasItem(TypeItem type) const { return this->store.find(type) !=
-// this->store.end(); }
-//
-// InteractionResult TraderNPC::interact() {
-//     InteractionResult result;
-//     result.type = InteractionType::TRADER_SHOP;
-//     result.trader_store = &this->store;
-//     return result;
-// }

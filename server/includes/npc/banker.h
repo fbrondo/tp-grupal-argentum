@@ -19,7 +19,6 @@
 */
 class Banker: public CitizenNPC {
 private:
-    // std::map<Id, Account> bank;
     Bank& bank;
 
     bool thePlayerHasAnAccount(const std::string& username);

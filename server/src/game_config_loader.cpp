@@ -302,8 +302,7 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
             }
         }
     } catch (const toml::parse_error& err) {
-        std::string mssgErr(ERROR_LOAD_REGIONS);  //= "Error en loadRegions -- No se pudo parsear el
-                                                  // archivo TOML";
+        std::string mssgErr(ERROR_LOAD_REGIONS);
         mssgErr += err.description();
         throw std::runtime_error(mssgErr);
     }

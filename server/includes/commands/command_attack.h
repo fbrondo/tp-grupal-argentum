@@ -11,5 +11,4 @@ private:
 public:
     AttackCommand(Id player_id, Id target_id);
     void execute(Gameloop& gameloop) override;
-    // std::pair<Id, Id> getAttackInfo();
 };

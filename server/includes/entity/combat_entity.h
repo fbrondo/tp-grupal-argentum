@@ -19,7 +19,6 @@ protected:
 public:
     ~CombatEntity() override = default;
     CombatEntity(const Pose& pose_, const PlayerData& player);
-    // CombatEntity(const Pose &pose, const NpcStateData& npc);
     CombatEntity(const Pose& pose_, uint16_t hp_max, uint8_t level);
 
     virtual bool isAlive() const;
@@ -31,7 +30,6 @@ public:
 
     const Position& getPosition() const;
     uint8_t getLevel() const;
-    // uint16_t getHp() const { return hp; }
     uint16_t getMaxHp() const;
 
     virtual void receiveDamage(uint16_t damage, World& world);

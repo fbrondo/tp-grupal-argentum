@@ -38,7 +38,6 @@ public:
     uint16_t getAggroRange() const;
     bool canAttack() const;
     bool canMove() const;
-    // void resetAttackCooldown(uint32_t cooldown_ms);
     void resetMovementCooldown(uint32_t cooldown_ms);
     void updateCooldowns(uint32_t delta_ms);
     uint16_t calculateDamage(bool& is_critical) const;

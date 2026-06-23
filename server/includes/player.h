@@ -54,8 +54,6 @@ public:
                     const PlayerStateInit& state_init);
 
     TypeItem getHandItem();
-    // TypeItem getShieldItem() const;
-    // TypeItem getHelmetItem() const;
     std::vector<TypeItem> getEquipment();
     std::vector<MsgSlot> getSlotsInventory() const;
     std::vector<MsgSlot> getSlotsEquipment() const;

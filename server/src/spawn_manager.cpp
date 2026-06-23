@@ -7,7 +7,6 @@
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/merchant.h"
 #include "server/includes/npc/priest.h"
-#include "server/print.h"
 
 SpawnManager::SpawnManager(const GameConfig& conf, World& world_):
         gen(std::random_device{}()),
@@ -24,9 +23,6 @@ SpawnManager::SpawnManager(const GameConfig& conf, World& world_):
             this->safe_regions.emplace(type, safe);
         }
     }
-    // Print::printNpcsSafeLoads(this->conf_citizens);
-    // Print::printCreatureLoads(this->conf_creatures);
-    // Print::printItems(this->items);
 }
 
 std::map<TypeItem, Item*> SpawnManager::items_store_citizen(const std::string& name_npc) {

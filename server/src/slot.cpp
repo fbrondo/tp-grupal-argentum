@@ -29,12 +29,7 @@ std::unique_ptr<ItemInstance> Slot::takeOneItem() {
     }
     auto inst = std::make_unique<ItemInstance>(this->instance->item);
     this->decrease();
-    // if (this->quantity > 1) {
-    //     this->quantity -= 1;
-    //     return std::make_unique<ItemInstance>(instance->item);
-    // }
-    // quantity = 0;
-    return inst;  // std::move(instance);
+    return inst;
 }
 
 uint32_t Slot::getQuantity() const {

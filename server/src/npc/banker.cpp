@@ -35,13 +35,6 @@ void Banker::setItemSafeBox(const std::string& username, const Item* item) {
     slot.setItem(std::make_unique<ItemInstance>(item));
     slot.increase();
     slots.emplace_back(std::move(slot));
-    // for (auto& slot: slots) {
-    //     if (slot.isEmpty()) {
-    //         slot.setItem(std::make_unique<ItemInstance>(item));
-    //         slot.increase();
-    //         break;
-    //     }
-    // }
 }
 
 void Banker::createPlayerAccount(const std::string& username) {

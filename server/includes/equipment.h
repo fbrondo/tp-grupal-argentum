@@ -19,7 +19,7 @@ public:
     Equipment(Equipment&& other) noexcept = default;
     Equipment& operator=(Equipment&& other) noexcept = default;
 
-    Equipment(/* args */);
+    Equipment();
     ~Equipment();
 
     std::unique_ptr<ItemInstance> equipItem(std::unique_ptr<ItemInstance>&& instance);

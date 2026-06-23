@@ -268,16 +268,6 @@ const Item* Player::getItemInventory(const size_t& slot_id) {
 
 const Item* Player::removeItemInventory(TypeItem type_item) {
     return this->inv.removeItemFromInventory(type_item);
-    // if (this->inv.isInventoryEmpty()) {
-    //     return nullptr;
-    // }
-    // const auto index = this->inv.searchItemInInventory(type_item);
-    // if (index.has_value()) {
-    //     const Item* item = this->inv.getItemSlot(index.value());
-    //     this->inv.removeItemFromInventory(index.value());
-    //     return item;
-    // }
-    // return nullptr;
 }
 
 uint32_t Player::decreaseGold(const uint32_t& amount) {
@@ -387,15 +377,6 @@ void Player::consumeMana(uint16_t amount) {
     }
     this->mana = (this->mana >= amount) ? (this->mana - amount) : 0;
 }
-
-
-// void Player::restoreHp(uint16_t hp) {
-//     this->hp = std::min(static_cast<uint16_t>(this->hp + hp), this->hpMax());
-// }
-
-// void Player::restoreMana(uint16_t mana) {
-//     this->mana = std::min(static_cast<uint16_t>(this->mana + mana), this->manaMax());
-// }
 
 
 void Player::onDeath(World& world) {

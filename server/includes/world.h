@@ -50,8 +50,6 @@ private:
     const uint32_t limit_height;
     const uint32_t limit_width;
     MatrizMap map_tiles;
-    // std::map<Region, uint32_t> zone_count;  // cuántas zonas hay de cada región
-    // std::unordered_map<Id, Zone> zones;
     std::unordered_map<Id, Zone> safe_zones;
     std::unordered_map<Id, Zone> hostile_zones;
     std::unordered_map<Position, Id, PositionHash> position_zones;

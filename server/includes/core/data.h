@@ -13,8 +13,6 @@ constexpr size_t MAX_DATA = 30;
 struct ItemInstanceData {
     uint8_t type_item;
     Position position;
-    // int32_t x;
-    // int32_t y;
 };
 
 struct SlotData {
@@ -31,8 +29,6 @@ struct PlayerData {
     char password[MAX_DATA];
     /*Pose del personaje*/
     Position position;
-    // int32_t x;
-    // int32_t y;
     uint8_t direction;
     /*Personaje*/
     CharacterTraits charact_traits;
@@ -57,27 +53,17 @@ struct CitizenNpcData {
 struct CreatureData {
     uint8_t type;  // TypeNPC
     char name[MAX_DATA];
-    // uint32_t x;
-    // uint32_t y;
     Position position;
     uint8_t direction;
     NpcAttributes attributes;
-    // uint16_t hp;
-    // uint16_t max_hp;
-    // uint16_t level;
-    // uint16_t range_attack;
 };
 struct TreasureStateData {
     uint32_t amount;
     Position position;
-    // uint32_t pos_x;
-    // uint32_t pos_y;
 };
 struct GoldBagsData {
     uint32_t amount;
     Position position;
-    // uint32_t pos_x;
-    // uint32_t pos_y;
 };
 struct WorldStateData {
     std::vector<CitizenNpcData> citizen_npcs;

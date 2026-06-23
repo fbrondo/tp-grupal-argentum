@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "common/includes/types.h"
-// #include "server/includes/gameloop.h"
 class Gameloop;
 
 class Command {

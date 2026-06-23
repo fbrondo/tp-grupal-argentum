@@ -19,7 +19,6 @@ private:
     std::unordered_map<std::string, std::streampos> index;
     void saveIndexEntry(const std::string& name, std::streampos offset);
     void loadIndex();
-    // void writeDataPlayer(const PlayerData& data);
 
 public:
     explicit DataStorage(const FileData& paths);

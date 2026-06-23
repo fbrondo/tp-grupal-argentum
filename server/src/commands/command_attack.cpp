@@ -8,7 +8,3 @@ AttackCommand::AttackCommand(Id player_id, Id target_id):
 void AttackCommand::execute(Gameloop& game) {
     game.executeAttackPlayer(client_id, this->target_id);
 }
-
-// std::pair<Id, Id> AttackCommand::getAttackInfo() {
-//     return std::make_pair(this->client_id, this->target_id);
-// }

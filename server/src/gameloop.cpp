@@ -99,65 +99,6 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
     }
     Print::printMessageConsole("FINAL CONSTRUCTOR GAMELOOP");
 }
-//
-// void Gameloop::loadTreasures(const WorldStateData& world_data) {
-//     for (const auto&[pos_x, pos_y]: world_data.treasures) {
-//         Position pos(pos_x, pos_y);
-//         this->treasurePlacemen(pos);
-//     }
-// }
-//
-// void Gameloop::loadCreatures(const WorldStateData& world_data) {
-//     for (const auto& data: world_data.creatures) {
-//         NpcAttributes attrib;
-//         const auto type = static_cast<TypeNPC>(data.type);
-//         attrib.hp_current = data.hp;
-//         attrib.hp_max = data.max_hp;
-//         attrib.difficulty_level = data.level;
-//         attrib.range_attack = data.range_attack;
-//         const auto dir = static_cast<Direction>(data.direction);
-//         Pose pose(Position{data.x, data.y}, dir);
-//         this->createCreature(type, std::move(pose), attrib);
-//     }
-// }
-//
-// void Gameloop::loadCitizenNPCs(const WorldStateData& world_data) {
-//     for (const auto& data: world_data.creatures) {
-//         const auto type = static_cast<TypeNPC>(data.type);
-//         const auto dir = static_cast<Direction>(data.direction);
-//         Pose pose(Position{data.x, data.y}, dir);
-//         //this->createNpcCity(std::move(pose), type);
-//     }
-// }
-//
-// void Gameloop::loadGoldBags(const WorldStateData& world_data)  {
-//     for (const auto& data:world_data.gold_bags) {
-//         GoldBagInstance gold;
-//         gold.amount = data.amount;
-//         gold.pos = Position(data.pos_x, data.pos_x);
-//         this->world.addGoldWorld(gold);
-//
-//     }
-// }
-//
-// void Gameloop::loadItems(const WorldStateData& world_data) {
-//     for (const auto& data: world_data.items) {
-//         ItemInstance instance;
-//         const auto type = static_cast<TypeItem>(data.type_item);
-//         instance.item = this->conf.items[type].get();
-//         instance.pos = Position(data.x, data.y);
-//         this->world.addItemWorld(instance);
-//     }
-// }
-//
-// void Gameloop::loadWorld(const WorldStateData& world_data) {
-//     this->loadCitizenNPCs(world_data);
-//     this->loadCreatures(world_data);
-//     this->loadTreasures(world_data);
-//     this->loadGoldBags(world_data);
-//     this->loadItems(world_data);
-// }
-
 
 Character Gameloop::createCharacter(const CharacterTraits& traits) const {
     const auto type_race = static_cast<TypeRace>(traits.race);
@@ -224,16 +165,6 @@ void Gameloop::createNewPlayer(const User& user, const CharacterTraits& traits) 
     auto new_player =
             std::make_unique<Player>(User(user), pose_spawn, std::move(ch), this->conf.player_init);
 
-    // HOTFIX: se equipa una espada automaticamente al crear el personaje para poder probar el
-    // ataque.
-    // TODO: eliminar cuando el cliente implemente el click en el slot del inventario para equipar
-    //       (ClientProtocol::sendEquipItem ya existe, solo falta dispararlo desde el HUD).
-    /*const ItemInstance sword_instance(this->conf.items.at(SWORD).get());
-    bool added = new_player->addItemToInventory(sword_instance);
-    bool equipped = new_player->equipItem(0);  // el inventario esta vacio, SWORD queda en slot 0
-    std::cerr << "[CREATE] sword added=" << added << " equipped=" << equipped
-              << " hand_item=" << static_cast<int>(new_player->getHandItem()) << std::endl;*/
-
     const PlayerData player_data = new_player->getPlayerData();
     std::cerr << "[CREATE] saved equipment slots: " << player_data.equipment.size() << std::endl;
     this->persistence.savePlayer(player_data);
@@ -283,9 +214,6 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
     const auto inv = this->players.at(player_id)->getSlotsInventory();
     MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
     this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
-    /*const auto equip = this->players.at(player_id)->getSlotsEquipment();
-    MsgEquipmentUpdate equip_msg{EQUIPMENT_UPDATE, equip};
-    this->sendResponseToPlayer(player_id, std::make_shared<ResponseEquipmentUpdate>(equip_msg));*/
     const auto pending_it = this->pending_clan_msgs.find(std::string(data.username));
     if (pending_it != this->pending_clan_msgs.end()) {
         for (const auto& msg: pending_it->second) {
@@ -502,10 +430,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     }
 
     std::cerr << "[ATTACK] HIT attacker=" << attacker_id << " -> victim=" << victim_id
-              << " dmg=" << damage_by_attacker << " critical="
-              << is_critical
-              //<< " hp=" << victim->getHp() - damage_by_attacker << "/" << victim->getMaxHp()
-              << std::endl;
+              << " dmg=" << damage_by_attacker << " critical=" << is_critical << std::endl;
 
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
@@ -564,10 +489,6 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
                                 this->players[player_id]->getPosition());
         use_second_step = !use_second_step;
     }
-    // else {
-    //     std::cerr << "[MOVE] rejected player=" << player_id << " reason=not_walkable" <<
-    //     std::endl;
-    // }
 }
 
 void Gameloop::processPlayerDisconnet(Id player_id) {

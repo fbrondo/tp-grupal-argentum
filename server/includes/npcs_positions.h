@@ -24,7 +24,6 @@ public:
     Pose moveCreature(Id id, const Position& position, Direction direction);
     bool isOcupied(const Position& position) const;
     NpcInstance findNearestPriest(const Position& position) const;
-    // get(uint32_t id, uint8_t type);
 };
 
 #endif  // TALLER_TP_NPCS_POSITIONS_H

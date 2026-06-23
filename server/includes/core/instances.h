@@ -12,7 +12,6 @@ struct ItemInstance {
     Id id{0};
     Position position;
     const Item* item{nullptr};
-    // bool is_equipped{false};
 
     ItemInstance() = default;
     explicit ItemInstance(const Item* item_): item(item_) {}

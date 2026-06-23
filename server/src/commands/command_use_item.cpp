@@ -4,6 +4,4 @@
 
 UseItemCommand::UseItemCommand(Id id, size_t slot_id): Command(id), slot_id(slot_id) {}
 
-void UseItemCommand::execute(Gameloop& /*game*/) {
-    // game.processPlayerUseItem(this->client_id, this->slot_id);
-}
+void UseItemCommand::execute(Gameloop& /*game*/) {}

@@ -1,6 +1,5 @@
 #ifndef CLIENT_SENDER_H
 #define CLIENT_SENDER_H
-// #pragma once
 
 #include <memory>
 #include <stdexcept>

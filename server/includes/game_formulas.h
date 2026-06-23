@@ -54,7 +54,6 @@ uint16_t calculationDefense(const std::vector<Defense*>& info_defense);
 /* (13) Evadir un ataque*/
 bool calculationDodge();
 
-// std::mt19937& getRng();
 };  // namespace GameFormulas
 
 #endif

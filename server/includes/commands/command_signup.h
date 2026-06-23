@@ -15,6 +15,5 @@ private:
 public:
     SignupCommand(Id id, const std::string& username, const std::string& pass,
                   CharacterTraits&& charact);
-    // SignupInfo getSignupInfo();
     void execute(Gameloop& game) override;
 };

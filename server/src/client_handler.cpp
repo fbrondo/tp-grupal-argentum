@@ -1,9 +1,5 @@
 #include "server/includes/client_handler.h"
 
-
-// Incluimos las nuevas abstracciones de este TP
-// #include "command.h"
-
 ClientHandler::ClientHandler(Id player_id, Socket&& socket, QueueCmd& cmd_q,
                              MonitorQueues& monitor):
         player_id(player_id),
@@ -37,8 +33,4 @@ void ClientHandler::join() {
     this->sender.join();
 }
 
-ClientHandler::~ClientHandler() {
-    // this->stop();
-    // this->join();
-    // this->monitor.removeQueuesPlayer(this->player_id);
-}
+ClientHandler::~ClientHandler() {}

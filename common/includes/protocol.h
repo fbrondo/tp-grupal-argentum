@@ -106,24 +106,16 @@ struct MsgSlot {
     uint8_t slot_index;
     uint8_t type_item;
     uint16_t quantity;
-    // uint8_t is_equipped;
 };
 
 struct MsgInventoryUpdate {
     uint8_t opcode = INVENTORY_UPDATE;
     std::vector<MsgSlot> inventory;
-    // MsgSlot slots[MAX_ITEM_SIZE];
-    // uint8_t slot_index;
-    // uint8_t item_id;
-    //  uint16_t quantity;
-    // uint8_t is_equipped;
 };
 
 struct MsgEquipmentUpdate {
     uint8_t opcode = EQUIPMENT_UPDATE;
     std::vector<MsgSlot> equipment;
-    // uint8_t slot_index;
-    // uint8_t type_item;
 };
 
 struct MsgSignup {

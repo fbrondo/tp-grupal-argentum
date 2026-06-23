@@ -164,14 +164,6 @@ void World::floodFill(const Position pos_start, Region region, MatrizBool& visit
     }
 }
 
-// void World::saveIdsOfTheSafeZones() {
-//     for (auto& [id, zone]: this->zones) {
-//         if ((zone.region == Town || zone.region == City) && this->zoneHasFreePosition(zone)) {
-//             this->safe_zones.push_back(id);
-//         }
-//     }
-// }
-
 void World::identifyZones() {
     MatrizBool visited(this->limit_height, std::vector<bool>(this->limit_width, false));
     Id zone_id = 0;
@@ -184,7 +176,6 @@ void World::identifyZones() {
             Zone zone;
             zone.region = region;
             zone.id = zone_id++;
-            // this->zone_count[region]++;
             this->floodFill(Position{x, y}, region, visited, zone);
             const bool has_walkable_tile = std::any_of(
                     zone.tiles.begin(), zone.tiles.end(),
@@ -444,59 +435,11 @@ Position World::calculatePositionRandom(const Id& zone_id) {
     std::uniform_int_distribution<size_t> dist(0, available.size() - 1);
     return available[dist(this->gen)];
 }
-//
-// Position World::findNearbyFreePosition(const Position& center) const {
-//     const auto zone_it = this->zones.find(zone_id);
-//     if (zone_it == this->zones.end()) {
-//         return this->findAnyFreePosition();
-//     }
-//
-//     std::vector<Position> free_tiles;
-//     for (const Position& pos: zone->tiles) {
-//         const bool occupied = this->player_tiles.contains(pos) ||
-//                               this->npc_positions.isOcupied(pos) ||
-//                               this->item_positions.isOcupied(pos);
-//         if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
-//             !this->positionNotWalkabled(pos) && !this->isInPlayerVisionRange(pos) && !occupied) {
-//             free_tiles.push_back(pos);
-//         }
-//     }
-//
-//     if (free_tiles.empty()) {
-//         throw std::runtime_error("No hay posiciones libres en la zona");
-//     }
-//
-//     std::uniform_int_distribution<size_t> dist(0, free_tiles.size() - 1);
-//     return free_tiles[dist(this->gen)];
-// }
 
 Position World::calculatePositionRandomSafeZone() {
     Id zone_id = this->calculateZoneSafeRandom();
     return this->calculatePositionRandom(zone_id);
 }
-
-// bool World::zoneHasFreePosition(const Zone& zone) {
-//     for (const Position& pos: zone.tiles) {
-//         if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
-//             !this->isOccupied(pos)) {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-
-// Position World::findAnyFreePosition() {
-//     for (uint32_t y = 0; y < this->limit_height; ++y) {
-//         for (uint32_t x = 0; x < this->limit_width; ++x) {
-//             Position pos(x, y);
-//             if (this->map_tiles[x][y].walkable && !this->isOccupied(pos)) {
-//                 return pos;
-//             }
-//         }
-//     }
-//
-//     throw std::runtime_error("No hay posiciones libres en el mapa para spawnear");
-// }
 
 Position World::findNearbyFreePosition(const Position& center) const {
     std::queue<Position> queue;
@@ -548,14 +491,6 @@ std::unordered_map<Id, Zone> World::getSafeZones() { return this->safe_zones; }
 void World::addPlayerWorld(const Id& player_id, const Pose& pose) {
     this->players_positions.emplace(player_id, pose);
     this->player_tiles.emplace(pose.position, true);
-    /*auto it = this->players_positions.find(player_id);
-    if (it != this->players_positions.end()) {
-        this->occupied_tiles[it->second.position] = false;
-        it->second = pose;
-    } else {
-        this->players_positions.emplace(player_id, pose);
-    }
-    this->occupied_tiles[pose.position] = true;*/
 }
 
 void World::addNpcWorld(const NpcInstance& npc) {
@@ -604,11 +539,6 @@ Pose World::movePlayer(const Id& player_id, Direction dir) {
     this->player_tiles.emplace(new_position, true);
     Pose pose_move(new_position, dir);
     this->players_positions[player_id] = pose_move;
-    /*Position previous_position = this->players_positions.at(player_id).position;
-    Pose pose_move(new_position, dir);
-    this->occupied_tiles[previous_position] = false;
-    this->players_positions.at(player_id) = pose_move;
-    this->occupied_tiles[new_position] = true;*/
     Print::printPositionMovePlayer(player_id, pose_move, previous_position);
     return pose_move;
 }
@@ -661,36 +591,6 @@ bool World::playerTakeItemOnTheFloor(Player& player) {
 
 WorldStateData World::buildWorldState() {
     WorldStateData world_data;
-    // for (const auto& npc: this->npc_positions | std::views::values) {
-    //     CitizenNpcData citizen_npc;
-    //     citizen_npc.type = npc.type;
-    //     citizen_npc.pos_x = npc.pose.position.x;
-    //     citizen_npc.pos_y = npc.pose.position.y;
-    //     citizen_npc.direction = npc.pose.direct;
-    //     world_data.citizen_npcs.push_back(citizen_npc);
-    // }
-    //
-    // for (const auto& treasure: this->treausures_positions | std::views::values) {
-    //     TreasureStateData treas;
-    //     treas.pos_x = treasure.x;
-    //     treas.pos_y = treasure.y;
-    //     world_data.treasures.push_back(treas);
-    // }
-    // for (const auto& gold_bags: this->gold_on_floor | std::views::values) {
-    //     GoldBagsData gold;
-    //     gold.pos_x = gold_bags.pos.x;
-    //     gold.pos_y = gold_bags.pos.y;
-    //     gold.amount = gold_bags.amount;
-    //     world_data.gold_bags.push_back(gold);
-    // }
-    //
-    // for (const auto& item_inst: this->items_on_flor | std::views::values) {
-    //     ItemInstanceData item;
-    //     item.type_item = item_inst.type;
-    //     item.x = item_inst.pos.x;
-    //     item.y = item_inst.pos.y;
-    //     world_data.items.push_back(item);
-    // }
     return world_data;
 }
 
