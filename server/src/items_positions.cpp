@@ -4,16 +4,11 @@
 #include <ranges>
 
 void ItemsPositions::add(const ItemInstance& item) {
-    std::cerr << "[FLOOR] add ItemInstance id=" << item.id
-              << " type=" << static_cast<int>(item.item ? item.item->type : 0) << " pos=("
-              << item.position.x << "," << item.position.y << ")\n";
     this->items_on_floor.emplace(item.id, item);
     this->items_tiles.emplace(item.position, true);
 }
 
 void ItemsPositions::add(const GoldBagInstance& gold_bag) {
-    std::cerr << "[FLOOR] add GoldBag id=" << gold_bag.id << " amount=" << gold_bag.amount
-              << " pos=(" << gold_bag.position.x << "," << gold_bag.position.y << ")\n";
     this->gold_bags_on_floor.emplace(gold_bag.id, gold_bag);
     this->items_tiles.emplace(gold_bag.position, true);
 }
@@ -22,12 +17,6 @@ void ItemsPositions::add(const TreasureInstance& treasure) {
     this->treasures_on_floor.emplace(treasure.id, treasure);
     this->items_tiles.emplace(treasure.position, true);
 }
-
-// void ItemsPositions::remove(const ItemInstance& item) { items_on_floor.erase(item.id); }
-// void ItemsPositions::remove(const GoldBagInstance& gold) {
-//     this->gold_bags_on_floor.erase(gold.id);
-// }
-// void ItemsPositions::remove(const TreasureInstance& t) { treasures_on_floor.erase(t.id); }
 
 bool ItemsPositions::removeItemTakeToPlayer(Player& player) {
     bool item_take = false;

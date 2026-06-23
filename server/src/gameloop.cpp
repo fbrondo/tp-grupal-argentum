@@ -90,18 +90,15 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
     this->clan_manager.load();
 
     if (persistence.worldStateExists()) {
-        Print::printInitGameloop("CARGANDO WORLD");
         WorldStateData world_data = persistence.loadWorldState();
         this->loadCitizenNPCs(world_data);
         this->loadCreatures(world_data);
         this->loadItemsInTheFloor(world_data);
     } else {
-        Print::printInitGameloop("INICIANDO WORLD");
         this->spawn.spawnCitizenNpcZones(this->next_npc_id, this->citizen_npcs, this->bank);
         this->spawn.spawnCreaturesZones(this->next_npc_id, this->creatures);
         this->spawn.spawnTreasuresZones();
     }
-    Print::printMessageConsole("FINAL CONSTRUCTOR GAMELOOP");
 }
 
 void Gameloop::loadCreatures(const WorldStateData& world_data) {
@@ -118,7 +115,6 @@ void Gameloop::loadCreatures(const WorldStateData& world_data) {
         auto creature = this->spawn.loadCreature(next_npc_id, data);
         this->creatures.emplace(this->next_npc_id, std::move(creature));
     }
-    Print::printMessageConsole("SE TERMINO DE CARGAR LAS CRIATURAS");
 }
 
 void Gameloop::loadCitizenNPCs(const WorldStateData& world_data) {
@@ -127,7 +123,6 @@ void Gameloop::loadCitizenNPCs(const WorldStateData& world_data) {
         auto citizen = this->spawn.loadCitizen(next_npc_id, data, this->bank);
         this->citizen_npcs.emplace(next_npc_id, std::move(citizen));
     }
-    Print::printMessageConsole("SE TERMINO DE CARGAR LOS CIUDADANOS");
 }
 
 void Gameloop::loadItemsInTheFloor(const WorldStateData& world_data) {
@@ -213,8 +208,6 @@ void Gameloop::createNewPlayer(const User& user, const CharacterTraits& traits) 
 
 void Gameloop::processHandleSignup(const Id& player_id, const User& user,
                                    const CharacterTraits& traits) {
-    Print::printNewPlayerArrived(player_id, user, static_cast<TypeRace>(traits.race),
-                                 static_cast<TypeClase>(traits.clase));
     if (this->persistence.exists(user.username)) {
         this->monitor.queueTheServerResponse(
                 player_id, std::make_unique<ResponseSignup>(false, INVALID_REGISTER));
@@ -236,7 +229,6 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
                 player_id, std::make_unique<ResponseLogin>(false, player_id, INVALID_PASSWORD));
         return;
     }
-    Print::printMessageConsole("llega hasta aqui");
     this->loadingPlayerData(player_id, data);
     const std::string login_clan = this->clan_manager.getClanOf(data.username);
     if (!login_clan.empty()) {
@@ -247,7 +239,6 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
             }
         }
     }
-    Print::printMessageConsole("llega hasta aqui");
     this->monitor.queueTheServerResponse(player_id,
                                          std::make_unique<ResponseLogin>(true, player_id));
     Map map = this->world.getMap();
@@ -256,9 +247,6 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
             player_id, std::make_unique<ResponseMap>(std::move(map), std::move(citizen_snapshot)));
     this->sendUpdateInventoryToPlayer(player_id, *this->players.at(player_id).get());
     this->sendUpdateEquipmentToPlayer(player_id, *this->players.at(player_id).get());
-    // const auto inv = this->players.at(player_id)->getSlotsInventory();
-    // MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
-    // this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
     const auto pending_it = this->pending_clan_msgs.find(std::string(data.username));
     if (pending_it != this->pending_clan_msgs.end()) {
         for (const auto& msg: pending_it->second) {
@@ -323,8 +311,7 @@ bool Gameloop::isItPossibleToAttack(Player& player, const CombatEntity& victim, 
         return false;
     }
     // TODO: Review distanceBetweenTheAttackerAndTheVictim
-    const Position& attacker_pos =
-            player.getPosition();  // this->world.positionPlayerInTheWorld(player_id);
+    const Position& attacker_pos = player.getPosition();
     const Position& victim_pos = victim.getPosition();
     int distance = std::abs(static_cast<int>(attacker_pos.x) - static_cast<int>(victim_pos.x)) +
                    std::abs(static_cast<int>(attacker_pos.y) - static_cast<int>(victim_pos.y));
@@ -527,10 +514,6 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
                                 this->players[player_id]->getPosition());
         use_second_step = !use_second_step;
     }
-    // else {
-    //     std::cerr << "[MOVE] rejected player=" << player_id << " reason=not_walkable" <<
-    //     std::endl;
-    // }
 }
 
 void Gameloop::processPlayerDisconnet(Id player_id) {
@@ -1160,7 +1143,6 @@ void Gameloop::updateStatePlayers() {
 }
 
 void Gameloop::run() {
-    std::cerr << "[Gameloop] run() started" << std::endl;
     try {
         this->persistence.start();
         uint32_t timer_attributes = 0;
@@ -1323,4 +1305,4 @@ void Gameloop::processClanList(Id player_id) {
     }
 }
 
-Gameloop::~Gameloop() { std::cerr << "[Gameloop] run() finished" << std::endl; }
+Gameloop::~Gameloop() {}

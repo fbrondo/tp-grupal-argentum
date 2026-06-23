@@ -25,8 +25,6 @@ Player::Player(const Pose& pos, Inventory&& inv_, Equipment&& equip_, Character&
     this->exp = data.xp;
     this->user.username = data.username;
     this->user.password = data.password;
-    Print::imprimirCajaContenedora(data);
-    /*Falta init inventario**/
 }
 
 Player::Player(const User& user_, const Pose& pose_, Character&& ch_,

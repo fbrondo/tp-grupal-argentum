@@ -15,7 +15,6 @@ Server::Server(const char* serverName, const char* config_path):
 
 
 void Server::start() {
-    Print::initServer();
     acceptor.start();
     GameConfig conf = this->load_config.getdGameConfiguration();
     Gameloop gameWord(std::move(conf), monitor, commands_queue);
@@ -39,4 +38,4 @@ void Server::start() {
     this->acceptor.join();
 }
 
-Server::~Server() { std::cout << "[Server] Apagado completo con éxito." << std::endl; }
+Server::~Server() {}

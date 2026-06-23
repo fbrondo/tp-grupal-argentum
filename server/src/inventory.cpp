@@ -56,17 +56,8 @@ bool Inventory::setItemInTheEquipment(Equipment& equipment, size_t slot_index) {
         return false;
     }
     return true;
-    // if (replaced_item && !this->setItemInstanceInInventory(replaced_item)) {
-    // std::unique_ptr<ItemInstance> equipped_item = equipment.equipItem(std::move(replaced_item));
-    // this->setItemInstanceInInventory(equipped_item);
-    //   return false;
-    //}
-    // return true;
 }
-// const auto target_item = dynamic_cast<const ShopItem*>(this->slots[slot_index].getItem());
-// if (target_item == nullptr) {
-//     return false;
-// }
+
 bool Inventory::removeItemFromEquipment(Equipment& equipment, size_t equipment_slot_index) {
     if (this->isInventoryFull()) { /*Fijarse primero si el inventario esta lleno*/
         return false;
@@ -76,10 +67,6 @@ bool Inventory::removeItemFromEquipment(Equipment& equipment, size_t equipment_s
         return false;
     }
     return this->addItemToInventory(instance->item);
-    // if (!this->setItemInstanceInInventory(instance->item)) {
-    //     equipment.equipItem(std::move(instance));
-    //     return false;
-    // }
 }
 
 void Inventory::dropInventory(World& world, const Position& position) {
