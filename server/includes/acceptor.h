@@ -22,6 +22,8 @@ private:
     MonitorQueues& monitor;
     QueueCmd& queue_cmd;
     std::list<std::unique_ptr<ClientHandler>> players;
+    bool stopped{false};
+    bool joined{false};
 
     void reap();
 
@@ -30,6 +32,7 @@ public:
     ~Acceptor() override;
     void run() override;
     void stop() override;
+    void join() override;
     void clear();
 };
 
