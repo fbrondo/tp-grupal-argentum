@@ -22,6 +22,24 @@ using world_renderer_utils::player_entity_key;
 using world_renderer_utils::select_audible_sound_effects;
 using world_renderer_utils::wrap_text;
 
+namespace {
+
+bool is_repeated_large_tile_anchor(const Map& map, Layer layer, int x, int y, int sprite_id,
+                                   const SDL2pp::Texture& texture) {
+    if (texture.GetWidth() <= TILE_SIZE && texture.GetHeight() <= TILE_SIZE) {
+        return false;
+    }
+    if (x > 0 && map.tile_at(x - 1, y, layer).sprite_id == sprite_id) {
+        return true;
+    }
+    if (y > 0 && map.tile_at(x, y - 1, layer).sprite_id == sprite_id) {
+        return true;
+    }
+    return false;
+}
+
+}  // namespace
+
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_,
                              FontManager& font_manager_):
         renderer(renderer_),
@@ -393,6 +411,11 @@ void WorldRenderer::render_ground_layers(int start_tile_x, int end_tile_x, int s
                 std::string tex_key = key_prefix + std::to_string(sprite_id);
                 try {
                     SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
+                    if (layer == Layer::Object &&
+                        is_repeated_large_tile_anchor(*current_map, layer, x, y, sprite_id,
+                                                      texture)) {
+                        continue;
+                    }
                     SDL_Rect dst;
                     dst.x = (x * TILE_SIZE) - camera.x + camera_screen_offset_x;
                     dst.y = (y * TILE_SIZE) - camera.y + camera_screen_offset_y;
@@ -581,6 +604,10 @@ void WorldRenderer::render_details(int start_tile_x, int end_tile_x, int start_t
             const std::string tex_key = "tile_det_" + std::to_string(tile_data.sprite_id);
             try {
                 SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
+                if (is_repeated_large_tile_anchor(*current_map, Layer::Details, x, y,
+                                                  tile_data.sprite_id, texture)) {
+                    continue;
+                }
                 const SDL_Rect detail_world_rect = {x * TILE_SIZE, y * TILE_SIZE,
                                                     texture.GetWidth(), texture.GetHeight()};
                 const SDL_Rect dst = {(x * TILE_SIZE) - camera.x + camera_screen_offset_x,

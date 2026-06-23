@@ -7,6 +7,7 @@
 #include <ranges>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "common/includes/core/snapshot.h"
@@ -104,7 +105,15 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
 }
 
 void Gameloop::loadCreatures(const WorldStateData& world_data) {
+    std::unordered_set<Id> protected_zones;
+    for (const auto& spawn: this->world.getCitizenSpawnPoints()) {
+        protected_zones.insert(spawn.zone_id);
+    }
+    const auto safe_zones = this->world.getSafeZones();
     for (const auto& data: world_data.creatures) {
+        if (safe_zones.contains(data.zone_id) || protected_zones.contains(data.zone_id)) {
+            continue;
+        }
         this->next_npc_id += 1;
         auto creature = this->spawn.loadCreature(next_npc_id, data);
         this->creatures.emplace(this->next_npc_id, std::move(creature));
@@ -1188,6 +1197,8 @@ void Gameloop::run() {
         std::cerr << "[Gameloop] run() exited: " << e.what() << std::endl;
     }
     this->updateStatePlayers();
+    this->updateStateWorld();
+    this->persistence.stop();
     this->persistence.join();
 }
 

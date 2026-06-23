@@ -98,7 +98,7 @@ MatrizBool World::buildBackgroundVisualCoverage() const {
 
             const SpriteDefinition& sprite = sprite_it->second;
             const int left_px = static_cast<int>(x) * TILE_SIZE;
-            const int top_px = static_cast<int>(y) * TILE_SIZE + TILE_SIZE - sprite.height;
+            const int top_px = static_cast<int>(y) * TILE_SIZE;
             const int right_px = left_px + sprite.width;
             const int bottom_px = top_px + sprite.height;
 

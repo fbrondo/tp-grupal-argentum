@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <ranges>
 #include <stdexcept>
+#include <unordered_set>
 
 #include <toml++/impl/forward_declarations.hpp>
 
@@ -10,6 +11,18 @@
 #include "server/includes/npc/merchant.h"
 #include "server/includes/npc/priest.h"
 #include "server/print.h"
+
+namespace {
+
+std::unordered_set<Id> citizenSpawnZoneIds(const World& world) {
+    std::unordered_set<Id> zone_ids;
+    for (const auto& spawn: world.getCitizenSpawnPoints()) {
+        zone_ids.insert(spawn.zone_id);
+    }
+    return zone_ids;
+}
+
+}  // namespace
 
 SpawnManager::SpawnManager(const GameConfig& conf, World& world_):
         gen(std::random_device{}()),
@@ -79,8 +92,16 @@ std::unique_ptr<Creature> SpawnManager::createCreature(const std::string& name_n
 void SpawnManager::spawnCreaturesZones(Id& next_id,
                                        std::map<Id, std::unique_ptr<Creature>>& creatures) {
     const std::unordered_map<Id, Zone> hostile_zones = this->world.getHostileZones();
+    const std::unordered_set<Id> protected_zones = citizenSpawnZoneIds(this->world);
     for (const auto& zone: hostile_zones | std::views::values) {
-        const auto region = this->hostile_regions.at(zone.region);
+        if (protected_zones.contains(zone.id)) {
+            continue;
+        }
+        const auto region_it = this->hostile_regions.find(zone.region);
+        if (region_it == this->hostile_regions.end()) {
+            continue;
+        }
+        const auto region = region_it->second;
         const uint16_t respawn_threshold = region->max_creatures / 2;
         uint16_t count = zone.creatures_count;
         if (count < respawn_threshold) {
@@ -147,7 +168,11 @@ void SpawnManager::spawnCitizenNpcZones(Id& next_id,
 
     const std::unordered_map<Id, Zone> safe_zones = this->world.getSafeZones();
     for (const auto& zone: safe_zones | std::views::values) {
-        auto region = this->safe_regions.at(zone.region);
+        const auto region_it = this->safe_regions.find(zone.region);
+        if (region_it == this->safe_regions.end()) {
+            continue;
+        }
+        auto region = region_it->second;
         for (size_t j = 0; const auto& name_npc: region->npc_types) {
             const uint16_t numbers_npc = region->numbers_npc[j];
             for (size_t i = 0; i < numbers_npc; i++) {
@@ -181,8 +206,16 @@ void SpawnManager::prepareNewTreasure(const Id& zone_id, const HostileRegion& re
 
 void SpawnManager::spawnTreasuresZones() {
     const std::unordered_map<Id, Zone> hostile_zones = this->world.getHostileZones();
+    const std::unordered_set<Id> protected_zones = citizenSpawnZoneIds(this->world);
     for (const auto& zone: hostile_zones | std::views::values) {
-        const auto region = this->hostile_regions.at(zone.region);
+        if (protected_zones.contains(zone.id)) {
+            continue;
+        }
+        const auto region_it = this->hostile_regions.find(zone.region);
+        if (region_it == this->hostile_regions.end()) {
+            continue;
+        }
+        const auto region = region_it->second;
         uint16_t count = zone.treasures_count;
         if (region->min_treasure.has_value() && region->max_treasure.has_value() && count == 0) {
             std::uniform_int_distribution dist(region->min_treasure.value(),

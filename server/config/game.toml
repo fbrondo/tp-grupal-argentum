@@ -32,7 +32,7 @@ pesist_data = 60000
 #
 npc_attack_cooldown = 1000
 #
-player_attack_cooldown = 6000
+player_attack_cooldown = 2000
 
 # Details del mapa que marcan edificios donde aparecen NPCs ciudadanos.
 # npc_type puede ser: "priest", "banker" o "merchant".
