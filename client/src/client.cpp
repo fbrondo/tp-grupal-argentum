@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
-#include <unordered_map>
 
 #include <SDL2/SDL_image.h>
 
@@ -13,81 +12,11 @@
 #include "client/includes/commands/command_move.h"
 #include "client/includes/commands/command_unequip.h"
 #include "client/includes/core/constants.h"
+#include "client/includes/core/item_names.h"
+#include "client/includes/input_utils.h"
 #include "common/includes/toml_config.h"
 
-static const char* item_name(uint8_t type) {
-    switch (type) {
-        case SWORD:
-            return "Espada";
-        case AXE:
-            return "Hacha";
-        case HAMMER:
-            return "Martillo";
-        case ASH_STAFF:
-            return "Vara de fresno";
-        case ELVEN_FLUTE:
-            return "Flauta elfica";
-        case KNOTTED_STAFF:
-            return "Baculo nudoso";
-        case INLAID_STAFF:
-            return "Baculo engarzado";
-        case SIMPLE_BOW:
-            return "Arco simple";
-        case COMPOUND_BOW:
-            return "Arco compuesto";
-        case LEATHER_ARMOR:
-            return "Armadura de cuero";
-        case PLATE_AMOR:
-            return "Armadura de placas";
-        case BLUE_TUNIC:
-            return "Tunica azul";
-        case HOOD:
-            return "Capucha";
-        case IRON_HELMET:
-            return "Casco de hierro";
-        case TORTOISE_SHIELD:
-            return "Escudo de tortuga";
-        case IRON_SHIELD:
-            return "Escudo de hierro";
-        case MAGIC_HAT:
-            return "Sombrero magico";
-        case LIFE_POTION:
-            return "Pocion vida";
-        case MANA_POTION:
-            return "Pocion mana";
-        case GOLD:
-            return "Oro";
-        default:
-            return "?";
-    }
-}
-
-static bool get_pressed_movement_direction(Direction& direction) {
-    SDL_PumpEvents();
-    if (SDL_GetKeyboardFocus() == nullptr) {
-        return false;
-    }
-
-    const Uint8* keyboard_state = SDL_GetKeyboardState(nullptr);
-    if (keyboard_state[SDL_SCANCODE_UP] || keyboard_state[SDL_SCANCODE_W]) {
-        direction = UP;
-        return true;
-    }
-    if (keyboard_state[SDL_SCANCODE_LEFT] || keyboard_state[SDL_SCANCODE_A]) {
-        direction = LEFT;
-        return true;
-    }
-    if (keyboard_state[SDL_SCANCODE_RIGHT] || keyboard_state[SDL_SCANCODE_D]) {
-        direction = RIGHT;
-        return true;
-    }
-    if (keyboard_state[SDL_SCANCODE_DOWN] || keyboard_state[SDL_SCANCODE_S]) {
-        direction = DOWN;
-        return true;
-    }
-
-    return false;
-}
+// --- Config --- //
 
 WindowConfig Client::loadWindowConfig() {
     WindowConfig cfg;
@@ -103,6 +32,8 @@ WindowConfig Client::loadWindowConfig() {
     return cfg;
 }
 
+// --- Constructor --- //
+
 Client::Client(const char* host, const char* port):
         skt(host, port),
         protocol(this->skt),
@@ -116,14 +47,180 @@ Client::Client(const char* host, const char* port):
         }()),
         texture_manager(window.get_renderer(), window),
         world_renderer(window.get_renderer(), texture_manager, font_manager) {
-    if (SoundManager::init()) {
-        SoundManager::play_background_music(ARGENTUM_SHARE_PATH "/client/assets/Sounds/31.mp3",
-                                            3.0);
+    // SoundManager::init() desactivado para testing
+    // if (SoundManager::init()) {
+    //     SoundManager::play_background_music(ARGENTUM_SHARE_PATH "/client/assets/Sounds/31.mp3",
+    //                                         3.0);
+    // }
+}
+
+// --- Login --- //
+
+void Client::handle_login_success(uint32_t player_id) {
+    world_renderer.set_local_player(player_id);
+    world_renderer.add_chat_message("¡Bienvenido a las Tierras de Argentum!", COLOR_BLUE);
+    world_renderer.add_chat_message("Escribi /help para ver los comandos disponibles.",
+                                    COLOR_YELLOW);
+}
+
+void Client::handle_login_sequence(const std::string& user, const std::string& pass) {
+    world_renderer.set_player_name(user);
+    protocol.sendLogin(user, pass);
+    EventClient login_event;
+    while (protocol.receiveMessage(login_event)) {
+        if (login_event.type == TypeEventClient::LOGIN_RESPONSE) {
+            if (login_event.login_success) {
+                handle_login_success(login_event.player_id);
+            }
+            break;
+        }
+        if (login_event.type == TypeEventClient::MAP_DATA) {
+            world_renderer.load_map(std::move(login_event.map_data), login_event.citizens);
+        }
+        if (login_event.type == TypeEventClient::INVENTORY_UPDATE) {
+            world_renderer.update_hud_inventory(login_event.inventory);
+        }
     }
 }
 
-void Client::sync_chat_ui() {
-    world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+// --- Server events --- //
+
+void Client::handle_chat_event(const EventClient& event) {
+    auto parsed = ChatManager::parse_server_message(event.text_payload);
+    switch (parsed.type) {
+        case ParsedChatMessage::PUBLIC:
+            world_renderer.set_chat_bubble_on_player(parsed.sender_name, parsed.text);
+            break;
+        case ParsedChatMessage::WHISPER_RECEIVED:
+            world_renderer.set_chat_bubble_on_player(parsed.sender_name, parsed.text);
+            break;
+        case ParsedChatMessage::WHISPER_SENT:
+            world_renderer.set_chat_bubble_on_local(parsed.text);
+            break;
+        case ParsedChatMessage::SYSTEM:
+            chat.add_message_to_log(parsed.text);
+            world_renderer.add_chat_message(parsed.text, parsed.color);
+            break;
+    }
+}
+
+void Client::handle_merchant_event(const EventClient& event) {
+    world_renderer.add_chat_message("--- Catalogo del comerciante ---", COLOR_YELLOW);
+    for (const auto& [type, entry]: event.merchant_data.catalog) {
+        std::string name = item_name(type);
+        std::string line = name + ": " + std::to_string(entry.purchase_price) + " compra - " +
+                           std::to_string(entry.selling_price) + " venta";
+        world_renderer.add_chat_message(line, COLOR_WHITE);
+    }
+}
+
+void Client::handle_bank_event(const EventClient& event) {
+    world_renderer.add_chat_message("--- Contenido del banco ---", COLOR_YELLOW);
+    world_renderer.add_chat_message("Oro: " + std::to_string(event.bank_data.gold), COLOR_YELLOW);
+    if (!event.bank_data.items.empty()) {
+        for (const auto& [type, quantity]: event.bank_data.items) {
+            std::string name = item_name(type);
+            std::string line = name + ": " + std::to_string(quantity);
+            world_renderer.add_chat_message(line, COLOR_WHITE);
+        }
+    }
+}
+
+void Client::update_state_from_server() {
+    EventClient event;
+    while (events_queue.try_pop(event)) {
+        switch (event.type) {
+            case TypeEventClient::UPDATE_WORLD:
+                world_renderer.update_from_snapshot(event.world);
+                break;
+            case TypeEventClient::MAP_DATA:
+                world_renderer.load_map(std::move(event.map_data), event.citizens);
+                break;
+            case TypeEventClient::OWN_STATS:
+                world_renderer.update_hud_stats(event.stats);
+                break;
+            case TypeEventClient::INVENTORY_UPDATE:
+                world_renderer.update_hud_inventory(event.inventory);
+                break;
+            case TypeEventClient::EQUIPMENT_UPDATE:
+                world_renderer.update_hud_equipment(event.equipment);
+                break;
+            case TypeEventClient::CHAT_MSG:
+                handle_chat_event(event);
+                break;
+            case TypeEventClient::OPEN_MERCHANT:
+                handle_merchant_event(event);
+                break;
+            case TypeEventClient::OPEN_BANK:
+                handle_bank_event(event);
+                break;
+            case TypeEventClient::DISCONNECTION:
+                is_running = false;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+// --- Input --- //
+
+void Client::handle_keyboard_event(const SDL_Event& event) {
+    if (event.type == SDL_QUIT ||
+        (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)) {
+        is_running = false;
+        return;
+    }
+    if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0) {
+        if (event.key.keysym.sym == SDLK_F5) {
+            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_morir"));
+        } else if (event.key.keysym.sym == SDLK_F7) {
+            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_vida_infinita"));
+        } else if (event.key.keysym.sym == SDLK_F8) {
+            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_mana_infinito"));
+        }
+    }
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) {
+        window.toggle_fullscreen();
+    }
+    if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+        last_move_command_ticks = 0;
+    }
+    if (event.type == SDL_KEYDOWN && event.key.repeat == 0 && event.key.keysym.sym == SDLK_c &&
+        (event.key.keysym.mod & KMOD_CTRL)) {
+        chat.set_active(!chat.is_active());
+        sync_chat_ui();
+    }
+}
+
+void Client::handle_mouse_event(const SDL_Event& event) {
+    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+        const uint32_t mouse_x = event.button.x;
+        const uint32_t mouse_y = event.button.y;
+
+        if (event.button.clicks >= 2) {
+            const auto equipped_slot_index = world_renderer.equipment_slot_at(mouse_x, mouse_y);
+            if (equipped_slot_index.has_value()) {
+                cmd_queue.push(std::make_unique<UnequipCommandClient>(equipped_slot_index.value()));
+                return;
+            }
+
+            const auto slot_index = world_renderer.inventory_slot_at(mouse_x, mouse_y);
+            if (slot_index.has_value()) {
+                cmd_queue.push(std::make_unique<EquipCommandClient>(slot_index.value()));
+                return;
+            }
+        }
+        handle_left_click(event.button.x, event.button.y);
+    }
+
+    if (event.type == SDL_MOUSEWHEEL) {
+        int mouse_x, mouse_y;
+        SDL_GetMouseState(&mouse_x, &mouse_y);
+        if (world_renderer.is_point_inside_console(mouse_x, mouse_y)) {
+            world_renderer.scroll_console(-event.wheel.y);
+        }
+    }
 }
 
 void Client::handle_left_click(uint32_t mouse_x, uint32_t mouse_y) {
@@ -145,14 +242,15 @@ void Client::handle_left_click(uint32_t mouse_x, uint32_t mouse_y) {
         }
     } else {
         if (in_world) {
-            auto hit = world_renderer.get_entity_at_screen(mouse_x, mouse_y);
+            auto hit = world_renderer.get_entity_at_screen(static_cast<int>(mouse_x),
+                                                           static_cast<int>(mouse_y));
             if (hit) {
                 auto [entity_id, entity_type] = *hit;
                 if (entity_type == EntityType::PLAYER || entity_type == EntityType::NPC) {
                     cmd_queue.push(std::make_unique<AttackCommandClient>(entity_id));
                 } else if (entity_type == EntityType::CITIZEN) {
-                    chat.select_npc(entity_id);
-                    world_renderer.set_citizen_selected(entity_id);
+                    chat.select_npc(static_cast<int>(entity_id));
+                    world_renderer.set_citizen_selected(static_cast<int>(entity_id));
                 }
             } else {
                 chat.clear_npc_selection();
@@ -167,154 +265,47 @@ void Client::handle_left_click(uint32_t mouse_x, uint32_t mouse_y) {
     }
 }
 
+void Client::handle_chat_input_event(const SDL_Event& event) {
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN && chat.is_active()) {
+        std::string msg = chat.extract_message();
+        if (!msg.empty()) {
+            std::string lower = to_lower(msg);
+            if (lower == "/help") {
+                process_help_command();
+            } else {
+                std::optional<uint32_t> npc_id;
+                if (chat.has_npc_selection()) {
+                    npc_id = static_cast<uint32_t>(chat.get_selected_npc_id());
+                }
+                cmd_queue.push(std::make_unique<ChatCommandClient>(msg, npc_id, selected_inv_slot));
+                if (msg[0] != '/' && msg[0] != '@') {
+                    world_renderer.set_chat_bubble_on_local(msg);
+                }
+            }
+        }
+        chat.set_active(false);
+        chat.clear_npc_selection();
+        world_renderer.set_citizen_selected(-1);
+        sync_chat_ui();
+    }
+
+    if (chat.is_active() && event.type == SDL_TEXTINPUT) {
+        chat.append_text(event.text.text);
+        sync_chat_ui();
+    }
+
+    if (chat.is_active() && event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_BACKSPACE) {
+        chat.remove_last_char();
+        sync_chat_ui();
+    }
+}
+
 void Client::handle_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
-            is_running = false;
-            return;
-        }
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
-            is_running = false;
-            return;
-        }
-        if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
-            event.key.keysym.sym == SDLK_F5) {
-            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_morir"));
-        }
-        if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
-            event.key.keysym.sym == SDLK_F7) {
-            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_vida_infinita"));
-        }
-        if (!chat.is_active() && event.type == SDL_KEYDOWN && event.key.repeat == 0 &&
-            event.key.keysym.sym == SDLK_F8) {
-            cmd_queue.push(std::make_unique<ChatCommandClient>("/debug_mana_infinito"));
-        }
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F11) {
-            window.toggle_fullscreen();
-        }
-        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-            last_move_command_ticks = 0;
-        }
-        if (event.type == SDL_KEYDOWN && event.key.repeat == 0 && event.key.keysym.sym == SDLK_c &&
-            (event.key.keysym.mod & KMOD_CTRL)) {
-            chat.set_active(!chat.is_active());
-            sync_chat_ui();
-        }
-
-        if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-            uint32_t mouse_x = event.button.x;
-            uint32_t mouse_y = event.button.y;
-
-            if (event.button.clicks >= 2) {
-                const auto equipped_slot_index = world_renderer.equipment_slot_at(mouse_x, mouse_y);
-                if (equipped_slot_index.has_value()) {
-                    cmd_queue.push(
-                            std::make_unique<UnequipCommandClient>(equipped_slot_index.value()));
-                    continue;
-                }
-
-                const auto slot_index = world_renderer.inventory_slot_at(mouse_x, mouse_y);
-                if (slot_index.has_value()) {
-                    cmd_queue.push(std::make_unique<EquipCommandClient>(slot_index.value()));
-                    continue;
-                }
-            }
-            handle_left_click(event.button.x, event.button.y);
-        }
-
-        if (event.type == SDL_MOUSEWHEEL) {
-            int mouse_x, mouse_y;
-            SDL_GetMouseState(&mouse_x, &mouse_y);
-            if (world_renderer.is_point_inside_console(mouse_x, mouse_y)) {
-                world_renderer.scroll_console(-event.wheel.y);
-            }
-        }
-
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RETURN) {
-            if (chat.is_active()) {
-                std::string msg = chat.extract_message();
-                if (!msg.empty()) {
-                    std::string lower = msg;
-                    std::transform(lower.begin(), lower.end(), lower.begin(),
-                                   [](unsigned char c) { return std::tolower(c); });
-
-                    if (lower == "/help") {
-                        world_renderer.add_chat_message("--- Comandos disponibles ---",
-                                                        COLOR_YELLOW);
-                        world_renderer.add_chat_message(
-                                "/comprar <item> - Comprar item a comerciante o sacerdote",
-                                COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/vender <item> - Vender item al comerciante", COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/listar - Ver catalogo de comerciante, banquero o sacerdote",
-                                COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/depositar oro <cantidad> - Depositar oro en banco", COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/depositar <item> - Depositar item en banco", COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/retirar oro <cantidad> - Retirar oro del banco", COLOR_WHITE);
-                        world_renderer.add_chat_message("/retirar <item> - Retirar item del banco",
-                                                        COLOR_WHITE);
-                        world_renderer.add_chat_message("/curar - Curar via sacerdote",
-                                                        COLOR_WHITE);
-                        world_renderer.add_chat_message("/resucitar - Resucitar via sacerdote",
-                                                        COLOR_WHITE);
-                        world_renderer.add_chat_message("/meditar - Meditar para recuperar mana",
-                                                        COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "@<nick> <msg> - Mensaje privado a otro jugador", COLOR_WHITE);
-                        world_renderer.add_chat_message("/fundar-clan <nombre> - Fundar un clan",
-                                                        COLOR_WHITE);
-                        world_renderer.add_chat_message("/unirse <nombre> - Pide unirse a un clan",
-                                                        COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/revisar-clan - Revisa pedidos pendientes y miembros",
-                                COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/clan-aceptar <nick> - Acepta a un jugador al clan", COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/clan-rechazar <nick> - Rechaza a un jugador del clan",
-                                COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/clan-ban <nick> - Banea a un jugador del clan", COLOR_WHITE);
-                        world_renderer.add_chat_message("/dejar-clan - Dejar tu clan actual",
-                                                        COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/listar-clanes - Ver lista de clanes disponibles", COLOR_WHITE);
-                        world_renderer.add_chat_message(
-                                "/clan-kick <nick> - Expulsa a un jugador del clan", COLOR_WHITE);
-                    } else {
-                        std::optional<uint32_t> npc_id;
-                        if (chat.has_npc_selection()) {
-                            npc_id = static_cast<uint32_t>(chat.get_selected_npc_id());
-                        }
-                        cmd_queue.push(std::make_unique<ChatCommandClient>(msg, npc_id,
-                                                                           selected_inv_slot));
-                        if (msg[0] != '/' && msg[0] != '@') {
-                            world_renderer.set_chat_bubble_on_local(msg);
-                        }
-                    }
-                }
-                chat.set_active(false);
-                chat.clear_npc_selection();
-                world_renderer.set_citizen_selected(-1);
-                sync_chat_ui();
-            }
-        }
-
-        if (chat.is_active() && event.type == SDL_TEXTINPUT) {
-            chat.append_text(event.text.text);
-            sync_chat_ui();
-        }
-
-        if (chat.is_active() && event.type == SDL_KEYDOWN &&
-            event.key.keysym.sym == SDLK_BACKSPACE) {
-            chat.remove_last_char();
-            sync_chat_ui();
-        }
+        handle_keyboard_event(event);
+        handle_mouse_event(event);
+        handle_chat_input_event(event);
     }
 }
 
@@ -346,6 +337,46 @@ void Client::process_movement_input() {
     }
 }
 
+// --- UI --- //
+
+void Client::sync_chat_ui() {
+    world_renderer.update_chat_input(chat.get_buffer(), chat.is_active());
+}
+
+void Client::process_help_command() {
+    world_renderer.add_chat_message("--- Comandos disponibles ---", COLOR_YELLOW);
+    world_renderer.add_chat_message("/comprar <item> - Comprar item a comerciante o sacerdote",
+                                    COLOR_WHITE);
+    world_renderer.add_chat_message("/vender <item> - Vender item al comerciante", COLOR_WHITE);
+    world_renderer.add_chat_message("/listar - Ver catalogo de comerciante, banquero o sacerdote",
+                                    COLOR_WHITE);
+    world_renderer.add_chat_message("/depositar oro <cantidad> - Depositar oro en banco",
+                                    COLOR_WHITE);
+    world_renderer.add_chat_message("/depositar <item> - Depositar item en banco", COLOR_WHITE);
+    world_renderer.add_chat_message("/retirar oro <cantidad> - Retirar oro del banco", COLOR_WHITE);
+    world_renderer.add_chat_message("/retirar <item> - Retirar item del banco", COLOR_WHITE);
+    world_renderer.add_chat_message("/curar - Curar via sacerdote", COLOR_WHITE);
+    world_renderer.add_chat_message("/resucitar - Resucitar via sacerdote", COLOR_WHITE);
+    world_renderer.add_chat_message("/meditar - Meditar para recuperar mana", COLOR_WHITE);
+    world_renderer.add_chat_message("@<nick> <msg> - Mensaje privado a otro jugador", COLOR_WHITE);
+    world_renderer.add_chat_message("/fundar-clan <nombre> - Fundar un clan", COLOR_WHITE);
+    world_renderer.add_chat_message("/unirse <nombre> - Pide unirse a un clan", COLOR_WHITE);
+    world_renderer.add_chat_message("/revisar-clan - Revisa pedidos pendientes y miembros",
+                                    COLOR_WHITE);
+    world_renderer.add_chat_message("/clan-aceptar <nick> - Acepta a un jugador al clan",
+                                    COLOR_WHITE);
+    world_renderer.add_chat_message("/clan-rechazar <nick> - Rechaza a un jugador del clan",
+                                    COLOR_WHITE);
+    world_renderer.add_chat_message("/clan-ban <nick> - Banea a un jugador del clan", COLOR_WHITE);
+    world_renderer.add_chat_message("/dejar-clan - Dejar tu clan actual", COLOR_WHITE);
+    world_renderer.add_chat_message("/listar-clanes - Ver lista de clanes disponibles",
+                                    COLOR_WHITE);
+    world_renderer.add_chat_message("/clan-kick <nick> - Expulsa a un jugador del clan",
+                                    COLOR_WHITE);
+}
+
+// --- Game loop --- //
+
 void Client::clear_display() { window.clear(); }
 
 float Client::calculate_delta_time() {
@@ -360,88 +391,19 @@ void Client::render_in_z_order() {
     window.present();
 }
 
-void Client::update_state_from_server() {
-    EventClient event;
-    while (events_queue.try_pop(event)) {
-        switch (event.type) {
-            case TypeEventClient::UPDATE_WORLD: {
-                world_renderer.update_from_snapshot(event.world);
-                break;
-            }
-            case TypeEventClient::MAP_DATA: {
-                world_renderer.load_map(std::move(event.map_data), event.citizens);
-                break;
-            }
-            case TypeEventClient::OWN_STATS:
-                world_renderer.update_hud_stats(event.stats);
-                break;
-            case TypeEventClient::INVENTORY_UPDATE:
-                world_renderer.update_hud_inventory(event.inventory);
-                break;
-            case TypeEventClient::EQUIPMENT_UPDATE:
-                world_renderer.update_hud_equipment(event.equipment);
-                break;
-            case TypeEventClient::CHAT_MSG: {
-                auto parsed = ChatManager::parse_server_message(event.text_payload);
-                switch (parsed.type) {
-                    case ParsedChatMessage::PUBLIC:
-                    case ParsedChatMessage::WHISPER_RECEIVED:
-                        world_renderer.set_chat_bubble_on_player(parsed.sender_name, parsed.text);
-                        break;
-                    case ParsedChatMessage::WHISPER_SENT:
-                        world_renderer.set_chat_bubble_on_local(parsed.text);
-                        break;
-                    case ParsedChatMessage::SYSTEM:
-                        chat.add_message_to_log(parsed.text);
-                        world_renderer.add_chat_message(parsed.text, parsed.color);
-                        break;
-                }
-                break;
-            }
-            case TypeEventClient::OPEN_MERCHANT: {
-                world_renderer.add_chat_message("--- Catalogo del comerciante ---", COLOR_YELLOW);
-                for (const auto& [type, entry]: event.merchant_data.catalog) {
-                    std::string name = item_name(static_cast<uint8_t>(type));
-                    std::string line = name + ": " + std::to_string(entry.purchase_price) +
-                                       " compra - " + std::to_string(entry.selling_price) +
-                                       " venta";
-                    world_renderer.add_chat_message(line, COLOR_WHITE);
-                }
-                break;
-            }
-            case TypeEventClient::OPEN_BANK: {
-                world_renderer.add_chat_message("--- Contenido del banco ---", COLOR_YELLOW);
-                world_renderer.add_chat_message("Oro: " + std::to_string(event.bank_data.gold),
-                                                COLOR_YELLOW);
-                if (!event.bank_data.items.empty()) {
-                    for (const auto& [type, quantity]: event.bank_data.items) {
-                        std::string name = item_name(static_cast<uint8_t>(type));
-                        std::string line = name + ": " + std::to_string(quantity);
-                        world_renderer.add_chat_message(line, COLOR_WHITE);
-                    }
-                }
-                break;
-            }
-            case TypeEventClient::DISCONNECTION:
-                is_running = false;
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-uint32_t Client::sleep_and_calc_next_it(const uint32_t frame_start) const {
+uint32_t Client::sleep_and_calc_next_frame(const uint32_t frame_start) const {
     const uint32_t current_ticks = SDL_GetTicks();
     const uint32_t elapsed = current_ticks - frame_start;
 
     if (elapsed < static_cast<uint32_t>(FRAME_MS)) {
         SDL_Delay(FRAME_MS - elapsed);
-        return it + 1;
+        return frame_count + 1;
     }
     const uint32_t frames_passed = (elapsed / FRAME_MS);
-    return it + std::max(1u, frames_passed);
+    return frame_count + std::max(1u, frames_passed);
 }
+
+// --- Cleanup --- //
 
 void Client::close() {
     SoundManager::cleanup();
@@ -455,31 +417,13 @@ void Client::close() {
     sender.join();
 }
 
+// --- Public --- //
+
 void Client::launch(const std::string& user, const std::string& pass) {
     try {
         last_move_command_ticks = 0;
         if (!user.empty()) {
-            world_renderer.set_player_name(user);
-            protocol.sendLogin(user, pass);
-            EventClient login_event;
-            while (protocol.receiveMessage(login_event)) {
-                if (login_event.type == TypeEventClient::LOGIN_RESPONSE) {
-                    if (login_event.login_success) {
-                        world_renderer.set_local_player(login_event.player_id);
-                        world_renderer.add_chat_message("¡Bienvenido a las Tierras de Argentum!",
-                                                        COLOR_BLUE);
-                        world_renderer.add_chat_message(
-                                "Escribi /help para ver los comandos disponibles.", COLOR_YELLOW);
-                    }
-                    break;
-                }
-                if (login_event.type == TypeEventClient::MAP_DATA) {
-                    world_renderer.load_map(std::move(login_event.map_data), login_event.citizens);
-                }
-                if (login_event.type == TypeEventClient::INVENTORY_UPDATE) {
-                    world_renderer.update_hud_inventory(login_event.inventory);
-                }
-            }
+            handle_login_sequence(user, pass);
         }
         sender.start();
         receiver.start();
@@ -497,7 +441,7 @@ void Client::launch(const std::string& user, const std::string& pass) {
             world_renderer.update_animations(dt);
             clear_display();
             render_in_z_order();
-            it = sleep_and_calc_next_it(frame_start);
+            frame_count = sleep_and_calc_next_frame(frame_start);
         }
         close();
     } catch (const std::exception& e) {

@@ -1,0 +1,51 @@
+# Body texture catalog
+# Each section defines a race group with shared spritesheet dimensions.
+# Entries: id = enum value, file = PNG filename (relative to dir).
+
+[human]
+dir = "common/assets/units/bodies/humanos"
+frame_width = 27
+frame_height = 47
+frames_per_row = 6
+entries = [
+    { id = 1036, file = "1036.png" },
+    { id = 1056, file = "1056.png" },
+    { id = 1070, file = "1070.png" },
+    { id = 1194, file = "1194.png" },
+]
+
+[elf]
+dir = "common/assets/units/bodies/elfos"
+frame_width = 27
+frame_height = 47
+frames_per_row = 6
+entries = [
+    { id = 1689, file = "1689.png" },
+    { id = 1896, file = "1896.png" },
+    { id = 1897, file = "1897.png" },
+    { id = 1900, file = "1900.png" },
+]
+
+[dwarf]
+dir = "common/assets/units/bodies/enanos"
+frame_width = 27
+frame_height = 47
+frames_per_row = 6
+entries = [
+    { id = 1681, file = "1681.png", frame_width = 25 },
+    { id = 1718, file = "1718.png" },
+    { id = 1837, file = "1837.png" },
+    { id = 1921, file = "1921.png" },
+]
+
+[gnome]
+dir = "common/assets/units/bodies/gnomos"
+frame_width = 27
+frame_height = 47
+frames_per_row = 6
+entries = [
+    { id = 1700, file = "1700.png", frame_width = 25, frame_height = 45 },
+    { id = 1710, file = "1710.png" },
+    { id = 1841, file = "1841.png" },
+    { id = 1861, file = "1861.png" },
+]

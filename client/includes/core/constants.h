@@ -66,11 +66,11 @@ constexpr int NAME_H = 44;
 constexpr int GOLD_ICON_W = 40;
 constexpr int GOLD_ICON_H = 40;
 
-constexpr int SAFE_GOLD_X = PANEL_RIGHT_X + 75;  // 686 + 19 = 705
-constexpr int SAFE_GOLD_Y = INVENTORY_Y + 252;   // 128 + 244 = 372
+constexpr int SAFE_GOLD_X = PANEL_RIGHT_X + 75;
+constexpr int SAFE_GOLD_Y = INVENTORY_Y + 252;
 
-constexpr int EXCESS_GOLD_X = PANEL_RIGHT_X + 189;  // 686 + 133 = 819
-constexpr int EXCESS_GOLD_Y = INVENTORY_Y + 252;    // 128 + 244 = 372
+constexpr int EXCESS_GOLD_X = PANEL_RIGHT_X + 189;
+constexpr int EXCESS_GOLD_Y = INVENTORY_Y + 252;
 
 constexpr int CONSOLE_X = 7;
 constexpr int CONSOLE_Y = 7;
@@ -78,3 +78,46 @@ constexpr int CONSOLE_W = 672;
 constexpr int CONSOLE_H = 135;
 constexpr int CONSOLE_INPUT_H = 22;
 constexpr int CONSOLE_INPUT_Y = CONSOLE_Y + CONSOLE_H - CONSOLE_INPUT_H;
+
+// --- RENDERING ALPHA --- //
+static constexpr uint8_t OCCLUDING_DETAIL_ALPHA = 150;
+static constexpr uint8_t OCCLUDING_ROOF_ALPHA = 120;
+static constexpr uint8_t OPAQUE_ALPHA = 255;
+
+// --- HUD INVENTORY --- //
+constexpr int INVENTORY_SLOT_SIZE = 32;
+constexpr int INVENTORY_SLOT_GAP_X = 7;
+constexpr int INVENTORY_SLOT_GAP_Y = 8;
+constexpr int INVENTORY_SLOT_COLUMNS = 6;
+constexpr int INVENTORY_GRID_X = PANEL_RIGHT_X + 20;
+constexpr int INVENTORY_GRID_Y = INVENTORY_Y + 122;
+
+// --- HUD EQUIPMENT --- //
+constexpr uint8_t EQUIP_KEY_OFFSET = 100;
+constexpr int EQUIPMENT_SLOT_SIZE = 32;
+constexpr int EQUIPMENT_GRID_Y = INVENTORY_Y + 40;
+constexpr int EQUIPMENT_WEAPON_X = PANEL_RIGHT_X + 33;
+constexpr int EQUIPMENT_HELMET_X = PANEL_RIGHT_X + 90;
+constexpr int EQUIPMENT_ARMOR_X = PANEL_RIGHT_X + 145;
+constexpr int EQUIPMENT_SHIELD_X = PANEL_RIGHT_X + 205;
+
+// --- FONTS --- //
+static constexpr auto FONT_PATH = "client/assets/Fonts/";
+
+// --- CHAT COLORS --- //
+enum MessageColor { COLOR_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW, COLOR_BLUE };
+
+// --- CHAT CONFIG --- //
+static constexpr size_t MAX_LOG_SIZE = 6;
+static constexpr size_t MAX_MSG_LENGTH = 30;
+static constexpr size_t MAX_CHAT_LOG_SIZE = 50;
+static constexpr int LINE_SPACING = 18;
+
+// --- ENTITY --- //
+enum class EntityType { PLAYER, NPC, ITEM, CITIZEN };
+
+// --- SCREEN RESURRECTION NOTICE --- //
+constexpr int NOTICE_W = 300;
+constexpr int NOTICE_H = 48;
+constexpr int NOTICE_X = CONSOLE_X + (CONSOLE_W - NOTICE_W) / 2;
+constexpr int NOTICE_Y = 170;
