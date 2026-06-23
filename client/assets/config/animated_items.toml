@@ -1,0 +1,75 @@
+# Animated item texture catalog (weapon/shield/helmet overlays on characters)
+# Each section defines a race group with shared spritesheet dimensions.
+# Entries: id = enum value, file = PNG filename (relative to dir).
+
+[human_elf]
+prefix = "anim_hum_elf_"
+dir = "client/assets/Sprites/Units/items/humanos-elfos"
+frame_width = 25
+frame_height = 45
+frames_per_row = 6
+entries = [
+    { id = 1, file = "1000.png" },
+    { id = 2, file = "1001.png" },
+    { id = 3, file = "1002.png" },
+    { id = 4, file = "1100.png" },
+    { id = 5, file = "1102.png" },
+    { id = 6, file = "1103.png" },
+    { id = 7, file = "1101.png" },
+    { id = 8, file = "1003.png" },
+    { id = 9, file = "1004.png" },
+    { id = 10, file = "1400.png" },
+    { id = 11, file = "1401.png" },
+    { id = 12, file = "1402.png" },
+    { id = 15, file = "1500.png" },
+    { id = 16, file = "1501.png" },
+]
+
+# Single-frame items (helmets, magic hat) that use different dimensions
+[human_elf_static]
+prefix = "anim_hum_elf_"
+dir = "client/assets/Sprites/Units/items/humanos-elfos"
+frame_width = 27
+frame_height = 63
+frames_per_row = 1
+entries = [
+    { id = 13, file = "1300.png", frame_width = 13, frame_height = 52 },
+    { id = 14, file = "1301.png", frame_width = 15, frame_height = 51 },
+    { id = 17, file = "1302.png", frame_width = 19, frame_height = 52 },
+]
+
+[dwarf_gnome]
+prefix = "anim_drf_gnm_"
+dir = "client/assets/Sprites/Units/items/gnomos-enanos"
+frame_width = 25
+frame_height = 46
+frames_per_row = 6
+entries = [
+    { id = 1, file = "11000.png" },
+    { id = 2, file = "11001.png" },
+    { id = 3, file = "11002.png" },
+    { id = 4, file = "11100.png" },
+    { id = 5, file = "11102.png" },
+    { id = 6, file = "11103.png" },
+    { id = 7, file = "11101.png" },
+    { id = 8, file = "11003.png" },
+    { id = 9, file = "11004.png" },
+    { id = 10, file = "11400.png" },
+    { id = 11, file = "11401.png" },
+    { id = 12, file = "11402.png" },
+    { id = 15, file = "11500.png" },
+    { id = 16, file = "11501.png" },
+]
+
+# Single-frame items (helmets, magic hat) for dwarf/gnome
+[dwarf_gnome_static]
+prefix = "anim_drf_gnm_"
+dir = "client/assets/Sprites/Units/items/gnomos-enanos"
+frame_width = 27
+frame_height = 63
+frames_per_row = 1
+entries = [
+    { id = 13, file = "11300.png", frame_width = 13, frame_height = 52 },
+    { id = 14, file = "11301.png", frame_width = 15, frame_height = 51 },
+    { id = 17, file = "11302.png", frame_width = 19, frame_height = 52 },
+]

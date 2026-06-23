@@ -11,21 +11,16 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "client/includes/client_protocol.h"
+#include "client/includes/core/visual_effect.h"
 #include "client/includes/font_manager.h"
 #include "client/includes/hud_renderer.h"
 #include "client/includes/renderable_entity.h"
 #include "client/includes/texture_manager.h"
+#include "common/includes/core/snapshot.h"
 #include "common/includes/types.h"
 
 class WorldRenderer {
 private:
-    struct ActiveVisualEffect {
-        VisualEffectID effect_id;
-        uint32_t pos_x;
-        uint32_t pos_y;
-        uint32_t start_time;
-    };
-
     SDL2pp::Renderer& renderer;
     TextureManager& texture_manager;
     HudRenderer hud_renderer;
@@ -33,8 +28,6 @@ private:
     std::string local_player_name;
     uint32_t local_player_id;
 
-    // El diccionario central que guarda TODAS las entidades visibles en el cliente
-    // La clave (key) es el 'id' único que envía el servidor
     std::unordered_map<uint32_t, std::unique_ptr<RenderableEntity>> entities;
     std::unordered_set<uint32_t> static_entity_keys;
     std::vector<ActiveVisualEffect> active_visual_effects;
@@ -42,14 +35,30 @@ private:
     SDL_Rect visible_map_bounds;
     int selected_npc_id = -1;
 
-    // El rectángulo de la cámara (guarda x, y, w, h en píxeles del mundo)
     SDL_Rect camera;
     int camera_screen_offset_x;
     int camera_screen_offset_y;
 
-    // Para centrar la cámara en el jugador principal
     void center_camera_on_player();
     void update_visible_map_bounds();
+
+    // Render helpers (sub-methods de render())
+    void render_ground_layers(int start_tile_x, int end_tile_x, int start_tile_y, int end_tile_y);
+    void render_sorted_entities();
+    void render_entity_labels();
+    void render_details(int start_tile_x, int end_tile_x, int start_tile_y, int end_tile_y);
+    void render_roofs(int start_tile_x, int end_tile_x, int start_tile_y, int end_tile_y);
+    void render_active_visual_effects();
+
+    // Snapshot helpers (sub-methods de update_from_snapshot())
+    void update_players(const std::vector<PlayerSnapshotData>& players,
+                        std::vector<uint32_t>& ids_en_snapshot);
+    void update_npcs(const std::vector<NpcSnapshotData>& npcs,
+                     std::vector<uint32_t>& ids_en_snapshot);
+    void update_floor_items(const std::vector<ItemGroundSnapshotData>& items,
+                            std::vector<uint32_t>& ids_en_snapshot);
+    void cleanup_stale_entities(const std::vector<uint32_t>& ids_en_snapshot);
+    void process_sound_effects(const std::vector<SoundEffectSnapshotData>& sound_effects);
 
 public:
     WorldRenderer(SDL2pp::Renderer& renderer_, TextureManager& texture_manager_,
@@ -77,20 +86,10 @@ public:
     std::optional<uint8_t> equipment_slot_at(uint32_t x, uint32_t y) const;
     void set_selected_inv_slot(std::optional<uint8_t> slot);
     bool is_local_player_moving() const;
-    // Procesa el snapshot recibido del servidor: actualiza posiciones o crea entidades nuevas
-    void update_from_snapshot(const Snapshot& snapshot);
-
-    // Corre el update de cada entidad individual usando el delta-time (dt)
-    void update_animations(float dt);
-
-    // Dibuja todo el mundo aplicando el Algoritmo del Pintor (Z-order por eje Y)
-    void render();
-
-    // Dado un punto de pantalla, retorna el ID y tipo de la entidad que ocupa ese pixel.
-    // Retorna nullopt si el punto no coincide con ninguna entidad (excluye items y jugador local).
     std::optional<std::pair<uint32_t, EntityType>> get_entity_at_screen(int screen_x,
                                                                         int screen_y) const;
-
-    // Retorna el body_id (TypeNPC) de un NPC dado su server_id, o -1 si no existe.
     int get_npc_body_id(uint32_t server_id) const;
+    void update_from_snapshot(const Snapshot& snapshot);
+    void update_animations(float dt);
+    void render();
 };

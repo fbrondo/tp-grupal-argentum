@@ -34,13 +34,10 @@ Creature::Creature(const std::string& name_, const NpcInstance& instance,
 void Creature::onDeath(World& world) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    std::discrete_distribution<int> dist({0, 0, 0, 100});  // DEBUG: siempre dropea oro
+    std::discrete_distribution<int> dist({80, 8, 1, 1});
     int drop_case = dist(gen);
-    std::cerr << "[DROP] Creature id=" << this->id << " name=" << this->name
-              << " drop_case=" << drop_case << std::endl;
     switch (drop_case) {
         case 0: /*nada*/
-            std::cerr << "[DROP] case 0: sin drop\n";
             break;
         case 1: { /*8% - oro*/
             const uint32_t drop_gold = GameFormulas::calculationGoldenNpcKill(this->max_hp);
@@ -48,8 +45,6 @@ void Creature::onDeath(World& world) {
             gold.amount = drop_gold;
             gold.position = world.findNearbyFreePosition(this->pose.position);
             world.addItemWorld(gold);
-            std::cerr << "[DROP] case 1: oro amount=" << drop_gold << " pos=(" << gold.position.x
-                      << "," << gold.position.y << ")\n";
             break;
         }
         case 2: {  // 1% - pocion de vida o mana
@@ -58,8 +53,6 @@ void Creature::onDeath(World& world) {
             ItemInstance drop_potion = this->search_item_drop(potion);
             drop_potion.position = world.findNearbyFreePosition(this->pose.position);
             world.addItemWorld(drop_potion);
-            std::cerr << "[DROP] case 2: pocion type=" << static_cast<int>(potion)
-                      << " item_ptr=" << drop_potion.item << "\n";
             break;
         }
         case 3: {  // 1% - cualquier otro objeto
@@ -70,8 +63,6 @@ void Creature::onDeath(World& world) {
             } while (item_drop.item->type == LIFE_POTION || item_drop.item->type == MANA_POTION);
             item_drop.position = world.findNearbyFreePosition(this->pose.position);
             world.addItemWorld(item_drop);
-            std::cerr << "[DROP] case 3: item type=" << static_cast<int>(item_drop.item->type)
-                      << " pos=(" << item_drop.position.x << "," << item_drop.position.y << ")\n";
             break;
         }
         default:

@@ -22,12 +22,8 @@
 #include "client_sender.h"
 #include "sound_manager.h"
 
-using SDL2pp::Rect;
-using SDL2pp::Renderer;
 using SDL2pp::SDL;
 using SDL2pp::SDLImage;
-using SDL2pp::Surface;
-using SDL2pp::Texture;
 
 class Client {
 private:
@@ -48,23 +44,45 @@ private:
 
     uint32_t last_frame_ticks = 0;
     uint32_t last_move_command_ticks = 0;
-    uint32_t it = 0;
+    uint32_t frame_count = 0;
     bool is_running = true;
     Direction last_move_direction = DOWN;
 
     ChatManager chat;
     std::optional<uint8_t> selected_inv_slot;
 
+    // --- Config ---
     static WindowConfig loadWindowConfig();
+
+    // --- Login ---
+    void handle_login_sequence(const std::string& user, const std::string& pass);
+    void handle_login_success(uint32_t player_id);
+
+    // --- Server events ---
     void update_state_from_server();
+    void handle_chat_event(const EventClient& event);
+    void handle_merchant_event(const EventClient& event);
+    void handle_bank_event(const EventClient& event);
+
+    // --- Input ---
     void handle_events();
+    void handle_keyboard_event(const SDL_Event& event);
+    void handle_mouse_event(const SDL_Event& event);
+    void handle_chat_input_event(const SDL_Event& event);
     void handle_left_click(uint32_t mouse_x, uint32_t mouse_y);
-    void sync_chat_ui();
     void process_movement_input();
+
+    // --- UI ---
+    void sync_chat_ui();
+    void process_help_command();
+
+    // --- Game loop ---
     void clear_display();
     float calculate_delta_time();
     void render_in_z_order();
-    uint32_t sleep_and_calc_next_it(uint32_t frame_start) const;
+    uint32_t sleep_and_calc_next_frame(uint32_t frame_start) const;
+
+    // --- Cleanup ---
     void close();
 
 public:
