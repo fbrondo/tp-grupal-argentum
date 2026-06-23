@@ -47,11 +47,10 @@ Client::Client(const char* host, const char* port):
         }()),
         texture_manager(window.get_renderer(), window),
         world_renderer(window.get_renderer(), texture_manager, font_manager) {
-    // SoundManager::init() desactivado para testing
-    // if (SoundManager::init()) {
-    //     SoundManager::play_background_music(ARGENTUM_SHARE_PATH "/client/assets/Sounds/31.mp3",
-    //                                         3.0);
-    // }
+    if (SoundManager::init()) {
+        SoundManager::play_background_music(ARGENTUM_SHARE_PATH "/client/assets/Sounds/31.mp3",
+                                            3.0);
+    }
 }
 
 // --- Login --- //

@@ -59,8 +59,6 @@ void SoundManager::stop_background_music() {
 
 void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t fx_y,
                                uint32_t player_x, uint32_t player_y) {
-    if (!audio_open)
-        return;
 
     auto it = sound_bank.find(effect_id);
     Mix_Chunk* chunk_a_reproducir = nullptr;
@@ -120,9 +118,6 @@ void SoundManager::play_effect(SoundEffectID effect_id, uint32_t fx_x, uint32_t 
 }
 
 void SoundManager::set_meditation_loop(bool active) {
-    if (!audio_open)
-        return;
-
     if (!active) {
         if (meditation_channel != -1)
             Mix_HaltChannel(meditation_channel);
