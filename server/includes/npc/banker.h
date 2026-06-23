@@ -11,12 +11,6 @@
 #include "server/includes/npc/citizen_npc.h"
 #include "server/includes/player.h"
 
-
-/*Banquero - Interaccion:
-    - comprar
-    - vender
-    - listar
-*/
 class Banker: public CitizenNPC {
 private:
     Bank& bank;
@@ -34,7 +28,7 @@ private:
     uint32_t getGoldDepositedPlayer(const std::string& username) const;
 
 public:
-    explicit Banker(TypeNPC type, const std::string& name, Bank& bank, const Pose& pos);
+    explicit Banker(const std::string& name, const NpcInstance& instance, Bank& bank);
 
     bool playerWithdrawItem(Player& player, TypeItem type);
     bool playerDepositItem(Player& player, TypeItem type);

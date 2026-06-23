@@ -54,19 +54,6 @@ void ChatManager::add_message_to_log(const std::string& msg) {
 
 ParsedChatMessage ChatManager::parse_server_message(const std::string& payload) {
     using T = ParsedChatMessage::Type;
-    if (payload.find("[De ") == 0) {
-        const auto close = payload.find("]: ");
-        if (close != std::string::npos) {
-            return {T::WHISPER_RECEIVED, COLOR_YELLOW, payload.substr(4, close - 4),
-                    payload.substr(close + 3)};
-        }
-    }
-    if (payload.find("[Para ") == 0) {
-        const auto close = payload.find("]: ");
-        if (close != std::string::npos) {
-            return {T::WHISPER_SENT, COLOR_YELLOW, "", payload.substr(close + 3)};
-        }
-    }
     const auto colon = payload.find(": ");
     if (colon != std::string::npos) {
         return {T::PUBLIC, COLOR_WHITE, payload.substr(0, colon), payload.substr(colon + 2)};

@@ -49,17 +49,22 @@ private:
     std::map<Id, bool> next_step_is_second;
 
     EffectManager effects;
+    void loadCreatures(const WorldStateData& world_data);
+    void loadCitizenNPCs(const WorldStateData& world_data);
+    void loadItemsInTheFloor(const WorldStateData& world_data);
+
 
     Character createCharacter(const CharacterTraits& traits) const;
+    Equipment loadingEquipment(const PlayerData& player) const;
     Inventory loadingInventory(const PlayerData& player) const;
+    void loadAccountBank(const PlayerData& player);
     void loadingPlayerData(const Id& player_id, const PlayerData& player_data);
     void createNewPlayer(const User& user, const CharacterTraits& traits);
-
 
     void executeBroacastSnapshot();
 
     /*Metodos del Comando Attack*/
-    bool isItPossibleToAttack(const Id& player_id, const CombatEntity& victim, Weapon& weapon);
+    bool isItPossibleToAttack(Player& player, const CombatEntity& victim, Weapon& weapon);
     CombatEntity* inSearchOfTheVictimAttack(const Id& id_search) const;
     std::vector<Defense*> getPlayerDefensiveEquipment(const Id& player_id);
     void executeRequest();
@@ -84,6 +89,7 @@ private:
     void respawnDeadNpcs();
     void updatePlayersAttributes();
     void updatePendingResurrects(const uint32_t& delta_ms);
+    void updateStatePlayer(Player& player);
     void updateStatePlayers();
     void updateStateWorld();
 

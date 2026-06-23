@@ -4,15 +4,8 @@
 #include <deque>
 #include <string>
 
-enum MessageColor { COLOR_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW, COLOR_BLUE };
-
-struct ParsedChatMessage {
-    enum Type { PUBLIC, WHISPER_RECEIVED, WHISPER_SENT, SYSTEM };
-    Type type;
-    MessageColor color;
-    std::string sender_name;
-    std::string text;
-};
+#include "client/includes/core/constants.h"
+#include "client/includes/core/parsed_chat_message.h"
 
 class ChatManager {
 private:
@@ -20,9 +13,6 @@ private:
     std::deque<std::string> log;
     bool active = false;
     int selected_npc_id = -1;
-
-    static constexpr size_t MAX_LOG_SIZE = 6;
-    static constexpr size_t MAX_MSG_LENGTH = 30;
 
 public:
     ChatManager() = default;

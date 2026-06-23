@@ -7,6 +7,7 @@
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
+#include "server/includes/entity/entity.h"
 
 struct ItemInstance {
     Id id{0};
@@ -58,7 +59,6 @@ struct NpcInstance {
     Id zone_id;
     TypeNPC type;
     Pose pose;
-
     NpcInstance() = default;
     NpcInstance(const Id& id_, const Id& zone_id_, TypeNPC type_, const Pose& pose):
             id(id_), zone_id(zone_id_), type(type_), pose(pose) {}

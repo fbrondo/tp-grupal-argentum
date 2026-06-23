@@ -31,6 +31,7 @@ struct FileData {
     Path world; /*Donde guardo el estado del mundo*/
     Path map;   /*Donde esta guardado el map que me envia el editor*/
     Path clans; /*datos de los clanes*/
+    Path buildings;
 };
 
 struct PlayerStateInit {

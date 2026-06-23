@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "common/includes/protocol.h"
+#include "core/data.h"
 #include "server/includes/core/instances.h"
 class World;
 class Equipment {
@@ -28,11 +29,13 @@ public:
     /*Necesario para calcular los puntos de defensa*/
     std::vector<TypeItem> getEquipmentDefensive() const;
     std::vector<MsgSlot> getEquipmentSlots() const;
+    std::vector<SlotData> getEquipmentData() const;
 
     TypeItem getHandItem() const;
     TypeItem getShieldItem() const;
     TypeItem getHelmetItem() const;
     TypeItem getArmorItem() const;
+
 
     void dropEquipment(World& world, const Position& position);
 };

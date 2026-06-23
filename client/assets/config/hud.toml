@@ -1,0 +1,18 @@
+# HUD texture catalog
+# Simple key-path pairs (no spritesheet animation).
+
+[hud]
+dir = "client/assets/HUD"
+entries = [
+    { id = "upper_layer", file = "UpperLayer.png" },
+    { id = "console_base", file = "Console/base.png" },
+    { id = "stats_base", file = "UserStats/base.png" },
+    { id = "user_info_base", file = "UserInfo/base.png" },
+    { id = "inventory_base", file = "UserInventory/base.png" },
+    { id = "inventory_selected", file = "UserInventory/selected.png" },
+    { id = "pb_base", file = "ProgressBar/base.png" },
+    { id = "pb_bisel", file = "ProgressBar/bisel.png" },
+    { id = "pb_black_border", file = "ProgressBar/black_border.png" },
+    { id = "pb_white_border", file = "ProgressBar/white_border.png" },
+    { id = "pb_old_base", file = "ProgressBar/old_base.png" },
+]

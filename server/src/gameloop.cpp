@@ -430,7 +430,10 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     }
 
     std::cerr << "[ATTACK] HIT attacker=" << attacker_id << " -> victim=" << victim_id
-              << " dmg=" << damage_by_attacker << " critical=" << is_critical << std::endl;
+              << " dmg=" << damage_by_attacker << " critical="
+              << is_critical
+              //<< " hp=" << victim->getHp() - damage_by_attacker << "/" << victim->getMaxHp()
+              << std::endl;
 
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);

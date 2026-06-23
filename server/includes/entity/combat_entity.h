@@ -35,6 +35,5 @@ public:
     virtual void receiveDamage(uint16_t damage, World& world);
     virtual void updatePose(Pose&& new_pose);
     virtual std::string getName() const = 0;
-
     virtual void onDeath(World& world) = 0;
 };

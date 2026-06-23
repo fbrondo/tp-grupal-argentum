@@ -6,20 +6,6 @@
 #include "client/includes/chat_manager.h"
 
 namespace {
-constexpr int INVENTORY_SLOT_SIZE = 32;
-constexpr int INVENTORY_SLOT_GAP_X = 7;
-constexpr int INVENTORY_SLOT_GAP_Y = 8;
-constexpr int INVENTORY_SLOT_COLUMNS = 6;
-constexpr int INVENTORY_GRID_X = PANEL_RIGHT_X + 20;
-constexpr int INVENTORY_GRID_Y = INVENTORY_Y + 122;
-constexpr uint8_t EQUIP_KEY_OFFSET = 100;
-constexpr int EQUIPMENT_SLOT_SIZE = 32;
-constexpr int EQUIPMENT_GRID_Y = INVENTORY_Y + 40;
-constexpr int EQUIPMENT_WEAPON_X = PANEL_RIGHT_X + 33;
-constexpr int EQUIPMENT_HELMET_X = PANEL_RIGHT_X + 90;
-constexpr int EQUIPMENT_ARMOR_X = PANEL_RIGHT_X + 145;
-constexpr int EQUIPMENT_SHIELD_X = PANEL_RIGHT_X + 205;
-
 std::optional<SDL_Rect> equipment_rect_for_item(uint8_t type_item) {
     switch (static_cast<TypeItem>(type_item)) {
         case SWORD:
@@ -51,12 +37,209 @@ std::optional<SDL_Rect> equipment_rect_for_item(uint8_t type_item) {
             return std::nullopt;
     }
 }
+
+float calculate_percentage(uint32_t current, uint32_t maximum) {
+    if (maximum == 0)
+        return 0.0f;
+    float ratio = static_cast<float>(current) / static_cast<float>(maximum);
+    return std::clamp(ratio, 0.0f, 1.0f);
+}
 }  // namespace
 
+// --- Constructor --- //
 
 HudRenderer::HudRenderer(SDL2pp::Renderer& r, TextureManager& tm, FontManager& fm, int width,
                          int height):
         renderer(r), texture_manager(tm), fonts(fm), w_width(width), w_height(height) {}
+
+// --- Update helpers --- //
+
+void HudRenderer::update_player_textures() {
+    player_name_texture = create_hud_texture(player_name);
+}
+
+void HudRenderer::update_stats_textures() {
+    level_texture = create_hud_texture(std::to_string(stats.level));
+    hp_texture = create_text_texture(std::to_string(stats.hp) + "/" + std::to_string(stats.max_hp));
+    mana_texture =
+            create_text_texture(std::to_string(stats.mana) + "/" + std::to_string(stats.max_mana));
+    exp_texture = create_text_texture(std::to_string(stats.exp) + "/" +
+                                      std::to_string(stats.exp_next_level));
+    safe_gold_texture = create_text_texture(std::to_string(stats.safe_gold));
+    excess_gold_texture = create_text_texture(std::to_string(stats.excess_gold));
+}
+
+// --- Config --- //
+
+void HudRenderer::set_player_name(const std::string& name) {
+    player_name = name;
+    update_player_textures();
+}
+
+void HudRenderer::set_selected_slot(std::optional<uint8_t> slot) { selected_slot = slot; }
+
+// --- State updates --- //
+
+void HudRenderer::update_stats(const MsgPlayerStats& new_stats) {
+    const bool values_changed =
+            stats.hp != new_stats.hp || stats.max_hp != new_stats.max_hp ||
+            stats.mana != new_stats.mana || stats.max_mana != new_stats.max_mana ||
+            stats.safe_gold != new_stats.safe_gold || stats.excess_gold != new_stats.excess_gold ||
+            stats.exp != new_stats.exp || stats.exp_next_level != new_stats.exp_next_level ||
+            stats.level != new_stats.level;
+    stats = new_stats;
+    if (values_changed) {
+        update_stats_textures();
+    }
+}
+
+void HudRenderer::update_inventory(const std::vector<MsgSlot>& slots) {
+    inventory_slots.clear();
+    for (const auto& slot: slots) {
+        if (slot.type_item == NONE || slot.quantity == 0) {
+            continue;
+        }
+        inventory_slots[slot.slot_index] = slot;
+    }
+}
+
+void HudRenderer::update_equipment(const std::vector<MsgSlot>& slots) {
+    equipped_inventory_slots.clear();
+    for (const auto& slot: slots) {
+        if (slot.type_item == NONE || slot.quantity == 0) {
+            continue;
+        }
+        equipped_inventory_slots[static_cast<uint8_t>(slot.slot_index + EQUIP_KEY_OFFSET)] = slot;
+    }
+}
+
+void HudRenderer::update_chat_input(const std::string& buffer, bool is_active) {
+    chat_is_active = is_active;
+    if (is_active) {
+        std::string prompt = "> " + buffer + "_";
+        chat_input_texture = create_input_texture(prompt);
+    } else {
+        chat_input_texture = nullptr;
+    }
+}
+
+void HudRenderer::update_resurrection_timer(uint16_t time_left_ms) {
+    if (resurrection_time_left_ms == time_left_ms) {
+        return;
+    }
+    resurrection_time_left_ms = time_left_ms;
+    if (resurrection_time_left_ms == 0) {
+        resurrection_texture = nullptr;
+        return;
+    }
+    const auto seconds_left = static_cast<uint16_t>((resurrection_time_left_ms + 999) / 1000);
+    resurrection_texture =
+            create_text_texture("Estas resucitando... " + std::to_string(seconds_left) + "s");
+}
+
+// --- Chat --- //
+
+void HudRenderer::add_chat_message(const std::string& msg, MessageColor color) {
+    if (msg.empty())
+        return;
+
+    SDL_Color sdl_color;
+    switch (color) {
+        case COLOR_GREEN:
+            sdl_color = {140, 220, 140, 255};
+            break;
+        case COLOR_RED:
+            sdl_color = {220, 80, 80, 255};
+            break;
+        case COLOR_YELLOW:
+            sdl_color = {210, 170, 45, 255};
+            break;
+        case COLOR_BLUE:
+            sdl_color = {100, 150, 255, 255};
+            break;
+        default:
+            sdl_color = {255, 255, 255, 255};
+            break;
+    }
+    chat_log_textures.push_back(create_text_texture_colored(msg, sdl_color));
+
+    if (chat_log_textures.size() > MAX_CHAT_LOG_SIZE) {
+        chat_log_textures.pop_front();
+    }
+
+    int messages_area_h = CONSOLE_H - CONSOLE_INPUT_H - 5;
+    int total_lines = static_cast<int>(chat_log_textures.size());
+    int max_visible = messages_area_h / LINE_SPACING;
+    console_scroll_offset = std::max(0, total_lines - max_visible);
+}
+
+void HudRenderer::scroll_console(int delta) {
+    if (chat_log_textures.empty())
+        return;
+
+    int messages_area_h = CONSOLE_H - CONSOLE_INPUT_H - 5;
+    int total_lines = static_cast<int>(chat_log_textures.size());
+    int max_visible = messages_area_h / LINE_SPACING;
+    int max_scroll = std::max(0, total_lines - max_visible);
+
+    console_scroll_offset += delta;
+    if (console_scroll_offset < 0)
+        console_scroll_offset = 0;
+    if (console_scroll_offset > max_scroll)
+        console_scroll_offset = max_scroll;
+}
+
+// --- Hit testing --- //
+
+bool HudRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) const {
+    return (x >= CONSOLE_X && x <= CONSOLE_X + CONSOLE_W && y >= CONSOLE_Y &&
+            y <= CONSOLE_Y + CONSOLE_H);
+}
+
+bool HudRenderer::is_point_inside_console_input(uint32_t x, uint32_t y) const {
+    return (x >= CONSOLE_X && x <= CONSOLE_X + CONSOLE_W && y >= CONSOLE_INPUT_Y &&
+            y <= CONSOLE_Y + CONSOLE_H);
+}
+
+std::optional<uint8_t> HudRenderer::inventory_slot_at(const uint32_t x, const uint32_t y) const {
+    if (x < INVENTORY_GRID_X || y < INVENTORY_GRID_Y) {
+        return std::nullopt;
+    }
+
+    const uint32_t local_x = x - INVENTORY_GRID_X;
+    const uint32_t local_y = y - INVENTORY_GRID_Y;
+    const uint32_t cell_w = INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X;
+    const uint32_t cell_h = INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y;
+    const uint32_t col = local_x / cell_w;
+    const uint32_t row = local_y / cell_h;
+
+    if (col >= INVENTORY_SLOT_COLUMNS || local_x % cell_w >= INVENTORY_SLOT_SIZE ||
+        local_y % cell_h >= INVENTORY_SLOT_SIZE) {
+        return std::nullopt;
+    }
+
+    const auto slot_index = static_cast<uint8_t>(row * INVENTORY_SLOT_COLUMNS + col);
+    if (!inventory_slots.contains(slot_index) || equipped_inventory_slots.contains(slot_index)) {
+        return std::nullopt;
+    }
+    return slot_index;
+}
+
+std::optional<uint8_t> HudRenderer::equipment_slot_at(const uint32_t x, const uint32_t y) const {
+    for (const auto& [equip_key, slot]: equipped_inventory_slots) {
+        const auto rect = equipment_rect_for_item(slot.type_item);
+        if (!rect.has_value()) {
+            continue;
+        }
+        if (x >= static_cast<uint32_t>(rect->x) && x < static_cast<uint32_t>(rect->x + rect->w) &&
+            y >= static_cast<uint32_t>(rect->y) && y < static_cast<uint32_t>(rect->y + rect->h)) {
+            return equip_key - EQUIP_KEY_OFFSET;
+        }
+    }
+    return std::nullopt;
+}
+
+// --- Texture helpers --- //
 
 std::unique_ptr<SDL2pp::Texture> HudRenderer::create_text_texture(const std::string& text) {
     if (text.empty()) {
@@ -112,67 +295,6 @@ void HudRenderer::render_centered_text(const std::unique_ptr<SDL2pp::Texture>& t
                                render_width, render_height));
 }
 
-void HudRenderer::update_player_textures() {
-    player_name_texture = create_hud_texture(player_name);
-}
-
-void HudRenderer::update_stats_textures() {
-    level_texture = create_hud_texture(std::to_string(stats.level));
-    hp_texture = create_text_texture(std::to_string(stats.hp) + "/" + std::to_string(stats.max_hp));
-    mana_texture =
-            create_text_texture(std::to_string(stats.mana) + "/" + std::to_string(stats.max_mana));
-    exp_texture = create_text_texture(std::to_string(stats.exp) + "/" +
-                                      std::to_string(stats.exp_next_level));
-    safe_gold_texture = create_text_texture(std::to_string(stats.safe_gold));
-    excess_gold_texture = create_text_texture(std::to_string(stats.excess_gold));
-}
-
-void HudRenderer::set_player_name(const std::string& name) {
-    player_name = name;
-    update_player_textures();
-}
-
-void HudRenderer::update_stats(const MsgPlayerStats& new_stats) {
-    const bool values_changed =
-            stats.hp != new_stats.hp || stats.max_hp != new_stats.max_hp ||
-            stats.mana != new_stats.mana || stats.max_mana != new_stats.max_mana ||
-            stats.safe_gold != new_stats.safe_gold || stats.excess_gold != new_stats.excess_gold ||
-            stats.exp != new_stats.exp || stats.exp_next_level != new_stats.exp_next_level ||
-            stats.level != new_stats.level;
-    stats = new_stats;
-    if (values_changed) {
-        update_stats_textures();
-    }
-}
-
-void HudRenderer::update_inventory(const std::vector<MsgSlot>& slots) {
-    inventory_slots.clear();
-    for (const auto& slot: slots) {
-        if (slot.type_item == NONE || slot.quantity == 0) {
-            continue;
-        }
-        inventory_slots[slot.slot_index] = slot;
-    }
-}
-
-void HudRenderer::update_equipment(const std::vector<MsgSlot>& slots) {
-    equipped_inventory_slots.clear();
-    for (const auto& slot: slots) {
-        if (slot.type_item == NONE || slot.quantity == 0) {
-            continue;
-        }
-        equipped_inventory_slots[static_cast<uint8_t>(slot.slot_index + EQUIP_KEY_OFFSET)] = slot;
-    }
-}
-
-float calculate_percentage(uint32_t current, uint32_t maximum) {
-    if (maximum == 0)
-        return 0.0f;
-
-    float ratio = static_cast<float>(current) / static_cast<float>(maximum);
-    return std::clamp(ratio, 0.0f, 1.0f);
-}
-
 void HudRenderer::render_progress_bar(int x, int y, int width, int height, uint32_t current,
                                       uint32_t maximum, SDL_Color color) const {
     SDL_Rect background = {x, y, width, height};
@@ -189,138 +311,98 @@ void HudRenderer::render_progress_bar(int x, int y, int width, int height, uint3
                   SDL2pp::Rect(x, y, width, height));
 }
 
-bool HudRenderer::is_point_inside_console(const uint32_t x, const uint32_t y) const {
-    return (x >= CONSOLE_X && x <= CONSOLE_X + CONSOLE_W && y >= CONSOLE_Y &&
-            y <= CONSOLE_Y + CONSOLE_H);
-}
+// --- Render helpers --- //
 
-bool HudRenderer::is_point_inside_console_input(uint32_t x, uint32_t y) const {
-    return (x >= CONSOLE_X && x <= CONSOLE_X + CONSOLE_W && y >= CONSOLE_INPUT_Y &&
-            y <= CONSOLE_Y + CONSOLE_H);
-}
+void HudRenderer::render_inventory_slot(int slot_index, const MsgSlot& slot) const {
+    const int col = slot_index % INVENTORY_SLOT_COLUMNS;
+    const int row = slot_index / INVENTORY_SLOT_COLUMNS;
+    const int x = INVENTORY_GRID_X + col * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X);
+    const int y = INVENTORY_GRID_Y + row * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y);
 
-
-std::optional<uint8_t> HudRenderer::inventory_slot_at(const uint32_t x, const uint32_t y) const {
-    if (x < INVENTORY_GRID_X || y < INVENTORY_GRID_Y) {
-        return std::nullopt;
-    }
-
-    const uint32_t local_x = x - INVENTORY_GRID_X;
-    const uint32_t local_y = y - INVENTORY_GRID_Y;
-    const uint32_t cell_w = INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X;
-    const uint32_t cell_h = INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y;
-    const uint32_t col = local_x / cell_w;
-    const uint32_t row = local_y / cell_h;
-
-    if (col >= INVENTORY_SLOT_COLUMNS || local_x % cell_w >= INVENTORY_SLOT_SIZE ||
-        local_y % cell_h >= INVENTORY_SLOT_SIZE) {
-        return std::nullopt;
-    }
-
-    const auto slot_index = static_cast<uint8_t>(row * INVENTORY_SLOT_COLUMNS + col);
-    if (!inventory_slots.contains(slot_index) || equipped_inventory_slots.contains(slot_index)) {
-        return std::nullopt;
-    }
-    return slot_index;
-}
-
-std::optional<uint8_t> HudRenderer::equipment_slot_at(const uint32_t x, const uint32_t y) const {
-    for (const auto& [equip_key, slot]: equipped_inventory_slots) {
-        const auto rect = equipment_rect_for_item(slot.type_item);
-        if (!rect.has_value()) {
-            continue;
+    try {
+        SDL2pp::Texture& item_texture =
+                texture_manager.get_texture("item_" + std::to_string(slot.type_item));
+        const int tex_w = item_texture.GetWidth();
+        const int tex_h = item_texture.GetHeight();
+        const int scale = std::max(tex_w, tex_h);
+        int dst_w = tex_w;
+        int dst_h = tex_h;
+        if (scale > INVENTORY_SLOT_SIZE) {
+            dst_w = tex_w * INVENTORY_SLOT_SIZE / scale;
+            dst_h = tex_h * INVENTORY_SLOT_SIZE / scale;
         }
-        if (x >= static_cast<uint32_t>(rect->x) && x < static_cast<uint32_t>(rect->x + rect->w) &&
-            y >= static_cast<uint32_t>(rect->y) && y < static_cast<uint32_t>(rect->y + rect->h)) {
-            return equip_key - EQUIP_KEY_OFFSET;
+        renderer.Copy(item_texture, SDL2pp::NullOpt,
+                      SDL2pp::Rect(x + (INVENTORY_SLOT_SIZE - dst_w) / 2,
+                                   y + (INVENTORY_SLOT_SIZE - dst_h) / 2, dst_w, dst_h));
+        if (slot.quantity > 1) {
+            auto qty_tex = std::make_unique<SDL2pp::Texture>(
+                    renderer,
+                    fonts.get_level_font().RenderUTF8_Blended(std::to_string(slot.quantity),
+                                                              SDL_Color{255, 255, 255, 255}));
+            const int qw = qty_tex->GetWidth();
+            const int qh = qty_tex->GetHeight();
+            renderer.Copy(*qty_tex, SDL2pp::NullOpt, SDL2pp::Rect(x + 2, y + 1, qw, qh));
         }
-    }
-    return std::nullopt;
+    } catch (...) {}
 }
 
-void HudRenderer::add_chat_message(const std::string& msg, MessageColor color) {
-    if (msg.empty())
-        return;
-
-    SDL_Color sdl_color;
-    switch (color) {
-        case COLOR_GREEN:
-            sdl_color = {140, 220, 140, 255};
-            break;
-        case COLOR_RED:
-            sdl_color = {220, 80, 80, 255};
-            break;
-        case COLOR_YELLOW:
-            sdl_color = {210, 170, 45, 255};
-            break;
-        case COLOR_BLUE:
-            sdl_color = {100, 150, 255, 255};
-            break;
-        default:
-            sdl_color = {255, 255, 255, 255};
-            break;
-    }
-    chat_log_textures.push_back(create_text_texture_colored(msg, sdl_color));
-
-    if (chat_log_textures.size() > MAX_CHAT_LOG_SIZE) {
-        chat_log_textures.pop_front();
-    }
-
-    constexpr int LINE_SPACING = 18;
-    int messages_area_h = CONSOLE_H - CONSOLE_INPUT_H - 5;
-    int total_lines = static_cast<int>(chat_log_textures.size());
-    int max_visible = messages_area_h / LINE_SPACING;
-    console_scroll_offset = std::max(0, total_lines - max_visible);
-}
-
-void HudRenderer::update_chat_input(const std::string& buffer, bool is_active) {
-    chat_is_active = is_active;
-    if (is_active) {
-        std::string prompt = "> " + buffer + "_";
-        chat_input_texture = create_input_texture(prompt);
-    } else {
-        chat_input_texture = nullptr;
-    }
-}
-
-void HudRenderer::update_resurrection_timer(uint16_t time_left_ms) {
-    if (resurrection_time_left_ms == time_left_ms) {
-        return;
-    }
-    resurrection_time_left_ms = time_left_ms;
-    if (resurrection_time_left_ms == 0) {
-        resurrection_texture = nullptr;
+void HudRenderer::render_equipment_slot(const MsgSlot& slot) const {
+    const auto rect = equipment_rect_for_item(slot.type_item);
+    if (!rect.has_value()) {
         return;
     }
 
-    const auto seconds_left = static_cast<uint16_t>((resurrection_time_left_ms + 999) / 1000);
-    resurrection_texture =
-            create_text_texture("Estas resucitando... " + std::to_string(seconds_left) + "s");
+    try {
+        renderer.Copy(texture_manager.get_texture("hud_inventory_selected"), SDL2pp::NullOpt,
+                      SDL2pp::Rect(*rect));
+        SDL2pp::Texture& item_texture =
+                texture_manager.get_texture("item_" + std::to_string(slot.type_item));
+        const int tex_w = item_texture.GetWidth();
+        const int tex_h = item_texture.GetHeight();
+        const int scale = std::max(tex_w, tex_h);
+        int dst_w = tex_w;
+        int dst_h = tex_h;
+        if (scale > EQUIPMENT_SLOT_SIZE) {
+            dst_w = tex_w * EQUIPMENT_SLOT_SIZE / scale;
+            dst_h = tex_h * EQUIPMENT_SLOT_SIZE / scale;
+        }
+        renderer.Copy(item_texture, SDL2pp::NullOpt,
+                      SDL2pp::Rect(rect->x + (EQUIPMENT_SLOT_SIZE - dst_w) / 2,
+                                   rect->y + (EQUIPMENT_SLOT_SIZE - dst_h) / 2, dst_w, dst_h));
+    } catch (...) {}
 }
 
-void HudRenderer::set_selected_slot(std::optional<uint8_t> slot) { selected_slot = slot; }
-
-void HudRenderer::render_resurrection_notice() const {
-    if (!resurrection_texture) {
+void HudRenderer::render_selected_slot_highlight() const {
+    if (!selected_slot.has_value()) {
         return;
     }
-
-    constexpr int NOTICE_W = 300;
-    constexpr int NOTICE_H = 48;
-    constexpr int NOTICE_X = CONSOLE_X + (CONSOLE_W - NOTICE_W) / 2;
-    constexpr int NOTICE_Y = 170;
-
-    SDL_Rect background = {NOTICE_X, NOTICE_Y, NOTICE_W, NOTICE_H};
-    SDL_SetRenderDrawColor(renderer.Get(), 12, 12, 16, 220);
-    SDL_RenderFillRect(renderer.Get(), &background);
-    SDL_SetRenderDrawColor(renderer.Get(), 210, 190, 120, 255);
-    SDL_RenderDrawRect(renderer.Get(), &background);
-    render_centered_text(resurrection_texture, NOTICE_X, NOTICE_Y, NOTICE_W, NOTICE_H);
+    const int sel = *selected_slot;
+    const int col = sel % INVENTORY_SLOT_COLUMNS;
+    const int row = sel / INVENTORY_SLOT_COLUMNS;
+    const int sx = INVENTORY_GRID_X + col * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X);
+    const int sy = INVENTORY_GRID_Y + row * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y);
+    SDL_Rect highlight = {sx - 1, sy - 1, INVENTORY_SLOT_SIZE + 2, INVENTORY_SLOT_SIZE + 2};
+    SDL_SetRenderDrawColor(renderer.Get(), 255, 220, 0, 255);
+    SDL_RenderDrawRect(renderer.Get(), &highlight);
     SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 255);
 }
 
+void HudRenderer::render_inventory() const {
+    for (const auto& [slot_index, slot]: inventory_slots) {
+        if (equipped_inventory_slots.contains(slot_index)) {
+            continue;
+        }
+        render_inventory_slot(slot_index, slot);
+    }
+
+    render_selected_slot_highlight();
+
+    for (const auto& [equip_key, slot]: equipped_inventory_slots) {
+        render_equipment_slot(slot);
+    }
+}
+
 void HudRenderer::render_chat() const {
-    constexpr int LINE_SPACING = 18;
     int messages_area_h = CONSOLE_H - CONSOLE_INPUT_H - 5;
 
     int total_lines = static_cast<int>(chat_log_textures.size());
@@ -359,129 +441,30 @@ void HudRenderer::render_chat() const {
     }
 }
 
-void HudRenderer::render_inventory() const {
-    for (const auto& [slot_index, slot]: inventory_slots) {
-        if (equipped_inventory_slots.contains(slot_index)) {
-            continue;
-        }
-
-        const int col = slot_index % INVENTORY_SLOT_COLUMNS;
-        const int row = slot_index / INVENTORY_SLOT_COLUMNS;
-        const int x = INVENTORY_GRID_X + col * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X);
-        const int y = INVENTORY_GRID_Y + row * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y);
-
-        try {
-            SDL2pp::Texture& item_texture =
-                    texture_manager.get_texture("item_" + std::to_string(slot.type_item));
-            const int tex_w = item_texture.GetWidth();
-            const int tex_h = item_texture.GetHeight();
-            const int scale = std::max(tex_w, tex_h);
-            int dst_w = tex_w;
-            int dst_h = tex_h;
-            if (scale > INVENTORY_SLOT_SIZE) {
-                dst_w = tex_w * INVENTORY_SLOT_SIZE / scale;
-                dst_h = tex_h * INVENTORY_SLOT_SIZE / scale;
-            }
-            renderer.Copy(item_texture, SDL2pp::NullOpt,
-                          SDL2pp::Rect(x + (INVENTORY_SLOT_SIZE - dst_w) / 2,
-                                       y + (INVENTORY_SLOT_SIZE - dst_h) / 2, dst_w, dst_h));
-            if (slot.quantity > 1) {
-                auto qty_tex = std::make_unique<SDL2pp::Texture>(
-                        renderer,
-                        fonts.get_level_font().RenderUTF8_Blended(std::to_string(slot.quantity),
-                                                                  SDL_Color{255, 255, 255, 255}));
-                const int qw = qty_tex->GetWidth();
-                const int qh = qty_tex->GetHeight();
-                renderer.Copy(*qty_tex, SDL2pp::NullOpt, SDL2pp::Rect(x + 2, y + 1, qw, qh));
-            }
-        } catch (...) {}
-    }
-
-    if (selected_slot.has_value()) {
-        const int sel = *selected_slot;
-        const int col = sel % INVENTORY_SLOT_COLUMNS;
-        const int row = sel / INVENTORY_SLOT_COLUMNS;
-        const int sx = INVENTORY_GRID_X + col * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_X);
-        const int sy = INVENTORY_GRID_Y + row * (INVENTORY_SLOT_SIZE + INVENTORY_SLOT_GAP_Y);
-        SDL_Rect highlight = {sx - 1, sy - 1, INVENTORY_SLOT_SIZE + 2, INVENTORY_SLOT_SIZE + 2};
-        SDL_SetRenderDrawColor(renderer.Get(), 255, 220, 0, 255);
-        SDL_RenderDrawRect(renderer.Get(), &highlight);
-        SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 255);
-    }
-
-    for (const auto& [slot_index, slot]: equipped_inventory_slots) {
-        const auto rect = equipment_rect_for_item(slot.type_item);
-        if (!rect.has_value()) {
-            continue;
-        }
-
-        try {
-            renderer.Copy(texture_manager.get_texture("hud_inventory_selected"), SDL2pp::NullOpt,
-                          SDL2pp::Rect(*rect));
-            SDL2pp::Texture& item_texture =
-                    texture_manager.get_texture("item_" + std::to_string(slot.type_item));
-            const int tex_w = item_texture.GetWidth();
-            const int tex_h = item_texture.GetHeight();
-            const int scale = std::max(tex_w, tex_h);
-            int dst_w = tex_w;
-            int dst_h = tex_h;
-            if (scale > EQUIPMENT_SLOT_SIZE) {
-                dst_w = tex_w * EQUIPMENT_SLOT_SIZE / scale;
-                dst_h = tex_h * EQUIPMENT_SLOT_SIZE / scale;
-            }
-            renderer.Copy(item_texture, SDL2pp::NullOpt,
-                          SDL2pp::Rect(rect->x + (EQUIPMENT_SLOT_SIZE - dst_w) / 2,
-                                       rect->y + (EQUIPMENT_SLOT_SIZE - dst_h) / 2, dst_w, dst_h));
-        } catch (...) {}
-    }
-}
-
-void HudRenderer::scroll_console(int delta) {
-    if (chat_log_textures.empty())
-        return;
-
-    constexpr int LINE_SPACING = 18;
-    int messages_area_h = CONSOLE_H - CONSOLE_INPUT_H - 5;
-    int total_lines = static_cast<int>(chat_log_textures.size());
-    int max_visible = messages_area_h / LINE_SPACING;
-    int max_scroll = std::max(0, total_lines - max_visible);
-
-    console_scroll_offset += delta;
-    if (console_scroll_offset < 0)
-        console_scroll_offset = 0;
-    if (console_scroll_offset > max_scroll)
-        console_scroll_offset = max_scroll;
-}
-
-void HudRenderer::render() const {
-
-    // Consola (arriba izquierda)
+void HudRenderer::render_panels() const {
     renderer.Copy(texture_manager.get_texture("hud_console_base"), SDL2pp::NullOpt,
                   SDL2pp::Rect(CONSOLE_X, CONSOLE_Y, CONSOLE_W, CONSOLE_H));
-    // Upper layer (full screen overlay)
     renderer.Copy(texture_manager.get_texture("hud_upper_layer"), SDL2pp::NullOpt,
                   SDL2pp::Rect(0, 0, w_width, w_height));
-
-    // User info (arriba derecha)
     renderer.Copy(texture_manager.get_texture("hud_user_info_base"), SDL2pp::NullOpt,
                   SDL2pp::Rect(PANEL_RIGHT_X, USER_INFO_Y, PANEL_RIGHT_W, USER_INFO_H));
-
-    // Inventario
     renderer.Copy(texture_manager.get_texture("hud_inventory_base"), SDL2pp::NullOpt,
                   SDL2pp::Rect(PANEL_RIGHT_X, INVENTORY_Y, INVENTORY_W, INVENTORY_H));
     render_inventory();
-
-    // Stats (vida/mana)
     renderer.Copy(texture_manager.get_texture("hud_stats_base"), SDL2pp::NullOpt,
                   SDL2pp::Rect(PANEL_RIGHT_X, STATS_Y, STATS_W, STATS_H));
+}
 
+void HudRenderer::render_bars() const {
     render_progress_bar(PROGRESS_BAR_X, HP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H, stats.hp,
                         stats.max_hp, SDL_Color{190, 45, 45, 255});
     render_progress_bar(PROGRESS_BAR_X, MANA_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H, stats.mana,
                         stats.max_mana, SDL_Color{45, 95, 205, 255});
     render_progress_bar(PROGRESS_BAR_X, EXP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H, stats.exp,
                         stats.exp_next_level, SDL_Color{210, 170, 45, 255});
+}
 
+void HudRenderer::render_text_labels() const {
     render_centered_text(player_name_texture, NAME_X, NAME_Y, NAME_W, NAME_H);
     render_centered_text(level_texture, LEVEL_X, LEVEL_Y, LEVEL_W, LEVEL_H);
     render_centered_text(hp_texture, PROGRESS_BAR_X, HP_BAR_Y, PROGRESS_BAR_W, PROGRESS_BAR_H);
@@ -490,8 +473,27 @@ void HudRenderer::render() const {
     render_centered_text(safe_gold_texture, SAFE_GOLD_X, SAFE_GOLD_Y, GOLD_ICON_W, GOLD_ICON_H);
     render_centered_text(excess_gold_texture, EXCESS_GOLD_X, EXCESS_GOLD_Y, GOLD_ICON_W,
                          GOLD_ICON_H);
+}
 
+// --- Rendering --- //
+
+void HudRenderer::render_resurrection_notice() const {
+    if (!resurrection_texture) {
+        return;
+    }
+    SDL_Rect background = {NOTICE_X, NOTICE_Y, NOTICE_W, NOTICE_H};
+    SDL_SetRenderDrawColor(renderer.Get(), 12, 12, 16, 220);
+    SDL_RenderFillRect(renderer.Get(), &background);
+    SDL_SetRenderDrawColor(renderer.Get(), 210, 190, 120, 255);
+    SDL_RenderDrawRect(renderer.Get(), &background);
+    render_centered_text(resurrection_texture, NOTICE_X, NOTICE_Y, NOTICE_W, NOTICE_H);
+    SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 255);
+}
+
+void HudRenderer::render() const {
+    render_panels();
+    render_bars();
+    render_text_labels();
     render_chat();
-
     SDL_SetRenderDrawColor(renderer.Get(), 0, 0, 0, 255);
 }

@@ -45,7 +45,7 @@ enum TypeItem : uint8_t {
     LIFE_POTION,     /*POCION VIDA*/
     MANA_POTION,     /*POCION MANA*/
     GOLD,            /*ORO*/
-    TREASURE,
+    TREASURE,        /*TESORO*/
 };
 
 enum ItemClassification : uint8_t {
@@ -97,6 +97,12 @@ enum TypeNPC : uint8_t {
     BANKER,           /*BANQUERO*/
     MERCHANT          /*COMERCIANTE*/
 };
+
+#endif
+/*--------------------------------------------------------------------------------------*/
+#ifndef __ID_BUILDING__
+#define __ID_BUILDING__
+enum TypeBuilding : uint8_t { NO_BUILDING = 0, TEMPLE, STORE, BANK };
 
 #endif
 /*-------------------------------------------------------------------------------------------------*/

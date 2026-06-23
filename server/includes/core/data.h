@@ -9,7 +9,7 @@
 #include "server/includes/core/map.h"
 constexpr size_t MAX_DATA = 30;
 
-#pragma pack(push, 1)
+#pragma pack(push, 1);
 struct ItemInstanceData {
     uint8_t type_item;
     Position position;
@@ -33,44 +33,55 @@ struct PlayerData {
     /*Personaje*/
     CharacterTraits charact_traits;
     /*Atributos*/
-    uint32_t exp;
     uint8_t level;
+    uint32_t xp;
     uint16_t hp;
     uint16_t mana;
-    /* inventario*/
     uint32_t golden;
     std::vector<SlotData> inventory;
-    std::vector<size_t> equipment; /*guarda el index del slot que esta euipado*/
+    std::vector<SlotData> equipment; /*guarda el index del slot que esta euipado*/
+    /*BANCO*/
+    uint32_t golden_dep;
+    std::vector<SlotData> box;
 };
 
 struct CitizenNpcData {
     char name[MAX_DATA];
-    uint8_t type;  // TypeNPC
+    uint8_t type;
+    uint32_t zone_id;
     Position position;
     uint8_t direction;
 };
 
 struct CreatureData {
-    uint8_t type;  // TypeNPC
     char name[MAX_DATA];
+    uint8_t type;
+    uint32_t zone_id;
     Position position;
     uint8_t direction;
     NpcAttributes attributes;
 };
+struct ItemInstanceData {
+    uint8_t type_item;
+    Position position;
+};
+
 struct TreasureStateData {
+    uint32_t zone_id;
     uint32_t amount;
     Position position;
+    std::vector<uint8_t> types_items;
 };
 struct GoldBagsData {
     uint32_t amount;
     Position position;
 };
 struct WorldStateData {
-    std::vector<CitizenNpcData> citizen_npcs;
+    std::vector<CitizenNpcData> citizen;
     std::vector<CreatureData> creatures;
-    std::vector<TreasureStateData> treasures;
-    std::vector<GoldBagsData> gold_bags;
-    std::vector<ItemInstanceData> items;
+    std::vector<TreasureStateData> treasures; /*Guardo*/
+    std::vector<GoldBagsData> gold_bags;      /*Guardo*/
+    std::vector<ItemInstanceData> items;      /*Guardo*/
 };
 #pragma pack(pop)
 #endif

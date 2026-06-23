@@ -1,12 +1,12 @@
 #ifndef ITEMS_POSITIONS_H
 #define ITEMS_POSITIONS_H
 
-#include <cstdint>
 #include <unordered_map>
 #include <variant>
 #include <vector>
 
 #include "common/includes/types.h"
+#include "server/includes/core/data.h"
 #include "server/includes/core/instances.h"
 #include "server/includes/player.h"
 
@@ -30,6 +30,9 @@ public:
     bool isOcupied(const Position& position) const;
 
     std::vector<ItemGroundSnapshotData> getItemsOnFloor();
+    std::vector<ItemInstanceData> getDataItems();
+    std::vector<TreasureStateData> getDataTreasures();
+    std::vector<GoldBagsData> getDataGoldBags();
 };
 
 

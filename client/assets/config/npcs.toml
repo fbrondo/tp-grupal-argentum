@@ -1,0 +1,30 @@
+# NPC texture catalog
+# Creatures have individual spritesheet dimensions; citizen NPCs are static images.
+# Entries: id = enum value, file = PNG filename (relative to dir).
+
+[creatures]
+dir = "client/assets/Sprites/Units/criatures"
+entries = [
+    { id = 1, file = "300.png", frame_width = 25, frame_height = 32, frames_per_row = 8 },
+    { id = 2, file = "301.png", frame_width = 25, frame_height = 32, frames_per_row = 8 },
+    { id = 3, file = "302.png", frame_width = 25, frame_height = 52, frames_per_row = 6 },
+    { id = 4, file = "303.png", frame_width = 25, frame_height = 52, frames_per_row = 6 },
+    { id = 5, file = "304.png", frame_width = 24, frame_height = 47, frames_per_row = 8 },
+    { id = 6, file = "307.png", frame_width = 192, frame_height = 200, frames_per_row = 5 },
+    { id = 7, file = "306.png", frame_width = 97, frame_height = 97, frames_per_row = 5 },
+    { id = 8, file = "305.png", frame_width = 97, frame_height = 97, frames_per_row = 5 },
+    { id = 9, file = "308.png", frame_width = 24, frame_height = 51, frames_per_row = 6 },
+    { id = 10, file = "309.png", frame_width = 162, frame_height = 162, frames_per_row = 6 },
+    { id = 11, file = "310.png", frame_width = 162, frame_height = 162, frames_per_row = 6 },
+]
+
+[citizens]
+dir = "client/assets/NPCs"
+entries = [
+    { id = 12, file = "4.png" },
+    { id = 13, file = "0.png" },
+    { id = 14, file = "2.png" },
+    { id = 15, file = "1.png" },
+    { id = 16, file = "3.png" },
+    { id = 17, file = "5.png" },
+]

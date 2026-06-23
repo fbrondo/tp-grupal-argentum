@@ -58,9 +58,9 @@ void World::buildTilesWorld() {
             const Tile& bg = this->map.tile_at(x, y, Layer::Background);
             const Tile& details = this->map.tile_at(x, y, Layer::Details);
             const Tile& obj = this->map.tile_at(x, y, Layer::Object);
-            const Tile& roof = this->map.tile_at(x, y, Layer::Roof);
+            // const Tile& roof = this->map.tile_at(x, y, Layer::Roof);
             this->map_tiles[x][y].walkable = bg.walkable && details.walkable && obj.walkable &&
-                                             roof.walkable && background_coverage[x][y] &&
+                                             /*roof.walkable &&*/ background_coverage[x][y] &&
                                              y >= TOP_ENTITY_VISUAL_MARGIN_TILES;
             this->map_tiles[x][y].region = bg.region;
             if (!this->map_tiles[x][y].walkable) {
@@ -330,7 +330,8 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
 }
 
 bool World::isCreatureWalkable(const Id& creature_id, Direction dir) const {
-    const Position& current = this->npc_positions.getCreature(creature_id).pose.position;
+    Position current = this->npc_positions.getPositionCreature(
+            creature_id);  // this->npc_positions.getCreature(creature_id).pose.position;
     Position destination = current;
     switch (dir) {
         case DOWN:
@@ -354,17 +355,19 @@ bool World::isCreatureWalkable(const Id& creature_id, Direction dir) const {
             destination.x++;
             break;
     }
-
-    return this->isWithinLimits(destination) &&
-           this->isPositionInCreatureZone(creature_id, destination) &&
-           this->map_tiles[destination.x][destination.y].walkable &&
-           !this->positionNotWalkabled(destination) && !this->player_tiles.contains(destination) &&
-           !this->npc_positions.isOcupied(destination) &&
-           !this->item_positions.isOcupied(destination);
+    bool is_limits_zone = this->isPositionInCreatureZone(creature_id, destination);
+    bool is_limits = this->isWithinLimits(destination);
+    bool ocupied = !this->player_tiles.contains(destination) &&
+                   !this->npc_positions.isOcupied(destination) &&
+                   !this->item_positions.isOcupied(destination);
+    bool walkable = this->map_tiles[destination.x][destination.y].walkable &&
+                    !this->positionNotWalkabled(destination);
+    return is_limits && is_limits_zone && ocupied && walkable;
 }
 
 bool World::isPositionInCreatureZone(const Id& creature_id, const Position& position) const {
-    const Id creature_zone = this->npc_positions.getCreature(creature_id).zone_id;
+    const Id creature_zone =
+            this->npc_positions.getZoneCreature(creature_id);  // getCreature(creature_id).zone_id;
     const auto position_zone = this->position_zones.find(position);
     return position_zone != this->position_zones.end() && position_zone->second == creature_zone;
 }
@@ -528,8 +531,8 @@ void World::removePlayer(const Id& player_id) {
 }
 
 void World::removeCreature(const Id& creature_id) {
-    auto npc_instance = this->npc_positions.removeCreature(creature_id);
-    this->hostile_zones[npc_instance.zone_id].creatures_count--;
+    auto zone_id = this->npc_positions.removeCreature(creature_id);
+    this->hostile_zones[zone_id].creatures_count--;
 }
 
 Pose World::movePlayer(const Id& player_id, Direction dir) {
@@ -537,14 +540,14 @@ Pose World::movePlayer(const Id& player_id, Direction dir) {
     Position previous_position = this->players_positions[player_id].position;
     this->player_tiles.erase(previous_position);
     this->player_tiles.emplace(new_position, true);
-    Pose pose_move(new_position, dir);
-    this->players_positions[player_id] = pose_move;
-    Print::printPositionMovePlayer(player_id, pose_move, previous_position);
-    return pose_move;
+    this->players_positions[player_id] = Pose(new_position, dir);
+    Print::printPositionMovePlayer(player_id, this->players_positions[player_id],
+                                   previous_position);
+    return this->players_positions[player_id];
 }
 
 Pose World::moveCreature(const Id& creature_id, Direction dir) {
-    const Position& current = this->npc_positions.getCreature(creature_id).pose.position;
+    const Position& current = this->npc_positions.getPositionCreature(creature_id);
     Position destination = current;
     switch (dir) {
         case DOWN:
@@ -573,9 +576,9 @@ Pose World::teleportPlayer(const Id& player_id, const Position& position) {
     return new_pose;
 }
 
-Position World::positionPlayerInTheWorld(const Id& player_id) {
-    return this->players_positions.at(player_id).position;
-}
+// Position World::positionPlayerInTheWorld(const Id& player_id) {
+//     return this->players_positions.at(player_id).position;
+// }
 
 int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {
     const Position& pos_attacker = this->players_positions.at(attacker_id).position;
@@ -591,6 +594,9 @@ bool World::playerTakeItemOnTheFloor(Player& player) {
 
 WorldStateData World::buildWorldState() {
     WorldStateData world_data;
+    world_data.items = this->item_positions.getDataItems();
+    world_data.gold_bags = this->item_positions.getDataGoldBags();
+    world_data.treasures = this->item_positions.getDataTreasures();
     return world_data;
 }
 

@@ -6,54 +6,8 @@
 #include <unordered_map>
 
 #include "client/includes/client_protocol.h"
+#include "client/includes/core/item_names.h"
 #include "common/includes/types.h"
-
-static std::string to_lower_cmd(const std::string& s) {
-    std::string result = s;
-    std::transform(result.begin(), result.end(), result.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
-    return result;
-}
-
-static uint8_t resolve_item_id(const std::string& name) {
-    static const std::unordered_map<std::string, uint8_t> item_names = {
-            {"espada", SWORD},
-            {"hacha", AXE},
-            {"martillo", HAMMER},
-            {"vara de fresno", ASH_STAFF},
-            {"vara", ASH_STAFF},
-            {"flauta elfica", ELVEN_FLUTE},
-            {"flauta", ELVEN_FLUTE},
-            {"baculo nudoso", KNOTTED_STAFF},
-            {"baculo", KNOTTED_STAFF},
-            {"baculo engarzado", INLAID_STAFF},
-            {"arco simple", SIMPLE_BOW},
-            {"arco", SIMPLE_BOW},
-            {"arco compuesto", COMPOUND_BOW},
-            {"armadura de cuero", LEATHER_ARMOR},
-            {"armadura", LEATHER_ARMOR},
-            {"armadura de placas", PLATE_AMOR},
-            {"tunica azul", BLUE_TUNIC},
-            {"tunica", BLUE_TUNIC},
-            {"capucha", HOOD},
-            {"casco de hierro", IRON_HELMET},
-            {"casco", IRON_HELMET},
-            {"escudo de tortuga", TORTOISE_SHIELD},
-            {"escudo", TORTOISE_SHIELD},
-            {"escudo de hierro", IRON_SHIELD},
-            {"sombrero magico", MAGIC_HAT},
-            {"sombrero", MAGIC_HAT},
-            {"pocion de vida", LIFE_POTION},
-            {"pocion vida", LIFE_POTION},
-            {"pocion de mana", MANA_POTION},
-            {"pocion mana", MANA_POTION},
-            {"oro", GOLD},
-    };
-    auto it = item_names.find(to_lower_cmd(name));
-    if (it != item_names.end())
-        return it->second;
-    return NONE;
-}
 
 ChatCommandClient::ChatCommandClient(std::string msg, std::optional<uint32_t> npc_id,
                                      std::optional<uint8_t> selected_slot):
@@ -63,7 +17,7 @@ void ChatCommandClient::execute(ClientProtocol& protocol) const {
     if (text.empty())
         return;
 
-    std::string lower = to_lower_cmd(text);
+    const std::string lower = to_lower(text);
 
     if (npc_id.has_value()) {
         if (lower == "/curar" || lower == "/resucitar") {

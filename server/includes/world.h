@@ -50,6 +50,7 @@ private:
     const uint32_t limit_height;
     const uint32_t limit_width;
     MatrizMap map_tiles;
+
     std::unordered_map<Id, Zone> safe_zones;
     std::unordered_map<Id, Zone> hostile_zones;
     std::unordered_map<Position, Id, PositionHash> position_zones;
@@ -109,7 +110,6 @@ public:
     Pose moveCreature(const Id& creature_id, Direction dir);
     Pose teleportPlayer(const Id& player_id, const Position& position);
 
-    Position positionPlayerInTheWorld(const Id& player_id);
     bool playerTakeItemOnTheFloor(Player& player);
 
     int distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id);
