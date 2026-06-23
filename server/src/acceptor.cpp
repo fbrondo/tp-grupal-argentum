@@ -21,9 +21,11 @@ void Acceptor::clear() {
 }
 
 Acceptor::~Acceptor() {
-    this->stop();
-    this->clear();
-    Thread::join();
+    try {
+        this->stop();
+        this->clear();
+        this->join();
+    } catch (...) {}
 }
 
 void Acceptor::run() {
@@ -53,9 +55,25 @@ void Acceptor::run() {
 }
 
 void Acceptor::stop() {
+    if (this->stopped) {
+        return;
+    }
+    this->stopped = true;
     Thread::stop();
-    this->listen.shutdown(2);
-    this->listen.close();
+    try {
+        this->listen.shutdown(2);
+    } catch (const LibError&) {}
+    try {
+        this->listen.close();
+    } catch (const LibError&) {}
+}
+
+void Acceptor::join() {
+    if (this->joined) {
+        return;
+    }
+    this->joined = true;
+    Thread::join();
 }
 
 void Acceptor::reap() {
