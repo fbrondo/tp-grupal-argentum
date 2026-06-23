@@ -4,6 +4,7 @@ target_sources(taller_tests
     toml_config_test.cpp
     map_test.cpp
     sprite_loader_test.cpp
+    protocol_test.cpp
     PUBLIC
     # .h files
     )
