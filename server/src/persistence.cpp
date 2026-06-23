@@ -9,7 +9,6 @@ Persistence::~Persistence() {
     try {
         this->world_data_queue.close();
     } catch (...) {}
-    std::cerr << "[Persistence] ----- Exit" << std::endl;
 }
 
 Persistence::Persistence(const FileData& paths): storage(paths) {}
@@ -51,5 +50,4 @@ void Persistence::run() {
     } catch (const std::exception& e) {
         std::cerr << "[Persistence] Error inesperado en el hilo: " << e.what() << std::endl;
     }
-    std::clog << "[Persistence] Bucle principal terminado correctamente." << std::endl;
 }

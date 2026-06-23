@@ -439,59 +439,13 @@ Position World::calculatePositionRandom(const Id& zone_id) {
     std::uniform_int_distribution<size_t> dist(0, available.size() - 1);
     return available[dist(this->gen)];
 }
-//
-// Position World::findNearbyFreePosition(const Position& center) const {
-//     const auto zone_it = this->zones.find(zone_id);
-//     if (zone_it == this->zones.end()) {
-//         return this->findAnyFreePosition();
-//     }
-//
-//     std::vector<Position> free_tiles;
-//     for (const Position& pos: zone->tiles) {
-//         const bool occupied = this->player_tiles.contains(pos) ||
-//                               this->npc_positions.isOcupied(pos) ||
-//                               this->item_positions.isOcupied(pos);
-//         if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
-//             !this->positionNotWalkabled(pos) && !this->isInPlayerVisionRange(pos) && !occupied) {
-//             free_tiles.push_back(pos);
-//         }
-//     }
-//
-//     if (free_tiles.empty()) {
-//         throw std::runtime_error("No hay posiciones libres en la zona");
-//     }
-//
-//     std::uniform_int_distribution<size_t> dist(0, free_tiles.size() - 1);
-//     return free_tiles[dist(this->gen)];
-// }
+
 
 Position World::calculatePositionRandomSafeZone() {
     Id zone_id = this->calculateZoneSafeRandom();
     return this->calculatePositionRandom(zone_id);
 }
 
-// bool World::zoneHasFreePosition(const Zone& zone) {
-//     for (const Position& pos: zone.tiles) {
-//         if (this->isWithinLimits(pos) && this->map_tiles[pos.x][pos.y].walkable &&
-//             !this->isOccupied(pos)) {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-
-// Position World::findAnyFreePosition() {
-//     for (uint32_t y = 0; y < this->limit_height; ++y) {
-//         for (uint32_t x = 0; x < this->limit_width; ++x) {
-//             Position pos(x, y);
-//             if (this->map_tiles[x][y].walkable && !this->isOccupied(pos)) {
-//                 return pos;
-//             }
-//         }
-//     }
-//
-//     throw std::runtime_error("No hay posiciones libres en el mapa para spawnear");
-// }
 
 Position World::findNearbyFreePosition(const Position& center) const {
     std::queue<Position> queue;
@@ -543,18 +497,9 @@ std::unordered_map<Id, Zone> World::getSafeZones() { return this->safe_zones; }
 void World::addPlayerWorld(const Id& player_id, const Pose& pose) {
     this->players_positions.emplace(player_id, pose);
     this->player_tiles.emplace(pose.position, true);
-    /*auto it = this->players_positions.find(player_id);
-    if (it != this->players_positions.end()) {
-        this->occupied_tiles[it->second.position] = false;
-        it->second = pose;
-    } else {
-        this->players_positions.emplace(player_id, pose);
-    }
-    this->occupied_tiles[pose.position] = true;*/
 }
 
 void World::addNpcWorld(const NpcInstance& npc) {
-    Print::printNpc(npc);
     this->npc_positions.add(npc);
     if (this->hostile_zones.contains(npc.zone_id)) {
         this->hostile_zones[npc.zone_id].creatures_count++;
@@ -578,7 +523,6 @@ void World::addTreasuresWorld(const TreasureInstance& treasure) {
     instance.id = this->next_item_id++;
     this->item_positions.add(instance);
     this->hostile_zones[instance.zone_id].treasures_count++;
-    Print::printItem(instance);
 }
 
 void World::removePlayer(const Id& player_id) {
@@ -598,8 +542,6 @@ Pose World::movePlayer(const Id& player_id, Direction dir) {
     this->player_tiles.erase(previous_position);
     this->player_tiles.emplace(new_position, true);
     this->players_positions[player_id] = Pose(new_position, dir);
-    Print::printPositionMovePlayer(player_id, this->players_positions[player_id],
-                                   previous_position);
     return this->players_positions[player_id];
 }
 
@@ -632,10 +574,6 @@ Pose World::teleportPlayer(const Id& player_id, const Position& position) {
     this->players_positions[player_id] = new_pose;
     return new_pose;
 }
-
-// Position World::positionPlayerInTheWorld(const Id& player_id) {
-//     return this->players_positions.at(player_id).position;
-// }
 
 int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {
     const Position& pos_attacker = this->players_positions.at(attacker_id).position;
