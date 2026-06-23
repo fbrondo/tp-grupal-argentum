@@ -54,6 +54,7 @@ private:
     // std::unordered_map<Id, Zone> zones;
     std::unordered_map<Id, Zone> safe_zones;
     std::unordered_map<Id, Zone> hostile_zones;
+    std::unordered_map<Position, Id, PositionHash> position_zones;
     std::unordered_map<Position, bool, PositionHash> not_walkable_tiles;
     std::unordered_map<Position, bool, PositionHash> player_tiles;
 
@@ -89,7 +90,8 @@ public:
 
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isCreatureWalkable(const Id& creature_id, Direction dir) const;
-    bool isSafeZONE(const Position& pos) const;
+    bool isPositionInCreatureZone(const Id& creature_id, const Position& position) const;
+    bool isSafeZONE(const Position& pos);
 
     Position calculatePositionRandom(const Id& zone_id);
     Position calculatePositionRandomSafeZone();

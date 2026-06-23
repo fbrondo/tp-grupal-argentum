@@ -13,13 +13,26 @@ bool CombatEntity::isAlive() const { return this->hp > 0; }
 
 bool CombatEntity::isAttackable() { return true; }
 
+void CombatEntity::resetAttackCooldown(uint32_t cooldown_ms) {
+    this->attack_cooldown_current = cooldown_ms;
+}
+
+void CombatEntity::updateAttackCooldown(uint32_t delta_ms) {
+    this->attack_cooldown_current = delta_ms >= this->attack_cooldown_current ?
+                                            0 :
+                                            this->attack_cooldown_current - delta_ms;
+}
+
 bool CombatEntity::dodgeAttack() const { return GameFormulas::calculationDodge(); }
 
 const Position& CombatEntity::getPosition() const { return this->pose.position; }
 
 uint8_t CombatEntity::getLevel() const { return this->level; }
 
+uint16_t CombatEntity::getMaxHp() const { return max_hp; }
+
 void CombatEntity::updatePose(Pose&& new_pose) { this->pose = std::move(new_pose); }
+
 void CombatEntity::receiveDamage(uint16_t damage, World& world) {
     if (!this->isAlive()) {
         return;

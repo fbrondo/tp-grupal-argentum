@@ -13,6 +13,7 @@ protected:
     uint16_t hp;
     uint16_t max_hp;
     uint8_t level;
+    uint32_t attack_cooldown_current{0};
     Pose pose;
 
 public:
@@ -21,17 +22,21 @@ public:
     // CombatEntity(const Pose &pose, const NpcStateData& npc);
     CombatEntity(const Pose& pose_, uint16_t hp_max, uint8_t level);
 
-    bool isAlive() const;
-    bool isAttackable() override;
+    virtual bool isAlive() const;
+    virtual bool isAttackable() override;
+    virtual bool dodgeAttack() const;
+
+    virtual void resetAttackCooldown(uint32_t cooldown_ms);
+    virtual void updateAttackCooldown(uint32_t delta_ms);
 
     const Position& getPosition() const;
     uint8_t getLevel() const;
-    uint16_t getHp() const { return hp; }
-    uint16_t getMaxHp() const { return max_hp; }
+    // uint16_t getHp() const { return hp; }
+    uint16_t getMaxHp() const;
 
-    virtual bool dodgeAttack() const;
     virtual void receiveDamage(uint16_t damage, World& world);
     virtual void updatePose(Pose&& new_pose);
     virtual std::string getName() const = 0;
+
     virtual void onDeath(World& world) = 0;
 };

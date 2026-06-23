@@ -192,6 +192,9 @@ void World::identifyZones() {
             if (!has_walkable_tile) {
                 continue;
             }
+            for (const Position& position: zone.tiles) {
+                this->position_zones.emplace(position, zone.id);
+            }
             if (region == Town || region == City) {
                 this->safe_zones.emplace(zone.id, zone);
             } else {
@@ -362,13 +365,20 @@ bool World::isCreatureWalkable(const Id& creature_id, Direction dir) const {
     }
 
     return this->isWithinLimits(destination) &&
+           this->isPositionInCreatureZone(creature_id, destination) &&
            this->map_tiles[destination.x][destination.y].walkable &&
            !this->positionNotWalkabled(destination) && !this->player_tiles.contains(destination) &&
            !this->npc_positions.isOcupied(destination) &&
            !this->item_positions.isOcupied(destination);
 }
 
-bool World::isSafeZONE(const Position& pos) const {
+bool World::isPositionInCreatureZone(const Id& creature_id, const Position& position) const {
+    const Id creature_zone = this->npc_positions.getCreature(creature_id).zone_id;
+    const auto position_zone = this->position_zones.find(position);
+    return position_zone != this->position_zones.end() && position_zone->second == creature_zone;
+}
+
+bool World::isSafeZONE(const Position& pos) {
     for (const auto& [id, zone]: this->safe_zones) {
         for (const auto& position: zone.tiles) {
             if (position == pos) {

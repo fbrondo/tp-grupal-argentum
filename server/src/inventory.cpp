@@ -153,6 +153,7 @@ void Inventory::incrementGolden(uint32_t amount) { this->golden += amount; }
 void Inventory::decrementGolden(uint32_t amount) { this->golden -= amount; }
 
 bool Inventory::addItemToInventory(const Item* item) {
+    Print::printSizeInventory(this->size_current);
     auto index = this->searchItemInInventory(item->type);
     if (index.has_value()) {
         return this->incrementSlotInventory(index.value());
@@ -188,14 +189,3 @@ std::vector<MsgSlot> Inventory::getInventory() const {
 }
 
 void Inventory::reset() { this->size_current = 0; }
-// uint8_t getSlotOfInstance(Id instance_id) const {
-//     uint8_t slot_index = 0;
-//
-//     for (const auto& [id, item] : this->inventory) {
-//         if (id == instance_id) {
-//             return slot_index;
-//         }
-//         slot_index++;
-//     }
-//     return 255;
-// }

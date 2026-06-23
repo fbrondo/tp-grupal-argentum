@@ -202,7 +202,7 @@ void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_d
               << " equipment_slots=" << player_data.equipment.size() << std::endl;
 
     Position position = this->world.findNearbyFreePosition(player_data.position);
-    Direction dir = static_cast<Direction>(player_data.direction);
+    auto dir = static_cast<Direction>(player_data.direction);
     Pose pose(position, dir);
     auto new_player =
             std::make_unique<Player>(pose, std::move(inv), std::move(charact), player_data);
@@ -331,6 +331,19 @@ void Gameloop::reportAttackByAPlayerOnClanmates(Player& player) {
     }
 }
 
+void Gameloop::reportPlayerInterruptedMeditation(const Id& player_id, Player& player) {
+    if (player.breakMeditation()) {
+        const auto messg = GameMessageBuilder::messgInterruptedMeditation(player.getName());
+        this->sendResponseToPlayer(player_id, std::make_shared<ResponseChatMsg>(messg));
+    }
+}
+
+void Gameloop::updateAttackCooldown(const uint32_t& delta_ms) {
+    for (auto& player: this->players | std::views::values) {
+        player->updateAttackCooldown(delta_ms);
+    }
+}
+
 bool Gameloop::isItPossibleToAttack(const Id& player_id, const CombatEntity& victim,
                                     Weapon& weapon) {
     auto* magic_weapon = dynamic_cast<MagicWeapon*>(&weapon);
@@ -371,10 +384,15 @@ std::vector<Defense*> Gameloop::getPlayerDefensiveEquipment(const Id& player_id)
 }
 
 void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
-    std::cerr << "[ATTACK] attacker=" << attacker_id << " victim=" << victim_id << std::endl;
+    Print::printInitAttackPlayer(attacker_id, victim_id);
     Player* attacker = this->players.at(attacker_id).get();
     if (!attacker->isAlive()) {
-        std::cerr << "[ATTACK] blocked: attacker is dead\n";
+        Print::printAttackPlayerIsDead();
+        return;
+    }
+    if (!attacker->canAttack()) {
+        const auto messg = GameMessageBuilder::messgStatingCannotUseWeapon(attacker->getName());
+        this->sendCombatMessage(attacker_id, messg);
         return;
     }
     const TypeItem weapon_type = attacker->getHandItem();
@@ -397,9 +415,9 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         attacker->breakMeditation();
         return;
     }
-    if (attacker_id == victim_id) {
+    if (attacker_id == victim_id)
         return;
-    }
+
     CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
     if (!victim || !victim->isAlive()) {
         std::cerr << "[ATTACK] blocked: victim not found or dead\n";
@@ -416,7 +434,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
             return;
         }
     }
-    auto* weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
+    const auto weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
     if (!weapon) {
         std::cerr << "[ATTACK] blocked: equipped item is not a weapon\n";
         return;
@@ -484,65 +502,50 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     }
 
     std::cerr << "[ATTACK] HIT attacker=" << attacker_id << " -> victim=" << victim_id
-              << " dmg=" << damage_by_attacker << " critical=" << is_critical
-              << " hp=" << victim->getHp() - damage_by_attacker << "/" << victim->getMaxHp()
+              << " dmg=" << damage_by_attacker << " critical="
+              << is_critical
+              //<< " hp=" << victim->getHp() - damage_by_attacker << "/" << victim->getMaxHp()
               << std::endl;
 
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
 
     const bool victim_died = !victim->isAlive();
-    // const bool victim_is_player = dynamic_cast<Player*>(victim) != nullptr;
     const bool victim_is_creature = dynamic_cast<Creature*>(victim) != nullptr;
 
     if (victim_died) {
+        attacker->earnKillExp(victim);
         this->effects.emitVisual(VisualEffectID::DEATH, victim_position);
     }
-
     if (victim_died && !victim_is_creature)
         this->effects.emitSound(SoundEffectID::MUERTE_HOMBRE, victim->getPosition());
 
-    if (victim_died && victim_is_creature)
+    if (victim_died && victim_is_creature) {
+        this->creatures.erase(victim_id);
         this->effects.emitSound(SoundEffectID::DROP_ESPECIAL_NPC, victim->getPosition());
+    }
 
     if (const auto victim_player = dynamic_cast<Player*>(victim)) {
-        if (victim_player->breakMeditation()) {
-            this->sendResponseToPlayer(
-                    victim_id, std::make_shared<ResponseChatMsg>("Tu meditación es interrumpida."));
-        }
+        this->reportPlayerInterruptedMeditation(victim_id, *victim_player);
         this->reportAttackByAPlayerOnClanmates(*victim_player);
         auto messg = GameMessageBuilder::damageMessgToThePlayer(attacker->getName(),
                                                                 damage_by_attacker, victim_died);
-
         this->sendCombatMessage(victim_id, messg);
-
         if (victim_died) {
             this->sendUpdateEquipmentToPlayer(victim_id, *victim_player);
             this->sendUpdateInventoryToPlayer(victim_id, *victim_player);
         }
     }
-
-    const std::string victim_name = victim->getName();
-
-    if (victim_died) {
-        attacker->earnKillExp(victim);
-    }
     auto messg = GameMessageBuilder::messgAboutDamageDealtByThePlayer(
-            victim_name, damage_by_attacker, victim_died);
+            victim->getName(), damage_by_attacker, victim_died);
     this->sendCombatMessage(attacker_id, messg);
-
-    if (victim_died && victim_is_creature) {
-        this->creatures.erase(victim_id);
-    }
 
     const auto magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
     if (magic_weapon)
         attacker->consumeMana(magic_weapon->mana_cost);
 
-    if (attacker->breakMeditation()) {
-        this->sendResponseToPlayer(
-                attacker_id, std::make_shared<ResponseChatMsg>("Tu meditación es interrumpida."));
-    }
+    attacker->resetAttackCooldown(this->conf.times.player_attack_cooldown);
+    this->reportPlayerInterruptedMeditation(attacker_id, *attacker);
 }
 
 void Gameloop::processMovePlayer(Id player_id, Direction dir) {
@@ -1024,7 +1027,8 @@ Player* Gameloop::findNearestPlayer(const Creature& creature, Id& player_id) {
     Player* nearest = nullptr;
     uint32_t nearest_distance = std::numeric_limits<uint32_t>::max();
     for (auto& [id, player]: this->players) {
-        if (!player->isAlive() || this->world.isSafeZONE(player->getPosition())) {
+        if (!player->isAlive() || this->world.isSafeZONE(player->getPosition()) ||
+            !this->world.isPositionInCreatureZone(creature.getId(), player->getPosition())) {
             continue;
         }
         const uint32_t distance =
@@ -1066,7 +1070,8 @@ void Gameloop::moveCreatureTowards(Id creature_id, Creature& creature, const Pos
 
 void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
     Player* victim = this->players.at(player_id).get();
-    if (!victim->isAlive() || this->world.isSafeZONE(victim->getPosition())) {
+    if (!victim->isAlive() || this->world.isSafeZONE(victim->getPosition()) ||
+        !this->world.isPositionInCreatureZone(creature.getId(), victim->getPosition())) {
         return;
     }
 
@@ -1147,6 +1152,24 @@ void Gameloop::updatePlayersAttributes() {
     }
 }
 
+void Gameloop::updatePendingResurrects(const uint32_t& delta_ms) {
+    for (auto it = this->pending_resurrects.begin(); it != this->pending_resurrects.end();) {
+        if (it->second.time_left_ms <= delta_ms) {
+            Id p_id = it->first;
+            Player* player = this->players.at(p_id).get();
+            if (player) {
+                this->resurrectPlayerAtHealer(p_id, it->second.healer_id);
+            } else if (this->players.contains(p_id)) {
+                this->players.at(p_id)->finishResurrection();
+            }
+            it = this->pending_resurrects.erase(it);
+        } else {
+            it->second.time_left_ms -= delta_ms;
+            ++it;
+        }
+    }
+}
+
 void Gameloop::updateStateWorld() {
     WorldStateData world_state = this->world.buildWorldState();
     for (const auto& creature: this->creatures | std::views::values) {
@@ -1174,23 +1197,9 @@ void Gameloop::run() {
         while (should_keep_running()) {
             this->executeRequest();
             this->updateCreatures(TICK_MS);
-            for (auto it = this->pending_resurrects.begin();
-                 it != this->pending_resurrects.end();) {
-                if (it->second.time_left_ms <= TICK_MS) {
-                    Id p_id = it->first;
-                    Player* player = this->players.at(p_id).get();
-
-                    if (player) {
-                        this->resurrectPlayerAtHealer(p_id, it->second.healer_id);
-                    } else if (this->players.contains(p_id)) {
-                        this->players.at(p_id)->finishResurrection();
-                    }
-                    it = this->pending_resurrects.erase(it);
-                } else {
-                    it->second.time_left_ms -= TICK_MS;
-                    ++it;
-                }
-            }
+            // Aqui estaba lo de resurrecion, lo pase a una funcion
+            this->updatePendingResurrects(TICK_MS);
+            this->updateAttackCooldown(TICK_MS);
             timer_attributes += TICK_MS;
             if (timer_attributes >= this->conf.times.update_player_atributes) {
                 this->updatePlayersAttributes();

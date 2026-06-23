@@ -68,7 +68,7 @@ private:
     Layer current_layer_{Layer::Background};
     int current_sprite_id_{0};
     bool current_walkable_{true};
-    Region current_region_{Region::Field};
+    Region current_region_{Region::Town};
     Tool current_tool_{Tool::Paint};
     bool painting_{false};
     bool erasing_{false};
