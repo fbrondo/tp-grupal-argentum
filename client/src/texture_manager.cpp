@@ -98,6 +98,7 @@ void TextureManager::load_tile_textures(
             {ARGENTUM_SHARE_PATH "/common/assets/maps/objets/", "tile_obj_"},
             {ARGENTUM_SHARE_PATH "/common/assets/maps/roof/", "tile_roof_"},
     }};
+    const std::string details_dir = ARGENTUM_SHARE_PATH "/common/assets/maps/details/";
 
     for (const auto& [dir, prefix]: layers) {
         if (!std::filesystem::exists(dir)) {
@@ -109,6 +110,17 @@ void TextureManager::load_tile_textures(
                 continue;
             const std::string id = entry.path().stem().string();
             load_texture(textures_aux, prefix + id, entry.path().string());
+        }
+    }
+    if (std::filesystem::exists(details_dir)) {
+        for (const auto& entry: std::filesystem::directory_iterator(details_dir)) {
+            if (entry.path().extension() != ".png")
+                continue;
+            const std::string id = entry.path().stem().string();
+            const std::string object_alias = "tile_obj_" + id;
+            if (!textures_aux.contains(object_alias)) {
+                load_texture(textures_aux, object_alias, entry.path().string());
+            }
         }
     }
 }

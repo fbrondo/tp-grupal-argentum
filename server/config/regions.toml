@@ -13,7 +13,7 @@ npcs = ["Araña de carvena", "Orco", "Golem"] #ARANA DE CAVERNA=1,
 [[regions]]
 id_type = 2 #MAZMORRA
 is_safe_zone = false
-max_criatures = 4
+max_criatures = 9
 min_treasure = 1
 max_treasure = 4
 number_items_in_treasure = 5
@@ -23,13 +23,13 @@ npcs = ["Araña de mazmorra", "Esqueleto guerrero", "Zombie"]
 [[regions]]
 id_type = 3 #FOREST
 is_safe_zone = false
-max_criatures = 4
+max_criatures = 8
 npcs = ["Goblin de bosque", "Araña de bosque"]
 #----------------------------------------------------------------------------------------------------
 [[regions]]
 id_type = 4 #DESERT
 is_safe_zone = false
-max_criatures = 5
+max_criatures = 9
 min_treasure = 2
 max_treasure = 4
 number_items_in_treasure = 3
