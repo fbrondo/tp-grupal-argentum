@@ -63,6 +63,7 @@ struct TimesConfig {
     uint32_t disappear_dropped_item;
     uint32_t pesistence_data;
     uint32_t npc_attack_cooldown;
+    uint32_t player_attack_cooldown;
 };
 struct GameConfig {
     FileData paths;

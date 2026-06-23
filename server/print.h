@@ -70,7 +70,10 @@ void imprimirCajaContenedora(const PlayerData& player);
 void printInitGameloop(const std::string& message);
 void imprimirTilesOcupadas(const std::unordered_map<Position, bool, PositionHash>& occupied_tiles);
 
+void printSizeInventory(const uint32_t& size_inventory);
 // void printBuyItem(const std::string name, const Item* item);
+void printInitAttackPlayer(const Id& attacker_id, const Id& victim_id);
+void printAttackPlayerIsDead();
 void printEvasiveMessageAttack(const std::string& name_victim);
 };  // namespace Print
 

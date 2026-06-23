@@ -4,6 +4,8 @@
 #include <string>
 
 namespace GameMessageBuilder {
+std::string messgStatingCannotUseWeapon(const std::string& player_name);
+std::string messgInterruptedMeditation(const std::string& player_name);
 std::string damageMessgToThePlayer(const std::string& attacker_name, const uint16_t& damage,
                                    const bool& is_died);
 std::string messgAboutDamageDealtByThePlayer(const std::string& victim_name, const uint16_t& damage,

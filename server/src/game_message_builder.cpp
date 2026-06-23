@@ -2,6 +2,18 @@
 
 #include <sstream>
 namespace GameMessageBuilder {
+std::string messgStatingCannotUseWeapon(const std::string& player_name) {
+    std::ostringstream oss;
+    oss << player_name << " no puedes atacar, tu arma se esta enfriando.";
+    return oss.str();
+}
+
+std::string messgInterruptedMeditation(const std::string& player_name) {
+    std::ostringstream oss;
+    oss << player_name << " tu meditación es interrumpida.";
+    return oss.str();
+}
+
 std::string damageMessgToThePlayer(const std::string& attacker_name, const uint16_t& damage,
                                    const bool& is_died) {
     std::ostringstream oss;

@@ -1,10 +1,10 @@
 #include "server/includes/data_storage.h"
 
 DataStorage::DataStorage(const FileData& paths) {
-    // std::filesystem::create_directories(path);
     std::filesystem::path data_players = paths.players;
     this->data_index_player = paths.indx_players;
     this->data_world_path = paths.world;
+    std::filesystem::create_directories(data_players.parent_path());
     if (!std::filesystem::exists(data_players)) {
         std::ofstream create(data_players, std::ios::binary);
     }
@@ -14,13 +14,8 @@ DataStorage::DataStorage(const FileData& paths) {
     if (!this->data_file.is_open()) {
         throw std::runtime_error("Error al cargar datos al server");
     }
-    std::filesystem::create_directories(data_players.parent_path());
     this->loadIndex();
 }
-
-// void DataStorage::writeDataPlayer(const PlayerData &data) {
-//
-// }
 
 bool DataStorage::exists(const std::string& username) const {
     return this->index.contains(username);

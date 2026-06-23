@@ -51,7 +51,7 @@ uint16_t Player::manaMax() {
                                                 mana_f_clase, this->level);
 }
 
-bool Player::isNewbie() const { return this->hp <= 12; }
+bool Player::isNewbie() const { return this->level <= 12; }
 
 bool Player::isValidOpponent(Player* other) const {
     if (!other) {
@@ -156,6 +156,8 @@ bool Player::useItem(const size_t& slot_id) {
     }
     return false;
 }
+
+bool Player::canAttack() const { return this->attack_cooldown_current == 0; }
 
 bool Player::equipItem(size_t slot_id) {
     if (this->inv.slotEmpty(slot_id)) {

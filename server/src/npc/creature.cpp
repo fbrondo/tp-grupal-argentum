@@ -113,18 +113,19 @@ bool Creature::canAttack() const { return this->attack_cooldown_current == 0; }
 
 bool Creature::canMove() const { return this->movement_cooldown_current == 0; }
 
-void Creature::resetAttackCooldown(uint32_t cooldown_ms) {
-    this->attack_cooldown_current = cooldown_ms;
-}
+// void Creature::resetAttackCooldown(uint32_t cooldown_ms) {
+//     this->attack_cooldown_current = cooldown_ms;
+// }
 
 void Creature::resetMovementCooldown(uint32_t cooldown_ms) {
     this->movement_cooldown_current = cooldown_ms;
 }
 
 void Creature::updateCooldowns(uint32_t delta_ms) {
-    this->attack_cooldown_current = delta_ms >= this->attack_cooldown_current ?
-                                            0 :
-                                            this->attack_cooldown_current - delta_ms;
+    // this->attack_cooldown_current = delta_ms >= this->attack_cooldown_current ?
+    //                                         0 :
+    //                                         this->attack_cooldown_current - delta_ms;
+    this->updateAttackCooldown(delta_ms);
     this->movement_cooldown_current = delta_ms >= this->movement_cooldown_current ?
                                               0 :
                                               this->movement_cooldown_current - delta_ms;
