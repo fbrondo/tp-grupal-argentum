@@ -83,7 +83,7 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
         commands_queue(cmmds_queue),
         conf(std::move(conf_)),
         clan_manager(this->conf.paths.clans),
-        world(this->conf.paths.map),
+        world(this->conf.paths.map, this->conf.citizen_detail_spawns),
         persistence(this->conf.paths),
         spawn(this->conf, this->world) {
     this->clan_manager.load();

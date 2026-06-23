@@ -64,11 +64,16 @@ struct TimesConfig {
     uint32_t pesistence_data;
     uint32_t npc_attack_cooldown;
 };
+struct CitizenDetailSpawnConfig {
+    int detail_sprite_id;
+    TypeNPC npc_type;
+};
 struct GameConfig {
     FileData paths;
     PlayerStateInit player_init{};
     ClanConfig clan{};
     TimesConfig times{};
+    std::vector<CitizenDetailSpawnConfig> citizen_detail_spawns;
     std::map<TypeRace, Race> races;
     std::map<TypeClase, Clase> clases;
     std::map<std::string, NpcSafeZone> npcs;

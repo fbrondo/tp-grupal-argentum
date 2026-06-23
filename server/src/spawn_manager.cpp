@@ -1,6 +1,8 @@
 #include "server/includes/spawn_manager.h"
 
+#include <algorithm>
 #include <ranges>
+#include <stdexcept>
 
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/merchant.h"
@@ -119,9 +121,31 @@ std::tuple<TypeNPC, Pose> SpawnManager::prepareCitizenNpcSpawn(const Id& zone_id
     return {type_npc, pose_spawn};
 }
 
+std::string SpawnManager::citizenNameForType(TypeNPC type) const {
+    const auto it =
+            std::find_if(this->conf_citizens.begin(), this->conf_citizens.end(),
+                         [type](const auto& citizen) { return citizen.second.type == type; });
+    if (it == this->conf_citizens.end()) {
+        throw std::runtime_error("No hay configuracion para el NPC ciudadano pedido por el mapa");
+    }
+    return it->first;
+}
+
 void SpawnManager::spawnCitizenNpcZones(Id& next_id,
                                         std::map<Id, std::unique_ptr<CitizenNPC>>& citizen_npcs,
                                         Bank& bank) {
+    const std::vector<CitizenSpawnPoint> configured_spawns = this->world.getCitizenSpawnPoints();
+    if (!configured_spawns.empty()) {
+        for (const auto& spawn: configured_spawns) {
+            const std::string name_npc = this->citizenNameForType(spawn.type);
+            auto new_npc = this->createCitizenNpc(name_npc, spawn.pose, bank);
+            NpcInstance instance(next_id++, spawn.zone_id, spawn.type, spawn.pose);
+            citizen_npcs.emplace(instance.id, std::move(new_npc));
+            this->world.addNpcWorld(instance);
+        }
+        return;
+    }
+
     const std::unordered_map<Id, Zone> safe_zones = this->world.getSafeZones();
     for (const auto& zone: safe_zones | std::views::values) {
         auto region = this->safe_regions.at(zone.region);

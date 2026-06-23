@@ -23,6 +23,10 @@ static uint32_t item_entity_key(uint32_t pos_x, uint32_t pos_y) {
     return ITEM_ENTITY_OFFSET + (pos_x * 1000) + pos_y;
 }
 
+static constexpr uint8_t OCCLUDING_DETAIL_ALPHA = 150;
+static constexpr uint8_t OCCLUDING_ROOF_ALPHA = 120;
+static constexpr uint8_t OPAQUE_ALPHA = 255;
+
 static uint32_t exp_next_level(uint8_t level) {
     return static_cast<uint32_t>(1000 * std::pow(level, 1.8));
 }
@@ -37,6 +41,14 @@ static int64_t squared_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t 
     const int64_t dx = static_cast<int64_t>(x1) - static_cast<int64_t>(x2);
     const int64_t dy = static_cast<int64_t>(y1) - static_cast<int64_t>(y2);
     return dx * dx + dy * dy;
+}
+
+static bool is_entity_inside_world_rect(const RenderableEntity& entity, const SDL_Rect& rect) {
+    const SDL_Point entity_center = {
+            static_cast<int>(entity.get_pixel_x()) + TILE_SIZE / 2,
+            static_cast<int>(entity.get_pixel_y()) + TILE_SIZE / 2,
+    };
+    return SDL_PointInRect(&entity_center, &rect);
 }
 
 static int sound_effect_priority(SoundEffectID effect_id) {
@@ -795,6 +807,12 @@ void WorldRenderer::render() {
         }
     }
 
+    const RenderableEntity* local_player = nullptr;
+    const auto local_player_it = entities.find(player_entity_key(local_player_id));
+    if (local_player_it != entities.end()) {
+        local_player = local_player_it->second.get();
+    }
+
     // 3. RENDERIZADO DE DETAILS DELANTE DE LAS ENTIDADES
     for (int y = start_tile_y; y <= end_tile_y; ++y) {
         for (int x = start_tile_x; x <= end_tile_x; ++x) {
@@ -805,10 +823,16 @@ void WorldRenderer::render() {
             const std::string tex_key = "tile_det_" + std::to_string(tile_data.sprite_id);
             try {
                 SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
+                const SDL_Rect detail_world_rect = {x * TILE_SIZE, y * TILE_SIZE,
+                                                    texture.GetWidth(), texture.GetHeight()};
                 const SDL_Rect dst = {(x * TILE_SIZE) - camera.x + camera_screen_offset_x,
                                       (y * TILE_SIZE) - camera.y + camera_screen_offset_y,
                                       texture.GetWidth(), texture.GetHeight()};
+                if (local_player && is_entity_inside_world_rect(*local_player, detail_world_rect)) {
+                    texture.SetAlphaMod(OCCLUDING_DETAIL_ALPHA);
+                }
                 renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
+                texture.SetAlphaMod(OPAQUE_ALPHA);
             } catch (const std::exception& e) {
                 log_render_error_once(tex_key, e);
             }
@@ -817,14 +841,6 @@ void WorldRenderer::render() {
 
     // 4. RENDERIZADO DE TECHOS (Roofs)
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
-
-    std::optional<SDL_Point> local_player_position;
-    const auto local_player = entities.find(player_entity_key(local_player_id));
-    if (local_player != entities.end()) {
-        local_player_position =
-                SDL_Point{static_cast<int>(local_player->second->get_pixel_x()) + TILE_SIZE / 2,
-                          static_cast<int>(local_player->second->get_pixel_y()) + TILE_SIZE / 2};
-    }
 
     for (int y = start_tile_y; y <= end_tile_y; ++y) {
         for (int x = start_tile_x; x <= end_tile_x; ++x) {
@@ -842,10 +858,8 @@ void WorldRenderer::render() {
                 int tex_h = texture.GetHeight();
 
                 const SDL_Rect roof_world_rect = {x * TILE_SIZE, y * TILE_SIZE, tex_w, tex_h};
-                if (local_player_position &&
-                    SDL_PointInRect(&local_player_position.value(), &roof_world_rect)) {
-                    continue;
-                }
+                const bool should_fade_roof =
+                        local_player && is_entity_inside_world_rect(*local_player, roof_world_rect);
 
                 SDL_Rect dst;
                 dst.x = (x * TILE_SIZE) - camera.x + camera_screen_offset_x;
@@ -853,7 +867,11 @@ void WorldRenderer::render() {
                 dst.w = tex_w;
                 dst.h = tex_h;
 
+                if (should_fade_roof) {
+                    texture.SetAlphaMod(OCCLUDING_ROOF_ALPHA);
+                }
                 renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
+                texture.SetAlphaMod(OPAQUE_ALPHA);
             } catch (const std::exception& e) {
                 log_render_error_once(tex_key, e);
             }

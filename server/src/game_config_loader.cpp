@@ -21,6 +21,19 @@
 #define ERROR_LOAD_GAME_CONFIGURATION \
     "Error en loadGameConfiguration -- No se pudo parsear el archivo TOML --"
 
+static TypeNPC citizenNpcTypeFromString(const std::string& type) {
+    if (type == "priest") {
+        return PRIEST;
+    }
+    if (type == "banker") {
+        return BANKER;
+    }
+    if (type == "merchant") {
+        return MERCHANT;
+    }
+    throw std::runtime_error("Tipo de NPC ciudadano invalido en citizen_detail_spawns: " + type);
+}
+
 GameConfigLoader::GameConfigLoader(Path config_dir_): config_dir(std::move(config_dir_)) {
     this->loadPaths();
 }
@@ -297,7 +310,8 @@ void GameConfigLoader::loadRegions(std::map<Region, std::unique_ptr<RegionWorld>
 }
 
 void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& clan,
-                                TimesConfig& times) {
+                                TimesConfig& times,
+                                std::vector<CitizenDetailSpawnConfig>& citizen_detail_spawns) {
     try {
         Table config = toml::parse_file(paths.game.string());
         /*Estado inicial del jugador*/
@@ -327,6 +341,17 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
         times.pesistence_data = static_cast<uint32_t>(times_info["pesist_data"].value_or(60000));
         times.npc_attack_cooldown =
                 static_cast<uint32_t>(times_info["npc_attack_cooldown"].value_or(1000));
+
+        if (Table_array* spawns_array = config["citizen_detail_spawns"].as_array()) {
+            for (const auto& spawn_node: *spawns_array) {
+                const Table& spawn = *spawn_node.as_table();
+                CitizenDetailSpawnConfig spawn_config;
+                spawn_config.detail_sprite_id = spawn["detail_sprite_id"].value_or(0);
+                spawn_config.npc_type =
+                        citizenNpcTypeFromString(spawn["npc_type"].value_or<std::string>(""));
+                citizen_detail_spawns.push_back(spawn_config);
+            }
+        }
     } catch (const toml::parse_error& err) {
         std::string mssgErr(ERROR_LOAD_GAME);
         mssgErr += err.description();
@@ -340,7 +365,7 @@ GameConfig GameConfigLoader::getdGameConfiguration() {
     try {
         GameConfig config;
         config.paths = this->getFilesData();
-        this->loadGame(config.player_init, config.clan, config.times);
+        this->loadGame(config.player_init, config.clan, config.times, config.citizen_detail_spawns);
         this->loadRaces(config.races);
         this->loadClases(config.clases);
         this->loadCreatures(config.creatures);
