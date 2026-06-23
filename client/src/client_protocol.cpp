@@ -1,13 +1,318 @@
 #include "client/includes/client_protocol.h"
 
+#include <array>
 #include <cstring>
-#include <iostream>
 #include <stdexcept>
 #include <vector>
 
 #include <arpa/inet.h>
 
 #include "common/includes/map/layer.h"
+
+namespace {
+
+void sendAll(Socket& socket, const void* data, size_t size, const std::string& context) {
+    try {
+        socket.sendall(data, size);
+    } catch (const std::exception& e) {
+        throw std::runtime_error("ERROR IN " + context + " -- " + e.what());
+    }
+}
+
+void appendBytes(std::vector<char>& buffer, size_t& offset, const void* data, size_t size) {
+    std::memcpy(buffer.data() + offset, data, size);
+    offset += size;
+}
+
+std::vector<char> makeTextMessage(uint8_t opcode, const std::string& text) {
+    std::vector<char> buffer(sizeof(uint8_t) + sizeof(uint16_t) + text.size());
+    size_t offset = 0;
+
+    appendBytes(buffer, offset, &opcode, sizeof(opcode));
+
+    const uint16_t len = htons(static_cast<uint16_t>(text.size()));
+    appendBytes(buffer, offset, &len, sizeof(len));
+
+    if (!text.empty())
+        appendBytes(buffer, offset, text.data(), text.size());
+
+    return buffer;
+}
+
+std::vector<char> makeNpcItemMessage(uint8_t opcode, Id npc_id, Id item_id) {
+    std::vector<char> buffer(sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t));
+    size_t offset = 0;
+
+    appendBytes(buffer, offset, &opcode, sizeof(opcode));
+
+    const uint32_t npc_id_net = htonl(npc_id);
+    appendBytes(buffer, offset, &npc_id_net, sizeof(npc_id_net));
+
+    const uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
+    appendBytes(buffer, offset, &item_id_net, sizeof(item_id_net));
+
+    return buffer;
+}
+
+std::vector<char> makeNpcAmountMessage(uint8_t opcode, Id npc_id, uint32_t amount) {
+    std::vector<char> buffer(sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t));
+    size_t offset = 0;
+
+    appendBytes(buffer, offset, &opcode, sizeof(opcode));
+
+    const uint32_t npc_id_net = htonl(npc_id);
+    appendBytes(buffer, offset, &npc_id_net, sizeof(npc_id_net));
+
+    const uint32_t amount_net = htonl(amount);
+    appendBytes(buffer, offset, &amount_net, sizeof(amount_net));
+
+    return buffer;
+}
+
+std::vector<char> makeIdMessage(uint8_t opcode, Id id) {
+    std::vector<char> buffer(sizeof(uint8_t) + sizeof(uint32_t));
+    size_t offset = 0;
+
+    appendBytes(buffer, offset, &opcode, sizeof(opcode));
+
+    const uint32_t id_net = htonl(static_cast<uint32_t>(id));
+    appendBytes(buffer, offset, &id_net, sizeof(id_net));
+
+    return buffer;
+}
+
+uint16_t recvUint16(Socket& socket) {
+    uint16_t value;
+    socket.recvall(&value, sizeof(value));
+    return ntohs(value);
+}
+
+uint32_t recvUint32(Socket& socket) {
+    uint32_t value;
+    socket.recvall(&value, sizeof(value));
+    return ntohl(value);
+}
+
+std::string recvText(Socket& socket) {
+    const uint16_t len = recvUint16(socket);
+    std::string text(len, '\0');
+    if (len > 0)
+        socket.recvall(text.data(), len);
+    return text;
+}
+
+void receivePlayers(Socket& socket, Snapshot& world) {
+    const uint16_t count = recvUint16(socket);
+    world.players.reserve(count);
+    for (uint16_t i = 0; i < count; ++i) {
+        PlayerSnapshotData player;
+        socket.recvall(&player, sizeof(PlayerSnapshotData));
+        player.id = ntohl(player.id);
+        player.position.x = ntohl(player.position.x);
+        player.position.y = ntohl(player.position.y);
+        player.stats.max_hp = ntohs(player.stats.max_hp);
+        player.stats.current_hp = ntohs(player.stats.current_hp);
+        player.stats.current_mana = ntohs(player.stats.current_mana);
+        player.stats.max_mana = ntohs(player.stats.max_mana);
+        player.stats.xp = ntohl(player.stats.xp);
+        player.ch_traits.body = ntohs(player.ch_traits.body);
+        player.ch_traits.head = ntohs(player.ch_traits.head);
+        player.name[sizeof(player.name) - 1] = '\0';
+        player.resurrection_time_left_ms = ntohs(player.resurrection_time_left_ms);
+        world.players.push_back(player);
+    }
+}
+
+void receiveNpcs(Socket& socket, Snapshot& world) {
+    const uint16_t count = recvUint16(socket);
+    world.npcs.reserve(count);
+    for (uint16_t i = 0; i < count; ++i) {
+        NpcSnapshotData npc;
+        socket.recvall(&npc, sizeof(NpcSnapshotData));
+        npc.id = ntohl(npc.id);
+        npc.position.x = ntohl(npc.position.x);
+        npc.position.y = ntohl(npc.position.y);
+        npc.current_hp = ntohs(npc.current_hp);
+        npc.max_hp = ntohs(npc.max_hp);
+        world.npcs.push_back(npc);
+    }
+}
+
+void receiveItemsOnFloor(Socket& socket, Snapshot& world) {
+    const uint16_t count = recvUint16(socket);
+    world.items_on_floor.reserve(count);
+    for (uint16_t i = 0; i < count; ++i) {
+        ItemGroundSnapshotData item;
+        socket.recvall(&item, sizeof(ItemGroundSnapshotData));
+        item.position.x = ntohl(item.position.x);
+        item.position.y = ntohl(item.position.y);
+        world.items_on_floor.push_back(item);
+    }
+}
+
+void receiveSoundEffects(Socket& socket, Snapshot& world) {
+    const uint16_t count = recvUint16(socket);
+    world.sound_effects.reserve(count);
+    for (uint16_t i = 0; i < count; ++i) {
+        SoundEffectSnapshotData effect;
+        socket.recvall(&effect, sizeof(SoundEffectSnapshotData));
+
+        uint16_t effect_id;
+        std::memcpy(&effect_id, &effect.effect_id, sizeof(effect_id));
+        effect.effect_id = static_cast<SoundEffectID>(ntohs(effect_id));
+        effect.pos_x = ntohl(effect.pos_x);
+        effect.pos_y = ntohl(effect.pos_y);
+        world.sound_effects.push_back(effect);
+    }
+}
+
+void receiveVisualEffects(Socket& socket, Snapshot& world) {
+    const uint16_t count = recvUint16(socket);
+    world.visual_effects.reserve(count);
+    for (uint16_t i = 0; i < count; ++i) {
+        VisualEffectSnapshotData effect;
+        socket.recvall(&effect, sizeof(VisualEffectSnapshotData));
+
+        uint16_t effect_id;
+        std::memcpy(&effect_id, &effect.effect_id, sizeof(effect_id));
+        effect.effect_id = static_cast<VisualEffectID>(ntohs(effect_id));
+        effect.recipient_id = ntohl(effect.recipient_id);
+        effect.pos_x = ntohl(effect.pos_x);
+        effect.pos_y = ntohl(effect.pos_y);
+        world.visual_effects.push_back(effect);
+    }
+}
+
+void receiveSnapshot(Socket& socket, EventClient& out_event) {
+    out_event.type = TypeEventClient::UPDATE_WORLD;
+    out_event.world.players.clear();
+    out_event.world.npcs.clear();
+    out_event.world.items_on_floor.clear();
+    out_event.world.sound_effects.clear();
+    out_event.world.visual_effects.clear();
+
+    receivePlayers(socket, out_event.world);
+    receiveNpcs(socket, out_event.world);
+    receiveItemsOnFloor(socket, out_event.world);
+    receiveSoundEffects(socket, out_event.world);
+    receiveVisualEffects(socket, out_event.world);
+}
+
+void receivePlayerStats(Socket& socket, EventClient& out_event, uint8_t opcode) {
+    out_event.type = TypeEventClient::OWN_STATS;
+    out_event.stats.opcode = opcode;
+    out_event.stats.hp = recvUint32(socket);
+    out_event.stats.max_hp = recvUint32(socket);
+    out_event.stats.mana = recvUint32(socket);
+    out_event.stats.max_mana = recvUint32(socket);
+    out_event.stats.safe_gold = recvUint32(socket);
+    out_event.stats.excess_gold = recvUint32(socket);
+    out_event.stats.exp = recvUint32(socket);
+    out_event.stats.exp_next_level = recvUint32(socket);
+    socket.recvall(&out_event.stats.level, sizeof(out_event.stats.level));
+}
+
+void receiveLoginResponse(Socket& socket, EventClient& out_event) {
+    out_event.type = TypeEventClient::LOGIN_RESPONSE;
+
+    uint8_t success;
+    socket.recvall(&success, sizeof(success));
+    out_event.login_success = (success == 1);
+    out_event.text_payload = recvText(socket);
+    out_event.player_id = recvUint32(socket);
+}
+
+void receiveMapData(Socket& socket, EventClient& out_event) {
+    out_event.type = TypeEventClient::MAP_DATA;
+
+    const int width = static_cast<int>(recvUint32(socket));
+    const int height = static_cast<int>(recvUint32(socket));
+    Map map("Map", width, height);
+
+    const std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details, Layer::Object,
+                                                   Layer::Roof};
+    for (const Layer layer: layers) {
+        for (int y = 0; y < map.height(); ++y) {
+            for (int x = 0; x < map.width(); ++x) {
+                int32_t sprite_id_net;
+                uint8_t region_byte;
+                uint8_t walkable_byte;
+
+                socket.recvall(&sprite_id_net, sizeof(sprite_id_net));
+                socket.recvall(&walkable_byte, sizeof(walkable_byte));
+                socket.recvall(&region_byte, sizeof(region_byte));
+
+                auto& [sprite_id, walkable, region] = map.tile_at(x, y, layer);
+                sprite_id = ntohl(sprite_id_net);
+                walkable = (walkable_byte == 1);
+                region = static_cast<Region>(region_byte);
+            }
+        }
+    }
+    out_event.map_data = std::move(map);
+
+    const uint16_t count_citizen = recvUint16(socket);
+    out_event.citizens.clear();
+    out_event.citizens.reserve(count_citizen);
+    for (uint16_t i = 0; i < count_citizen; ++i) {
+        CitizenNpcSnapshot npc;
+        socket.recvall(&npc, sizeof(CitizenNpcSnapshot));
+        npc.id = ntohl(npc.id);
+        npc.position.x = ntohl(npc.position.x);
+        npc.position.y = ntohl(npc.position.y);
+        npc.name[sizeof(npc.name) - 1] = '\0';
+        out_event.citizens.push_back(npc);
+    }
+}
+
+bool receiveSlots(Socket& socket, std::vector<MsgSlot>& slots) {
+    uint16_t count_net;
+    if (socket.recvall(&count_net, sizeof(count_net)) <= 0)
+        return false;
+
+    const uint16_t count = ntohs(count_net);
+    std::vector<MsgSlot> received_slots;
+    received_slots.reserve(count);
+    for (uint16_t i = 0; i < count; ++i) {
+        MsgSlot slot;
+        socket.recvall(&slot, sizeof(slot));
+        slot.quantity = ntohs(slot.quantity);
+        received_slots.push_back(slot);
+    }
+    slots.swap(received_slots);
+    return true;
+}
+
+void receiveTraderCatalog(Socket& socket, EventClient& out_event) {
+    out_event.type = TypeEventClient::OPEN_MERCHANT;
+    const uint16_t count = recvUint16(socket);
+    out_event.merchant_data.catalog.clear();
+    for (uint16_t i = 0; i < count; ++i) {
+        TypeItem type_item;
+        socket.recvall(&type_item, sizeof(type_item));
+        const uint32_t purchase_price = recvUint32(socket);
+        const uint32_t selling_price = recvUint32(socket);
+        out_event.merchant_data.catalog.emplace(type_item,
+                                                CatalogEntry{purchase_price, selling_price});
+    }
+}
+
+void receiveBankContent(Socket& socket, EventClient& out_event) {
+    out_event.type = TypeEventClient::OPEN_BANK;
+    out_event.bank_data.gold = recvUint32(socket);
+
+    const uint16_t count = recvUint16(socket);
+    out_event.bank_data.items.clear();
+    for (uint16_t i = 0; i < count; ++i) {
+        TypeItem type_item;
+        uint32_t amount;
+        socket.recvall(&type_item, sizeof(type_item));
+        socket.recvall(&amount, sizeof(amount));
+        out_event.bank_data.items.emplace(type_item, ntohl(amount));
+    }
+}
+
+}  // namespace
 
 ClientProtocol::ClientProtocol(Socket& s): socket(s) {}
 
@@ -17,119 +322,55 @@ void ClientProtocol::sendLogin(const std::string& name, const std::string& pass)
     std::memset(msg.pass, 0, sizeof(msg.pass));
     std::strncpy(msg.name, name.c_str(), sizeof(msg.name) - 1);
     std::strncpy(msg.pass, pass.c_str(), sizeof(msg.pass) - 1);
-    try {
-        socket.sendall(&msg, sizeof(MsgLogin));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendLogin -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgLogin), "sendLogin");
 }
 
 void ClientProtocol::sendMove(const uint8_t direction) const {
     MsgMove msg;
     msg.direction = direction;
-    try {
-        socket.sendall(&msg, sizeof(MsgMove));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendMove -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgMove), "sendMove");
 }
 
 void ClientProtocol::sendAttack(const uint32_t target_id) const {
     MsgAttack msg;
     msg.target_id = htonl(target_id);
-    try {
-        socket.sendall(&msg, sizeof(MsgAttack));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendAttack -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgAttack), "sendAttack");
 }
 
 void ClientProtocol::sendChat(const std::string& msg) const {
-    const size_t total_size = sizeof(uint8_t) + sizeof(uint16_t) + msg.size();
-    std::vector<char> buffer(total_size);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = CHAT;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    const uint16_t len = htons(static_cast<uint16_t>(msg.size()));
-    std::memcpy(buffer.data() + offset, &len, sizeof(len));
-    offset += sizeof(len);
-
-    if (!msg.empty())
-        std::memcpy(buffer.data() + offset, msg.data(), msg.size());
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendChat -- ") + e.what());
-    }
+    const auto buffer = makeTextMessage(CHAT, msg);
+    sendAll(socket, buffer.data(), buffer.size(), "sendChat");
 }
 
 void ClientProtocol::sendUseItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
     msg.opcode = USE_ITEM;
     msg.instance_id = htonl(static_cast<uint32_t>(slot_index));
-    try {
-        socket.sendall(&msg, sizeof(MsgSlotItem));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendUseItem -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgSlotItem), "sendUseItem");
 }
 
 void ClientProtocol::sendDropItem(const uint8_t slot_index) const {
     MsgSlotItem msg;
     msg.opcode = DROP_ITEM;
     msg.instance_id = htonl(static_cast<uint32_t>(slot_index));
-    try {
-        socket.sendall(&msg, sizeof(MsgSlotItem));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendDropItem -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgSlotItem), "sendDropItem");
 }
 
 void ClientProtocol::sendCommand(const std::string& cmd) const {
-    const size_t total_size = sizeof(uint8_t) + sizeof(uint16_t) + cmd.size();
-    std::vector<char> buffer(total_size);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = COMMAND;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    const uint16_t len = htons(static_cast<uint16_t>(cmd.size()));
-    std::memcpy(buffer.data() + offset, &len, sizeof(len));
-    offset += sizeof(len);
-
-    if (!cmd.empty())
-        std::memcpy(buffer.data() + offset, cmd.data(), cmd.size());
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendCommand -- ") + e.what());
-    }
+    const auto buffer = makeTextMessage(COMMAND, cmd);
+    sendAll(socket, buffer.data(), buffer.size(), "sendCommand");
 }
 
 void ClientProtocol::sendInteract(const uint32_t npc_id, const uint8_t action) const {
     MsgInteract msg;
     msg.npc_id = htonl(npc_id);
     msg.action = action;
-    try {
-        socket.sendall(&msg, sizeof(MsgInteract));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendInteract -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgInteract), "sendInteract");
 }
 
 void ClientProtocol::sendTakeItem() const {
     constexpr uint8_t opcode = TAKE_ITEM;
-    try {
-        socket.sendall(&opcode, 1);
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendTakeItem -- ") + e.what());
-    }
+    sendAll(socket, &opcode, sizeof(opcode), "sendTakeItem");
 }
 
 void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint8_t item_id,
@@ -139,11 +380,7 @@ void ClientProtocol::sendBuyItem(const uint32_t npc_id, const uint8_t item_id,
     msg.npc_id = htonl(npc_id);
     msg.item_id = item_id;
     msg.quantity = htons(quantity);
-    try {
-        socket.sendall(&msg, sizeof(MsgTrade));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendBuyItem -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgTrade), "sendBuyItem");
 }
 
 void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint8_t item_id,
@@ -153,20 +390,12 @@ void ClientProtocol::sendSellItem(const uint32_t npc_id, const uint8_t item_id,
     msg.npc_id = htonl(npc_id);
     msg.item_id = item_id;
     msg.quantity = htons(quantity);
-    try {
-        socket.sendall(&msg, sizeof(MsgTrade));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendSellItem -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgTrade), "sendSellItem");
 }
 
 void ClientProtocol::sendDisconnect() const {
     constexpr uint8_t opcode = DISCONNECT;
-    try {
-        socket.sendall(&opcode, 1);
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendDisconnect -- ") + e.what());
-    }
+    sendAll(socket, &opcode, sizeof(opcode), "sendDisconnect");
 }
 
 void ClientProtocol::sendSignup(const std::string& user, const std::string& password,
@@ -177,171 +406,48 @@ void ClientProtocol::sendSignup(const std::string& user, const std::string& pass
     msg.traits = traits;
     msg.traits.head = htons(msg.traits.head);
     msg.traits.body = htons(msg.traits.body);
-    try {
-        socket.sendall(&msg, sizeof(MsgSignup));
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendSignup -- ") + e.what());
-    }
+    sendAll(socket, &msg, sizeof(MsgSignup), "sendSignup");
 }
 
 void ClientProtocol::sendListItems(Id npc_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
-    std::vector<char> buffer(size_total);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = LIST_ITEMS;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    uint32_t npc_id_net = htonl(npc_id);
-    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendListItems -- ") + e.what());
-    }
+    const auto buffer = makeIdMessage(LIST_ITEMS, npc_id);
+    sendAll(socket, buffer.data(), buffer.size(), "sendListItems");
 }
 
 void ClientProtocol::sendDepositItem(Id npc_id, Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t);
-    std::vector<char> buffer(size_total);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = DEPOSIT_ITEM;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    uint32_t npc_id_net = htonl(npc_id);
-    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
-    offset += sizeof(npc_id_net);
-
-    uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
-    std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendDepositItem -- ") + e.what());
-    }
+    const auto buffer = makeNpcItemMessage(DEPOSIT_ITEM, npc_id, item_id);
+    sendAll(socket, buffer.data(), buffer.size(), "sendDepositItem");
 }
 
 void ClientProtocol::sendWithdrawItem(Id npc_id, Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t);
-    std::vector<char> buffer(size_total);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = WITHDRAW_ITEM;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    uint32_t npc_id_net = htonl(npc_id);
-    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
-    offset += sizeof(npc_id_net);
-
-    uint16_t item_id_net = htons(static_cast<uint16_t>(item_id));
-    std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendWithdrawItem -- ") + e.what());
-    }
+    const auto buffer = makeNpcItemMessage(WITHDRAW_ITEM, npc_id, item_id);
+    sendAll(socket, buffer.data(), buffer.size(), "sendWithdrawItem");
 }
 
 void ClientProtocol::sendDepositGold(Id npc_id, uint32_t amount) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t);
-    std::vector<char> buffer(size_total);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = DEPOSIT_GOLD;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    uint32_t npc_id_net = htonl(npc_id);
-    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
-    offset += sizeof(npc_id_net);
-
-    uint32_t amount_net = htonl(amount);
-    std::memcpy(buffer.data() + offset, &amount_net, sizeof(amount_net));
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendDepositGold -- ") + e.what());
-    }
+    const auto buffer = makeNpcAmountMessage(DEPOSIT_GOLD, npc_id, amount);
+    sendAll(socket, buffer.data(), buffer.size(), "sendDepositGold");
 }
 
 void ClientProtocol::sendWithdrawGold(Id npc_id, uint32_t amount) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint32_t);
-    std::vector<char> buffer(size_total);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = WITHDRAW_GOLD;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    uint32_t npc_id_net = htonl(npc_id);
-    std::memcpy(buffer.data() + offset, &npc_id_net, sizeof(npc_id_net));
-    offset += sizeof(npc_id_net);
-
-    uint32_t amount_net = htonl(amount);
-    std::memcpy(buffer.data() + offset, &amount_net, sizeof(amount_net));
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendWithdrawGold -- ") + e.what());
-    }
+    const auto buffer = makeNpcAmountMessage(WITHDRAW_GOLD, npc_id, amount);
+    sendAll(socket, buffer.data(), buffer.size(), "sendWithdrawGold");
 }
 
 void ClientProtocol::sendEquipItem(Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
-    std::vector<char> buffer(size_total);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = EQUIP_ITEM;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    uint32_t item_id_net = htonl(static_cast<uint32_t>(item_id));
-    std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendEquipItem -- ") + e.what());
-    }
+    const auto buffer = makeIdMessage(EQUIP_ITEM, item_id);
+    sendAll(socket, buffer.data(), buffer.size(), "sendEquipItem");
 }
 
 void ClientProtocol::sendUnequipItem(Id item_id) {
-    const size_t size_total = sizeof(uint8_t) + sizeof(uint32_t);
-    std::vector<char> buffer(size_total);
-    size_t offset = 0;
-
-    constexpr uint8_t opcode = UNEQUIP_ITEM;
-    std::memcpy(buffer.data() + offset, &opcode, sizeof(opcode));
-    offset += sizeof(opcode);
-
-    uint32_t item_id_net = htonl(static_cast<uint32_t>(item_id));
-    std::memcpy(buffer.data() + offset, &item_id_net, sizeof(item_id_net));
-
-    try {
-        socket.sendall(buffer.data(), buffer.size());
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendUnequipItem -- ") + e.what());
-    }
+    const auto buffer = makeIdMessage(UNEQUIP_ITEM, item_id);
+    sendAll(socket, buffer.data(), buffer.size(), "sendUnequipItem");
 }
 
 void ClientProtocol::sendResurrect() {
     constexpr uint8_t opcode = RESURRECT;
-    try {
-        socket.sendall(&opcode, 1);
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("ERROR IN sendResurrect -- ") + e.what());
-    }
+    sendAll(socket, &opcode, sizeof(opcode), "sendResurrect");
 }
-
 
 bool ClientProtocol::recvResponse(uint8_t expected_opcode, std::string& out_message) const {
     uint8_t opcode;
@@ -352,15 +458,7 @@ bool ClientProtocol::recvResponse(uint8_t expected_opcode, std::string& out_mess
 
     uint8_t success;
     socket.recvall(&success, 1);
-
-    uint16_t len;
-    socket.recvall(&len, 2);
-    len = ntohs(len);
-
-    out_message.resize(len);
-    if (len > 0)
-        socket.recvall(out_message.data(), len);
-
+    out_message = recvText(socket);
     return success == 1;
 }
 
@@ -372,298 +470,40 @@ bool ClientProtocol::receiveMessage(EventClient& out_event) const {
     }
 
     switch (opcode) {
-        case SNAPSHOT: {
-            out_event.type = TypeEventClient::UPDATE_WORLD;
-            out_event.world.players.clear();
-            out_event.world.npcs.clear();
-            out_event.world.items_on_floor.clear();
-            // out_event.world.gold_piles.clear();
-            out_event.world.sound_effects.clear();
-            out_event.world.visual_effects.clear();
-
-            uint16_t p_count;
-            socket.recvall(&p_count, sizeof(p_count));
-            p_count = ntohs(p_count);
-            for (uint16_t i = 0; i < p_count; ++i) {
-                PlayerSnapshotData p;
-                socket.recvall(&p, sizeof(PlayerSnapshotData));
-                p.id = ntohl(p.id);
-                p.position.x = ntohl(p.position.x);
-                p.position.y = ntohl(p.position.y);
-                p.stats.max_hp = ntohs(p.stats.max_hp);
-                p.stats.current_hp = ntohs(p.stats.current_hp);
-                p.stats.current_mana = ntohs(p.stats.current_mana);
-                p.stats.max_mana = ntohs(p.stats.max_mana);
-                p.stats.xp = ntohl(p.stats.xp);
-                p.ch_traits.body = ntohs(p.ch_traits.body);
-                p.ch_traits.head = ntohs(p.ch_traits.head);
-                p.name[sizeof(p.name) - 1] = '\0';
-                p.resurrection_time_left_ms = ntohs(p.resurrection_time_left_ms);
-                out_event.world.players.push_back(p);
-            }
-
-            uint16_t n_count;
-            socket.recvall(&n_count, sizeof(n_count));
-            n_count = ntohs(n_count);
-            for (uint16_t i = 0; i < n_count; ++i) {
-                NpcSnapshotData n;
-                socket.recvall(&n, sizeof(NpcSnapshotData));
-                n.id = ntohl(n.id);
-                n.position.x = ntohl(n.position.x);
-                n.position.y = ntohl(n.position.y);
-                n.current_hp = ntohs(n.current_hp);
-                n.max_hp = ntohs(n.max_hp);
-                out_event.world.npcs.push_back(n);
-            }
-
-            uint16_t i_count;
-            socket.recvall(&i_count, sizeof(i_count));
-            i_count = ntohs(i_count);
-            for (uint16_t i = 0; i < i_count; ++i) {
-                ItemGroundSnapshotData it;
-                socket.recvall(&it, sizeof(ItemGroundSnapshotData));
-                // item_id es uint8_t no necesita conversión
-                it.position.x = ntohl(it.position.x);
-                it.position.y = ntohl(it.position.y);
-                out_event.world.items_on_floor.push_back(it);
-            }
-
-            // uint16_t g_count;
-            // if (socket.recvall(&g_count, 2) <= 0)
-            //     return false;
-            // g_count = ntohs(g_count);
-            // for (uint16_t i = 0; i < g_count; ++i) {
-            //     GoldPileGroundSnapshotData g;
-            //     socket.recvall(&g, sizeof(GoldPileGroundSnapshotData));
-            //     g.amount = ntohl(g.amount);
-            //     g.pos_x = ntohl(g.pos_x);
-            //     g.pos_y = ntohl(g.pos_y);
-            //     out_event.world.gold_piles.push_back(g);
-            // }
-
-            // 4. Efectos sonoros
-            uint16_t sound_count;
-            socket.recvall(&sound_count, 2);
-            sound_count = ntohs(sound_count);
-
-            for (uint16_t i = 0; i < sound_count; ++i) {
-                SoundEffectSnapshotData e;
-                socket.recvall(&e, sizeof(SoundEffectSnapshotData));
-                uint16_t id_numerico;
-                std::memcpy(&id_numerico, &e.effect_id, sizeof(uint16_t));
-                id_numerico = ntohs(id_numerico);
-                e.effect_id = static_cast<SoundEffectID>(id_numerico);
-                e.pos_x = ntohl(e.pos_x);
-                e.pos_y = ntohl(e.pos_y);
-                out_event.world.sound_effects.push_back(e);
-            }
-
-            uint16_t visual_count;
-            socket.recvall(&visual_count, 2);
-            visual_count = ntohs(visual_count);
-
-            for (uint16_t i = 0; i < visual_count; ++i) {
-                VisualEffectSnapshotData e;
-                socket.recvall(&e, sizeof(VisualEffectSnapshotData));
-                uint16_t id_numerico;
-                std::memcpy(&id_numerico, &e.effect_id, sizeof(uint16_t));
-                id_numerico = ntohs(id_numerico);
-                e.effect_id = static_cast<VisualEffectID>(id_numerico);
-                e.recipient_id = ntohl(e.recipient_id);
-                e.pos_x = ntohl(e.pos_x);
-                e.pos_y = ntohl(e.pos_y);
-                out_event.world.visual_effects.push_back(e);
-            }
-
+        case SNAPSHOT:
+            receiveSnapshot(socket, out_event);
             break;
-        }
-        case PLAYER_STATS: {
-            out_event.type = TypeEventClient::OWN_STATS;
-            out_event.stats.opcode = opcode;
-
-            socket.recvall(&out_event.stats.hp, sizeof(out_event.stats.hp));
-            out_event.stats.hp = ntohl(out_event.stats.hp);
-
-            socket.recvall(&out_event.stats.max_hp, sizeof(out_event.stats.max_hp));
-            out_event.stats.max_hp = ntohl(out_event.stats.max_hp);
-
-            socket.recvall(&out_event.stats.mana, sizeof(out_event.stats.mana));
-            out_event.stats.mana = ntohl(out_event.stats.mana);
-
-            socket.recvall(&out_event.stats.max_mana, sizeof(out_event.stats.max_mana));
-            out_event.stats.max_mana = ntohl(out_event.stats.max_mana);
-
-            socket.recvall(&out_event.stats.safe_gold, sizeof(out_event.stats.safe_gold));
-            out_event.stats.safe_gold = ntohl(out_event.stats.safe_gold);
-
-            socket.recvall(&out_event.stats.excess_gold, sizeof(out_event.stats.excess_gold));
-            out_event.stats.excess_gold = ntohl(out_event.stats.excess_gold);
-
-            socket.recvall(&out_event.stats.exp, sizeof(out_event.stats.exp));
-            out_event.stats.exp = ntohl(out_event.stats.exp);
-
-            socket.recvall(&out_event.stats.exp_next_level, sizeof(out_event.stats.exp_next_level));
-            out_event.stats.exp_next_level = ntohl(out_event.stats.exp_next_level);
-
-            socket.recvall(&out_event.stats.level, sizeof(out_event.stats.level));
+        case PLAYER_STATS:
+            receivePlayerStats(socket, out_event, opcode);
             break;
-        }
-        case LOGIN_RESPONSE: {
-            out_event.type = TypeEventClient::LOGIN_RESPONSE;
-            uint8_t success;
-            socket.recvall(&success, sizeof(success));
-            out_event.login_success = (success == 1);
-
-            uint16_t len;
-            socket.recvall(&len, sizeof(len));
-            len = ntohs(len);
-            out_event.text_payload.resize(len);
-            socket.recvall(out_event.text_payload.data(), len);
-            socket.recvall(&out_event.player_id, sizeof(out_event.player_id));
-            out_event.player_id = ntohl(out_event.player_id);
+        case LOGIN_RESPONSE:
+            receiveLoginResponse(socket, out_event);
             break;
-        }
-        case CHANGE_MAP: {
+        case CHANGE_MAP:
             out_event.type = TypeEventClient::MAP_CHANGE;
-            socket.recvall(&out_event.map_id, 2);
-            out_event.map_id = ntohs(out_event.map_id);
+            out_event.map_id = recvUint16(socket);
             break;
-        }
         case CHAT_MSG:
-        case ACTION_ERROR: {
+        case ACTION_ERROR:
             out_event.type = (opcode == CHAT_MSG) ? TypeEventClient::CHAT_MSG :
                                                     TypeEventClient::ERROR_ACTION;
-            uint16_t len;
-            socket.recvall(&len, 2);
-            len = ntohs(len);
-            out_event.text_payload.resize(len);
-            socket.recvall(out_event.text_payload.data(), len);
+            out_event.text_payload = recvText(socket);
             break;
-        }
-        case MAP_DATA: {
-            out_event.type = TypeEventClient::MAP_DATA;
-
-            uint32_t w_net, h_net;
-            socket.recvall(&w_net, sizeof(w_net));
-            socket.recvall(&h_net, sizeof(h_net));
-
-            // TODO: Revisar si hace falta ntohl y borrar prints
-            int width = static_cast<int>(ntohl(w_net));
-            int height = static_cast<int>(ntohl(h_net));
-            Map map("Map", width, height);
-
-            std::array<Layer, layer_count> layers = {Layer::Background, Layer::Details,
-                                                     Layer::Object, Layer::Roof};
-
-            for (const Layer layer: layers) {
-                for (int y = 0; y < map.height(); ++y) {
-                    for (int x = 0; x < map.width(); ++x) {
-                        int32_t sprite_id_net;
-                        uint8_t region_byte, walkable_byte;
-
-                        socket.recvall(&sprite_id_net, sizeof(sprite_id_net));
-                        socket.recvall(&walkable_byte, sizeof(walkable_byte));
-                        socket.recvall(&region_byte, sizeof(region_byte));
-
-                        auto& [sprite_id, walkable, region] = map.tile_at(x, y, layer);
-                        sprite_id = ntohl(sprite_id_net);
-                        walkable = (walkable_byte == 1);
-                        region = static_cast<Region>(region_byte);
-                    }
-                }
-            }
-            out_event.map_data = std::move(map);
-
-            uint16_t count_citizen;
-            socket.recvall(&count_citizen, sizeof(count_citizen));
-            count_citizen = ntohs(count_citizen);
-
-            for (uint16_t i = 0; i < count_citizen; ++i) {
-                CitizenNpcSnapshot n;
-                socket.recvall(&n, sizeof(CitizenNpcSnapshot));
-                // socket.recvall(n.name, sizeof(n.name));
-                n.id = ntohl(n.id);
-                n.position.x = ntohl(n.position.x);
-                n.position.y = ntohl(n.position.y);
-                n.name[sizeof(n.name) - 1] = '\0';
-                out_event.citizens.push_back(n);
-            }
+        case MAP_DATA:
+            receiveMapData(socket, out_event);
             break;
-        }
-        case INVENTORY_UPDATE: {
+        case INVENTORY_UPDATE:
             out_event.type = TypeEventClient::INVENTORY_UPDATE;
-            uint16_t size_net;
-            if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
-                return false;
-
-            const uint16_t count = ntohs(size_net);
-            out_event.inventory.clear();
-            out_event.inventory.reserve(count);
-            for (uint16_t i = 0; i < count; i++) {
-                MsgSlot slot;
-                socket.recvall(&slot, sizeof(slot));
-                slot.quantity = ntohs(slot.quantity);
-                out_event.inventory.push_back(slot);
-            }
-
-            break;
-        }
-        case EQUIPMENT_UPDATE: {
+            return receiveSlots(socket, out_event.inventory);
+        case EQUIPMENT_UPDATE:
             out_event.type = TypeEventClient::EQUIPMENT_UPDATE;
-            uint16_t size_net;
-            if (socket.recvall(&size_net, sizeof(size_net)) <= 0)
-                return false;
-
-            const uint16_t count = ntohs(size_net);
-            out_event.equipment.clear();
-            out_event.equipment.reserve(count);
-            for (uint16_t i = 0; i < count; i++) {
-                MsgSlot slot;
-                socket.recvall(&slot, sizeof(slot));
-                slot.quantity = ntohs(slot.quantity);
-                out_event.equipment.push_back(slot);
-            }
+            return receiveSlots(socket, out_event.equipment);
+        case TRADER_CATALOG:
+            receiveTraderCatalog(socket, out_event);
             break;
-        }
-        case TRADER_CATALOG: {
-            out_event.type = TypeEventClient::OPEN_MERCHANT;
-            uint16_t count;
-            socket.recvall(&count, sizeof(count));
-            count = ntohs(count);
-            out_event.merchant_data.catalog.clear();
-            for (uint16_t i = 0; i < count; ++i) {
-                TypeItem type_byte;
-                uint32_t purchase_price_net;
-                uint32_t selling_price_net;
-                socket.recvall(&type_byte, sizeof(type_byte));
-                socket.recvall(&purchase_price_net, sizeof(purchase_price_net));
-                socket.recvall(&selling_price_net, sizeof(selling_price_net));
-                purchase_price_net = ntohl(purchase_price_net);
-                selling_price_net = ntohl(selling_price_net);
-                out_event.merchant_data.catalog.emplace(
-                        type_byte, CatalogEntry{purchase_price_net, selling_price_net});
-            }
+        case BANK_CONTENT:
+            receiveBankContent(socket, out_event);
             break;
-        }
-        case BANK_CONTENT: {
-            out_event.type = TypeEventClient::OPEN_BANK;
-            uint32_t gold_net;
-            socket.recvall(&gold_net, sizeof(gold_net));
-            out_event.bank_data.gold = ntohl(gold_net);
-            uint16_t count;
-            socket.recvall(&count, sizeof(count));
-            count = ntohs(count);
-            out_event.bank_data.items.clear();
-            for (uint16_t i = 0; i < count; ++i) {
-                TypeItem type_item;
-                uint32_t count_item;
-                socket.recvall(&type_item, sizeof(type_item));
-                socket.recvall(&count_item, sizeof(count_item));
-                count_item = ntohl(count_item);
-                out_event.bank_data.items.emplace(type_item, count_item);
-            }
-            break;
-        }
         default:
             return true;
     }
