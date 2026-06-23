@@ -25,4 +25,5 @@ entries = [
     { id = 18, file = "1600.png" },
     { id = 19, file = "1601.png" },
     { id = 20, file = "2000.png" },
+    { id = 21, file = "2001.png" },
 ]

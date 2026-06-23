@@ -45,7 +45,7 @@ enum TypeItem : uint8_t {
     LIFE_POTION,     /*POCION VIDA*/
     MANA_POTION,     /*POCION MANA*/
     GOLD,            /*ORO*/
-    TREASURE,
+    TREASURE,        /*TESORO*/
 };
 
 enum ItemClassification : uint8_t {
