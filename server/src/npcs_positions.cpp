@@ -30,15 +30,21 @@ void NpcPositions::add(const NpcInstance& npc) {
     this->npc_tiles.emplace(npc.pose.position, true);
 }
 
-NpcInstance NpcPositions::removeCreature(
-        Id id) { /*Los unicos npcs que pueden removerse son las criaturas*/
-    NpcInstance instance = this->creatures.at(id);
+Id NpcPositions::removeCreature(const Id& creature_id) {
+    NpcInstance instance = this->creatures.at(creature_id);
     this->npc_tiles.erase(instance.pose.position);
-    this->creatures.erase(id);
-    return instance;
+    this->creatures.erase(creature_id);
+    return instance.zone_id;
 }
 
-const NpcInstance& NpcPositions::getCreature(Id id) const { return this->creatures.at(id); }
+Id NpcPositions::getZoneCreature(const Id& creature_id) const {
+    NpcInstance instance = this->creatures.at(creature_id);
+    return instance.zone_id;
+}
+
+Position NpcPositions::getPositionCreature(const Id& creature_id) const {
+    return this->creatures.at(creature_id).pose.position;
+}
 
 Pose NpcPositions::moveCreature(Id id, const Position& position, Direction direction) {
     NpcInstance& creature = this->creatures.at(id);

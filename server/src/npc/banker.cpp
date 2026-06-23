@@ -1,7 +1,7 @@
 #include "server/includes/npc/banker.h"
 
-Banker::Banker(TypeNPC type, const std::string& name, Bank& bank_, const Pose& pose_):
-        CitizenNPC(type, name, pose_), bank(bank_) {}
+Banker::Banker(const std::string& name, const NpcInstance& instance, Bank& bank_):
+        CitizenNPC(instance.type, name, instance.pose, instance.zone_id), bank(bank_) {}
 
 void Banker::incrementSlotSafeBox(const std::string& username, TypeItem type_item) {
     std::vector<Slot>& slots = this->bank.accounts[username].safe_box;
@@ -11,6 +11,13 @@ void Banker::incrementSlotSafeBox(const std::string& username, TypeItem type_ite
             break;
         }
     }
+}
+void Banker::setItemSafeBox(const std::string& username, const Item* item) {
+    std::vector<Slot>& slots = this->bank.accounts[username].safe_box;
+    Slot slot(10);  // capacity
+    slot.setItem(std::make_unique<ItemInstance>(item));
+    slot.increase();
+    slots.emplace_back(std::move(slot));
 }
 
 void Banker::increaseGoldAccount(const std::string& username, const uint32_t& amount) {
@@ -27,21 +34,6 @@ uint32_t Banker::decreaseGoldAccount(const std::string& username, const uint32_t
 
 uint32_t Banker::getGoldDepositedPlayer(const std::string& username) const {
     return this->bank.accounts[username].golden;
-}
-
-void Banker::setItemSafeBox(const std::string& username, const Item* item) {
-    std::vector<Slot>& slots = this->bank.accounts[username].safe_box;
-    Slot slot(10);  // capacity
-    slot.setItem(std::make_unique<ItemInstance>(item));
-    slot.increase();
-    slots.emplace_back(std::move(slot));
-    // for (auto& slot: slots) {
-    //     if (slot.isEmpty()) {
-    //         slot.setItem(std::make_unique<ItemInstance>(item));
-    //         slot.increase();
-    //         break;
-    //     }
-    // }
 }
 
 void Banker::createPlayerAccount(const std::string& username) {

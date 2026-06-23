@@ -6,14 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "server/includes/slot.h"
-
-struct Account {
-    uint32_t golden{0};
-    uint32_t size_items{0};
-    std::vector<Slot> safe_box;
-    Account() = default;
-};
+#include "server/includes/core/account.h"
 
 struct Bank {
     std::map<std::string, Account> accounts;

@@ -1,6 +1,7 @@
 #include "server/includes/items_positions.h"
 
 #include <iostream>
+#include <ranges>
 
 void ItemsPositions::add(const ItemInstance& item) {
     std::cerr << "[FLOOR] add ItemInstance id=" << item.id
@@ -92,21 +93,39 @@ std::vector<ItemGroundSnapshotData> ItemsPositions::getItemsOnFloor() {
     return items;
 }
 
-// Si el jugador solo manda "Quiero interactuar con lo que hay en la posición X, Y"
-// Podés hacer un método de búsqueda por posición que barra los mapas:
-// void interactAt(const Position& pos) {
-//     // Buscamos en ítems
-//     for (auto it = items_on_floor.begin(); it != items_on_floor.end(); ++it) {
-//         if (it->second.pos == pos) {
-//             // Lógica de agarrar ítem...
-//             items_on_floor.erase(it);
-//             return;
-//         }
-//     }
-//     // Repetir lógica para bolsas de oro y tesoros...
-// }
+std::vector<ItemInstanceData> ItemsPositions::getDataItems() {
+    std::vector<ItemInstanceData> items_data;
+    for (const auto& instance: this->items_on_floor | std::views::values) {
+        ItemInstanceData data{};
+        data.type_item = static_cast<uint8_t>(instance.item->type);
+        data.position = instance.position;
+        items_data.push_back(data);
+    }
+    return items_data;
+}
 
-// const std::unordered_map<Id, ItemInstance>& getItems() const { return items_on_floor; }
-// const std::unordered_map<Id, GoldBagInstance>& getGoldBags() const { return gold_bags_on_floor; }
-// const std::unordered_map<Id, TreasureInstance>& getTreasures() const { return treasures_on_floor;
-// }
+std::vector<TreasureStateData> ItemsPositions::getDataTreasures() {
+    std::vector<TreasureStateData> treasures_data;
+    for (const auto& instance: this->treasures_on_floor | std::views::values) {
+        TreasureStateData data{};
+        data.zone_id = instance.zone_id;
+        data.position = instance.position;
+        data.amount = instance.amount_golden;
+        for (const auto& t: instance.items) {
+            data.types_items.push_back(t.item->type);
+        }
+        treasures_data.push_back(data);
+    }
+    return treasures_data;
+}
+
+std::vector<GoldBagsData> ItemsPositions::getDataGoldBags() {
+    std::vector<GoldBagsData> gold_bags_data;
+    for (const auto& instance: this->gold_bags_on_floor | std::views::values) {
+        GoldBagsData data{};
+        data.position = instance.position;
+        data.amount = instance.amount;
+        gold_bags_data.emplace_back(data);
+    }
+    return gold_bags_data;
+}

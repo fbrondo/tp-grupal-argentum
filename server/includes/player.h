@@ -13,6 +13,7 @@
 #include "common/includes/types.h"
 #include "entity/combat_entity.h"
 #include "server/includes/character.h"
+#include "server/includes/core/bank.h"
 #include "server/includes/core/config.h"
 #include "server/includes/core/data.h"
 #include "server/includes/core/instances.h"
@@ -32,9 +33,9 @@ private:
     uint32_t exp;
 
     User user;
-    Equipment equipment;
     Character ch;
     Inventory inv;
+    Equipment equipment;
     Statistics statics;
 
     uint16_t hpMax();
@@ -49,7 +50,8 @@ public:
     Player(Player&&) = default;
     Player& operator=(Player&&) = default;
 
-    explicit Player(const Pose& pos_, Inventory&& inv_, Character&& ch_, const PlayerData& data);
+    explicit Player(const Pose& pos_, Inventory&& inv_, Equipment&& equip, Character&& ch_,
+                    const PlayerData& data);
     explicit Player(const User& user, const Pose& pose, Character&& ch,
                     const PlayerStateInit& state_init);
 
@@ -113,7 +115,7 @@ public:
     static uint16_t calculateDefense(std::vector<Defense*> info_defense);
 
     PlayerSnapshotData getPlayerSnapshotData(const Id& id);
-    PlayerData getPlayerData() const;
+    PlayerData getPlayerData(Bank& bank) const;
 
     void onDeath(World& world) override;  // El jugador se convierte en fantasma
 

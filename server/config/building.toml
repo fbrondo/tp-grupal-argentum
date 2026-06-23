@@ -1,0 +1,25 @@
+[detection]
+# Layers a escanear para buscar sprites de casa
+layers = ["details"]
+# Sprite IDs que representan edificios/casas
+house_sprite_ids = [131] #131:templo
+# Sprite IDs que representan puertas/entradas
+#door_sprite_ids = [/* ids de puertas */]
+
+[[houses]]
+#id = 1
+sprite_id = 131
+##sprite_door =
+name = "Casa del Banquero"
+npc_name = "Banquero"
+
+[[houses]]
+#id = 2
+house_sprite_id = 131
+name = "Templo"
+npc_name = "Sacerdote"
+
+[[houses]]
+id = 3
+name = "Tienda"
+npc_name = "Comerciante"
