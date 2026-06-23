@@ -99,6 +99,12 @@ enum TypeNPC : uint8_t {
 };
 
 #endif
+/*--------------------------------------------------------------------------------------*/
+#ifndef __ID_BUILDING__
+#define __ID_BUILDING__
+enum TypeBuilding : uint8_t { NO_BUILDING = 0, TEMPLE, STORE, BANK };
+
+#endif
 /*-------------------------------------------------------------------------------------------------*/
 // #ifndef __ID_REGION__
 // #define __ID_REGION__

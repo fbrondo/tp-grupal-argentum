@@ -20,16 +20,16 @@ ItemInstance Creature::search_item_drop(TypeItem type) {
     return drop_item;
 }
 
-Creature::Creature(const Id& id_, const std::string& name_, TypeNPC type_, const Pose& pos,
+Creature::Creature(const std::string& name_, const NpcInstance& instance,
                    const NpcAttributes& attrib, std::vector<ItemInstance>&& items_):
-        CombatEntity(pos, attrib.max_hp, attrib.difficulty_level),
-        id(id_),
+        CombatEntity(instance.pose, attrib.max_hp, attrib.difficulty_level),
+        id(instance.id),
+        zone_id(instance.zone_id),
         name(name_),
-        type_creature(type_),
+        type_creature(instance.type),
         range_attack(attrib.range_attack),
         items_to_drop(std::move(items_)) {}
 
-// void Creature::updatePosition(Position&& new_pos) { this->pos = std::move(new_pos); }
 
 void Creature::onDeath(World& world) {
     static std::random_device rd;
@@ -81,14 +81,17 @@ void Creature::onDeath(World& world) {
 }
 
 CreatureData Creature::getCreatureData() const {
-    CreatureData creauture_npc;
-    creauture_npc.type = this->type_creature;
-    creauture_npc.attributes.current_hp = this->hp;
-    creauture_npc.attributes.max_hp = this->max_hp;
-    creauture_npc.attributes.range_attack = this->range_attack;
-    creauture_npc.position = this->pose.position;
-    creauture_npc.direction = this->pose.direct;
-    return creauture_npc;
+    CreatureData data;
+    std::memset(data.name, 0, MAX_NAME_SIZE);
+    this->name.copy(data.name, MAX_NAME_SIZE - 1);
+    data.type = static_cast<uint8_t>(this->type_creature);
+    data.zone_id = this->zone_id;
+    data.attributes.current_hp = this->hp;
+    data.attributes.max_hp = this->max_hp;
+    data.attributes.range_attack = this->range_attack;
+    data.position = this->pose.position;
+    data.direction = this->pose.direct;
+    return data;
 }
 
 NpcSnapshotData Creature::getNpcSnapshotData() const {

@@ -4,20 +4,25 @@
 #include <vector>
 
 #include "common/includes/core/Statistics.h"
+#include "server/includes/core/account.h"
 #include "server/includes/exceptions/invalid_buy_exception.h"
 #include "server/includes/exceptions/invalid_sell_exception.h"
 #include "server/includes/game_formulas.h"
 #include "server/includes/world.h"
 #include "server/print.h"
 
-Player::Player(const Pose& pos, Inventory&& inv_, Character&& ch_, const PlayerData& data):
-        CombatEntity(pos, data), ch(std::move(ch_)), inv(std::move(inv_)) {
+Player::Player(const Pose& pos, Inventory&& inv_, Equipment&& equip_, Character&& ch_,
+               const PlayerData& data):
+        CombatEntity(pos, data),
+        ch(std::move(ch_)),
+        inv(std::move(inv_)),
+        equipment(std::move(equip_)) {
     this->statics = this->ch.getStatistics();
     this->level = data.level == 0 ? 1 : data.level;
     this->max_hp = this->hpMax();
     this->hp = data.hp == 0 ? this->max_hp : std::min(data.hp, this->max_hp);
     this->mana = data.mana == 0 ? this->manaMax() : std::min(data.mana, this->manaMax());
-    this->exp = data.exp;
+    this->exp = data.xp;
     this->user.username = data.username;
     this->user.password = data.password;
     Print::imprimirCajaContenedora(data);
@@ -170,7 +175,7 @@ bool Player::unequipItem(size_t slot_id) {
     return this->inv.removeItemFromEquipment(this->equipment, slot_id);
 }
 
-PlayerData Player::getPlayerData() const {
+PlayerData Player::getPlayerData(Bank& bank) const {
     PlayerData data{};
     std::memset(data.username, 0, MAX_DATA);
     user.username.copy(data.username, MAX_DATA - 1);
@@ -187,17 +192,17 @@ PlayerData Player::getPlayerData() const {
     data.charact_traits.head = this->ch.getTypeHead();
     data.charact_traits.body = this->ch.getTypeBody();
     /*Atributos actuales*/
-    data.exp = this->exp;
+    data.xp = this->exp;
     data.level = this->level;
     data.hp = this->hp;
     data.mana = this->mana;
-    /*INVENTARIO*/
     data.golden = this->inv.getGolden();
     data.inventory = this->inv.getSlotsData();
-    /*EQUIPO*/
-    for (const auto& slot: this->equipment.getEquipmentSlots()) {
-        data.inventory.emplace_back(slot.type_item, data.inventory.size(), slot.quantity);
-    }
+    data.equipment = this->equipment.getEquipmentData();
+
+    const auto& account = bank.accounts.at(this->user.username);
+    data.golden_dep = account.golden;
+    data.box = account.getSlotsData();
     return data;
 }
 
@@ -268,16 +273,6 @@ const Item* Player::getItemInventory(const size_t& slot_id) {
 
 const Item* Player::removeItemInventory(TypeItem type_item) {
     return this->inv.removeItemFromInventory(type_item);
-    // if (this->inv.isInventoryEmpty()) {
-    //     return nullptr;
-    // }
-    // const auto index = this->inv.searchItemInInventory(type_item);
-    // if (index.has_value()) {
-    //     const Item* item = this->inv.getItemSlot(index.value());
-    //     this->inv.removeItemFromInventory(index.value());
-    //     return item;
-    // }
-    // return nullptr;
 }
 
 uint32_t Player::decreaseGold(const uint32_t& amount) {
@@ -387,16 +382,6 @@ void Player::consumeMana(uint16_t amount) {
     }
     this->mana = (this->mana >= amount) ? (this->mana - amount) : 0;
 }
-
-
-// void Player::restoreHp(uint16_t hp) {
-//     this->hp = std::min(static_cast<uint16_t>(this->hp + hp), this->hpMax());
-// }
-
-// void Player::restoreMana(uint16_t mana) {
-//     this->mana = std::min(static_cast<uint16_t>(this->mana + mana), this->manaMax());
-// }
-
 
 void Player::onDeath(World& world) {
     this->inv.dropInventory(world, this->pose.position);

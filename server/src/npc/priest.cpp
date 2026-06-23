@@ -2,9 +2,10 @@
 
 #include "server/includes/world.h"
 
-Priest::Priest(TypeNPC type, const std::string& name, const Pose& pose_,
+Priest::Priest(const std::string& name, const NpcInstance& instance,
                std::map<TypeItem, Item*>&& items_):
-        TraderNPC(type, name, pose_, std::move(items_)) {}
+        TraderNPC(name, instance, std::move(items_)) {}
+
 
 void Priest::heal(Player& player) const {
     player.restoreAllHp();

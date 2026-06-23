@@ -10,11 +10,11 @@
 #include "common/includes/map/tile.h"
 #include "server/includes/core/bank.h"
 #include "server/includes/core/config.h"
+#include "server/includes/core/data.h"
 #include "server/includes/core/region.h"
 #include "server/includes/npc/citizen_npc.h"
 #include "server/includes/npc/creature.h"
 #include "server/includes/world.h"
-
 class SpawnManager {
 private:
     std::mt19937 gen;
@@ -31,11 +31,11 @@ private:
     std::vector<ItemInstance> items_drop_creature() const;
     NpcAttributes attributesToCreature(const CreatureConfig& creature);
 
-    std::unique_ptr<Creature> createCreature(const Id& id, const std::string& name_npc,
-                                             TypeNPC type, const Pose& pose,
+    std::unique_ptr<Creature> createCreature(const std::string& name_npc,
+                                             const NpcInstance& instance,
                                              const NpcAttributes& attrib);
-    std::unique_ptr<CitizenNPC> createCitizenNpc(const std::string& name_npc, const Pose& pose,
-                                                 Bank& bank);
+    std::unique_ptr<CitizenNPC> createCitizenNpc(const std::string& name_npc,
+                                                 const NpcInstance& instance, Bank& bank);
 
     std::tuple<std::string, TypeNPC, NpcAttributes, Pose> prepareNpcSpawn(
             const Id& zone_id, const HostileRegion& region, const size_t& index_random);
@@ -46,10 +46,18 @@ private:
 
 public:
     SpawnManager(const GameConfig& conf, World& world_);
+
     void spawnTreasuresZones();
     void spawnCreaturesZones(Id& next_id, std::map<Id, std::unique_ptr<Creature>>& creatures);
-    void spawnCitizenNpcZones(Id& next_id, std::map<Id, std::unique_ptr<CitizenNPC>>& citizen_npcs,
+    void spawnCitizenNpcZones(Id& next_id, std::map<Id, std::unique_ptr<CitizenNPC>>& citizen,
                               Bank& bank);
+
+    std::unique_ptr<Creature> loadCreature(const Id& npc_id, const CreatureData& data);
+    std::unique_ptr<CitizenNPC> loadCitizen(const Id& npc_id, const CitizenNpcData& data,
+                                            Bank& bank);
+    void loadTreasuresZones(const std::vector<TreasureStateData>& data);
+    void loadGoldBags(const std::vector<GoldBagsData>& data);
+    void loadItems(const std::vector<ItemInstanceData>& data);
 };
 
 

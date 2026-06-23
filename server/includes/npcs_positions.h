@@ -19,12 +19,13 @@ private:
 public:
     NpcPositions() = default;
     void add(const NpcInstance& npc);
-    NpcInstance removeCreature(Id id);
-    const NpcInstance& getCreature(Id id) const;
+
+    Id removeCreature(const Id& creature_id);
+    Position getPositionCreature(const Id& creature_id) const;
+
     Pose moveCreature(Id id, const Position& position, Direction direction);
     bool isOcupied(const Position& position) const;
     NpcInstance findNearestPriest(const Position& position) const;
-    // get(uint32_t id, uint8_t type);
 };
 
-#endif  // TALLER_TP_NPCS_POSITIONS_H
+#endif

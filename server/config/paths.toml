@@ -6,10 +6,11 @@ items = "items.toml"
 npcs = "npcs.toml"
 creatures = "creatures.toml"
 regions = "regions.toml"
+buildings = "building.toml"
 
 [data]
 players = "data/players.dat"
 indx_players = "data/players.idx"
 world = "data/world.dat" #guardo el estado del mundo
-map = "data/mapa-iglesia.toml" #despues deberia ser data/mapa.toml
+map = "data/mapa-0.toml" #despues deberia ser data/mapa.toml
 clans = "data/clans.dat"

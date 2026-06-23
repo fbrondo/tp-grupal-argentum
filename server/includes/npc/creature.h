@@ -15,18 +15,19 @@
 class Creature: public CombatEntity {
 private:
     Id id;
+    Id zone_id;
     std::string name;
     TypeNPC type_creature;
     uint16_t range_attack;
-
     uint32_t movement_cooldown_current{0};
+
     std::vector<ItemInstance> items_to_drop;
     ItemInstance search_item_drop(TypeItem type);
 
 public:
     /*Tiempo de recuperacion al dar un ataque*/
-    Creature(const Id& id_, const std::string& name, TypeNPC type, const Pose& pose_,
-             const NpcAttributes& attrib, std::vector<ItemInstance>&& items_);
+    Creature(const std::string& name, const NpcInstance& instance, const NpcAttributes& attrib,
+             std::vector<ItemInstance>&& items_);
 
     void onDeath(World& world) override;
     CreatureData getCreatureData() const;

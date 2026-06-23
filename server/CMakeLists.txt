@@ -35,6 +35,7 @@ target_sources(taller_server
         src/commands/command_withdraw_gold.cpp
 
         src/core/item.cpp
+        src/core/account.cpp
 
         src/entity/combat_entity.cpp
         src/npc/banker.cpp
@@ -123,6 +124,7 @@ target_sources(taller_server
         includes/commands/command_withdraw_gold.h
 
         includes/core/bank.h
+        includes/core/building.h
         includes/core/clase.h
         includes/core/config.h
         includes/core/data.h
@@ -133,6 +135,7 @@ target_sources(taller_server
         includes/core/region.h
         includes/core/resurrect.h
         includes/core/treasure.h
+        includes/core/account.h
 
         includes/entity/entity.h
         includes/entity/combat_entity.h

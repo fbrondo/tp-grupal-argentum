@@ -38,9 +38,9 @@ void World::buildTilesWorld() {
             const Tile& bg = this->map.tile_at(x, y, Layer::Background);
             const Tile& details = this->map.tile_at(x, y, Layer::Details);
             const Tile& obj = this->map.tile_at(x, y, Layer::Object);
-            const Tile& roof = this->map.tile_at(x, y, Layer::Roof);
+            // const Tile& roof = this->map.tile_at(x, y, Layer::Roof);
             this->map_tiles[x][y].walkable = bg.walkable && details.walkable && obj.walkable &&
-                                             roof.walkable && background_coverage[x][y] &&
+                                             /*roof.walkable &&*/ background_coverage[x][y] &&
                                              y >= TOP_ENTITY_VISUAL_MARGIN_TILES;
             this->map_tiles[x][y].region = bg.region;
             if (!this->map_tiles[x][y].walkable) {
@@ -144,14 +144,6 @@ void World::floodFill(const Position pos_start, Region region, MatrizBool& visit
     }
 }
 
-// void World::saveIdsOfTheSafeZones() {
-//     for (auto& [id, zone]: this->zones) {
-//         if ((zone.region == Town || zone.region == City) && this->zoneHasFreePosition(zone)) {
-//             this->safe_zones.push_back(id);
-//         }
-//     }
-// }
-
 void World::identifyZones() {
     MatrizBool visited(this->limit_height, std::vector<bool>(this->limit_width, false));
     Id zone_id = 0;
@@ -164,7 +156,7 @@ void World::identifyZones() {
             Zone zone;
             zone.region = region;
             zone.id = zone_id++;
-            // this->zone_count[region]++;
+
             this->floodFill(Position{x, y}, region, visited, zone);
             const bool has_walkable_tile = std::any_of(
                     zone.tiles.begin(), zone.tiles.end(),
@@ -256,7 +248,8 @@ bool World::isWalkable(const Id& player_id, const Direction dir) {
 }
 
 bool World::isCreatureWalkable(const Id& creature_id, Direction dir) const {
-    const Position& current = this->npc_positions.getCreature(creature_id).pose.position;
+    Position current = this->npc_positions.getPositionCreature(
+            creature_id);  // this->npc_positions.getCreature(creature_id).pose.position;
     Position destination = current;
     switch (dir) {
         case DOWN:
@@ -280,12 +273,13 @@ bool World::isCreatureWalkable(const Id& creature_id, Direction dir) const {
             destination.x++;
             break;
     }
-
-    return this->isWithinLimits(destination) &&
-           this->map_tiles[destination.x][destination.y].walkable &&
-           !this->positionNotWalkabled(destination) && !this->player_tiles.contains(destination) &&
-           !this->npc_positions.isOcupied(destination) &&
-           !this->item_positions.isOcupied(destination);
+    bool is_limits = this->isWithinLimits(destination);
+    bool ocupied = !this->player_tiles.contains(destination) &&
+                   !this->npc_positions.isOcupied(destination) &&
+                   !this->item_positions.isOcupied(destination);
+    bool walkable = this->map_tiles[destination.x][destination.y].walkable &&
+                    !this->positionNotWalkabled(destination);
+    return is_limits && ocupied && walkable;
 }
 
 bool World::isSafeZONE(const Position& pos) {
@@ -503,8 +497,8 @@ void World::removePlayer(const Id& player_id) {
 }
 
 void World::removeCreature(const Id& creature_id) {
-    auto npc_instance = this->npc_positions.removeCreature(creature_id);
-    this->hostile_zones[npc_instance.zone_id].creatures_count--;
+    auto zone_id = this->npc_positions.removeCreature(creature_id);
+    this->hostile_zones[zone_id].creatures_count--;
 }
 
 Pose World::movePlayer(const Id& player_id, Direction dir) {
@@ -512,19 +506,14 @@ Pose World::movePlayer(const Id& player_id, Direction dir) {
     Position previous_position = this->players_positions[player_id].position;
     this->player_tiles.erase(previous_position);
     this->player_tiles.emplace(new_position, true);
-    Pose pose_move(new_position, dir);
-    this->players_positions[player_id] = pose_move;
-    /*Position previous_position = this->players_positions.at(player_id).position;
-    Pose pose_move(new_position, dir);
-    this->occupied_tiles[previous_position] = false;
-    this->players_positions.at(player_id) = pose_move;
-    this->occupied_tiles[new_position] = true;*/
-    Print::printPositionMovePlayer(player_id, pose_move, previous_position);
-    return pose_move;
+    this->players_positions[player_id] = Pose(new_position, dir);
+    Print::printPositionMovePlayer(player_id, this->players_positions[player_id],
+                                   previous_position);
+    return this->players_positions[player_id];
 }
 
 Pose World::moveCreature(const Id& creature_id, Direction dir) {
-    const Position& current = this->npc_positions.getCreature(creature_id).pose.position;
+    const Position& current = this->npc_positions.getPositionCreature(creature_id);
     Position destination = current;
     switch (dir) {
         case DOWN:
@@ -553,10 +542,6 @@ Pose World::teleportPlayer(const Id& player_id, const Position& position) {
     return new_pose;
 }
 
-Position World::positionPlayerInTheWorld(const Id& player_id) {
-    return this->players_positions.at(player_id).position;
-}
-
 int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {
     const Position& pos_attacker = this->players_positions.at(attacker_id).position;
     const Position pos_target = this->players_positions.at(victim_id).position;
@@ -571,36 +556,9 @@ bool World::playerTakeItemOnTheFloor(Player& player) {
 
 WorldStateData World::buildWorldState() {
     WorldStateData world_data;
-    // for (const auto& npc: this->npc_positions | std::views::values) {
-    //     CitizenNpcData citizen_npc;
-    //     citizen_npc.type = npc.type;
-    //     citizen_npc.pos_x = npc.pose.position.x;
-    //     citizen_npc.pos_y = npc.pose.position.y;
-    //     citizen_npc.direction = npc.pose.direct;
-    //     world_data.citizen_npcs.push_back(citizen_npc);
-    // }
-    //
-    // for (const auto& treasure: this->treausures_positions | std::views::values) {
-    //     TreasureStateData treas;
-    //     treas.pos_x = treasure.x;
-    //     treas.pos_y = treasure.y;
-    //     world_data.treasures.push_back(treas);
-    // }
-    // for (const auto& gold_bags: this->gold_on_floor | std::views::values) {
-    //     GoldBagsData gold;
-    //     gold.pos_x = gold_bags.pos.x;
-    //     gold.pos_y = gold_bags.pos.y;
-    //     gold.amount = gold_bags.amount;
-    //     world_data.gold_bags.push_back(gold);
-    // }
-    //
-    // for (const auto& item_inst: this->items_on_flor | std::views::values) {
-    //     ItemInstanceData item;
-    //     item.type_item = item_inst.type;
-    //     item.x = item_inst.pos.x;
-    //     item.y = item_inst.pos.y;
-    //     world_data.items.push_back(item);
-    // }
+    world_data.items = this->item_positions.getDataItems();
+    world_data.gold_bags = this->item_positions.getDataGoldBags();
+    world_data.treasures = this->item_positions.getDataTreasures();
     return world_data;
 }
 

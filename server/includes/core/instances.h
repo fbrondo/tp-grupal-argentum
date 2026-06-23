@@ -7,12 +7,12 @@
 #include "common/includes/types.h"
 #include "server/includes/core/item.h"
 #include "server/includes/core/map.h"
+#include "server/includes/entity/entity.h"
 
 struct ItemInstance {
     Id id{0};
     Position position;
     const Item* item{nullptr};
-    // bool is_equipped{false};
 
     ItemInstance() = default;
     explicit ItemInstance(const Item* item_): item(item_) {}
@@ -59,7 +59,6 @@ struct NpcInstance {
     Id zone_id;
     TypeNPC type;
     Pose pose;
-
     NpcInstance() = default;
     NpcInstance(const Id& id_, const Id& zone_id_, TypeNPC type_, const Pose& pose):
             id(id_), zone_id(zone_id_), type(type_), pose(pose) {}
