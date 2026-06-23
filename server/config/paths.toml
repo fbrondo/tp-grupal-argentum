@@ -6,6 +6,7 @@ items = "items.toml"
 npcs = "npcs.toml"
 creatures = "creatures.toml"
 regions = "regions.toml"
+buildings = "building.toml"
 
 [data]
 players = "data/players.dat"

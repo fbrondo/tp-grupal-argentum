@@ -4,6 +4,8 @@
 #include <ranges>
 #include <stdexcept>
 
+#include <toml++/impl/forward_declarations.hpp>
+
 #include "server/includes/npc/banker.h"
 #include "server/includes/npc/merchant.h"
 #include "server/includes/npc/priest.h"
@@ -24,9 +26,6 @@ SpawnManager::SpawnManager(const GameConfig& conf, World& world_):
             this->safe_regions.emplace(type, safe);
         }
     }
-    // Print::printNpcsSafeLoads(this->conf_citizens);
-    // Print::printCreatureLoads(this->conf_creatures);
-    // Print::printItems(this->items);
 }
 
 std::map<TypeItem, Item*> SpawnManager::items_store_citizen(const std::string& name_npc) {
@@ -70,11 +69,11 @@ std::tuple<std::string, TypeNPC, NpcAttributes, Pose> SpawnManager::prepareNpcSp
     return {name_npc, type_npc, attrib, pose_spawn};
 }
 
-std::unique_ptr<Creature> SpawnManager::createCreature(const Id& id, const std::string& name_npc,
-                                                       TypeNPC type, const Pose& pose,
+std::unique_ptr<Creature> SpawnManager::createCreature(const std::string& name_npc,
+                                                       const NpcInstance& creature_instance,
                                                        const NpcAttributes& attrib) {
     std::vector<ItemInstance> items_ = this->items_drop_creature();
-    return std::make_unique<Creature>(id, name_npc, type, pose, attrib, std::move(items_));
+    return std::make_unique<Creature>(name_npc, creature_instance, attrib, std::move(items_));
 }
 
 void SpawnManager::spawnCreaturesZones(Id& next_id,
@@ -90,8 +89,8 @@ void SpawnManager::spawnCreaturesZones(Id& next_id,
                 const Id id = next_id++;
                 auto [name, type, attrib, pose] =
                         this->prepareNpcSpawn(zone.id, *region, distr_npc(this->gen));
-                auto creature = this->createCreature(id, name, type, pose, attrib);
                 NpcInstance creature_instance(id, zone.id, type, pose);
+                auto creature = this->createCreature(name, creature_instance, attrib);
                 creatures.emplace(id, std::move(creature));
                 this->world.addNpcWorld(creature_instance);
                 count++;
@@ -101,16 +100,16 @@ void SpawnManager::spawnCreaturesZones(Id& next_id,
 }
 
 std::unique_ptr<CitizenNPC> SpawnManager::createCitizenNpc(const std::string& name_npc,
-                                                           const Pose& pose, Bank& bank) {
-    const auto type_npc = this->conf_citizens.at(name_npc).type;
+                                                           const NpcInstance& instance,
+                                                           Bank& bank) {
     std::map<TypeItem, Item*> items_ = this->items_store_citizen(name_npc);
-    switch (type_npc) {
+    switch (instance.type) {
         case PRIEST:
-            return std::make_unique<Priest>(type_npc, name_npc, pose, std::move(items_));
+            return std::make_unique<Priest>(name_npc, instance, std::move(items_));
         case MERCHANT:
-            return std::make_unique<Merchant>(type_npc, name_npc, pose, std::move(items_));
+            return std::make_unique<Merchant>(name_npc, instance, std::move(items_));
         default:
-            return std::make_unique<Banker>(type_npc, name_npc, bank, pose);
+            return std::make_unique<Banker>(name_npc, instance, bank);
     }
 }
 std::tuple<TypeNPC, Pose> SpawnManager::prepareCitizenNpcSpawn(const Id& zone_id,
@@ -138,8 +137,8 @@ void SpawnManager::spawnCitizenNpcZones(Id& next_id,
     if (!configured_spawns.empty()) {
         for (const auto& spawn: configured_spawns) {
             const std::string name_npc = this->citizenNameForType(spawn.type);
-            auto new_npc = this->createCitizenNpc(name_npc, spawn.pose, bank);
             NpcInstance instance(next_id++, spawn.zone_id, spawn.type, spawn.pose);
+            auto new_npc = this->createCitizenNpc(name_npc, instance, bank);
             citizen_npcs.emplace(instance.id, std::move(new_npc));
             this->world.addNpcWorld(instance);
         }
@@ -153,8 +152,8 @@ void SpawnManager::spawnCitizenNpcZones(Id& next_id,
             const uint16_t numbers_npc = region->numbers_npc[j];
             for (size_t i = 0; i < numbers_npc; i++) {
                 auto [type, pose] = this->prepareCitizenNpcSpawn(zone.id, name_npc);
-                auto new_npc = this->createCitizenNpc(name_npc, pose, bank);
                 NpcInstance instance(next_id++, zone.id, type, pose);
+                auto new_npc = this->createCitizenNpc(name_npc, instance, bank);
                 citizen_npcs.emplace(instance.id, std::move(new_npc));
                 this->world.addNpcWorld(instance);
             }
@@ -193,5 +192,59 @@ void SpawnManager::spawnTreasuresZones() {
                 this->prepareNewTreasure(zone.id, *region);
             }
         }
+    }
+}
+
+std::unique_ptr<Creature> SpawnManager::loadCreature(const Id& creature_id,
+                                                     const CreatureData& data) {
+    std::string name(data.name);
+    Pose pose(data.position, static_cast<Direction>(data.direction));
+    NpcInstance instance(creature_id, data.zone_id, static_cast<TypeNPC>(data.type), pose);
+    NpcAttributes attrib(data.attributes);
+    this->world.addNpcWorld(instance);
+    return this->createCreature(name, instance, attrib);
+}
+
+std::unique_ptr<CitizenNPC> SpawnManager::loadCitizen(const Id& npc_id, const CitizenNpcData& data,
+                                                      Bank& bank) {
+    std::string name(data.name);
+    Pose pose(data.position, static_cast<Direction>(data.direction));
+    NpcInstance instance(npc_id, data.zone_id, static_cast<TypeNPC>(data.type), pose);
+    this->world.addNpcWorld(instance);
+    return this->createCitizenNpc(name, instance, bank);
+}
+
+void SpawnManager::loadTreasuresZones(const std::vector<TreasureStateData>& data) {
+    for (const auto& treasure: data) {
+        TreasureInstance instance;
+        instance.zone_id = treasure.zone_id;
+        instance.position = treasure.position;
+        for (const auto& type_item: treasure.types_items) {
+            auto type = static_cast<TypeItem>(type_item);
+            const auto& item = this->items.at(type);
+            ItemInstance item_instance(item.get());
+            instance.items.emplace_back(item_instance);
+        }
+        this->world.addTreasuresWorld(instance);
+    }
+}
+
+void SpawnManager::loadGoldBags(const std::vector<GoldBagsData>& data) {
+    for (const auto& gold: data) {
+        GoldBagInstance instance;
+        instance.position = gold.position;
+        instance.amount = gold.amount;
+        this->world.addItemWorld(instance);
+    }
+}
+
+void SpawnManager::loadItems(const std::vector<ItemInstanceData>& data) {
+    for (auto& [type, position]: data) {
+        ItemInstance instance;
+        auto type_item = static_cast<TypeItem>(type);
+        instance.position = position;
+        const auto& item = this->items.at(type_item);
+        instance.item = item.get();
+        this->world.addItemWorld(instance);
     }
 }

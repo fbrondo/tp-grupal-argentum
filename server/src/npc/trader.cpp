@@ -2,9 +2,10 @@
 
 #include "server/includes/exceptions/invalid_buy_exception.h"
 
-TraderNPC::TraderNPC(TypeNPC type, const std::string& name, const Pose& pose_,
+TraderNPC::TraderNPC(const std::string& name, const NpcInstance& instance,
                      std::map<TypeItem, Item*>&& items_):
-        CitizenNPC(type, name, pose_), store(std::move(items_)) {}
+        CitizenNPC(instance.type, name, instance.pose, instance.zone_id),
+        store(std::move(items_)) {}
 
 void TraderNPC::executeBuyItem(Player& player, TypeItem type_item_buy) {
     if (!this->store.contains(type_item_buy)) {
