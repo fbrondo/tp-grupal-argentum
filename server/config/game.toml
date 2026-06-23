@@ -34,3 +34,17 @@ npc_attack_cooldown = 1000
 #
 player_attack_cooldown = 6000
 
+# Details del mapa que marcan edificios donde aparecen NPCs ciudadanos.
+# npc_type puede ser: "priest", "banker" o "merchant".
+[[citizen_detail_spawns]]
+detail_sprite_id = 131
+npc_type = "priest"
+
+[[citizen_detail_spawns]]
+detail_sprite_id = 128
+npc_type = "banker"
+
+[[citizen_detail_spawns]]
+detail_sprite_id = 130
+npc_type = "merchant"
+
