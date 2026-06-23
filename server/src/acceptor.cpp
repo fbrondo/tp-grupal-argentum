@@ -20,6 +20,12 @@ void Acceptor::clear() {
     this->players.clear();
 }
 
+Acceptor::~Acceptor() {
+    this->stop();
+    this->clear();
+    Thread::join();
+}
+
 void Acceptor::run() {
 
     try {

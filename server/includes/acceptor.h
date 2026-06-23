@@ -27,6 +27,7 @@ private:
 
 public:
     explicit Acceptor(const char* serverName, MonitorQueues& monitor, QueueCmd& queue_cmd_);
+    ~Acceptor() override;
     void run() override;
     void stop() override;
     void clear();
