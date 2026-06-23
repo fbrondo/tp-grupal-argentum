@@ -12,5 +12,5 @@ buildings = "building.toml"
 players = "data/players.dat"
 indx_players = "data/players.idx"
 world = "data/world.dat" #guardo el estado del mundo
-map = "data/mapa-0.toml" #despues deberia ser data/mapa.toml
+map = "data/mapa-ciudad-npcs.toml" #despues deberia ser data/mapa.toml
 clans = "data/clans.dat"

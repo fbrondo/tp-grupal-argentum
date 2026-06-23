@@ -24,6 +24,7 @@ struct PathsConfig {
     Path creatures;
     Path regions;
 };
+
 struct FileData {
     Path players; /*datos de los usuarios*/
     Path indx_players;
@@ -32,23 +33,27 @@ struct FileData {
     Path clans; /*datos de los clanes*/
     Path buildings;
 };
+
 struct PlayerStateInit {
     uint8_t level;
     uint32_t golden_init;
     uint32_t max_slots;
     uint32_t capacity_slot;
 };
+
 struct ClanConfig {
     uint32_t max_members;
     uint8_t min_level_to_found;
     uint16_t proximity_bonus_per_member;
     uint32_t proximity_range;
 };
+
 struct NpcSafeZone {
     TypeNPC type;
     std::string name;
     std::vector<TypeItem> ids_items_store;
 };
+
 struct CreatureConfig {
     TypeNPC type;
     std::string name;
@@ -57,6 +62,7 @@ struct CreatureConfig {
     uint16_t minimal_level;
     uint16_t maximun_level;
 };
+
 struct TimesConfig {
     uint32_t server_update_frecuency;
     uint32_t update_player_atributes;
@@ -64,13 +70,21 @@ struct TimesConfig {
     uint32_t disappear_dropped_item;
     uint32_t pesistence_data;
     uint32_t npc_attack_cooldown;
-    uint32_t player_attack_cooldown;
+    uint32_t player_attack_cooldown;  // <-- Guardado de la segunda versión
 };
+
+struct CitizenDetailSpawnConfig {  // <-- Guardado de la primera versión
+    int detail_sprite_id;
+    TypeNPC npc_type;
+};
+
 struct GameConfig {
     FileData paths;
     PlayerStateInit player_init{};
     ClanConfig clan{};
     TimesConfig times{};
+    std::vector<CitizenDetailSpawnConfig>
+            citizen_detail_spawns;  // <-- Guardado de la primera versión
     std::map<TypeRace, Race> races;
     std::map<TypeClase, Clase> clases;
     std::map<std::string, NpcSafeZone> npcs;
@@ -83,10 +97,6 @@ struct GameConfig {
     GameConfig(const GameConfig&) = delete;
     GameConfig& operator=(const GameConfig&) = delete;
     GameConfig() = default;
-
-    // GameConfig(PlayerStateInit player_init_, ClanConfig clan_, TimesConfig times_):
-    // player_init(player_init_),
-    // clan(clan_),
-    // times(times_) {}
 };
+
 #endif

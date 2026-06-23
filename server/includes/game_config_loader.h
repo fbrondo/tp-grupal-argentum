@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <toml++/toml.hpp>
 
@@ -37,7 +38,8 @@ private:
     void loadClases(std::map<TypeClase, Clase>& info_clases);
     void loadItems(std::map<TypeItem, std::unique_ptr<Item>>& info_items);
     void loadRegions(std::map<Region, std::unique_ptr<RegionWorld>>& info_regions);
-    void loadGame(PlayerStateInit& player_init, ClanConfig& clan, TimesConfig& times);
+    void loadGame(PlayerStateInit& player_init, ClanConfig& clan, TimesConfig& times,
+                  std::vector<CitizenDetailSpawnConfig>& citizen_detail_spawns);
 
 public:
     GameConfigLoader(const GameConfigLoader& other) = delete;

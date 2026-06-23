@@ -1,6 +1,7 @@
 #include "server/includes/world.h"
 
 #include <algorithm>
+#include <optional>
 #include <queue>
 #include <ranges>
 #include <stack>
@@ -21,9 +22,28 @@
 static constexpr int TILE_SIZE = 32;
 static constexpr uint32_t TOP_ENTITY_VISUAL_MARGIN_TILES = 1;
 
-World::World(const std::filesystem::path& path):
+static std::optional<TypeNPC> citizenTypeFromDetailSprite(
+        int sprite_id, const std::vector<CitizenDetailSpawnConfig>& spawn_configs) {
+    for (const auto& spawn_config: spawn_configs) {
+        if (spawn_config.detail_sprite_id == sprite_id) {
+            return spawn_config.npc_type;
+        }
+    }
+    return std::nullopt;
+}
+
+static uint32_t tilesCoveredBySpriteDimension(int pixels) {
+    if (pixels <= 0) {
+        return 1;
+    }
+    return static_cast<uint32_t>((pixels + TILE_SIZE - 1) / TILE_SIZE);
+}
+
+World::World(const std::filesystem::path& path,
+             std::vector<CitizenDetailSpawnConfig> citizen_detail_spawns_):
         gen(std::random_device{}()),
         map(MapSerializer::load(path)),
+        citizen_detail_spawns(std::move(citizen_detail_spawns_)),
         limit_height(this->map.height()),
         limit_width(this->map.width()) {
     this->buildTilesWorld();
@@ -164,6 +184,9 @@ void World::identifyZones() {
             if (!has_walkable_tile) {
                 continue;
             }
+            for (const Position& position: zone.tiles) {
+                this->position_zones.emplace(position, zone.id);
+            }
             if (region == Town || region == City) {
                 this->safe_zones.emplace(zone.id, zone);
             } else {
@@ -171,6 +194,66 @@ void World::identifyZones() {
             }
         }
     }
+}
+
+std::vector<CitizenSpawnPoint> World::getCitizenSpawnPoints() const {
+    std::vector<CitizenSpawnPoint> spawn_points;
+    std::unordered_set<Position, PositionHash> used_positions;
+    const std::filesystem::path sprites_path =
+            std::filesystem::path(CONFIG_PATH).parent_path().parent_path() / "common" / "data" /
+            "details_sprites.toml";
+    const auto sprites = SpriteLoader::load(sprites_path);
+
+    for (uint32_t y = 0; y < this->limit_height; ++y) {
+        for (uint32_t x = 0; x < this->limit_width; ++x) {
+            const Tile& detail = this->map.tile_at(x, y, Layer::Details);
+            const auto type =
+                    citizenTypeFromDetailSprite(detail.sprite_id, this->citizen_detail_spawns);
+            if (!type.has_value()) {
+                continue;
+            }
+
+            uint32_t width_tiles = 1;
+            uint32_t height_tiles = 1;
+            const auto sprite = sprites.find(detail.sprite_id);
+            if (sprite != sprites.end()) {
+                width_tiles = tilesCoveredBySpriteDimension(sprite->second.width);
+                height_tiles = tilesCoveredBySpriteDimension(sprite->second.height);
+            }
+
+            Position center{x + width_tiles / 2, y + height_tiles / 2};
+            if (!this->isWithinLimits(center)) {
+                throw std::runtime_error("El centro del edificio de NPC queda fuera del mapa");
+            }
+
+            Position position = this->findNearbyFreePosition(center);
+            if (!this->isWithinLimits(position) || !this->isSafeZONE(position)) {
+                throw std::runtime_error(
+                        "El punto de spawn de NPC debe quedar dentro de una ciudad o pueblo");
+            }
+            if (!used_positions.insert(position).second) {
+                throw std::runtime_error(
+                        "Dos NPC ciudadanos intentan spawnear en la misma posicion");
+            }
+
+            Id zone_id = 0;
+            bool found_zone = false;
+            for (const auto& [id, zone]: this->safe_zones) {
+                if (std::find(zone.tiles.begin(), zone.tiles.end(), position) != zone.tiles.end()) {
+                    zone_id = id;
+                    found_zone = true;
+                    break;
+                }
+            }
+            if (!found_zone) {
+                throw std::runtime_error("No se encontro la zona segura del punto de spawn de NPC");
+            }
+
+            spawn_points.push_back({zone_id, type.value(), Pose(position, DOWN)});
+        }
+    }
+
+    return spawn_points;
 }
 
 Id World::calculateZoneSafeRandom() {
@@ -188,7 +271,7 @@ bool World::positionNotWalkabled(const Position& pos) const {
 }
 
 bool World::isInPlayerVisionRange(const Position& pos) const {
-    constexpr int32_t VISION_RANGE = 5;  // 10x10 → 5 tiles en cada dirección -> en archivo toml
+    constexpr int32_t VISION_RANGE = 5;
 
     for (const auto& player_pos: this->players_positions | std::views::values) {
         const int x_player = static_cast<int32_t>(player_pos.position.x);
@@ -273,16 +356,23 @@ bool World::isCreatureWalkable(const Id& creature_id, Direction dir) const {
             destination.x++;
             break;
     }
+    bool is_limits_zone = this->isPositionInCreatureZone(creature_id, destination);
     bool is_limits = this->isWithinLimits(destination);
     bool ocupied = !this->player_tiles.contains(destination) &&
                    !this->npc_positions.isOcupied(destination) &&
                    !this->item_positions.isOcupied(destination);
     bool walkable = this->map_tiles[destination.x][destination.y].walkable &&
                     !this->positionNotWalkabled(destination);
-    return is_limits && ocupied && walkable;
+    return is_limits && is_limits_zone && ocupied && walkable;
 }
 
-bool World::isSafeZONE(const Position& pos) {
+bool World::isPositionInCreatureZone(const Id& creature_id, const Position& position) const {
+    const Id creature_zone = this->npc_positions.getCreature(creature_id).zone_id;
+    const auto position_zone = this->position_zones.find(position);
+    return position_zone != this->position_zones.end() && position_zone->second == creature_zone;
+}
+
+bool World::isSafeZONE(const Position& pos) const {
     for (const auto& [id, zone]: this->safe_zones) {
         for (const auto& position: zone.tiles) {
             if (position == pos) {
@@ -541,6 +631,10 @@ Pose World::teleportPlayer(const Id& player_id, const Position& position) {
     this->players_positions[player_id] = new_pose;
     return new_pose;
 }
+
+// Position World::positionPlayerInTheWorld(const Id& player_id) {
+//     return this->players_positions.at(player_id).position;
+// }
 
 int World::distanceBetweenTheAttackerAndTheVictim(const Id& attacker_id, const Id& victim_id) {
     const Position& pos_attacker = this->players_positions.at(attacker_id).position;

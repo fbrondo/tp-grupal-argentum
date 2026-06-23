@@ -23,8 +23,128 @@ static uint32_t item_entity_key(uint32_t pos_x, uint32_t pos_y) {
     return ITEM_ENTITY_OFFSET + (pos_x * 1000) + pos_y;
 }
 
+static constexpr uint8_t OCCLUDING_DETAIL_ALPHA = 150;
+static constexpr uint8_t OCCLUDING_ROOF_ALPHA = 120;
+static constexpr uint8_t OPAQUE_ALPHA = 255;
+
 static uint32_t exp_next_level(uint8_t level) {
     return static_cast<uint32_t>(1000 * std::pow(level, 1.8));
+}
+
+struct SoundEffectCandidate {
+    SoundEffectSnapshotData effect;
+    int priority;
+    int64_t distance_sq;
+};
+
+static int64_t squared_distance(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2) {
+    const int64_t dx = static_cast<int64_t>(x1) - static_cast<int64_t>(x2);
+    const int64_t dy = static_cast<int64_t>(y1) - static_cast<int64_t>(y2);
+    return dx * dx + dy * dy;
+}
+
+static bool is_entity_inside_world_rect(const RenderableEntity& entity, const SDL_Rect& rect) {
+    const SDL_Point entity_center = {
+            static_cast<int>(entity.get_pixel_x()) + TILE_SIZE / 2,
+            static_cast<int>(entity.get_pixel_y()) + TILE_SIZE / 2,
+    };
+    return SDL_PointInRect(&entity_center, &rect);
+}
+
+static int sound_effect_priority(SoundEffectID effect_id) {
+    static constexpr std::array<std::pair<SoundEffectID, int>, 23> SOUND_PRIORITIES = {{
+            {SoundEffectID::MUERTE_HOMBRE, 4},
+            {SoundEffectID::RESUCITAR, 4},
+            {SoundEffectID::RESUCITAR_SACERDOTE, 4},
+            {SoundEffectID::GOLPE_RECIBIDO, 3},
+            {SoundEffectID::GOLPE_ARMA, 3},
+            {SoundEffectID::ESPADAZO, 3},
+            {SoundEffectID::FLECHA, 3},
+            {SoundEffectID::FLECHA_MAGICA, 3},
+            {SoundEffectID::RESORTE_EXPLOSIVO, 3},
+            {SoundEffectID::CURAR, 2},
+            {SoundEffectID::CURAR_2, 2},
+            {SoundEffectID::TOMAR_POCION, 2},
+            {SoundEffectID::EQUIPAR_ARMA, 2},
+            {SoundEffectID::DROP_ESPECIAL_NPC, 2},
+            {SoundEffectID::PASO, 0},
+            {SoundEffectID::PASO_2, 0},
+            {SoundEffectID::PASOS, 0},
+            {SoundEffectID::PASOS_EN_GRAVA, 0},
+            {SoundEffectID::PASO_3, 0},
+            {SoundEffectID::PASO_4, 0},
+            {SoundEffectID::PASO_5, 0},
+            {SoundEffectID::PASO_6, 0},
+            {SoundEffectID::PASO_7, 0},
+    }};
+
+    const auto it =
+            std::find_if(SOUND_PRIORITIES.begin(), SOUND_PRIORITIES.end(),
+                         [effect_id](const auto& priority) { return priority.first == effect_id; });
+    if (it != SOUND_PRIORITIES.end()) {
+        return it->second;
+    }
+    return 1;
+}
+
+static bool is_same_sound_nearby(const SoundEffectSnapshotData& first,
+                                 const SoundEffectSnapshotData& second, int64_t max_distance_sq) {
+    return first.effect_id == second.effect_id &&
+           squared_distance(first.pos_x, first.pos_y, second.pos_x, second.pos_y) <=
+                   max_distance_sq;
+}
+
+static bool was_similar_sound_already_selected(const std::vector<SoundEffectSnapshotData>& selected,
+                                               const SoundEffectSnapshotData& candidate,
+                                               int64_t max_distance_sq) {
+    for (const auto& selected_effect: selected) {
+        if (is_same_sound_nearby(selected_effect, candidate, max_distance_sq)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Agrupo sonidos iguales que ocurren muy cerca uno del otro para no saturar.
+// Si quedan demasiados, priorizo los mas importantes y cercanos.
+static std::vector<SoundEffectSnapshotData> select_audible_sound_effects(
+        const std::vector<SoundEffectSnapshotData>& effects, uint32_t player_x, uint32_t player_y) {
+    constexpr size_t MAX_SOUNDS_PER_SNAPSHOT = 8;
+    constexpr int64_t SAME_SOUND_GROUP_RADIUS_TILES = 2;
+    constexpr int64_t SAME_SOUND_GROUP_RADIUS_SQ =
+            SAME_SOUND_GROUP_RADIUS_TILES * SAME_SOUND_GROUP_RADIUS_TILES;
+
+    std::vector<SoundEffectCandidate> candidates;
+    candidates.reserve(effects.size());
+    for (const auto& effect: effects) {
+        candidates.push_back({effect, sound_effect_priority(effect.effect_id),
+                              squared_distance(effect.pos_x, effect.pos_y, player_x, player_y)});
+    }
+
+    std::sort(candidates.begin(), candidates.end(),
+              [](const SoundEffectCandidate& a, const SoundEffectCandidate& b) {
+                  if (a.priority != b.priority) {
+                      return a.priority > b.priority;
+                  }
+                  return a.distance_sq < b.distance_sq;
+              });
+
+    std::vector<SoundEffectSnapshotData> selected;
+    selected.reserve(std::min(MAX_SOUNDS_PER_SNAPSHOT, effects.size()));
+
+    for (const auto& candidate: candidates) {
+        if (was_similar_sound_already_selected(selected, candidate.effect,
+                                               SAME_SOUND_GROUP_RADIUS_SQ)) {
+            continue;
+        }
+
+        selected.push_back(candidate.effect);
+        if (selected.size() == MAX_SOUNDS_PER_SNAPSHOT) {
+            break;
+        }
+    }
+
+    return selected;
 }
 
 static void log_render_error_once(const std::string& texture_key, const std::exception& e) {
@@ -194,10 +314,7 @@ void WorldRenderer::update_visible_map_bounds() {
                     SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
                     // Cuanto ocupa el sprite
                     const int sprite_left = x * TILE_SIZE;
-                    const int sprite_top =
-                            (layer == Layer::Details || layer == Layer::Roof) ?
-                                    y * TILE_SIZE :
-                                    (y * TILE_SIZE + TILE_SIZE) - texture.GetHeight();
+                    const int sprite_top = y * TILE_SIZE;
                     const int sprite_right = sprite_left + texture.GetWidth();
                     const int sprite_bottom = sprite_top + texture.GetHeight();
                     // Cuanto ocupa el rectangulo que contiene al sprite
@@ -397,7 +514,9 @@ void WorldRenderer::update_from_snapshot(const Snapshot& snapshot) {
                 static_cast<uint32_t>(local_player->second->get_pixel_x() / TILE_SIZE);
         const uint32_t player_y =
                 static_cast<uint32_t>(local_player->second->get_pixel_y() / TILE_SIZE);
-        for (const auto& sound_effect: snapshot.sound_effects) {
+        const auto selected_sound_effects =
+                select_audible_sound_effects(snapshot.sound_effects, player_x, player_y);
+        for (const auto& sound_effect: selected_sound_effects) {
             SoundManager::play_effect(sound_effect.effect_id, sound_effect.pos_x,
                                       sound_effect.pos_y, player_x, player_y);
         }
@@ -488,7 +607,7 @@ void WorldRenderer::render() {
 
                     SDL_Rect dst;
                     dst.x = (x * TILE_SIZE) - camera.x + camera_screen_offset_x;
-                    dst.y = (y * TILE_SIZE + TILE_SIZE) - camera.y + camera_screen_offset_y - tex_h;
+                    dst.y = (y * TILE_SIZE) - camera.y + camera_screen_offset_y;
                     dst.w = tex_w;
                     dst.h = tex_h;
 
@@ -685,6 +804,12 @@ void WorldRenderer::render() {
         }
     }
 
+    const RenderableEntity* local_player = nullptr;
+    const auto local_player_it = entities.find(player_entity_key(local_player_id));
+    if (local_player_it != entities.end()) {
+        local_player = local_player_it->second.get();
+    }
+
     // 3. RENDERIZADO DE DETAILS DELANTE DE LAS ENTIDADES
     for (int y = start_tile_y; y <= end_tile_y; ++y) {
         for (int x = start_tile_x; x <= end_tile_x; ++x) {
@@ -695,10 +820,16 @@ void WorldRenderer::render() {
             const std::string tex_key = "tile_det_" + std::to_string(tile_data.sprite_id);
             try {
                 SDL2pp::Texture& texture = texture_manager.get_texture(tex_key);
+                const SDL_Rect detail_world_rect = {x * TILE_SIZE, y * TILE_SIZE,
+                                                    texture.GetWidth(), texture.GetHeight()};
                 const SDL_Rect dst = {(x * TILE_SIZE) - camera.x + camera_screen_offset_x,
                                       (y * TILE_SIZE) - camera.y + camera_screen_offset_y,
                                       texture.GetWidth(), texture.GetHeight()};
+                if (local_player && is_entity_inside_world_rect(*local_player, detail_world_rect)) {
+                    texture.SetAlphaMod(OCCLUDING_DETAIL_ALPHA);
+                }
                 renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
+                texture.SetAlphaMod(OPAQUE_ALPHA);
             } catch (const std::exception& e) {
                 log_render_error_once(tex_key, e);
             }
@@ -707,14 +838,6 @@ void WorldRenderer::render() {
 
     // 4. RENDERIZADO DE TECHOS (Roofs)
     SDL_RenderSetClipRect(renderer.Get(), &view_rect);
-
-    std::optional<SDL_Point> local_player_position;
-    const auto local_player = entities.find(player_entity_key(local_player_id));
-    if (local_player != entities.end()) {
-        local_player_position =
-                SDL_Point{static_cast<int>(local_player->second->get_pixel_x()) + TILE_SIZE / 2,
-                          static_cast<int>(local_player->second->get_pixel_y()) + TILE_SIZE / 2};
-    }
 
     for (int y = start_tile_y; y <= end_tile_y; ++y) {
         for (int x = start_tile_x; x <= end_tile_x; ++x) {
@@ -732,10 +855,8 @@ void WorldRenderer::render() {
                 int tex_h = texture.GetHeight();
 
                 const SDL_Rect roof_world_rect = {x * TILE_SIZE, y * TILE_SIZE, tex_w, tex_h};
-                if (local_player_position &&
-                    SDL_PointInRect(&local_player_position.value(), &roof_world_rect)) {
-                    continue;
-                }
+                const bool should_fade_roof =
+                        local_player && is_entity_inside_world_rect(*local_player, roof_world_rect);
 
                 SDL_Rect dst;
                 dst.x = (x * TILE_SIZE) - camera.x + camera_screen_offset_x;
@@ -743,7 +864,11 @@ void WorldRenderer::render() {
                 dst.w = tex_w;
                 dst.h = tex_h;
 
+                if (should_fade_roof) {
+                    texture.SetAlphaMod(OCCLUDING_ROOF_ALPHA);
+                }
                 renderer.Copy(texture, SDL2pp::NullOpt, SDL2pp::Rect(dst));
+                texture.SetAlphaMod(OPAQUE_ALPHA);
             } catch (const std::exception& e) {
                 log_render_error_once(tex_key, e);
             }

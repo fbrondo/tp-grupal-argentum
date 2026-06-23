@@ -83,7 +83,7 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
         commands_queue(cmmds_queue),
         conf(std::move(conf_)),
         clan_manager(this->conf.paths.clans),
-        world(this->conf.paths.map),
+        world(this->conf.paths.map, this->conf.citizen_detail_spawns),
         persistence(this->conf.paths),
         spawn(this->conf, this->world) {
     this->clan_manager.load();
@@ -991,7 +991,8 @@ Player* Gameloop::findNearestPlayer(const Creature& creature, Id& player_id) {
     Player* nearest = nullptr;
     uint32_t nearest_distance = std::numeric_limits<uint32_t>::max();
     for (auto& [id, player]: this->players) {
-        if (!player->isAlive() || this->world.isSafeZONE(player->getPosition())) {
+        if (!player->isAlive() || this->world.isSafeZONE(player->getPosition()) ||
+            !this->world.isPositionInCreatureZone(creature.getId(), player->getPosition())) {
             continue;
         }
         const uint32_t distance =
@@ -1033,7 +1034,8 @@ void Gameloop::moveCreatureTowards(Id creature_id, Creature& creature, const Pos
 
 void Gameloop::executeCreatureAttack(Creature& creature, Id player_id) {
     Player* victim = this->players.at(player_id).get();
-    if (!victim->isAlive() || this->world.isSafeZONE(victim->getPosition())) {
+    if (!victim->isAlive() || this->world.isSafeZONE(victim->getPosition()) ||
+        !this->world.isPositionInCreatureZone(creature.getId(), victim->getPosition())) {
         return;
     }
 

@@ -34,6 +34,7 @@ public:
     NpcSnapshotData getNpcSnapshotData() const;
 
     std::string getName() const override;
+    Id getId() const { return id; }
     TypeNPC getTypeNPC() const { return type_creature; }
     uint16_t getAggroRange() const;
     bool canAttack() const;
