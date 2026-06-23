@@ -91,7 +91,7 @@ public:
     bool isWalkable(const Id& id_player, const Direction dir);
     bool isCreatureWalkable(const Id& creature_id, Direction dir) const;
     bool isPositionInCreatureZone(const Id& creature_id, const Position& position) const;
-    bool isSafeZONE(const Position& pos);
+    bool isSafeZONE(const Position& pos) const;
 
     Position calculatePositionRandom(const Id& zone_id);
     Position calculatePositionRandomSafeZone();

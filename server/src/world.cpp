@@ -378,7 +378,7 @@ bool World::isPositionInCreatureZone(const Id& creature_id, const Position& posi
     return position_zone != this->position_zones.end() && position_zone->second == creature_zone;
 }
 
-bool World::isSafeZONE(const Position& pos) {
+bool World::isSafeZONE(const Position& pos) const {
     for (const auto& [id, zone]: this->safe_zones) {
         for (const auto& position: zone.tiles) {
             if (position == pos) {

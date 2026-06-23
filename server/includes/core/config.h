@@ -69,10 +69,10 @@ struct TimesConfig {
     uint32_t disappear_dropped_item;
     uint32_t pesistence_data;
     uint32_t npc_attack_cooldown;
-    uint32_t player_attack_cooldown; // <-- Guardado de la segunda versión
+    uint32_t player_attack_cooldown;  // <-- Guardado de la segunda versión
 };
 
-struct CitizenDetailSpawnConfig { // <-- Guardado de la primera versión
+struct CitizenDetailSpawnConfig {  // <-- Guardado de la primera versión
     int detail_sprite_id;
     TypeNPC npc_type;
 };
@@ -82,7 +82,8 @@ struct GameConfig {
     PlayerStateInit player_init{};
     ClanConfig clan{};
     TimesConfig times{};
-    std::vector<CitizenDetailSpawnConfig> citizen_detail_spawns; // <-- Guardado de la primera versión
+    std::vector<CitizenDetailSpawnConfig>
+            citizen_detail_spawns;  // <-- Guardado de la primera versión
     std::map<TypeRace, Race> races;
     std::map<TypeClase, Clase> clases;
     std::map<std::string, NpcSafeZone> npcs;

@@ -352,7 +352,7 @@ void GameConfigLoader::loadGame(PlayerStateInit& player_state_init, ClanConfig& 
                 citizen_detail_spawns.push_back(spawn_config);
             }
         }
-      
+
         times.player_attack_cooldown =
                 static_cast<uint32_t>(times_info["player_attack_cooldown"].value_or(1000));
 
