@@ -36,7 +36,10 @@ public:
         thread = std::thread(&Thread::main, this);
     }
 
-    void join() override { thread.join(); }
+    void join() override {
+        if (thread.joinable())
+            thread.join();
+    }
 
     void main() {
         try {

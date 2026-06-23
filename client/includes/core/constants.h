@@ -102,7 +102,7 @@ constexpr int EQUIPMENT_ARMOR_X = PANEL_RIGHT_X + 145;
 constexpr int EQUIPMENT_SHIELD_X = PANEL_RIGHT_X + 205;
 
 // --- FONTS --- //
-static constexpr auto FONT_PATH = "client/assets/Fonts/";
+static constexpr auto FONT_PATH = ARGENTUM_SHARE_PATH "/client/assets/Fonts/";
 
 // --- CHAT COLORS --- //
 enum MessageColor { COLOR_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW, COLOR_BLUE };
