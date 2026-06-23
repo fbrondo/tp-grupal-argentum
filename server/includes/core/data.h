@@ -9,11 +9,7 @@
 #include "server/includes/core/map.h"
 constexpr size_t MAX_DATA = 30;
 
-#pragma pack(push, 1);
-struct ItemInstanceData {
-    uint8_t type_item;
-    Position position;
-};
+#pragma pack(push, 1)
 
 struct SlotData {
     uint8_t type_item;

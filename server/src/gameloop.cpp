@@ -91,6 +91,9 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
     if (persistence.worldStateExists()) {
         Print::printInitGameloop("CARGANDO WORLD");
         WorldStateData world_data = persistence.loadWorldState();
+        this->loadCitizenNPCs(world_data);
+        this->loadCreatures(world_data);
+        this->loadItemsInTheFloor(world_data);
     } else {
         Print::printInitGameloop("INICIANDO WORLD");
         this->spawn.spawnCitizenNpcZones(this->next_npc_id, this->citizen_npcs, this->bank);
@@ -100,6 +103,31 @@ Gameloop::Gameloop(GameConfig&& conf_, MonitorQueues& monitor, QueueCmd& cmmds_q
     Print::printMessageConsole("FINAL CONSTRUCTOR GAMELOOP");
 }
 
+void Gameloop::loadCreatures(const WorldStateData& world_data) {
+    for (const auto& data: world_data.creatures) {
+        this->next_npc_id += 1;
+        auto creature = this->spawn.loadCreature(next_npc_id, data);
+        this->creatures.emplace(this->next_npc_id, std::move(creature));
+    }
+    Print::printMessageConsole("SE TERMINO DE CARGAR LAS CRIATURAS");
+}
+
+void Gameloop::loadCitizenNPCs(const WorldStateData& world_data) {
+    for (const auto& data: world_data.citizen) {
+        this->next_npc_id += 1;
+        auto citizen = this->spawn.loadCitizen(next_npc_id, data, this->bank);
+        this->citizen_npcs.emplace(next_npc_id, std::move(citizen));
+    }
+    Print::printMessageConsole("SE TERMINO DE CARGAR LOS CIUDADANOS");
+}
+
+void Gameloop::loadItemsInTheFloor(const WorldStateData& world_data) {
+    this->spawn.loadTreasuresZones(world_data.treasures);
+    this->spawn.loadGoldBags(world_data.gold_bags);
+    this->spawn.loadItems(world_data.items);
+}
+
+
 Character Gameloop::createCharacter(const CharacterTraits& traits) const {
     const auto type_race = static_cast<TypeRace>(traits.race);
     const auto type_clase = static_cast<TypeClase>(traits.clase);
@@ -108,54 +136,59 @@ Character Gameloop::createCharacter(const CharacterTraits& traits) const {
     return Character(race, clase, traits.head, traits.body);
 }
 
+Equipment Gameloop::loadingEquipment(const PlayerData& player) const {
+    Equipment result;
+    for (const auto& data: player.equipment) {
+        const auto type = static_cast<TypeItem>(data.type_item);
+        if (type == NONE)
+            continue;
+        const auto item = this->conf.items.at(type).get();
+        auto instance = std::make_unique<ItemInstance>(item);
+        result.equipItem(std::move(instance));
+    }
+    return result;
+}
+
 Inventory Gameloop::loadingInventory(const PlayerData& player) const {
     Inventory result(player.golden, this->conf.player_init.max_slots,
                      this->conf.player_init.capacity_slot);
-    for (const auto& item_data: player.inventory) {
-        const auto type = static_cast<TypeItem>(item_data.type_item);
-        if (type == NONE) {
+    for (const auto& data: player.inventory) {
+        const auto type = static_cast<TypeItem>(data.type_item);
+        if (type == NONE)
             continue;
-        }
         const auto item = this->conf.items.at(type).get();
-        for (uint32_t i = 0; i < item_data.quantity; ++i) {
-            result.addItemToInventory(item);
-        }
-    }
-    if (!result.itemInInventory(DEBUG_EQUIPMENT_ITEM)) {  // prueba inventario
-        if constexpr (DEBUG_EQUIPMENT_ITEM == NONE) {
-            return result;
-        }
-        const auto item = this->conf.items.at(DEBUG_EQUIPMENT_ITEM).get();
-        if (item != nullptr) {
+        for (uint32_t i = 0; i < data.quantity; ++i) {
             result.addItemToInventory(item);
         }
     }
     return result;
 }
 
+void Gameloop::loadAccountBank(const PlayerData& player) {
+    std::string username(player.username);
+    const auto& slots = player.box;
+    Account account(player.golden_dep);
+    for (const auto& data: slots) {
+        const auto type = static_cast<TypeItem>(data.type_item);
+        const auto* item = this->conf.items.at(type).get();
+        account.loadItemAccount(item, data.quantity);
+    }
+    this->bank.accounts[username] = std::move(account);
+}
+
 void Gameloop::loadingPlayerData(const Id& player_id, const PlayerData& player_data) {
     Character charact = this->createCharacter(player_data.charact_traits);
     Inventory inv = this->loadingInventory(player_data);
-
-
-    std::cerr << "[LOAD] player=" << player_id
-              << " inventory_slots=" << player_data.inventory.size()
-              << " equipment_slots=" << player_data.equipment.size() << std::endl;
-
+    Equipment equip = this->loadingEquipment(player_data);
     Position position = this->world.findNearbyFreePosition(player_data.position);
     auto dir = static_cast<Direction>(player_data.direction);
     Pose pose(position, dir);
-    auto new_player =
-            std::make_unique<Player>(pose, std::move(inv), std::move(charact), player_data);
-    for (const size_t slot_idx: player_data.equipment) {
-        bool ok = new_player->equipItem(slot_idx);
-        std::cerr << "[LOAD] equipItem(slot=" << slot_idx << ") ok=" << ok
-                  << " hand_item=" << static_cast<int>(new_player->getHandItem()) << std::endl;
-    }
-    std::cerr << "[LOAD] final hand_item=" << static_cast<int>(new_player->getHandItem())
-              << std::endl;
+    auto new_player = std::make_unique<Player>(pose, std::move(inv), std::move(equip),
+                                               std::move(charact), player_data);
+
     this->players.emplace(player_id, std::move(new_player));
     this->world.addPlayerWorld(player_id, pose);
+    this->loadAccountBank(player_data);
 }
 
 void Gameloop::createNewPlayer(const User& user, const CharacterTraits& traits) {
@@ -164,9 +197,8 @@ void Gameloop::createNewPlayer(const User& user, const CharacterTraits& traits) 
     Pose pose_spawn(position_spawn, DOWN);
     auto new_player =
             std::make_unique<Player>(User(user), pose_spawn, std::move(ch), this->conf.player_init);
-
-    const PlayerData player_data = new_player->getPlayerData();
-    std::cerr << "[CREATE] saved equipment slots: " << player_data.equipment.size() << std::endl;
+    this->bank.accounts.emplace(user.username, Account(0));
+    const PlayerData player_data = new_player->getPlayerData(this->bank);
     this->persistence.savePlayer(player_data);
 }
 
@@ -195,6 +227,7 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
                 player_id, std::make_unique<ResponseLogin>(false, player_id, INVALID_PASSWORD));
         return;
     }
+    Print::printMessageConsole("llega hasta aqui");
     this->loadingPlayerData(player_id, data);
     const std::string login_clan = this->clan_manager.getClanOf(data.username);
     if (!login_clan.empty()) {
@@ -205,15 +238,18 @@ void Gameloop::processHandleLogin(const Id& player_id, const User& user) {
             }
         }
     }
+    Print::printMessageConsole("llega hasta aqui");
     this->monitor.queueTheServerResponse(player_id,
                                          std::make_unique<ResponseLogin>(true, player_id));
     Map map = this->world.getMap();
     auto citizen_snapshot = ResponseBuilder::buildCitizenNpcSnapshot(this->citizen_npcs);
     this->monitor.queueTheServerResponse(
             player_id, std::make_unique<ResponseMap>(std::move(map), std::move(citizen_snapshot)));
-    const auto inv = this->players.at(player_id)->getSlotsInventory();
-    MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
-    this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
+    this->sendUpdateInventoryToPlayer(player_id, *this->players.at(player_id).get());
+    this->sendUpdateEquipmentToPlayer(player_id, *this->players.at(player_id).get());
+    // const auto inv = this->players.at(player_id)->getSlotsInventory();
+    // MsgInventoryUpdate inv_msg{INVENTORY_UPDATE, inv};
+    // this->sendResponseToPlayer(player_id, std::make_shared<ResponseInventoryUpdate>(inv_msg));
     const auto pending_it = this->pending_clan_msgs.find(std::string(data.username));
     if (pending_it != this->pending_clan_msgs.end()) {
         for (const auto& msg: pending_it->second) {
@@ -272,14 +308,14 @@ void Gameloop::updateAttackCooldown(const uint32_t& delta_ms) {
     }
 }
 
-bool Gameloop::isItPossibleToAttack(const Id& player_id, const CombatEntity& victim,
-                                    Weapon& weapon) {
+bool Gameloop::isItPossibleToAttack(Player& player, const CombatEntity& victim, Weapon& weapon) {
     auto* magic_weapon = dynamic_cast<MagicWeapon*>(&weapon);
-    if (magic_weapon && !this->players[player_id]->hasEnoughMana(magic_weapon->mana_cost)) {
+    if (magic_weapon && !player.hasEnoughMana(magic_weapon->mana_cost)) {
         return false;
     }
     // TODO: Review distanceBetweenTheAttackerAndTheVictim
-    const Position& attacker_pos = this->world.positionPlayerInTheWorld(player_id);
+    const Position& attacker_pos =
+            player.getPosition();  // this->world.positionPlayerInTheWorld(player_id);
     const Position& victim_pos = victim.getPosition();
     int distance = std::abs(static_cast<int>(attacker_pos.x) - static_cast<int>(victim_pos.x)) +
                    std::abs(static_cast<int>(attacker_pos.y) - static_cast<int>(victim_pos.y));
@@ -325,7 +361,6 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
     }
     const TypeItem weapon_type = attacker->getHandItem();
     if (weapon_type == NONE) {
-        std::cerr << "[ATTACK] blocked: no weapon equipped\n";
         return;
     }
     if (weapon_type == ELVEN_FLUTE) {
@@ -341,6 +376,8 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         const Position position = attacker->getPosition();
         this->effects.emitVisual(VisualEffectID::BE_HEALED, position);
         attacker->breakMeditation();
+        this->reportPlayerInterruptedMeditation(attacker_id, *attacker);
+        attacker->resetAttackCooldown(this->conf.times.player_attack_cooldown);
         return;
     }
     if (attacker_id == victim_id)
@@ -348,44 +385,33 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
 
     CombatEntity* victim = this->inSearchOfTheVictimAttack(victim_id);
     if (!victim || !victim->isAlive()) {
-        std::cerr << "[ATTACK] blocked: victim not found or dead\n";
         return;
     }
     if (!attacker->isValidOpponent(dynamic_cast<Player*>(victim))) {
-        std::cerr << "[ATTACK] blocked: invalid opponent (fair play)\n";
         return;
     }
     /*DEBERIA EVALUARSE EN EL PLAYER ?*/
     if (const auto* victim_player = dynamic_cast<Player*>(victim)) {
         if (this->clan_manager.areInSameClan(attacker->getName(), victim_player->getName())) {
-            std::cerr << "[ATTACK] blocked: same clan\n";
             return;
         }
     }
     const auto weapon = dynamic_cast<Weapon*>(this->conf.items.at(weapon_type).get());
     if (!weapon) {
-        std::cerr << "[ATTACK] blocked: equipped item is not a weapon\n";
         return;
     }
-
     /*ESTOS DOS IF LOS PODEMOS COMBINAR EN UNO*/
-    const Position attacker_pos = this->world.positionPlayerInTheWorld(attacker_id);
+    const Position attacker_pos =
+            attacker->getPosition();  // this->world.positionPlayerInTheWorld(attacker_id);
     if (this->world.isSafeZONE(attacker_pos)) {
-        std::cerr << "[ATTACK] blocked: attacker is in safe zone\n";
         return;
     }
     /*El dynamicast es redundante, getPosition es de la clase clase combatiente*/
     if (dynamic_cast<Player*>(victim) && this->world.isSafeZONE(victim->getPosition())) {
-        std::cerr << "[ATTACK] blocked: victim is in safe zone\n";
         return;
     }
 
-    if (!this->isItPossibleToAttack(attacker_id, *victim, *weapon)) {
-        const Position& vpos = victim->getPosition();
-        int dist = std::abs(static_cast<int>(attacker_pos.x) - static_cast<int>(vpos.x)) +
-                   std::abs(static_cast<int>(attacker_pos.y) - static_cast<int>(vpos.y));
-        std::cerr << "[ATTACK] blocked: out of range (dist=" << dist
-                  << " range=" << weapon->range_attack << ")\n";
+    if (!this->isItPossibleToAttack(*attacker, *victim, *weapon)) {
         return;
     }
 
@@ -399,6 +425,7 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         }
         auto mssg = GameMessageBuilder::messgTheOpponentDodgedTheAttack(victim->getName());
         this->sendCombatMessage(attacker_id, mssg);
+        attacker->resetAttackCooldown(this->conf.times.player_attack_cooldown);
         Print::printEvasiveMessageAttack(victim->getName());
         return;
     }
@@ -429,12 +456,6 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         this->effects.emitVisual(VisualEffectID::BE_ATTACKED, victim_position, victim_id);
     }
 
-    std::cerr << "[ATTACK] HIT attacker=" << attacker_id << " -> victim=" << victim_id
-              << " dmg=" << damage_by_attacker << " critical="
-              << is_critical
-              //<< " hp=" << victim->getHp() - damage_by_attacker << "/" << victim->getMaxHp()
-              << std::endl;
-
     victim->receiveDamage(damage_by_attacker, this->world);
     attacker->earnExperiencePoints(victim, damage_by_attacker);
 
@@ -449,24 +470,29 @@ void Gameloop::executeAttackPlayer(const Id& attacker_id, const Id& victim_id) {
         this->effects.emitSound(SoundEffectID::MUERTE_HOMBRE, victim->getPosition());
 
     if (victim_died && victim_is_creature) {
-        this->creatures.erase(victim_id);
         this->effects.emitSound(SoundEffectID::DROP_ESPECIAL_NPC, victim->getPosition());
     }
 
-    if (const auto victim_player = dynamic_cast<Player*>(victim)) {
-        this->reportPlayerInterruptedMeditation(victim_id, *victim_player);
-        this->reportAttackByAPlayerOnClanmates(*victim_player);
-        auto messg = GameMessageBuilder::damageMessgToThePlayer(attacker->getName(),
-                                                                damage_by_attacker, victim_died);
-        this->sendCombatMessage(victim_id, messg);
-        if (victim_died) {
-            this->sendUpdateEquipmentToPlayer(victim_id, *victim_player);
-            this->sendUpdateInventoryToPlayer(victim_id, *victim_player);
+    if (!victim_is_creature) {
+        if (const auto victim_player = dynamic_cast<Player*>(victim)) {
+            this->reportPlayerInterruptedMeditation(victim_id, *victim_player);
+            this->reportAttackByAPlayerOnClanmates(*victim_player);
+            auto messg = GameMessageBuilder::damageMessgToThePlayer(
+                    attacker->getName(), damage_by_attacker, victim_died);
+            this->sendCombatMessage(victim_id, messg);
+            if (victim_died) {
+                this->sendUpdateEquipmentToPlayer(victim_id, *victim_player);
+                this->sendUpdateInventoryToPlayer(victim_id, *victim_player);
+            }
         }
     }
     auto messg = GameMessageBuilder::messgAboutDamageDealtByThePlayer(
             victim->getName(), damage_by_attacker, victim_died);
     this->sendCombatMessage(attacker_id, messg);
+
+    if (victim_died && victim_is_creature) {
+        this->creatures.erase(victim_id);
+    }
 
     const auto magic_weapon = dynamic_cast<MagicWeapon*>(weapon);
     if (magic_weapon)
@@ -492,13 +518,18 @@ void Gameloop::processMovePlayer(Id player_id, Direction dir) {
                                 this->players[player_id]->getPosition());
         use_second_step = !use_second_step;
     }
+    // else {
+    //     std::cerr << "[MOVE] rejected player=" << player_id << " reason=not_walkable" <<
+    //     std::endl;
+    // }
 }
 
 void Gameloop::processPlayerDisconnet(Id player_id) {
     if (!this->players.contains(player_id)) {
         return;
     }
-    const std::string logout_username = this->players.at(player_id)->getName();
+    const auto& player = this->players.at(player_id);
+    const std::string logout_username = player->getName();
     const std::string logout_clan = this->clan_manager.getClanOf(logout_username);
     if (!logout_clan.empty()) {
         const std::string notif = logout_username + " se desconectó.";
@@ -509,6 +540,7 @@ void Gameloop::processPlayerDisconnet(Id player_id) {
             }
         }
     }
+    this->updateStatePlayer(*player);
     this->world.removePlayer(player_id);
     this->pending_resurrects.erase(player_id);
     this->next_step_is_second.erase(player_id);
@@ -1094,19 +1126,27 @@ void Gameloop::updatePendingResurrects(const uint32_t& delta_ms) {
     }
 }
 
+void Gameloop::updateStatePlayer(Player& player) {
+    PlayerData data = player.getPlayerData(this->bank);
+    this->persistence.schedulePlayers(std::move(data));
+}
+
 void Gameloop::updateStateWorld() {
     WorldStateData world_state = this->world.buildWorldState();
     for (const auto& creature: this->creatures | std::views::values) {
         CreatureData data = creature->getCreatureData();
         world_state.creatures.push_back(data);
     }
+    for (const auto& citizen: this->citizen_npcs | std::views::values) {
+        CitizenNpcData data = citizen->getCitizenNPCData();
+        world_state.citizen.emplace_back(data);
+    }
     this->persistence.scheduleWorld(std::move(world_state));
 }
 
 void Gameloop::updateStatePlayers() {
     for (const auto& player: this->players | std::views::values) {
-        PlayerData data = player->getPlayerData();
-        this->persistence.schedulePlayers(std::move(data));
+        this->updateStatePlayer(*player);
     }
 }
 
@@ -1121,7 +1161,6 @@ void Gameloop::run() {
         while (should_keep_running()) {
             this->executeRequest();
             this->updateCreatures(TICK_MS);
-            // Aqui estaba lo de resurrecion, lo pase a una funcion
             this->updatePendingResurrects(TICK_MS);
             this->updateAttackCooldown(TICK_MS);
             timer_attributes += TICK_MS;
@@ -1137,6 +1176,7 @@ void Gameloop::run() {
             timer_persistence += TICK_MS;
             if (timer_persistence >= this->conf.times.pesistence_data) {
                 this->updateStatePlayers();
+                this->updateStateWorld();
                 timer_persistence = 0;
             }
             this->executeBroacastSnapshot();
