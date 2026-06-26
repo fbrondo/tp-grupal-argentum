@@ -1,0 +1,40 @@
+@startuml seq_command
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam ArrowColor #444444
+skinparam sequenceLifeLineBorderColor #888888
+skinparam participantBorderColor #555555
+skinparam noteBorderColor #888888
+skinparam noteBackgroundColor #LightYellow
+
+title Argentum Online - Flujo de un comando recibido
+
+actor "Jugador" as P
+box "Cliente" #F4FBF4
+  participant "Client\n(main thread)" as C #LightGreen
+  participant "ClientSender\n(thread)" as CCS #LightCyan
+  participant "ClientReceiver\n(thread)" as CCR #LightCyan
+end box
+box "Servidor" #F2F7FB
+  participant "ClientReceiver\n(thread)" as SCR #LightCyan
+  participant "Queue<Command>" as Q #LightYellow
+  participant "Gameloop\n(thread)" as GL #LightGreen
+  participant "MonitorQueues" as MQ #LightYellow
+  participant "ClientSender\n(thread)" as SCS #LightCyan
+end box
+
+P -> C : ejecuta una acción\n(mover, atacar, chat, ...)
+C -> CCS : push(Command)
+CCS -[#0066CC,bold]> SCR : send → socket (binario)
+SCR -> SCR : deserializa\nel Command
+SCR -> Q : push(Command)
+
+Q -> GL : pop(Command)
+GL -> GL : Command.execute(Gameloop&)\nactualiza estado del mundo
+GL -> MQ : push(Response)
+
+MQ -> SCS : pop(Response)
+SCS -[#0066CC,bold]> CCR : send → socket (binario)
+CCR -> C : encola snapshot/evento
+C -> P : aplica y renderiza
+@enduml

@@ -1,0 +1,40 @@
+@startuml server_network
+skinparam componentStyle rectangle
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam ArrowColor #444444
+skinparam nodeBorderColor #555555
+skinparam packageBorderColor #888888
+skinparam componentBorderColor #555555
+skinparam noteBorderColor #888888
+skinparam noteBackgroundColor #LightYellow
+
+title Argentum Online - Arquitectura interna del servidor
+
+node "taller_server" as Server {
+
+  component [Acceptor\n──────────\nacepta conexiones\nTCP entrantes] as A #LightCyan
+
+  package "Por cada cliente conectado" as PerClient {
+    component [ClientReceiver\n──────────\nlee socket\nencola comando recibido] as CR #LightCyan
+    component [ClientSender\n──────────\ndesencola respuesta\nescribe en el socket] as CS #LightCyan
+  }
+
+  component [Queue<Command>\n──────────\ncola compartida\nde comandos] as Q #LightYellow
+
+  component [Gameloop\n──────────\nprocesa commands\nactualiza estado del mundo\nbroadcast snapshot] as GL #LightGreen
+
+  component [MonitorQueues\n──────────\ncola individual\npor jugador] as MQ #LightYellow
+
+  component [Persistence\n──────────\nguarda estado\nen disco] as PS #LightPink
+
+}
+
+A  ..>  PerClient  : crea 1 par\npor conexión
+CR -[#0066CC,bold]->  Q   : push Command
+Q  -[#0066CC,bold]->  GL  : pop Command
+GL -[#0066CC,bold]->  MQ  : push Response
+MQ -[#0066CC,bold]->  CS  : pop Response
+GL --> PS                 : referencia
+
+@enduml

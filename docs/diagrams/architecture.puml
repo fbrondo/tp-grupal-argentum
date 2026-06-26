@@ -1,0 +1,36 @@
+@startuml architecture
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam defaultFontSize 12
+skinparam ArrowColor #444444
+skinparam nodeBorderColor #555555
+skinparam databaseBorderColor #555555
+skinparam fileBorderColor #777777
+skinparam noteBorderColor #888888
+skinparam noteBackgroundColor #LightYellow
+
+title Argentum Online - Arquitectura del sistema
+
+node "taller_client\n(SDL2)" as Client #LightGreen
+node "taller_launcher\n (Qt6)" as Launcher #LightSkyBlue
+node "taller_server\n" as Server #LightBlue
+node "taller_editor\n(Qt6)" as Editor #LightPink
+
+database "players.dat\nworld.dat\n..." as DataDB
+file "Archivos Toml: \n - paths.toml\n - game.toml\n - ..." as Cfg
+file "map-name.toml" as Maps
+
+Launcher -down->  Client : lanza
+Client  <-[#0066CC,bold]->  Server  : Protocolo TCP binario
+
+Server  -down->  DataDB : lee / escribe
+Server  -down->  Cfg    : lee al inicio
+Server  -down->  Maps   : lee al inicio
+Editor  -down->  Maps   : crea / edita
+
+note as Note1
+  taller_common (lib estática)
+  linkeada por cada uno de los módulos
+end note
+
+@enduml

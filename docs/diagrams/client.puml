@@ -1,0 +1,73 @@
+@startuml client
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #444444
+skinparam classBorderColor #555555
+skinparam noteBorderColor #888888
+skinparam noteBackgroundColor #LightYellow
+
+title Argentum Online - Clases principales del cliente
+
+class Client #LightGreen {
+  - socket : Socket
+  - gameState : GameState
+  + run()
+  + login()
+  + stop()
+}
+
+class ClientReceiver #LightCyan {
+  - socket : Socket
+  + run()
+}
+
+class ClientSender #LightCyan {
+  - socket : Socket
+  + run()
+}
+
+class "Queue<EventClient>" as EventQueue #LightYellow {
+  + push(EventClient)
+  + try_pop() : optional<EventClient>
+}
+
+class "Queue<CommandClient>" as CmdQueue #LightYellow {
+  + push(CommandClient)
+  + pop() : CommandClient
+}
+
+class WorldRenderer #WhiteSmoke {
+  + render(GameState&) : void
+  + updateAnimations(deltaMs) : void
+}
+
+class HudRenderer #WhiteSmoke {
+  + renderStats(GameState&) : void
+  + renderInventory(GameState&) : void
+  + renderChat(GameState&) : void
+}
+
+class SoundManager #WhiteSmoke {
+  + playSound(SoundEvent) : void
+  + setVolumeByDistance(dist) : void
+}
+
+class TextureManager #WhiteSmoke {
+  + getTexture(id) : Texture&
+  + loadSprites() : void
+}
+
+Client *-- ClientReceiver
+Client *-- ClientSender
+Client *-- WorldRenderer
+Client *-- HudRenderer
+Client *-- SoundManager
+Client *-- TextureManager
+
+ClientReceiver -[#0066CC]-> EventQueue : push
+Client -[#0066CC]-> EventQueue         : try_pop (main loop)
+
+Client -[#0066CC]-> CmdQueue           : push (input)
+ClientSender -[#0066CC]-> CmdQueue     : pop
+@enduml

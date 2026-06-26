@@ -1,0 +1,73 @@
+@startuml entities
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #444444
+skinparam classBorderColor #555555
+skinparam noteBorderColor #888888
+skinparam noteBackgroundColor #LightYellow
+
+title Argentum Online - Entidades del juego
+
+abstract class Entity #WhiteSmoke {
+  + id : uint32_t
+  + position : Position
+  + direction : Direction
+}
+
+abstract class CombatEntity #WhiteSmoke {
+  + hp : int
+  + hpMax : int
+  + level : int
+  + receiveDamage(dmg) : void
+  + isAlive() : bool
+  + canAttack() : bool
+}
+
+class Player #LightGreen {
+  + nick : string
+  + isGhost : bool
+  + isMeditating : bool
+  + inventory : Inventory
+  + equipment : Equipment
+  + character : Character
+  + meditate() : void
+  + resurrect() : void
+}
+
+class Creature #LightPink {
+  + type : TypeNPC
+  + rangeAttack : int
+  + lootDrop : vector<Item>
+  + update(deltaMs) : void
+  + onDeath() : void
+}
+
+abstract class CitizenNPC #WhiteSmoke {
+  + type : TypeNPC
+  + interact(Player&) : void
+}
+
+class Banker #LightCyan {
+  + deposit(Player&, item) : void
+  + withdraw(Player&, item) : void
+}
+
+class Priest #LightCyan {
+  + heal(Player&) : void
+  + resurrect(Player&) : void
+}
+
+class Merchant #LightCyan {
+  + sell(Player&, itemId) : void
+  + buy(Player&, itemId) : void
+}
+
+Entity <|-- CombatEntity
+CombatEntity <|-- Player
+CombatEntity <|-- Creature
+Entity <|-- CitizenNPC
+CitizenNPC <|-- Banker
+CitizenNPC <|-- Priest
+CitizenNPC <|-- Merchant
+@enduml
