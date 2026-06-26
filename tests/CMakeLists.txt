@@ -5,6 +5,7 @@ target_sources(taller_tests
     map_test.cpp
     sprite_loader_test.cpp
     protocol_test.cpp
+    ../client/src/client_protocol.cpp
     PUBLIC
     # .h files
     )
