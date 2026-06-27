@@ -286,7 +286,7 @@ Las tres clases principales son LoginWindow, que maneja la ventana principal con
 
 ## 7. Protocolo de comunicación
 
-**TODO:** Linkear a docu de protocolo
+[Ver informe en PDF](./formato_protocolo.pdf)
 ---
 
 ## 8. Persistencia
