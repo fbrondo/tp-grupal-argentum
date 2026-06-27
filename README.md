@@ -1,6 +1,11 @@
-# TP Grupal - Argentum Online 
+# TP Grupal - Argentum Online
 
-## Estructura del repositorio
+**Argentum Online** es un juego 2D de fantasía desarrollado en C++20 para Taller de Programación I (FIUBA). El proyecto consta de un servidor multithread, un cliente SDL2, un editor de mapas y lanzador del juego en Qt6, y una biblioteca común.
+
+## Links
+
+- [ZIP del entregable final](https://drive.google.com/file/d/1jjuzMLv_e9tvHLsuSmVOa8MCewp-4_jB/view?usp=sharing)
+- [Video promocional](https://drive.google.com/file/d/1qcheQhJHlsxWcNqGsdA8N2mvyep6Mwgj/view?usp=sharing)
 
 ```
 client/
@@ -88,5 +93,4 @@ pre-commit run clang-format --all-files
 
 ## CI/CD
 
-## Links
-[TOML C++ Marzer](https://marzer.github.io/tomlplusplus/)
+- [TOML C++ Marzer](https://marzer.github.io/tomlplusplus/)
